@@ -1,0 +1,22 @@
+This folder is a place to store macro files loading your data files. The macro files will be loaded when KM is started.
+
+The following is instruction to write and use your own data-loading function.
+
+(1) Writing a data-loading function
+
+A data loading function of KM is required to receive a string parameter and return a wave reference. Namely, the prototype of data-loading functions are
+
+Function/WAVE prototypefunciton(str)
+   String str
+End
+
+The absolute path to a data file is passed to the string parameter. A wave or a wave having references to waves, created by the data-loading function, is expected as the return wave. This wave reference may be used for next step such as KMDisplay.
+
+If you want to store experimental parameters save in you data file, it is recommended to store them as global variables and global strings in a data folder. If the data folder is placed in the same data folder as data waves created by your data-loading function and its name is given by a string constant ks_dfsettings, those experimental parameters are displayed in Preview and Data Parameter in the context menu of ImageView and LayerView.
+
+
+(2) Using a data-loading function
+
+The main routine loading a data file passes the absolute path to the file to each data-loading function based on the extension of the data file. To define relationship between an extension and your data-loading function, you need to edit "Function List.txt". Instruction to edit the file is written in the file.
+
+Restart KM after putting the macro file of your data-loading function in this folder and editing "Function List.txt", and you can use your own data-loading function.

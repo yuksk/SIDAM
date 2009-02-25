@@ -1,0 +1,15 @@
+dd *[lang="en"] {
+	display: none;
+}
+
+#language > span[lang="ja"] {
+	color: #000;
+	text-decoration: none;
+	cursor: text;
+}
+
+#language > span[lang="en"] {
+	color: blue;
+	text-decoration: underline;
+	cursor: pointer;
+}

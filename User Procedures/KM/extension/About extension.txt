@@ -1,0 +1,14 @@
+This is a special folder of Kohsaka Macro.
+
+This folder is avaiable to include your own macro files and color tables to Kohsaka macro. Files in this folder are included when the macro is launched. When at least one file exists in this folder, "Extension" of KM menu is available. You can extend menu items to invoke you functions from the menu.
+
+This folder can be used to make shortcuts for yourself as well. Here is an example to invoke your function and make a shortcut (Ctrl+1) setting a color scale (Autumn) to the top window. Save this example with an arbitrary file name (but it must be different from existing macro files) in this folder, and you can use the shortcut.
+
+Menu "KM"
+	SubMenu "Extension"
+		"Something", /Q, YourFunction()
+		SubMenu "shortcut"
+			"Set Autunm/1", /Q, KMColor(ctable="Autumn")
+		End
+	End
+End

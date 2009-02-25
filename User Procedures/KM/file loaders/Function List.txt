@@ -1,0 +1,18 @@
+//	This file defines functions used to load data files.
+//	Functions are chosen by extensions.
+//	Lines beginning with "//" are comment lines.
+
+//  Nanonis sxm, nsp
+sxm,nsp:LoadNanonisSxmNsp
+
+//  Nanonis dat
+dat:LoadNanonisDat
+
+//  Nanonis 3ds
+3ds:LoadNanonis3ds
+
+//  SM2
+sm2:LoadRHKSM2
+
+//  Topometrix
+tfr,tfp,ffr,ffp,1fr,1fp,2fr,2fp,iv1,iv2,1fl,2fl,di1,di2,is1,is2:LoadTopometrix
