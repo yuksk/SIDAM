@@ -750,7 +750,7 @@ Menu "KMLineSpectraMenu", dynamic, contextualmenu
 		KMLineCommon#pnlRightClickMenu(3), KMLineSpectra#pnlRightClickDo(3)
 		KMLineCommon#pnlRightClickMenu(4), KMLineSpectra#pnlRightClickDo(4)
 	End
-	"Extract...", KMLineSpectra#outputPnl(WinName(0,1))
+	"Save...", KMLineSpectra#outputPnl(WinName(0,1))
 	"-"
 	KMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
 	KMLineCommon#pnlRightClickMenu(8),/Q, KMColor(grfName=WinName(0,1)+"#image")

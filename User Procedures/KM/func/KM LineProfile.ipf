@@ -585,7 +585,7 @@ Menu "KMLineProfileMenu", dynamic, contextualmenu
 		KMLineCommon#pnlRightClickMenu(3), KMLineProfile#pnlRightClickDo(3)
 		KMLineCommon#pnlRightClickMenu(4), KMLineProfile#pnlRightClickDo(4)
 	End
-	"Extract...", KMLineProfile#outputPnl(WinName(0,1))
+	"Save...", KMLineProfile#outputPnl(WinName(0,1))
 	"-"
 	KMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
 	KMLineCommon#pnlRightClickMenu(8),/Q, KMColor(grfName=WinName(0,1)+"#image")

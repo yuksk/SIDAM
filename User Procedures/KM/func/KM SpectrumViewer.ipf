@@ -193,7 +193,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			endif
 			//	以下表示領域で有効
 			if (s.eventMod&2^3)	//  ctrlキーが押されていたらウエーブを出力
-				extractSpectrum(s.winName)
+				saveSpectrum(s.winName)
 			else
 				pnlHookClick(s)
 			endif
@@ -469,7 +469,7 @@ Menu "KMSpectrumViewerMenu", dynamic, contextualmenu
 	SubMenu "Complex"
 		KMSpectrumViewer#rightclickMenuComplex(), KMSpectrumViewer#rightclickDoComplex()
 	End
-	"Extract", KMSpectrumViewer#extractSpectrum(WinName(0,1))
+	"Save", KMSpectrumViewer#saveSpectrum(WinName(0,1))
 	"-"
 	"Help", KMOpenHelpNote("spectrumviewer",pnlName=WinName(0,1),title="Spectrum Viewer")
 End
@@ -565,7 +565,7 @@ End
 //-------------------------------------------------------------
 //	指定点におけるウエーブを抜き出す
 //-------------------------------------------------------------
-Static Function/WAVE extractSpectrum(String pnlName)
+Static Function/WAVE saveSpectrum(String pnlName)
 	String pnlListStr = GetUserData(pnlName,"","KMSpectrumViewerPnl")
 	int n = ItemsInList(pnlListStr)
 	if (n)	//	親ウインドウで ctrl + click された場合
