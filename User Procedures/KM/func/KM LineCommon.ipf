@@ -602,14 +602,14 @@ Static Function pnlRightclickDoPositions(String pnlName)
 			p2 = p1;	q2 = ny-1
 			break
 		case 6:	//	horizontal
-			p1 = 0;	p2 = nx-1;	q2 = q1
+			p1 = 0;	p2 = nx-1;	q1 = DimSize(w,1)/2;	q2 = q1
 			break
 		case 7:	//	vertial
-			q1 = 0; 	p2 = p1;		q2 = ny-1
+			q1 = 0; 	q2 = ny-1;	p1 = DimSize(w,0)/2-1;	p2 = p1;
 			break
 		case 9:	//	exchange
-			Variable tmp0 = p2, tmp1 = q2
-			p2 = p1;	q2 = q1;	p1 = tmp0;	q1 = tmp1
+			Wave cw = KMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
+			p1 = cw[2];	q1 = cw[3];	p2 = cw[0];	q2 = cw[1]
 			break
 	endswitch
 	SetVariable p1V value=_NUM:p1, win=$pnlName
