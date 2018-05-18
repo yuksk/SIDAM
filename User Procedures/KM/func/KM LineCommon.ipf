@@ -556,7 +556,7 @@ Static Function/S pnlRightClickMenu(int mode)
 			
 		case 4:	//	Highlight
 			Variable highlight = str2num(GetUserData(pnlName,"","highlight"))	//	2Dの時は nan が入る
-			return SelectString(highlight, "Highlight", "! Highlight")				//	nan　に対しては空文字を返す
+			return SelectString(dim==2, "","(") + SelectString(highlight, "Highlight", "! Highlight")				//	nan　に対しては空文字を返す
 			
 		case 7:	//	Range
 			return SelectString(dim==2, "(","") + "Range..."
