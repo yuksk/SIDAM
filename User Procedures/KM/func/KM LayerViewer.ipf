@@ -464,7 +464,7 @@ End
 //-------------------------------------------------------------
 Static Function aaHook(STRUCT WMWinHookStruct &s)
 	if (s.eventCode == 8)	//	modified
-		aaChange(s.winName)
+		aaChange(s.winName, layer=str2num(GetUserData(s.winName,"","AAlayer")))
 	endif
 	return 0
 End
@@ -479,6 +479,7 @@ Static Function aaSet(String pnlName, int mode)
 			SetWindow $LVName hook(AA)=$""
 			SetWindow $LVName userData(AAstr)=""
 			SetWindow $LVName userData(AAdigit)=""
+			SetWindow $LVName userData(AAlayer)=""
 			TextBox/K/N=$GetUserData(LVName, "", "AAname")
 			SetWindow $LVName userData(AAname)=""			
 			break
@@ -510,13 +511,20 @@ Static Function aaSet(String pnlName, int mode)
 End
 //-------------------------------------------------------------
 //	Annotationを実際に変更する関数
+//	記録されているレイヤーと現在の表示レイヤーが異なる(表示レイヤーに変更があった)
+//	場合にのみ動作する
 //-------------------------------------------------------------
-Static Function aaChange(String LVName)	
+Static Function aaChange(String LVName, [Variable layer])
+	Variable layerPresent = KMLayerViewerDo(LVName)
+	if (!ParamIsDefault(layer) && layer == layerPresent)
+		return 0
+	endif
+	SetWindow $LVName userData(AAlayer)=num2istr(layerPresent)
+
 	String legendStr = GetUserData(LVName, "", "AAstr")
 	String digitStr = "%."+GetUserData(LVName, "", "AAdigit")+"f"
 	Wave w = KMGetImageWaveRef(LVName)
-	Variable plane = NumberByKey("plane", ImageInfo(LVName, NameOfWave(w), 0), "=")	//	現在の表示レイヤー
-	Variable value = KMGetValueFromIndex(w, plane)		//	現在の表示レイヤーに対応するエネルギー
+	Variable value = KMGetValueFromIndex(w, layerPresent)	//	現在の表示レイヤーに対応するエネルギー
 	
 	String str
 	Sprintf str, ReplaceString("$value$",legendStr,digitStr), value
@@ -524,7 +532,6 @@ Static Function aaChange(String LVName)
 	str = ReplaceString("$+$",str,SelectString(value>0,"","+"))
 	TextBox/C/N=$GetUserData(LVName, "", "AAname")/W=$LVName str
 End
-
 
 //=====================================================================================================
 

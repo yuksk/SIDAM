@@ -362,33 +362,36 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	
+	//	この項目は
+	//	(1) Igor標準のダイアログからz表示範囲が変更された場合
+	//	(2) 3Dウエーブの表示レイヤーが変更された場合
+	//	(3) ソースウエーブが変更された場合
+	//	(4) イメージが削除された場合
+	//	に動作する。
+	
 	//	modified だけを扱う
 	if (s.eventCode != 8)
 		return 0
 	endif
 	
-	//	この項目は、Igor標準のダイアログから表示が変更された場合や、3Dウエーブの表示レイヤーが変更された場合に
-	//	動作することを想定しており、Rangeパネルからの変更の際にはこの項目は動作しないようにしたい。
-	//	そのため、RangeパネルからZ範囲の変更を行う際には "pauseHook" というユーザーデータを記述しておく。
-	//	これが記録されている場合には、"pauseHook"を解除するだけで、それ以降の動作は行わない。			
+	//	Rangeパネルからの変更の際には動作を抑制するため、RangeパネルからZ範囲の変更を行う際には 
+	//	"pauseHook" というユーザーデータを記述しておく。
+	//	これが記録されている場合には、"pauseHook"を解除するだけで、それ以降の動作は行わない。
 	if (strlen(GetUserData(s.winName, "", "pauseHook")))
 		SetWindow $s.winName userData(pauseHook)=""
 		return 0
 	endif
 	
-	String imgList = ImageNameList(s.winName,";")
-	int i, n, changed = 0
+	String imgList = ImageNameList(s.winName,";"), imgName
+	Variable recorded, present
+	int i, n, needUpdateZ = 0, needUpdatePnl = 0
 	
-	//	この項目が呼ばれるいくつかの可能性のうち、
-	//	(1) Igor標準のダイアログからのZ範囲の変更
-	//	(2) イメージが削除された場合
-	//	を検出してZモード文字列の更新をする
-	
-	//	(1) Igor標準のダイアログからのZ範囲の変更
-	//	前回のupdateZRangeの実行に記録されたZ範囲と現在のZ範囲が異なっている場合を変更とみなす
-	//	変更後に対応するZモードは 0 もしくは 1 のみ
 	for (i = 0, n = ItemsInList(imgList); i < n; i++)
-		String imgName = StringFromList(i,imgList)
+		imgName = StringFromList(i,imgList)
+		
+		//	(1) Igor標準のダイアログからのZ範囲の変更を調べる
+		//	前回のupdateZRangeの実行に記録されたZ範囲と現在のZ範囲が異なっている場合を変更とみなす
+		//	現状に合わせてZモードを変更する
 		Variable z0 = getZmodeValue(s.winName, imgName, "z0")
 		Variable z1 = getZmodeValue(s.winName, imgName, "z1")
 		//	z0,z1がNaN(auto)の時には、下の不等式が常に偽になってしまう
@@ -403,22 +406,36 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		if (abs(rw[0]-z0) > 1e-13 || needFirstSet)
 			setZmodeValue(s.winName, imgName, "m0", !isPresentFirstAuto)
 			setZmodeValue(s.winName, imgName, "v0", rw[0])
-			changed = 1
+			needUpdatePnl = 1
 		endif	
 		if (abs(rw[1]-z1) > 1e-13 || needLastSet)
 			setZmodeValue(s.winName, imgName, "m1", !isPresentLastAuto)
 			setZmodeValue(s.winName, imgName, "v1", rw[1])
-			changed = 1
-		endif	
+			needUpdatePnl = 1
+		endif
+		
+		//	(2) 3Dウエーブの表示レイヤーが変更された場合
+		recorded = getZmodeValue(s.winName, imgName, "layer")	//	記録がまだなければnanが返る
+		present = KMLayerViewerDo(s.winName)						//	現在の表示レイヤー, 2Dならnan
+		if (numtype(present)==0 && recorded!=present)
+			setZmodeValue(s.winName, imgName, "layer", present)
+			needUpdateZ = 1
+		endif
+		
+		//	(3) ソースウエーブが変更された場合
+		recorded = getZmodeValue(s.winName, imgName, "modtime")		//	記録がまだなければnanが返る
+		present = NumberByKey("MODTIME",WaveInfo(ImageNameToWaveRef(s.winName,imgName),0))
+		if (recorded != present)
+			setZmodeValue(s.winName, imgName, "modtime", present)
+			needUpdateZ = 1
+		endif
 	endfor
 	
-	//	(2) イメージが削除された場合
-	if (cleanZmodeValue(s.winName))
-		changed = 1
-	endif
+	//	(4) イメージが削除された場合にそなえて
+	cleanZmodeValue(s.winName)
 	
-	//	上記の(1)(2)に当てはまっていない場合には、現在のZモードの設定に合わせてZ範囲を変更する
-	if (!changed)
+	if (needUpdateZ)
+		SetWindow $s.winName userData(pauseHook)="1"
 		updateZRange(s.winName)
 	endif
 	
@@ -441,7 +458,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		endif
 		
 		//	Zモードの表示状態の更新
-		if (changed)
+		if (needUpdatePnl)
 			updatePnlCheckBoxAndSetVar(pnlName)
 		endif
 		//	ヒストグラムの更新
@@ -564,7 +581,7 @@ Static Function pnlHookClose(String pnlName)
 			SetWindow $grfName hook(KMRangePnl)=$""
 		endif
 	endif
-	
+		
 	KMonClosePnl(pnlName)
 End
 
@@ -977,7 +994,7 @@ End
 //=====================================================================================================
 //-------------------------------------------------------------
 //	保存文字列は
-//	imgName:m0=xxx,v0=xxx,z0=xxx,m1=xxx,v1=xxx,z1=xxx;
+//	imgName:m0=xxx,v0=xxx,z0=xxx,m1=xxx,v1=xxx,z1=xxx;layer=xxx;modtime=xxx
 //	がイメージの数だけ繰り返されたものになっている
 //	m0,m1 は Zモードの種類 (0: auto, 1:fix, 2:sigma, 3:cut, -1:manual)
 //	v0,v1 は Zモードの設定値 (例えば 3sigma の 3)

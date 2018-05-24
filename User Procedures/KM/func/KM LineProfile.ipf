@@ -498,6 +498,9 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			ms.grid = str2num(GetUserData(pnlName,"","grid"))
 			ms.winhs = s
 			KMLineCommon#pnlHookParentMouse(s, ms, pnlName)
+			if (!strlen(GetUserData(pnlName,"","clicked")))
+				break
+			endif
 			//** THROUGH **
 		case 8:	//	modified
 			//	rev. 1156 より前に作られたものであれば、後方互換確保の関数を動作させる
