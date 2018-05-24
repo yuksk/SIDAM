@@ -245,7 +245,7 @@ End
 //******************************************************************************
 Menu "KMRightClickCtrlBar1D", dynamic, contextualmenu
 	//	Trace
-	KMTraceManu(),/Q, KMTraceR()
+	"Offset and Color...", /Q, KMTrace#rightclickDo()
 	help = {"Set offset of traces in the top graph."}
 	
 	SubMenu "Sync"
