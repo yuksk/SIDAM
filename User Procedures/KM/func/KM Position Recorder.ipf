@@ -10,33 +10,36 @@ Static Constant ks_pnlHeight = 109
 Static Constant ks_tabHeight = 160
 
 //******************************************************************************
-//	KMPositionRecorder
+//	クリック位置のインデックスを記録
 //******************************************************************************
-Function KMPositionRecorder()
+Static Function rightclickDo()
+	pnl()
+End
+
+Static Function pnl()
 	
 	String grfName = WinName(0,1,1)
 	if (!strlen(grfName))
 		return 1
 	endif
 	
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,235,ks_pnlHeight)
-	RenameWindow $grfName#$S_name, PositionRecorder
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,235,ks_pnlHeight)/N=PositionRecorder
 	String pnlName = grfName + "#PositionRecorder"
 	
 	SetWindow $pnlName hook(self)=KMPositionRecorder#pnlHook, activeChildFrame=0
 	
-	Button startB pos={7,5}, size={60,18}, title="start", disable=2, proc=KMPositionRecorder#buttonCtrl, win=$pnlName
-	Button finishB pos={77,5}, size={60,18}, title="finish", disable=2, proc=KMPositionRecorder#buttonCtrl, win=$pnlName
-	Button helpB pos={147, 5}, size={18,18}, title="?", proc=KMPositionRecorder#buttonCtrl, win=$pnlName
+	Button startB pos={7,5}, size={60,18}, title="start", disable=2, win=$pnlName
+	Button finishB pos={77,5}, size={60,18}, title="finish", disable=2, win=$pnlName
+	Button helpB pos={147, 5}, size={18,18}, title="?", win=$pnlName
 	Checkbox gridC pos={189,7}, title="grid", value=1, win=$pnlName
 	
-	GroupBox waveG pos={8,34}, size={220,72}, title="position waves", win=$pnlName
-	PopupMenu pwP pos={16,53}, size={151,20}, bodyWidth=140, mode=1, title="p:", userData(mode)="-1", win=$pnlName
-	PopupMenu pwP value=#"KMPositionRecorder#popupStr(\"pwP\")", proc=KMPositionRecorder#popupCtrl, win=$pnlName
-	PopupMenu qwP pos={16,79}, size={151,20}, bodyWidth=140 ,mode=1, title="q:", userData(mode)="-1", win=$pnlName
-	PopupMenu qwP value=#"KMPositionRecorder#popupStr(\"qwP\")", proc=KMPositionRecorder#popupCtrl, win=$pnlName
-	Button waveB pos={180,61}, size={40,30}, title="new", proc=KMPositionRecorder#buttonCtrl, win=$pnlName
-
+	GroupBox waveG pos={8,34}, size={220,72}, title="waves to save positions", win=$pnlName
+	PopupMenu pwP pos={16,53}, title="p:", userData(pts)="-1", value=#"KMPositionRecorder#popupStr(\"pwP\")", win=$pnlName
+	PopupMenu qwP pos={16,79}, title="q:", userData(pts)="-1", value=#"KMPositionRecorder#popupStr(\"qwP\")", win=$pnlName
+	Button waveB pos={180,61}, size={40,30}, title="new", win=$pnlName
+	
+	ModifyControlList "pwP;qwP" size={151,20}, bodyWidth=140, mode=1, proc=KMPositionRecorder#pnlPopup, win=$pnlName
+	ModifyControlList "startB;finishB;helpB;waveB" proc=KMPositionRecorder#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
 //-------------------------------------------------------------
@@ -81,7 +84,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 				Sort disw, indexw
 				DeletePoints indexw[0], 1, pw, qw
 			else					//	点を追加
-				Variable n = numpnts(pw)
+				int n = numpnts(pw)
 				Redimension/N=(n+1) pw, qw
 				pw[n] = ms.p
 				qw[n] = ms.q
@@ -91,22 +94,21 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	return 0
 End
 //-------------------------------------------------------------
-//	KMPositionRecorderPnlHookClose:	自パネルが閉じられたときの動作
+//	自パネルが閉じられたときの動作
 //-------------------------------------------------------------
 Static Function pnlHookClose(STRUCT WMWinHookStruct &s)	
 	String grfName = StringFromList(0, s.winName, "#")
 	SetWindow $grfName hook(positionrecorder)=$""
 	KMonClosePnl(s.winName)
 End
+
 //******************************************************************************
 //	パネルコントロール
 //******************************************************************************
 //-------------------------------------------------------------
 //	ボタン
 //-------------------------------------------------------------
-Static Function buttonCtrl(s)
-	STRUCT WMButtonAction &s
-	
+Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
 		return 0
 	endif
@@ -124,12 +126,16 @@ Static Function buttonCtrl(s)
 			Edit/W=(0,ks_pnlHeight,300,ks_pnlHeight+ks_tabHeight)/HOST=$s.win  pw, qw
 			ModifyTable width=85, width(Point)=40, format(Point)=1, statsArea=85
 			SetActiveSubwindow ##
+			Button finishB disable=0, win=$s.win
+			ModifyControlList "startB;waveB;pwP;qwP" disable=2, win=$s.win
 			break
 			
 		case "finishB":
 			SetWindow $grfName hook(positionrecorder)=$""
 			KillWindow $(s.win+"#T0")
 			MoveSubWindow/W=$s.win fnum=(0,0,235,ks_pnlHeight)
+			Button finishB disable=2, win=$s.win
+			ModifyControlList "startB;waveB;pwP;qwP" disable=0, win=$s.win			
 			break
 			
 		case "waveB":
@@ -152,9 +158,7 @@ End
 //-------------------------------------------------------------
 //	ポップアップ
 //-------------------------------------------------------------
-Static Function popupCtrl(s)
-	STRUCT WMPopupAction &s
-	
+Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
 	endif
@@ -169,55 +173,62 @@ Static Function popupCtrl(s)
 		return 1
 	endif
 	
-	//	制限モード
-	Variable mode = str2num(GetUserData(s.win, s.ctrlName, "mode"))
+	//	これが非負であれば、データ点数がptsであるようなウエーブだけがポップアップにリストされる(制限状態)
+	int pts = str2num(GetUserData(s.win, s.ctrlName, "pts"))
 	
-	//	自分が制限されていたら、その制限を解除する
-	//	自分がフリーであれば相手を制限する
-	if (mode >= 0)
-		PopupMenu $s.ctrlName userData(mode)="-1", win=$s.win
-	elseif (!CmpStr(s.ctrlName, "pwP"))
-		PopupMenu qwP userData(mode)=num2istr(numpnts(w)), userData(wave)="", win=$s.win
+	//	制限状態であったならば、それを解除する
+	//	なかったならば、もう1方のポップアップを制限状態にしてポップアップリストを更新する
+	if (pts >= 0)
+		PopupMenu $s.ctrlName userData(pts)="-1", win=$s.win
 	else
-		PopupMenu pwP userData(mode)=num2istr(numpnts(w)), userData(wave)="", win=$s.win
+		String name = theOtherPopupName(s.ctrlName)
+		PopupMenu $name userData(pts)=num2istr(numpnts(w)), userData(wave)="", win=$s.win
+		ControlUpdate/W=$s.win $name
+		//	選択肢が実質1つ(_none_ともう1つ)であれば、その1つを選択状態にする
+		String popListStr = popupStr(name)
+		if (ItemsInList(popListStr) == 2)
+			PopupMenu $name mode=2, userData(wave)=GetWavesDataFolder($StringFromList(1,popListStr),2), win=$s.win
+		endif
 	endif
 	
 	//	表示状態の更新
 	pnlUpdate(s.win)
+	return 0
 End
 
 //	ポップアップメニューに表示する文字列
-Static Function/S popupStr(ctrlName)
-	String ctrlName
-	
+Static Function/S popupStr(String ctrlName)
 	String pnlName = WinName(0,1) + "#PositionRecorder"
-	Variable num = str2num(GetUserData(pnlName, ctrlName, "mode"))	//	制限モードにある場合には 非負
+	String listStr = "_none_;"
 	
-	String nameStr, optionStr
-	if (num < 0)
-		nameStr = "*"
-		optionStr = "DIMS:1"
+	//	これが非負なら点数がptsであるようなウエーブだけをリストする
+	int pts = str2num(GetUserData(pnlName, ctrlName, "pts"))
+	
+	if (pts < 0)
+		listStr += WaveList("*",";","DIMS:1,TEXT:0,WAVE:0")
+		listStr += WaveList("*",";","DIMS:0,TEXT:0,WAVE:0")
+		return listStr
+	endif
+	
+	ControlInfo/W=$pnlName $theOtherPopupName(ctrlName)
+	String optionStr
+	if (pts == 0)
+		optionStr = "DIMS:0,TEXT:0,WAVE:0"
 	else
-		ControlInfo/W=$pnlName $SelectString(CmpStr(ctrlName, "pwP"), "qwP", "pwP")
-		nameStr = "!" + S_value	//	他方で選ばれているウエーブはリストしない
-		optionStr = "DIMS:" + num2istr(num > 0)
-		optionStr += ",MINROWS:" + num2istr(num) + ",MAXROWS:" + num2istr(num)
+		sprintf optionStr, "DIMS:1,TEXT:0,WAVE:0,MINROWS:%d,MAXROWS:%d", pts, pts
 	endif
-	String list = "_none_;" + WaveList(nameStr,";", optionStr)
-	
-	if (num < 0)	//	非制限モードの時には 個数が 0 のウエーブもリストに加える
-		list += ";" + WaveList("*",";","DIMS:0")
-	endif
-	
-	return list
+	listStr += WaveList("!"+S_value,";", optionStr)	//	他方で選ばれているウエーブはリストしない
+	return listStr
+End
+
+Static Function/S theOtherPopupName(String ctrlName)
+	return SelectString(CmpStr(ctrlName, "pwP"), "qwP", "pwP")
 End
 
 //-------------------------------------------------------------
-//	KMPositionRecorderPnlUpdate :		表示状態の更新
+//	表示状態の更新
 //-------------------------------------------------------------
-Static Function pnlUpdate(pnlName)
-	String pnlName
-	
+Static Function pnlUpdate(String pnlName)	
 	Wave/Z pw = $GetUserData(pnlName, "pwP", "wave"), qw = $GetUserData(pnlName, "qwP", "wave")
 	
 	//	パネル表示状態の更新
@@ -225,8 +236,6 @@ Static Function pnlUpdate(pnlName)
 	Variable notab = !strlen(ChildWindowList(pnlName))
 	
 	Button startB disable=(nowave||!notab)*2, win=$pnlName
-	Button finishB disable=notab*2, win=$pnlName
-	Button waveB disable=!notab*2, win=$pnlName
 	
 	//	位置ウエーブの表示
 	if (!nowave)
@@ -237,6 +246,7 @@ Static Function pnlUpdate(pnlName)
 		endif
 		Wave w = KMGetImageWaveRef(grfName)
 		AppendToGraph/W=$grfName qw vs pw
-		ModifyGraph/W=$grfName offset($NameOfWave(qw))={DimOffset(w,0),DimOffset(w,1)},muloffset($NameOfWave(qw))={DimDelta(w,0),DimDelta(w,1)}, mode=3
+		ModifyGraph/W=$grfName offset($NameOfWave(qw))={DimOffset(w,0),DimOffset(w,1)}
+		ModifyGraph/W=$grfName muloffset($NameOfWave(qw))={DimDelta(w,0),DimDelta(w,1)}, mode=3
 	endif
 End

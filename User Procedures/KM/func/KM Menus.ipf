@@ -197,7 +197,7 @@ Menu "KMRightClickCtrlBar", dynamic, contextualmenu
 	
 	"-"
 	
-	"Position Recorder", /Q, KMPositionRecorder()
+	"Position Recorder", /Q, KMPositionRecorder#rightclickDo()
 	
 	
 	"-"
