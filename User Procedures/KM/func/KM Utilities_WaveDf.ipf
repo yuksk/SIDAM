@@ -32,26 +32,12 @@ End
 //		dimは次元を指定するためのフラッグ
 //		bit0: 1D, bit1: 2D, bit2: 3D
 //******************************************************************************
-Function/S KMWaveList(dfr,dim,[includeComplex,forFFT,nx,ny,listSepStr])
-	DFREF dfr
-	Variable dim, includeComplex, forFFT, nx, ny
-	String listSepStr
-	
+Function/S KMWaveList(DFREF dfr, int dim, [int forFFT, int nx, int ny])
 	if (!DataFolderRefStatus(dfr))
 		dfr = GetDataFolderDFR()
 	endif
 	
-	if (ParamIsDefault(includeComplex))
-		includeComplex = 0
-	endif
-	
-	if (ParamIsDefault(forFFT))
-		forFFT = 0
-	endif
-	
-	if (ParamIsDefault(listSepStr))
-		listSepStr = ";"
-	endif
+	forFFT = ParamIsDefault(forFFT) ? 0 : forFFT
 	
 	String waveListStr = ""
 	int i, n
@@ -61,17 +47,12 @@ Function/S KMWaveList(dfr,dim,[includeComplex,forFFT,nx,ny,listSepStr])
 		if (!((2^(WaveDims(w)-1)) & dim))	//	次元が合わなければ
 			continue
 		endif
-		if ((WaveType(w)&0x01) && !includeComplex)	//	複素数ウエーブで、リストに複素数ウエーブを含むことが明示的に指定されていなければ
-			continue
-		endif
 		if (forFFT)
 			if (mod(DimSize(w,0),2))		//  x方向のデータ点数は偶数でなければならない
 				continue
 			elseif (DimSize(w,0) < 4 || DimSize(w,1) < 4)	//  最低データ点数は4
 				continue
-			endif
-			WaveStats/Q/M=1 w
-			if (V_numNaNs || V_numINFs)		//  NaN や INF を含んではならない
+			elseif (numtype(sum(w)))		//  NaN や INF を含んではならない, WaveStats を使うより速い
 				continue
 			endif
 		endif
@@ -81,7 +62,7 @@ Function/S KMWaveList(dfr,dim,[includeComplex,forFFT,nx,ny,listSepStr])
 		if (!ParamIsDefault(ny) && DimSize(w,1) != ny)
 			continue
 		endif
-		waveListStr += NameOfWave(w)+listSepStr
+		waveListStr += NameOfWave(w)+";"
 	endfor
 	
 	return waveListStr
@@ -202,7 +183,7 @@ Function/WAVE KMGetBias(Wave w, int dim)
 	if (dim == 1)
 		return tw
 	endif
-
+	
 	//	dim == 2
 	Make/N=(nz+1)/FREE biasw
 	biasw[1,nz-1] = (tw[p-1]+tw[p])/2
@@ -316,11 +297,10 @@ End
 //	dfr 以下にある V_*, S_* を削除する
 //******************************************************************************
 Function KMKillVariablesStrings(DFREF dfr)
-
 	DFREF dfrSav = GetDataFolderDFR()
 	String listStr
 	int i, n
-
+	
 	//	データフォルダに対しては自身を再帰的に実行
 	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
 		KMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
