@@ -1,6 +1,6 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName= KMSyncCommon
+#pragma ModuleName = KMSyncCommon
 
 #ifndef KMshowProcedures
 #pragma hide = 1
@@ -9,159 +9,167 @@
 //******************************************************************************
 //	KMSyncLayer, KMSyncAxisRange, KMSyncCursor で共通に使われる関数
 //******************************************************************************
-Function KMSyncCommon(syncWinList, keyList, fn, data)
-	String syncWinList	//	同期されるウインドウのリスト
-	String keyList	//	key0;key1;...
-						//	key0 は sync, syncaxisrange, synccursor
-						//	synccursor の際には key1 = synccursormode が使用される
-	String fn		//	key:value 形式のリスト
-					//	key は sync, syncaxisrange, synccursor
-					//	value は　KMSyncLayerHook, KMSyncAxisRangeHook, KMSyncCursorHook
-	String data	//	key:value& 形式のリスト、区切り文字は &. valueとして ; 区切りのリストを含むため 
-					//	key は sync, syncaxisrange, synccursor. value はウインドウリスト
-					//	key が synccursormode の際は value は mode 
+Static Function common(
+	String key,	//	sync, syncaxisrange, synccursor
+	String fn,	//	KMSyncLayerHook, KMSyncAxisRangeHook, KMSyncCursorHook
+	String data	//	key:value& 形式のリスト、区切り文字は 「,」. valueとして ; 区切りのリストを含むため 
+					//	key=listの場合は value はウインドウリスト
+					//	key=modeの場合は value は synccursormode の mode
+	)
 	
-	String key0 = StringFromList(0, keyList)				//	sync, syncaxisrange, synccursor
-	String key1 = StringFromList(1, keyList)				//	カーソル位置同期の場合にのみ synccursormode が入る
-	String win
-	Variable cursorsync = !CmpStr(key0, "synccursor")		//	カーソル位置同期の場合に 1
-	Variable cursormode = NumberByKey(key1, data, ":","&")	//	カーソル位置同期の場合に 0 or 1
-	Variable i, n = ItemsInList(syncWinList)
+	String syncWinList = StringByKey("list",data,":",",")
+	int cursorsync = !CmpStr(key, "synccursor")			//	カーソル位置同期の場合に 1
+	int cursormode = NumberByKey("mode", data, ":",",")	//	カーソル位置同期の場合に 0 or 1
+	
+	String win, str
+	int i, n = ItemsInList(syncWinList)
 	
 	//	同期設定をするか、解除するかの判定
-	Variable set = 0
-	for (i = 0; i < n; i += 1)
+	int set = 0
+	for (i = 0; i < n; i++)
 		win = StringFromList(i, syncWinList)
-		if (!strlen(GetUserData(win, "", key0)))	//	リストの中にまだ同期されていないウインドウが含まれていれば同期設定する
+		str = GetUserData(win,"",key)
+		if (!strlen(str))	//	リストの中にまだ同期されていないウインドウが含まれていれば同期設定する
 			set = 1
 			break
-		elseif (cursorsync && (str2num(GetUserData(win, "", key1)) != cursormode))	//	カーソル同期モードが異なる場合には同期設定する
+		elseif (cursorsync && (NumberByKey("mode",str,":",",") != cursormode))	//	カーソル同期モードが異なる場合には同期設定する
 			set = 1
 			break
 		endif
 	endfor
 	
 	if (set)	//	同期設定する
-		for (i = 0; i < n; i += 1)
+		for (i = 0; i < n; i++)
 			win = StringFromList(i, syncWinList)
 			if (cursorsync)					//	カーソル位置同期のとき
 				KMSyncCursor#putCursor(win)	//	カーソルがなければ表示する
 			endif
-			KMSyncCommonSet(win, fn, data)
+			SetWindow $win, hook($key) = $fn
+			SetWindow $win, userData($key) = data
 		endfor
 	else		//	同期解除する
-		for (i = 0; i < n; i += 1)
-			KMSyncCommonCancel(StringFromList(i, syncWinList), keyList)
+		for (i = 0; i < n; i++)
+			resetSync(StringFromList(i, syncWinList), key)
 		endfor
 	endif
 End
 //-------------------------------------------------------------
-//	KMSyncCommonSet
-//		同期を設定する共通関数, 実際の動作は各フック関数で記述する
+//	同期設定を解除する
+//	引数の keyList	 は KMSyncCommon の同名引数と同じ形式・役割
 //-------------------------------------------------------------
-Function KMSyncCommonSet(win, fn, data)
-	String win
-	String fn, data	//	KMSyncCommon の同名引数と同じ形式・役割
-	
-	SetWindow $win, hook($StringFromList(0,fn,":")) = $StringFromList(1,fn,":")
-	
-	String str
-	Variable i, n
-	for (i = 0, n = ItemsInList(data, "&"); i < n; i += 1)
-		str = StringFromList(i, data, "&")
-		SetWindow $win, userData($StringFromList(0,str,":")) = StringFromList(1,str,":")
-	endfor
-End
-//-------------------------------------------------------------
-//	KMSyncCommonCancel:	同期設定を解除する
-//-------------------------------------------------------------
-Function KMSyncCommonCancel(win, keyList)
-	String win
-	String keyList	//	KMSyncCommon の同名引数と同じ形式・役割
-	
-	String key0 = StringFromList(0, keyList)
-	Variable i, n
-	
+Static Function resetSync(String grfName, String key)
 	//	自身を除いた新しい同期リストを得る
-	String newList = RemoveFromList(win, GetUserData(win, "", key0))
+	String newList = getSyncList(grfName, key)
 	
 	//	設定削除前にフック関数名を取得しておく
-	GetWindow $win, hook($key0)
+	GetWindow $grfName, hook($key)
 	String hookfnStr = S_Value
 	
 	//	自身が持つ同期に関する設定を削除する
-	SetWindow $win, hook($key0)=$""
-	for (i = 0, n = ItemsInList(keyList); i < n; i += 1)
-		SetWindow $win, userData($StringFromList(i, keyList))=""
-	endfor
+	SetWindow $grfName, hook($key)=$""
+	SetWindow $grfName, userData($key)=""
 		
 	if (ItemsInList(newList) > 1)	//	同期関係にあった他のウインドウに新しい同期リストを適用する
-		for (i = 0, n = ItemsInList(newList); i < n; i += 1)
-			SetWindow $StringFromList(i, newList) userData($key0) = newList
-			SetWindow $StringFromList(i, newList) hook($key0) = $hookfnStr	//	フック関数のdeactivateで外されている場合に備えて
-		endfor
+		applySyncList(newList,key)
 	else						//	残されたウインドウについて同期設定を解除する
-		SetWindow $StringFromList(0, newList), hook($StringFromList(0, keyList))=$""
-		for (i = 0, n = ItemsInList(keyList); i < n; i += 1)
-			SetWindow $StringFromList(0, newList), userData($StringFromList(i, keyList))=""
-		endfor
+		SetWindow $StringFromList(0, newList), hook($key)=$""
+		SetWindow $StringFromList(0, newList), userData($key)=""
 	endif
 End
 //-------------------------------------------------------------
-//	KMSyncCommonGetSyncList:
-//		同期対象となるウインドウリストを返す
-//		ウインドウの複製・消去に関する修正もここで扱う
+//	同期対象となるウインドウリストを返す
 //-------------------------------------------------------------
-Function/S KMSyncCommonGetSyncList(STRUCT WMWinHookStruct &s, String key)
-	String list = GetUserData(s.winName,"", key)
-	int changed = 0, i, n
+Static Function/S getSyncList(String grfName, String key, [int all])
+	//	自分自身を除いたリストを返すときは 0, 自分自身を含むすべてを返すときは 1
+	all = ParamIsDefault(all) ? 0 : all
+	
+	String dataStr = GetUserData(grfName,"",key)
+	String listStr = StringByKey("list",dataStr,":",",")
+	
+	//	userData がウインドウリストのみに使われていた古いバージョンへの対応
+	if (strlen(dataStr) && !strlen(listStr))
+		SetWindow $grfName userData($key)="list:"+dataStr
+		listStr = dataStr
+	endif
+	
+	//	renewSyncListから呼ばれているときにはrenewSyncListを実行しない(無限ループを避ける)
+	if (!CmpStr(GetRTStackInfo(2),"renewSyncList"))
+		renewSyncList(grfName, key)
+	endif
+	
+	//	同期操作の対象となるウインドウリストの場合は、自分自身を除いたものが必要となる
+	return SelectString(all,RemoveFromList(grfName, listStr),listStr)
+End
+//-------------------------------------------------------------
+//	ウインドウの名前が変更されたときに、同期関係にある全てのウインドウにその変更を反映する
+//	ウインドウの複製・消去に関する修正もここで扱う
+//-------------------------------------------------------------
+Static Function renewSyncList(String grfName, String key, [String oldName])
+	String listStr = getSyncList(grfName,key,all=1)
+	int i, changed = 0
+	
+	//	名前が変更された場合にはウインドウリストの中身を入れ替える
+	if (!ParamIsDefault(oldName))
+		listStr = ReplaceString(oldName, listStr, grfName)
+		changed = 1
+	endif
 	
 	//	複製されたウインドウである場合には、自分自身がリストに含まれていないので追加する
-	if (WhichListItem(s.winName, list) == -1)
-		list += s.winName + ";"
+	if (WhichListItem(grfName, listStr) == -1)
+		listStr += grfName + ";"
 		changed = 1
 	endif
 	
 	//	存在しない(閉じられた)ウインドウはリストからも削除する
-	for (i = ItemsInList(list)-1; i >= 0; i--)
-		DoWindow $StringFromList(i, list)
+	for (i = ItemsInList(listStr)-1; i >= 0; i--)
+		DoWindow $StringFromList(i, listStr)
 		if (!V_flag)
-			list = RemoveListItem(i, list)
+			listStr = RemoveListItem(i, listStr)
 			changed = 1
 		endif
 	endfor
 	
 	//	最新のリストを同期ウインドウで共有する
 	if (changed)
-		for (i = 0, n = ItemsInList(list); i < n; i++)
-			SetWindow $StringFromList(i, list) userData($key)=list
-		endfor
-	endif
-	
-	//	同期操作の対象は自分自身以外なので、自分自身を除いたリスト文字列を返す
-	return RemoveFromList(s.winName, list)
+		applySyncList(listStr,key)
+	endif	
 End
 //-------------------------------------------------------------
-//	KMSyncCommonHookRenamed
-//		ウインドウの名前が変更されたときに、同期関係にある全てのウインドウにその変更を反映する
+//	listStrで与えられるウインドウにlistStrを設定する
 //-------------------------------------------------------------
-Function KMSyncCommonHookRenamed(STRUCT WMWinHookStruct &s, String key)
-	String newList = ReplaceString(s.oldWinName, GetUserData(s.winName, "", key), s.winName)
-	int i, n = ItemsInList(newList)
-	for (i = 0; i < n; i++)
-		SetWindow $StringFromList(i, newList) userData($key)=newList
+Static Function applySyncList(String listStr, String key)
+	int i, n
+	String grfName
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
+		grfName = StringFromList(i,listStr)
+		SetWindow $grfName userData($key)=\
+			ReplaceStringByKey("list",GetUserData(grfName,"",key),listStr,":",",")
 	endfor
+End
+//-------------------------------------------------------------
+//	循環動作を防ぐ関数群
+//-------------------------------------------------------------
+Static Function isBlocked(String grfName, String key)
+	return NumberByKey("block",GetUserData(grfName,"",key),":",",")
+End
+
+Static Function releaseBlock(String grfName, String key)
+	SetWindow $grfName userData($key)=\
+		ReplaceStringByKey("block",GetUserData(grfName,"",key),"0",":",",")
+End
+
+Static Function setBlock(String grfName, String key)
+	SetWindow $grfName userData($key)=\
+		ReplaceStringByKey("block",GetUserData(grfName,"",key),"1",":",",")
 End
 //
 //	以下は共通関数でパネルに関するもの
 //
 //-------------------------------------------------------------
-//	KMSyncCommonPnlInit :	パネル初期設定
+//	パネル初期設定
+//	引数の key は sync, syncaxisrange, synccursor のいずれか
 //-------------------------------------------------------------
-Function/S KMSyncCommonPnlInit(pnlName, key)
-	String pnlName
-	String key 		//	sync, syncaxisrange, synccursor
-	
+Static Function/S pnlInit(String pnlName, String key)
 	String grfName = StringFromList(0, pnlName, "#")
 	String dfSav = KMNewTmpDf(grfName, key+"#"+GetRTStackInfo(2))	//	GetRTStackInfo(2) のみだと第2引数は pnl になってしまう
 	String dfTmp = GetDataFolder(1)
@@ -174,7 +182,7 @@ Function/S KMSyncCommonPnlInit(pnlName, key)
 	Make/W/U/N=1/O $KM_WAVE_COLOR = {{0,0,0}, {0,0,0}, {40000,40000,40000}, {65535,65535,65535}}		//	順に, (未使用), 表示用, 表示用2, 背景用
 	MatrixTranspose $KM_WAVE_COLOR
 	
-	String win, list = KMSyncCommonPnlList(grfName, key)
+	String win, list = pnlList(grfName, key)
 	int i, n
 	
 	//	リストボックスの内容
@@ -194,7 +202,7 @@ Function/S KMSyncCommonPnlInit(pnlName, key)
 	
 	//	グラフをactivateしたら選択されるようにする
 	for (i = 0, n = ItemsInList(list); i < n; i += 1)
-		KMPanelSelectionSet(StringFromList(i, list), pnlName, "KMSyncCommonPnlActivate")
+		KMPanelSelectionSet(StringFromList(i, list), pnlName, "KMSyncCommon#grfActivate")
 	endfor
 	
 	SetDataFolder $dfSav
@@ -202,19 +210,17 @@ Function/S KMSyncCommonPnlInit(pnlName, key)
 	return dfTmp
 End
 //-------------------------------------------------------------
-//	KMSyncCommonPnlList :	テーブルに載せるウインドウのリストを返す
+//	テーブルに載せるウインドウのリストを返す
+//	引数の key は sync, syncaxisrange, synccursor のいずれか
 //-------------------------------------------------------------
-Static Function/S KMSyncCommonPnlList(grfName, key)
-	String grfName
-	String key 		//	sync, syncaxisrange, synccursor
-	
+Static Function/S pnlList(String grfName, String key)
 	String listStr = WinList("*",";","WIN:1")
-	Variable i
+	int i
 	
 	//	synclayerの場合には、層数が異なる場合にはリストから削除する
 	if (!CmpStr(key, "sync"))
 		Wave srcw =  KMGetImageWaveRef(grfName)
-		for (i = ItemsInList(listStr)-1; i >= 0; i -= 1)
+		for (i = ItemsInList(listStr)-1; i >= 0; i--)
 			Wave/Z w = KMGetImageWaveRef(StringFromList(i, listStr))
 			if (WaveDims(w) != 3 || DimSize(srcw,2) != DimSize(w,2))
 				listStr = RemoveListItem(i, listStr)
@@ -225,14 +231,14 @@ Static Function/S KMSyncCommonPnlList(grfName, key)
 	//	自身が同期されている場合には、他の同期グループに属するウインドウを除く
 	//	自身が同期されていない場合には、全ての同期状態にあるウインドウを除く
 	//	(非同期ウインドウはいずれの場合にも残す)
-	String syncList = GetUserData(grfName, "", key)
-	for (i = ItemsInList(listStr)-1; i >= 0; i -= 1)
+	String syncList = getSyncList(grfName, key, all=1)
+	for (i = ItemsInList(listStr)-1; i >= 0; i--)
 		String win = StringFromList(i, listStr)
-		if (!strlen(GetUserData(win, "", key)))	//	非同期ウインドウ
+		if (!ItemsInList(getSyncList(win, key, all=1)))	//	非同期ウインドウ
 			continue
 		endif
-		Variable inOtherGroup = WhichListItem(win, syncList) == -1
-		if ((strlen(syncList) && inOtherGroup) || !strlen(syncList))
+		int inOtherGroup = WhichListItem(win, syncList) == -1
+		if ((ItemsInList(syncList) && inOtherGroup) || !ItemsInList(syncList))
 			listStr = RemoveListItem(i, listStr)
 		endif
 	endfor
@@ -240,13 +246,10 @@ Static Function/S KMSyncCommonPnlList(grfName, key)
 	return listStr
 End
 //----------------------------------------------------------------------
-//	KMSyncCommonPnlActivate
-//		grfNameがactivateされたときに呼ばれる関数
-//		grfNameに対応するチェックボックスの状態を変更する
+//	grfNameがactivateされたときに呼ばれる関数
+//	grfNameに対応するチェックボックスの状態を変更する
 //----------------------------------------------------------------------
-Function KMSyncCommonPnlActivate(grfName, pnlName)
-	String grfName, pnlName
-	
+Static Function grfActivate(String grfName, String pnlName)
 	ControlInfo/W=$pnlName winL
 	DFREF dfrTmp = $S_DataFolder
 	Wave/Z/T/SDFR=dfrTmp lgw = list_graph
@@ -270,7 +273,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "doB":
 			String key = GetUserData(s.win, s.ctrlName, "key")
 			String fn = GetUserData(s.win, s.ctrlName, "fn")
-			KMSyncCommonPnlButtonDoSync(s.win, key, fn)
+			pnlButtonDoSync(s.win, key, fn)
 			//	** THROUGH **
 		case "cancelB":
 			KillWindow $s.win
@@ -288,12 +291,13 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	endswitch
 End
 //-------------------------------------------------------------
-//	KMSyncCommonPnlButtonDoSync :	ボタンを押したときの同期設定
+//	ボタンを押したときの同期設定
 //-------------------------------------------------------------
-Static Function KMSyncCommonPnlButtonDoSync(pnlName, key, fnStr)
-	String pnlName
-	String key		//	sync, syncaxisrange, synccursor
+Static Function pnlButtonDoSync(
+	String pnlName,
+	String key,		//	sync, syncaxisrange, synccursor
 	String fnStr		//	KMSyncLayer, KMSyncAxisRange, KMSyncCursor
+	)
 	
 	String win
 	int i, n

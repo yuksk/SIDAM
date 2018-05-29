@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName= KMSyncLayer
+#pragma ModuleName = KMSyncLayer
 
 #ifndef KMshowProcedures
 #pragma hide = 1
@@ -9,14 +9,15 @@
 Static StrConstant ks_key = "sync"
 
 //******************************************************************************
-//	KMSyncLayer
-//		レイヤー同期
+//	レイヤー同期
 //******************************************************************************
-Function KMSyncLayer(syncWinList,[history])
-	String syncWinList	//	同期する/解除するウインドウのリスト
+Function KMSyncLayer(
+	String syncWinList,	//	同期する/解除するウインドウのリスト
 							//	1つでも現在は同期されていないウインドウがリストに含まれていたら、それを同期に含める
 							//	リストに含まれる全てのウインドウが同期されていたら、リストのウインドウを同期から外す
-	Variable history
+	[
+		int history
+	])
 	
 	STRUCT paramStruct s
 	s.list = syncWinList
@@ -25,9 +26,9 @@ Function KMSyncLayer(syncWinList,[history])
 		return 1
 	endif
 	
-	String fn = ks_key + ":KMSyncLayer#hook"
-	String data = ks_key + ":" + s.list
-	KMSyncCommon(s.list, ks_key, fn, data)
+	String fn = "KMSyncLayer#hook"
+	String data = "list:" + s.list
+	KMSyncCommon#common(ks_key, fn, data)
 	
 	//	履歴欄出力
 	if (!ParamIsDefault(history) && history)
@@ -37,21 +38,25 @@ Function KMSyncLayer(syncWinList,[history])
 	return 0
 End
 //-------------------------------------------------------------
-//	isValidArguments: 		チェック用関数
+//	チェック用関数
 //-------------------------------------------------------------
 Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	s.errMsg = PRESTR_CAUTION + "KMSyncLayer gave error: "
 	
 	int i, n = ItemsInList(s.list)
+	String grfName
 	
 	if (n < 2)
-		s.errMsg += "the window list must contain 2 windows or more."
-		return 0
+		GetWindow $StringFromList(0,s.list), hook($ks_key)
+		if(!strlen(S_Value))
+			s.errMsg += "the window list must contain 2 windows or more."
+			return 0
+		endif
 	endif
 	
 	for (i = 0; i < n; i++)
-		String grfName = StringFromList(i, s.list)
+		grfName = StringFromList(i, s.list)
 		DoWindow $grfName
 		if (!V_Flag)
 			s.errMsg += "the window list contains a window not found."
@@ -85,26 +90,28 @@ End
 Static Function hook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:		//	kill:
-			KMSyncCommonCancel(s.winName, ks_key)
+			KMSyncCommon#resetSync(s.winName, ks_key)
 			break
 			
 		case 8:		//	modified
 			if (strlen(GetRTStackInfo(2)))	//	他のフック関数からの呼び出し(AxisやRangeなど)では動作しないようにする
 				break
+			elseif (KMSyncCommon#isBlocked(s.winName, ks_key))
+				KMSyncCommon#releaseBlock(s.winName, ks_key)
+				break
 			endif
-			String win, list = KMSyncCommonGetSyncList(s, ks_key)
+			String win, list = KMSyncCommon#getSyncList(s.winName, ks_key)
 			int i, n = ItemsInList(list), plane = KMLayerViewerDo(s.winName)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i, list)
-				SetWindow $win hook($ks_key)=$""		//	循環動作を防ぐために、他のウインドウのフック関数を一度外す
-				ModifyImage/W=$win $StringFromList(0, ImageNameList(win, ";")) plane=plane
-				SetWindow $win hook($ks_key)=KMSyncLayer#hook		//	外したフック関数を元に戻す
+				KMSyncCommon#setBlock(win, ks_key)	//	循環動作を防ぐため
+				KMLayerViewerDo(win, index=plane)
 				DoUpdate/W=$win
 			endfor
 			break
 			
 		case 13:		//	renamed
-			KMSyncCommonHookRenamed(s, ks_key)
+			KMSyncCommon#renewSyncList(s.winName, ks_key, oldName=s.oldWinName)
 			break
 	endswitch
 	return 0
@@ -116,11 +123,11 @@ End
 Static Function pnl(String LVName)
 	
 	//	パネル表示
-	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,250) as "Syncronize Layers"
+	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,255) as "Syncronize Layers"
 	RenameWindow $LVName#$S_name, synclayer
 	String pnlName = LVName + "#synclayer"
 	
-	String dfTmp = KMSyncCommonPnlInit(pnlName, ks_key)
+	String dfTmp = KMSyncCommon#pnlInit(pnlName, ks_key)
 	
 	//	フック関数
 	SetWindow $pnlName hook(self)=KMClosePnl
@@ -130,20 +137,21 @@ Static Function pnl(String LVName)
 	ListBox winL pos={5,12}, size={270,150}, frame=2, mode=4, win=$pnlName
 	ListBox winL listWave=$(dfTmp+KM_WAVE_LIST), selWave=$(dfTmp+KM_WAVE_SELECTED), colorWave=$(dfTmp+KM_WAVE_COLOR), win=$pnlName
 	
-	Button selectB title="Select / Deselect all", pos={10,170}, size={120,20}, proc=KMSyncCommon#pnlButton, win=$pnlName
+	Button selectB title="Select / Deselect all", pos={10,172}, size={130,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
 	Titlebox selectT title="You can also select a window by clicking it.", pos={10,200}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,223}, size={70,20}, disable=(DimSize($(dfTmp+KM_WAVE_SELECTED),0)==1)*2, win=$pnlName
-	Button doB userData(key)=ks_key, userData(fn)="KMSyncLayer", proc=KMSyncCommon#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={201,223}, size={70,20}, proc=KMSyncCommon#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,228}, disable=(DimSize($(dfTmp+KM_WAVE_SELECTED),0)==1)*2, win=$pnlName
+	Button doB userData(key)=ks_key, userData(fn)="KMSyncLayer", win=$pnlName
+	Button cancelB title="Cancel", pos={201,228}, win=$pnlName
+	ModifyControlList "doB;cancelB", size={70,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
 
 //******************************************************************************
 //	後方互換性
 Function KMSyncLayerMasterHook(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(sync)=KMSyncLayerHook
+	SetWindow $s.winName hook(sync)=KMSyncLayer#hook
 End
 Function KMSyncLayerSlaveHook(STRUCT WMWinHookStruct &s)
 	SetWindow $s.winName userData(sync)=GetUserData(GetUserData(s.winName, "", "sync"), "", "sync")
-	SetWindow $s.winName hook(sync)=KMSyncLayerHook
+	SetWindow $s.winName hook(sync)=KMSyncLayer#hook
 End

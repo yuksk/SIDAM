@@ -67,7 +67,8 @@ Function KMInfoBar(String grfName)
 		SetVariable traceV bodyWidth=40, value=_NUM:0, disable=0, focusRing=0, proc=KMInfoBar#pnlSetvalue1, win=$grfName
 		ControlUpdate/W=$grfName showC
 		ControlUpdate/W=$grfName traceV
-		adjustCtrlPosFor1D(grfName)	//	幅を使って位置調整を行う
+		adjustCtrlPos1D(grfName)	//	幅を使って位置調整を行う
+		adjustCtrlDisable1D(grfName)
 	endif
 	
 	adjustCtrlPos(grfName)
@@ -142,7 +143,7 @@ Static Function/S rightclickMenu(int menuitem)
 	elseif (strsearch(GetRTStackInfo(3),"hook,KM InfoBar.ipf",0) == -1)	//	右クリックによって呼ばれたのではない場合
 		return ""
 	endif
-
+	
 	int mode
 	
 	switch (menuitem)
@@ -186,7 +187,7 @@ Static Function/S rightclickMenu(int menuitem)
 				return KMAddCheckmark(mode, MENU_COMPLEX1D)
 			else
 				return ""
-			endif			
+			endif
 			
 	endswitch
 End
@@ -272,19 +273,22 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			
 		case 6:	//	resize
 			if (is1D)
-				adjustCtrlPosFor1D(s.winName)
+				adjustCtrlPos1D(s.winName)
 			endif
 			return 0
 			
 		case 8:	//	modified
 			if (is1D)
-				adjustCtrlPosFor1D(s.winName)
+				adjustCtrlDisable1D(s.winName)
 			elseif (is3D)
 				//	マウスホイールやModifyImageパネルから表示レイヤーが変更された場合には、
 				//	indexV と energyV を現状に合わせて変更する必要がある
 				int plane = KMLayerViewerDo(s.winName)	//	現在の表示レイヤー
-				SetVariable indexV value=_NUM:plane, win=$s.winName
-				SetVariable energyV value=_NUM:KMIndexToScale(w,plane), win=$s.winName
+				ControlInfo/W=$s.winname indexV
+				if (V_Value != plane)
+					SetVariable indexV value=_NUM:plane, win=$s.winName
+					SetVariable energyV value=_NUM:KMIndexToScale(w,plane), win=$s.winName
+				endif
 			endif
 			changeWindowTitle(str2num(GetUserData(s.winName,"","title")))
 			return 0
@@ -424,7 +428,7 @@ Static Function adjustCtrlPos(String win)
 	ControlInfo/W=$win xyT
 	Variable textHeight = V_Height, xyTLeft = V_left
 	Variable textTop	 = V_top
-		
+	
 	//	indexV もしくは pV が存在するかどうか
 	String setVarList = ""
 	ControlInfo/W=$win indexV
@@ -481,31 +485,30 @@ End
 //-------------------------------------------------------------
 //	特定トレース表示コントロールの表示・位置
 //-------------------------------------------------------------
-Static Function adjustCtrlPosFor1D(String grfName)
-	
+Static Function adjustCtrlPos1D(String grfName)
 	int n = ItemsInList(TraceNameList(grfName,";",1))
-	if (n > 1)
-		
-		DoUpdate/W=$grfName
-		
-		GetWindow $grfName gsizeDC			;	Variable pnlRight = V_right
-		ControlInfo/W=$grfName kwControlBar	;	Variable ctrlBarHeight = V_Height
-		ControlInfo/W=$grfName showC 			;	Variable checkWidth = V_Width, checkHeight = V_Height, checked = V_Value
-		ControlInfo/W=$grfName traceV			;	Variable varWidth = V_Width, varHeight = V_Height
-		
-		//	traceV の位置調整, 横位置の5はパネル右端からのマージン	
-		SetVariable traceV pos={pnlRight-varWidth-5,(ctrlBarHeight-varHeight)/2}, disable=(!checked)*2, limits={0,n-1,1}, win=$grfName
-		ControlUpdate/W=$grfName traceV
-		
-		//	showC の位置調整, 横位置の3はtraceVとのマージン
-		ControlInfo/W=$grfName traceV
-		CheckBox showC pos={V_left-checkWidth-3,(ctrlBarHeight-checkHeight)/2}, disable=0, win=$grfName
-		
-	else
-		
+	DoUpdate/W=$grfName
+	
+	GetWindow $grfName gsizeDC			;	Variable pnlRight = V_right
+	ControlInfo/W=$grfName kwControlBar	;	Variable ctrlBarHeight = V_Height
+	ControlInfo/W=$grfName showC 			;	Variable checkWidth = V_Width, checkHeight = V_Height, checked = V_Value
+	ControlInfo/W=$grfName traceV			;	Variable varWidth = V_Width, varHeight = V_Height
+	
+	//	traceV の位置調整, 横位置の5はパネル右端からのマージン	
+	SetVariable traceV pos={pnlRight-varWidth-5,(ctrlBarHeight-varHeight)/2}, disable=(!checked)*2, limits={0,n-1,1}, win=$grfName
+	ControlUpdate/W=$grfName traceV
+	
+	//	showC の位置調整, 横位置の3はtraceVとのマージン
+	ControlInfo/W=$grfName traceV
+	CheckBox showC pos={V_left-checkWidth-3,(ctrlBarHeight-checkHeight)/2}, win=$grfName
+End
+
+Static Function adjustCtrlDisable1D(String grfName)
+	if (ItemsInList(TraceNameList(grfName,";",1)) < 2)
 		Checkbox showC value=0, disable=1, win=$grfName
 		SetVariable traceV value=_NUM:0, disable=1, win=$grfName
-		
+	else
+		Checkbox showC disable=0, win=$grfName
 	endif
 End
 
@@ -823,7 +826,8 @@ Function KMDisplayCtrlBarHook(STRUCT WMWinHookStruct &s)	//	rev. 901 -> 903
 	Wave/Z w = KMGetImageWaveRef(s.winName)
 	int traceOnly = !WaveExists(w)
 	if (traceOnly)
-		adjustCtrlPosFor1D(s.winName)
+		adjustCtrlPos1D(s.winName)
+		adjustCtrlDisable1D(s.winName)
 	endif
 	adjustCtrlPos(s.winName)
 	
