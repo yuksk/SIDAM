@@ -189,7 +189,7 @@ Menu "KMRightClickCtrlBar", dynamic, contextualmenu
 	SelectString(KMFFTCheckWaveMenu(), "", "(")+"Correlation...", /Q, KMCorrelation#rightclickDo()
 	help = {"Compute a correlation function of a source wave(s)."}
 	//	Stats
-	KMMenus#rMenuStr("Stats...", dim=3), /Q, KMWavesStatsR()
+	KMMenus#rMenuStr("Stats...", dim=3), /Q, KMWavesStats#rightclickDo()
 	help = {"Compute statistics of waves."}
 	//	Work Function
 	KMMenus#rMenuStr("Work Function...", dim=3), /Q,  KMWorkfunctionR()
