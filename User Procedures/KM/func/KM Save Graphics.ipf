@@ -169,7 +169,7 @@ Static Function saveGraphics(String pnlName)
 	
 	DoWindow/F $parentWin
 	for (index = lw[0]; index <= lw[1]; index++)
-		Variable value = KMIndexToScale(w, index)
+		Variable value = KMIndexToScale(w, index,2)
 		switch (suffix)
 			case 1:	//	index only
 				sprintf cmd, "%s as \"%s%s%s\"", cmdStr, basename, KMSuffixStr(index,digit=digit), extStr

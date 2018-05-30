@@ -207,27 +207,27 @@ End
 
 
 //******************************************************************************
-//	KMGetIndexFromValue	:	z値からインデックスを得る、非等間隔バイアス電圧対応
+//	z値からインデックスを得る、非等間隔バイアス電圧対応
 //******************************************************************************
-Function KMGetIndexFromValue(Wave w, Variable value)
+Function KMScaleToIndex(Wave w, Variable value, int dim)
 	if (KMisUnevenlySpacedBias(w))		//	非等間隔バイアス電圧
 		//	一番近い値に対応するインデックスを探す
-		Make/N=(DimSize(w,2))/FREE dw = abs(str2num(GetDimLabel(w,2,p))-value), iw = p
+		Make/N=(DimSize(w,dim))/FREE dw = abs(str2num(GetDimLabel(w,dim,p))-value), iw = p
 		Sort dw, iw
 		return iw[0]
 	else
-		return round((value-DimOffset(w,2))/DimDelta(w,2))
+		return round((value-DimOffset(w,dim))/DimDelta(w,dim))
 	endif
 End
 
 //******************************************************************************
 //	インデックスからz値を得る、非等間隔バイアス電圧対応
 //******************************************************************************
-Function KMIndexToScale(Wave w, int index)
+Function KMIndexToScale(Wave w, int index, int dim)
 	if (KMisUnevenlySpacedBias(w))		//	非等間隔バイアス電圧
-		return str2num(GetDimLabel(w,2,index))
+		return str2num(GetDimLabel(w,dim,index))
 	else
-		return DimOffset(w,2) + DimDelta(w,2)*index
+		return DimOffset(w,dim) + DimDelta(w,dim)*index
 	endif
 End
 
