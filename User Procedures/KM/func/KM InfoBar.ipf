@@ -257,9 +257,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			GetWindow $s.winName, wsizeDC
 			if (s.mouseLoc.v < V_top && s.eventMod & 16)	//	コントロールバー内で右クリック
 				if (is1D)
-					PopupContextualMenu/N "KMRightClickCtrlBar1D"
+					PopupContextualMenu/N/ASYN "KMRightClickCtrlBar1D"
 				elseif (is2D || is3D)
-					PopupContextualMenu/N "KMRightClickCtrlBar"
+					PopupContextualMenu/N/ASYN "KMRightClickCtrlBar"
 				endif
 				return 1
 			endif

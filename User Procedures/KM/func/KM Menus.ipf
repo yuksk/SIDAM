@@ -138,6 +138,7 @@ Menu "KMRightClickCtrlBar", dynamic, contextualmenu
 		SubMenu "Complex"
 			KMInfoBar#rightclickMenu(3), /Q,  KMInfoBar#rightclickDo(3)
 		End
+		"Scale Bar...", /Q, KMScaleBar#rightclickDo()
 		//	Auto Annotation of LayerViewer
 		KMLayerViewer#rightclickMenu(1), /Q, KMLayerViewer#rightclickDo(1),
 		//	Show/Hide Axis

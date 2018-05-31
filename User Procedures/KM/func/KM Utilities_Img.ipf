@@ -137,6 +137,12 @@ Function KMGetAxThick(String grfName)
 	return KMGetWindowValue(recStr, "axThick", 1)
 End
 
+//	expand　を　得るショートカット
+Function KMGetExpand(String grfName)
+	String recStr = KMGetWindowRecStr(grfName)
+	return abs(KMGetWindowValue(recStr, "expand", 1))
+End
+
 //	WinRecreationで返される文字列のうち、必要な部分を抜き出す
 //	grfNameがサブウインドウであるときに重要
 Static Function/S KMGetWindowRecStr(String grfName)
