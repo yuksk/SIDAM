@@ -314,8 +314,8 @@ Static Function pnl(String grfName)
 	CheckBox lastTransC pos={284,101},title=" Transparent",mode=1,win=$pnlName
 	PopupMenu lastClrP pos={302,77},size={40,19},bodyWidth=40,value= #"\"*COLORPOP*\"",win=$pnlName
 	
-	Button doB pos={456,49},size={60,20},title="Do It",proc=KMColor#pnlButton,win=$pnlName
-	Button cancelB pos={456,79},size={60,20},title="Cancel",proc=KMColor#pnlButton,win=$pnlName
+	Button doB pos={456,49},size={70,22},title="Do It",proc=KMColor#pnlButton,win=$pnlName
+	Button cancelB pos={456,85},size={70,22},title="Cancel",proc=KMColor#pnlButton,win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*P") mode=1, proc=KMColor#pnlPopup, win=$pnlName
@@ -570,7 +570,7 @@ End
 //	パネルコントロール
 //******************************************************************************
 //-------------------------------------------------------------
-//	pnlTab:	タブ
+//	タブ
 //-------------------------------------------------------------
 Static Function pnlTab(STRUCT WMTabControlAction &s)
 	if (s.eventCode == 2)
@@ -580,7 +580,7 @@ Static Function pnlTab(STRUCT WMTabControlAction &s)
 End
 
 //-------------------------------------------------------------
-//	pnlCheck:	チェックボックス
+//	チェックボックス
 //-------------------------------------------------------------
 Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	
@@ -599,9 +599,11 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	strswitch (s.ctrlName)
 		case "revC":
 			KMColor(grfName=grfName, imgList=imgList, rev=s.checked)
+			updateColorscales(s.win)
 			break
 		case "logC":
 			KMColor(grfName=grfName, imgList=imgList, log=s.checked)
+			updateColorscales(s.win)
 			break
 		case "beforeUseC":
 			KMColor(grfName=grfName, imgList=imgList, minRGB={0})
@@ -631,7 +633,7 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 End
 
 //-------------------------------------------------------------
-//	pnlCheckAllC:	allCがクリックされた場合の動作
+//	allCがクリックされた場合の動作
 //		チェックが入れられたときは、パネルの内容をすべてのイメージに反映
 //		チェックが外されたときは、imagePの状態を変えただけで終了
 //-------------------------------------------------------------
@@ -697,7 +699,7 @@ Static Function pnlCheckAllC(STRUCT  WMCheckboxAction &s)
 End
 
 //-------------------------------------------------------------
-//	pnlPopup:	ポップアップメニュー
+//	ポップアップメニュー
 //-------------------------------------------------------------
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	
@@ -735,7 +737,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 End
 
 //-------------------------------------------------------------
-//	pnlButton:	ボタン
+//	ボタン
 //-------------------------------------------------------------
 Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
@@ -836,6 +838,31 @@ Static Function updateOptionControls(String pnlName, String imgName)
 	CheckBox lastClrC value=(maxMode==1),win=$pnlName
 	CheckBox lastTransC value=(maxMode==2),win=$pnlName
 	PopupMenu lastClrP popColor=(s.red,s.green,s.blue),win=$pnlName
+	
+	updateColorscales(pnlName)
+End
+
+//-------------------------------------------------------------
+//	rev, log のコントロールの状態を表示されているカラースケールに反映する
+//-------------------------------------------------------------
+Static Function updateColorscales(String pnlName)
+	//	e.g., pnlName = Graph0#Color
+	Wave cw = KMGetCtrlValues(pnlName,"revC;logC")
+	String columnList = ChildWindowList(pnlName), column
+	String csNameList, csName, cbName, ctabName
+
+	int i, j
+
+	for (i = 0; i < ItemsInList(columnList); i++)
+		column = StringFromList(i,columnList)
+		csNameList = AnnotationList(pnlName+"#"+column)
+		for (j = 0; j < ItemsInList(csNameList); j++)
+			csName = StringFromList(j,csNameList)			//	e.g., cs_0_0
+			cbName = ReplaceString("cs",csName,"cb")		//	e.g., cb_0_0
+			ctabName = GetUserData(pnlName,cbName,"ctab")
+			ColorScale/W=$(pnlName+"#"+column)/C/N=$csName ctab={0,100,$ctabName,cw[0]}, log=cw[1]
+		endfor
+	endfor	
 End
 
 //-------------------------------------------------------------
