@@ -45,10 +45,15 @@ StrConstant KM_WAVE_SELECTED = "KM_selected"
 StrConstant KM_WAVE_COLOR = "KM_color"
 
 //	Igorで使われている定数の定義
-Constant MAX_OBJ_NAME = 31
-Constant MAX_WIN_PATH = 199
-Constant MAX_UNITS = 49
-Constant MAXCMDLEN = 1000
+#if (IgorVersion() >= 8.00)
+	Constant MAX_OBJ_NAME = 255
+	Constant MAX_WIN_PATH = 2000
+	Constant MAXCMDLEN = 2500
+#else
+	Constant MAX_OBJ_NAME = 31
+	Constant MAX_WIN_PATH = 259
+	Constant MAXCMDLEN = 1000
+#endif
 
 StrConstant PRESTR_CMD = "•"			//	履歴欄でコマンドの前につく文字
 StrConstant PRESTR_CAUTION = "** "	//	履歴欄で警告の前につく文字
