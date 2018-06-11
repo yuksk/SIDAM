@@ -404,8 +404,8 @@ Function KMGetMousePos(s, [winhs, grid])
 		endif
 		Variable ox = DimOffset(s.w,0), oy = DimOffset(s.w,1)
 		Variable dx = DimDelta(s.w,0), dy = DimDelta(s.w,1)
-		tx = limit(tx, ox, ox+dx*(DimSize(s.w,0)-1))
-		ty = limit(ty, oy, oy+dy*(DimSize(s.w,1)-1))
+		tx = limit(tx, min(ox,ox+dx*(DimSize(s.w,0)-1)), max(ox,ox+dx*(DimSize(s.w,0)-1)))
+		ty = limit(ty, min(oy,oy+dy*(DimSize(s.w,1)-1)), max(oy,oy+dy*(DimSize(s.w,1)-1)))
 		Variable tp = (tx-ox)/dx, tq = (ty-oy)/dy
 		s.p = s.grid ? round(tp) : tp
 		s.q = s.grid ? round(tq) : tq
