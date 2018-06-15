@@ -29,14 +29,15 @@ Static Function pnl(String LVName)
 	Wave srcw =  KMGetImageWaveRef(LVName)
 	Variable isMLS = KMisUnevenlySpacedBias(srcw)
 	if (isMLS)		//	Nanonis MLSモードでのデータの場合は、横軸用ウエーブを一時データフォルダ内に用意する
-		Wave xw = pnlInit(srcw, pnlName)
+		String dfTmp
+		Wave xw = pnlInit(srcw, pnlName, dfTmp)
 	endif
 	
 	//  パネル表示
 	if (isMLS)
-		Display/K=1 srcw[0][0][] vs xw as NameOfWave(srcw) + "[0][0][]"
+		Display/K=1 srcw[0][0][] vs xw
 	else
-		Display/K=1 srcw[0][0][] as NameOfWave(srcw) + "[0][0][]"
+		Display/K=1 srcw[0][0][]
 	endif
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName
 	
@@ -67,6 +68,9 @@ Static Function pnl(String LVName)
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
 	SetWindow $pnlName userData(live)="0"
+	if (isMLS)
+		SetWindow $pnlName userData(dfTmp)=dfTmp
+	endif
 	
 	DoUpdate/W=$pnlName
 	ModifyGraph/W=$pnlName width=0, height=0
@@ -74,11 +78,12 @@ End
 //-------------------------------------------------------------
 //	パネル初期設定
 //-------------------------------------------------------------
-Static Function/WAVE pnlInit(Wave srcw, String pnlName)
+Static Function/WAVE pnlInit(Wave srcw, String pnlName, String &dfTmp)
 	String dfSav = KMNewTmpDf(pnlName,"KMSpectrumViewerPnl")		//  一時データフォルダ作成
-	Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")/WAVE=xw	//	MLS対応横軸ウエーブ
+	Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
+	dfTmp = GetDataFolder(1)
 	SetDataFolder $dfSav
-	return xw
+	return tw
 End
 //-------------------------------------------------------------
 //	指定されたウインドウについて、マウス位置取得ウインドウとスペクトル表示
@@ -154,6 +159,8 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				KillWindow $s.winName
 			elseif (s.keycode >= 28 && s.keycode <= 31)	//	arrows
 				pnlHookArrows(s)
+			elseif (s.keycode >= 97)
+				KMInfobar#keyboardShortcuts(s)
 			endif
 			return 1
 		case 13: //	renamed
@@ -190,11 +197,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 				return 0
 			elseif (!strlen(GetUserData(s.winName,"","mousePressed")))	//	カーソルをドラッグで動かした場合に相当
 				return 0
-			endif
-			//	以下表示領域で有効
-			if (s.eventMod&2^3)	//  ctrlキーが押されていたらウエーブを出力
-				saveSpectrum(s.winName)
-			else
+			elseif (s.eventMod&2^3)	//  ctrlキーが押されていたら
 				pnlHookClick(s)
 			endif
 			SetWindow $s.winName userData(mousePressed)=""
@@ -222,11 +225,6 @@ Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	for (i = 0; i < n; i += 1)
 		pnlResetRelation(StringFromList(i, mouseWinList), s.winName)
 	endfor
-	
-	Wave/Z xw = pnlGetSrc(s.winName, 1)
-	if (WaveExists(xw))	//	MLSデータの場合
-		SetWindow $s.winName userData(dfTmp)=GetWavesDataFolder(xw,1)	//	一時データフォルダを削除するルーチンを使用するため
-	endif
 	
 	//	一時データフォルダの削除(あれば)、ヘルプウインドウを閉じる(あれば)
 	KMonClosePnl(s.winName)
@@ -259,12 +257,17 @@ Static Function pnlHookRename(STRUCT WMWinHookStruct &s)
 		SetWindow $win userData($key)=list
 	endfor
 	
-	//	スペクトル表示ウインドウの名前が変更され、そのウインドウでMLSモードのデータを表示している場合には、
-	//	一時データフォルダの名前を変更する必要がある (そうしないと後々名前の競合が起こる可能性がある)
+	//	一時データフォルダを使用している場合(MLSウエーブ表示時)は、一時データフォルダの名前を変更する
+	//	必要がある (そうしないと後々名前の競合が起こる可能性がある)
 	if (!CmpStr(key, "KMSpectrumViewerPnl"))
-		Wave/Z xw = pnlGetSrc(s.winName, 1)
-		if (WaveExists(xw))		//	MLS
-			RenameDataFolder $GetWavesDataFolder(xw,1), $s.winName
+		String dfTmp = GetUserData(s.winName,"","dfTmp")
+		if (strlen(dfTmp))
+			DFREF dfrSav = GetDataFolderDFR()
+			SetDataFolder $dfTmp
+			RenameDataFolder $dfTmp, $s.winName
+			//	変更後のパスを保存
+			SetWindow $s.winName userData(dfTmp)=GetDataFolder(1)
+			SetDataFolder dfrSav
 		endif
 	endif
 End
@@ -345,41 +348,47 @@ End
 //	クリック位置でのスペクトル表示を追加する
 //-------------------------------------------------------------
 Static Function pnlHookClick(STRUCT WMWinHookStruct &s)
+	//	複数のspectrum viewerのターゲットになっている可能性があり、それらのリストが入る
 	String specWinList = GetUserData(s.winName, "", "KMSpectrumViewerPnl")
-	int i, n = ItemsInList(specWinList)
 	
-	for (i = 0; i < n; i++)
-		String specWin = StringFromList(i, specWinList)
-		String trcList = TraceNameList(specWin,";",1), trcName
-		Wave srcw = pnlGetSrc(specWin, 0)
-		Wave/Z xw = pnlGetSrc(specWin, 1)
-		ControlInfo/W=$specWin pV ;	Variable posp = V_Value			//	クリック位置(現在位置)取得
-		ControlInfo/W=$specWin qV ;	Variable posq = V_Value			//	同上
-		sprintf trcName, "%s[%d][%d][]", NameOfWave(srcw), posp, posq		//	追加されるトレースの名前
-		//	追加表示されたスペクトルがあればそれを削除する
-		if (ItemsInList(trcList) > 1)
-			RemoveFromGraph/W=$specWin $StringFromList(0, trcList)	//	表示順が変更されているので、0番目のトレースを削除する
-		endif
-		//	スペクトル追加
-		if (WaveExists(xw))		//	MLS
-			AppendToGraph/W=$specWin srcw[posp][posq][]/TN=$trcName vs xw
-		else
-			AppendToGraph/W=$specWin srcw[posp][posq][]/TN=$trcName
-		endif
-		//	色変更
-		Variable tr, tg, tb
-		if (WaveExists(xw))		//	MLS
-			//	一時データフォルダを使用しているので、黒背景の色セットを使う
-			tr = KM_CLR_LINE2_R;	tg = KM_CLR_LINE2_G;	tb = KM_CLR_LINE2_B
-		else
-			//	元からあるスペクトルの表示色(ユーザー設定値が使用される)の反転色を使用
-			sscanf StringByKey("rgb(x)", TraceInfo(specWin, NameOfWave(srcw), 0), "="), "(%d,%d,%d)", tr, tg, tb
-			tr = 65535 - tr ;	tg = 65535 - tg ;	tb = 65535 - tb
-		endif
-		ModifyGraph/W=$specWin rgb($trcName)=(tr, tg, tb)
-		//	表示順変更
-		ReorderTraces/W=$specWin $NameOfWave(srcw), {$trcName}
+	String specWin, trcList, trcName
+	STRUCT RGBColor clr
+	int i, j
+	
+	for (i = 0; i < ItemsInList(specWinList); i++)
+		specWin = StringFromList(i, specWinList)
+		trcList = TraceNameList(specWin,";",1)
+		Wave cw = KMGetCtrlValues(specWin,"pV;qV")
+		
+		for (j = 0; j < ItemsInList(trcList); j++)
+			trcName = StringFromList(j,trcList)
+			//	追加表示されたトレースであれば削除する
+			if (strsearch(trcName,"#",0)>=0)
+				RemoveFromGraph/W=$specWin $trcName
+				continue
+			endif
+			Wave srcw = TraceNameToWaveRef(specWin,trcName)
+			Wave/Z xw = XWaveRefFromTrace(specWin,trcName)
+			if (WaveExists(xw))	//	MLS
+				AppendToGraph/W=$specWin srcw[cw[0]][cw[1]][]/TN=$trcName vs xw
+				clr.red = KM_CLR_LINE2_R
+				clr.green = KM_CLR_LINE2_G
+				clr.blue = KM_CLR_LINE2_B
+			else
+				AppendToGraph/W=$specWin srcw[cw[0]][cw[1]][]/TN=$trcName
+				getInvertedColor(specWin,NameOfWave(srcw),clr)
+			endif
+			ModifyGraph/W=$specWin rgb($trcName)=(clr.red, clr.green, clr.blue)
+		endfor
 	endfor
+End
+
+Static Function getInvertedColor(String grfName, String trcName, STRUCT RGBColor &s)
+	Variable red, green, blue
+	sscanf StringByKey("rgb(x)", TraceInfo(grfName, trcName, 0), "="),"(%d,%d,%d)", red, green, blue
+	s.red = 65535 - red
+	s.green = 65535 - green
+	s.blue = 65535 - blue
 End
 
 //******************************************************************************
@@ -402,22 +411,6 @@ End
 //	補助関数
 //******************************************************************************
 //-------------------------------------------------------------
-//	表示されているスペクトルのソースウエーブを返す
-//-------------------------------------------------------------
-Static Function/WAVE pnlGetSrc(String pnlName, int axis)	//	axis 0: y, 1: x
-	
-	String trcList = TraceNameList(pnlName,";",1)
-	Wave/Z srcw = TraceNameToWaveRef(pnlName, StringFromList(0, trcList))	//	表示されているスペクトルは全て同じウエーブに由来するので、何番目のトレースでも構わない
-	
-	if (!WaveExists(srcw))
-		return $""
-	elseif (axis)
-		return XWaveRefFromTrace(pnlName, NameOfWave(srcw))
-	else
-		return srcw
-	endif
-End
-//-------------------------------------------------------------
 //	スペクトル等表示更新
 //-------------------------------------------------------------
 Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
@@ -429,19 +422,25 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 		return 0
 	endif
 	
-	//	スペクトル表示の更新
-	Wave srcw = pnlGetSrc(pnlName, 0)
-	posp = limit(posp, 0, DimSize(srcw,0)-1)
-	posq = limit(posq, 0, DimSize(srcw,1)-1)
-	ReplaceWave/W=$pnlName trace=$NameOfWave(srcw), srcw[posp][posq][]
+	int i, n
+	String trcList = TraceNameList(pnlName,";",1), trcName
 	
+	//	スペクトル表示の更新	
+	for (i = 0; i < ItemsInList(trcList); i++)
+		trcName = StringFromList(i,trcList)
+		//	追加表示されたトレースは更新しない
+		if (strsearch(trcName,"#",0)>=0)
+			continue
+		endif
+		Wave srcw = TraceNameToWaveRef(pnlName,trcName)
+		posp = limit(posp, 0, DimSize(srcw,0)-1)
+		posq = limit(posq, 0, DimSize(srcw,1)-1)
+		ReplaceWave/W=$pnlName trace=$NameOfWave(srcw), srcw[posp][posq][]
+	endfor
+			
 	//	パネル表示の更新
-	String titleStr
-	sprintf titleStr "%s [%d][%d][]", NameOfWave(srcw), posp, posq
-	DoWindow/T $pnlName, titleStr
 	SetVariable pV value=_NUM:posp, win=$pnlName
 	SetVariable qV value=_NUM:posq, win=$pnlName
-	
 	DoUpdate/W=$pnlName
 	
 	//	カーソル位置を使用している場合、かつ、カーソル位置変化に伴う呼び出しでない場合
@@ -449,8 +448,7 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 	if (str2num(GetUserData(pnlName,"","live"))==1 && CmpStr(GetRTStackInfo(2), "pnlHookCsrMov"))
 		STRUCT KMCursorPos s ;	s.isImg = 1;	s.p = posp ;	s.q = posq
 		String win, mouseWinList = GetUserData(pnlName,"","parent")
-		Variable i, n = ItemsInList(mouseWinList)
-		for (i = 0; i < n; i += 1)
+		for (i = 0, n = ItemsInList(mouseWinList); i < n; i++)
 			win = StringFromList(i, mouseWinList)
 			KMSetCursor("A", win, 0, s)
 		endfor
@@ -483,14 +481,17 @@ End
 
 Static Function/S rightclickMenuComplex()
 	String win = WinName(0,1)
-	int isComplex = WaveType(pnlGetSrc(win,0)) & 0x01
-	if (isComplex)
-		int mode = NumberByKey("cmplxMode(x)",TraceInfo(win, "", 0),"=")
-		//	他次元ウエーブを表示している場合には real & imaginary は無効なので、返ってくるmodeは1以上
-		return KMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
-	else
-		return ""
-	endif
+	String trcList = TraceNameList(win,";",1), trcName
+	int i, isComplexIncluded = 0
+
+	for (i = 0; i < ItemsInList(trcList); i++)
+		trcName = StringFromList(i,trcList)
+		if (WaveType(TraceNameToWaveRef(win,trcName)) & 0x01)
+			int mode = NumberByKey("cmplxMode(x)",TraceInfo(win, trcName, 0),"=")
+			return KMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
+		endif
+	endfor
+	return ""
 End
 //-------------------------------------------------------------
 //	座標取得元を変更する
@@ -529,7 +530,7 @@ Static Function/S rightclickMenuTarget(String pnlName)
 	String chdPnl
 	if (strsearch(GetRTStackInfo(3),"KM SpectrumViewer.ipf",0) >= 0)
 		chdPnl = "KMSpectrumViewerPnl"
-		Wave/Z srcw = pnlGetSrc(pnlName, 0)		
+		Wave/Z srcw = TraceNameToWaveRef(pnlName,StringFromList(0,TraceNameList(pnlName,";",1)))
 	elseif (strsearch(GetRTStackInfo(3),"KM LineSpectra.ipf",0) >= 0)
 		chdPnl = "KMLineSpectraPnl"
 		Wave/Z srcw = $GetUserData(pnlName, "", "src")
@@ -542,7 +543,7 @@ Static Function/S rightclickMenuTarget(String pnlName)
 	endif
 	
 	String allList = WinList("*",";","WIN:1,VISIBLE:1"), win
-	String rtnList = ""	//	メニュー表示用文字列
+	String rtnList = ""		//	メニュー表示用文字列
 	String grfList = ""		//	メニュー選択時に使用されるグラフリスト
 	int i, n
 	
@@ -565,38 +566,38 @@ End
 //-------------------------------------------------------------
 //	指定点におけるウエーブを抜き出す
 //-------------------------------------------------------------
-Static Function/WAVE saveSpectrum(String pnlName)
-	String pnlListStr = GetUserData(pnlName,"","KMSpectrumViewerPnl")
-	int n = ItemsInList(pnlListStr)
-	if (n)	//	親ウインドウで ctrl + click された場合
-		Make/N=(n)/WAVE/FREE rtnw = extractSpectrumEach(p, pnlListStr)
-		return rtnw
-	else		//	スペクトル表示ウインドウの右クリックメニューから呼ばれた場合
-		return extractSpectrumEach(0, pnlName)
-	endif
-End
-
-Static Function/WAVE extractSpectrumEach(int index, String list)
-	String pnlName =StringFromList(index, list)
-	Wave srcw = pnlGetSrc(pnlName, 0)
+Static Function saveSpectrum(String pnlName)
 	ControlInfo/W=$pnlName pV ;	Variable posp = V_Value
 	ControlInfo/W=$pnlName qV ;	Variable posq = V_Value	
-	String result = NameOfWave(srcw)+"_p"+num2str(posp)+"q"+num2str(posq)
-	result = CleanupName(result,1)
-	
+	String trcList = TraceNameList(pnlName,";",1), trcName, result
 	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder GetWavesDataFolderDFR(srcw)
+	int i
 	
-	MatrixOP/O $result/WAVE=extw = beam(srcw, posp, posq)
-	if (KMisUnevenlySpacedBias(srcw))
-		Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")
-	else
-		SetScale/P x DimOffset(srcw,2), DimDelta(srcw,2), WaveUnits(srcw,2), extw
-	endif
-	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(srcw,0)), extw
-	
-	SetDataFolder dfrSav
-	return extw
+	for (i = 0; i < ItemsInList(trcList); i++)
+		trcName = StringFromList(i,trcList)
+		if (strsearch(trcName,"#",0)>=0)
+			continue
+		endif
+		
+		Wave srcw = TraceNameToWaveRef(pnlName,trcName)
+		if (WaveDims(srcw)!=3)
+			continue
+		endif
+		
+		sprintf result, "%s_p%dq%d", NameOfWave(srcw), posp, posq
+		result = CleanupName(result,1)
+		
+		SetDataFolder GetWavesDataFolderDFR(srcw)
+		MatrixOP/O $result/WAVE=extw = beam(srcw, posp, posq)
+		if (KMisUnevenlySpacedBias(srcw))
+			Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")
+		else
+			SetScale/P x DimOffset(srcw,2), DimDelta(srcw,2), WaveUnits(srcw,2), extw
+		endif
+		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(srcw,0)), extw
+		
+		SetDataFolder dfrSav
+	endfor
 End
 
 

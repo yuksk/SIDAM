@@ -530,6 +530,7 @@ End
 
 //-------------------------------------------------------------
 //	キーボードショートカット
+//	KM SpectrumViewer.ipf内でも使用されている
 //-------------------------------------------------------------
 Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	
