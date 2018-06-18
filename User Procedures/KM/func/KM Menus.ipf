@@ -140,7 +140,7 @@ Menu "KMRightClickCtrlBar", dynamic, contextualmenu
 		End
 		"Scale Bar...", /Q, KMScaleBar#rightclickDo()
 		//	Auto Annotation of LayerViewer
-		KMLayerViewer#rightclickMenu(1), /Q, KMLayerViewer#rightclickDo(1),
+		KMLayerViewer#rightclickMenu(1), /Q, KMLayerViewer#rightclickDo(1)
 		//	Show/Hide Axis
 		KMInfoBar#rightclickMenu(2), /Q, KMInfoBar#rightclickDo(2)
 		help = {"Show/Hide axes of the graph."}
@@ -204,7 +204,7 @@ Menu "KMRightClickCtrlBar", dynamic, contextualmenu
 	"-"
 	
 	//	Extract Layers of LayerViewer
-	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0),
+	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
 	KMShowParameters#rightclickMenu(), /Q, KMShowParameters()
 	

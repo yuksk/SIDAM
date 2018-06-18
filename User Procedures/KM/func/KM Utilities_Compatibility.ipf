@@ -1,4 +1,4 @@
-#pragma TextEncoding = "Shift_JIS"
+#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
 #pragma ModuleName= KMBackwardCompatibility
 
@@ -7,17 +7,17 @@
 #endif
 
 //******************************************************************************
-//	����݊����̐ݒ�
+//	後方互換性の設定
 //******************************************************************************
 Function KMBackwardCompatibility()
-	//	Igor 6 ���� 7 �ւ̕ύX�ŁA���̈�����ύX����
+	//	Igor 6 から 7 への変更で、Åの扱いを変更する
 	changeAngstromStr(root:)
 End
 
 
-//	Igor 6 ���� 7 �ւ̕ύX�ɂƂ��Ȃ��Adfr �ȉ��ɂ���S�ẴE�G�[�u�ɂ��āA�P�ʂ� � �ł���悤�Ȃ��̂� \u00c5 �ɕύX����
+//	Igor 6 から 7 への変更にともない、dfr 以下にある全てのウエーブについて、単位が ﾅ であるようなものは \u00c5 に変更する
 Static Function changeAngstromStr(DFREF dfr)
-
+	
 	int i, n, dim
 	
 	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
@@ -33,7 +33,7 @@ Static Function changeAngstromStr(DFREF dfr)
 End
 
 Static Function changeUnitStr(Wave w, int dim)
-	String oldUnit = "�"
+	String oldUnit = "ﾅ"
 	String newUnit = "\u00c5"
 	String unit = WaveUnits(w,dim)
 	
