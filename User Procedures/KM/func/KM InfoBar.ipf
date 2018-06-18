@@ -54,7 +54,7 @@ Function KMInfoBar(String grfName)
 	if (is3D)
 		int layer = KMLayerViewerDo(grfName)
 		SetVariable indexV title="index:", pos={3,5}, size={96,18}, value=_NUM:layer, format="%d", win=$grfName
-		SetVariable energyV title="value:", value=_NUM:KMGetValueFromIndex(w,layer), win=$grfName
+		SetVariable energyV title="value:", value=_NUM:KMIndexToScale(w,layer), win=$grfName
 		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, proc=KMInfoBar#pnlSetvalue2, win=$grfName
 		setenergyVLimits(grfName)
 		ControlUpdate/W=$grfName indexV	//	ここで更新しておくと KMDisplayCtrlBarAdjust で位置が正しく扱われる
@@ -284,7 +284,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				//	indexV と energyV を現状に合わせて変更する必要がある
 				int plane = KMLayerViewerDo(s.winName)	//	現在の表示レイヤー
 				SetVariable indexV value=_NUM:plane, win=$s.winName
-				SetVariable energyV value=_NUM:KMGetValueFromIndex(w,plane), win=$s.winName
+				SetVariable energyV value=_NUM:KMIndexToScale(w,plane), win=$s.winName
 			endif
 			changeWindowTitle(str2num(GetUserData(s.winName,"","title")))
 			return 0
@@ -760,7 +760,7 @@ Static Function pnlSetvalue2(STRUCT WMSetVariableAction &s)
 		default:
 	endswitch
 	SetVariable indexV value=_NUM:index, win=$s.win
-	SetVariable energyV value=_NUM:KMGetValueFromIndex(w,index), win=$s.win
+	SetVariable energyV value=_NUM:KMIndexToScale(w,index), win=$s.win
 	
 	ModifyImage/W=$s.win $NameOfWave(w) plane=index	//	表示レイヤーの更新
 End

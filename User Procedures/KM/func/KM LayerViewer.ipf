@@ -524,7 +524,7 @@ Static Function aaChange(String LVName, [Variable layer])
 	String legendStr = GetUserData(LVName, "", "AAstr")
 	String digitStr = "%."+GetUserData(LVName, "", "AAdigit")+"f"
 	Wave w = KMGetImageWaveRef(LVName)
-	Variable value = KMGetValueFromIndex(w, layerPresent)	//	現在の表示レイヤーに対応するエネルギー
+	Variable value = KMIndexToScale(w, layerPresent)	//	現在の表示レイヤーに対応するエネルギー
 	
 	String str
 	Sprintf str, ReplaceString("$value$",legendStr,digitStr), value

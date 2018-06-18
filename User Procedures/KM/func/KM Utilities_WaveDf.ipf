@@ -240,9 +240,9 @@ Function KMGetIndexFromValue(Wave w, Variable value)
 End
 
 //******************************************************************************
-//	KMGetValueFromIndex	:	インデックスからz値を得る、非等間隔バイアス電圧対応
+//	インデックスからz値を得る、非等間隔バイアス電圧対応
 //******************************************************************************
-Function KMGetValueFromIndex(Wave w, int index)
+Function KMIndexToScale(Wave w, int index)
 	if (KMisUnevenlySpacedBias(w))		//	非等間隔バイアス電圧
 		return str2num(GetDimLabel(w,2,index))
 	else
