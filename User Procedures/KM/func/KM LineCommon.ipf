@@ -126,10 +126,10 @@ Static Function pnlHookParentMouse(
 	
 	switch (s.eventCode)
 		case 3:	//	mousedown
-			//	shiftが押されている、マウスポインタが外れている、両方の点が固定されている、
+			//	shiftまたはaltが押されている、マウスポインタが外れている、両方の点が固定されている、
 			//	のどれかに当てはまる場合には動作しない
-			//	s.eventMod&18 は 2^1+2^4 で、shiftが押されているか右クリックを意味する
-			if ((s.eventMod&18)|| KMGetMousePos(ms) || (!p1Checked && !p2Checked))
+			//	s.eventMod&22 は 2^1+2^2+2^4 で、shiftまたはaltが押されているまたは右クリックを意味する
+			if ((s.eventMod&22)|| KMGetMousePos(ms) || (!p1Checked && !p2Checked))
 				break
 			endif
 			if (strlen(GetUserData(pnlName,"","clicked")))	//	2回目のクリック
