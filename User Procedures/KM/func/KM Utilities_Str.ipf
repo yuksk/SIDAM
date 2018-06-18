@@ -28,11 +28,9 @@ End
 
 
 //******************************************************************************
-//  PossiblyUnquoteName:	文字列がシングルクォーテーションで挟まれていたら、それを除く
+//  文字列がシングルクォーテーションで挟まれていたら、それを除く
 //******************************************************************************
-Function/S PossiblyUnquoteName(str)
-	String str
-	
+Function/S KMUnquoteName(String str)
 	if (!CmpStr("'",str[strlen(str)-1]))
 		str = str[0,strlen(str)-2]
 	endif

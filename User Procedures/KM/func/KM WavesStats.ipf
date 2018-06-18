@@ -56,11 +56,9 @@ End
 //	DefaultBasename
 //		入力ウエーブの次元に応じて、デフォルトのbasenameを返す
 //-------------------------------------------------------------
-Static Function/S DefaultBasename(w)
-	Wave/Z w
-	
+Static Function/S DefaultBasename(Wave/Z w)
 	if (WaveDims(w) == 1)	//	参照ウエーブは1次元なのでこれでよい
-		return PossiblyUnquoteName(GetWavesDataFolder(w,0))
+		return KMUnquoteName(GetWavesDataFolder(w,0))
 	elseif (WaveDims(w) == 3)
 		return NameOfWave(w)
 	else

@@ -966,8 +966,8 @@ Static Function/S loadColorTableWave(String ibwFilePath)
 	SetDataFolder root:
 	//	root:'_KM':ctable　まで作成
 	for (i = 1, n = ItemsInList(KM_DF_CTAB,":"); i < n; i++)
-		NewDataFolder/O/S $PossiblyUnquoteName(StringFromList(i, KM_DF_CTAB,":"))
-	endfor	
+		NewDataFolder/O/S $KMUnquoteName(StringFromList(i, KM_DF_CTAB,":"))
+	endfor
 	//	ctable以下を作成
 	for (i = 1, n = ItemsInList(wPath,":"); i < n-1; i++)	//	wPathは : から始まるので最初は除外する。最後はファイル名なのでやはり除外する。
 		NewDataFolder/O/S $StringFromList(i,wPath,":")
