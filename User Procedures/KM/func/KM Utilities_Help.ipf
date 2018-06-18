@@ -92,58 +92,6 @@ End
 
 
 //******************************************************************************
-//	KMGetFunction
-//		fnStrで指定された関数を含むファイルの絶対パスと関数そのものの定義文字列を返す
-//******************************************************************************
-Function/S KMGetFunction(fnStr,[sepStr, pathStr])
-	String fnStr		//	関数の名前 ex. KMGetFunction
-	String sepStr		//	絶対パスと定義文字列を区切る文字、デフォルトはセミコロン
-	String pathStr	//	再帰時に使用
-	
-	if ( ParamIsDefault(pathStr) )
-		PathInfo KMMain
-		pathStr = S_path
-	endif
-	
-	if ( ParamIsDefault(sepStr) )
-		sepStr = ";"
-	endif
-	
-	String tmpPath = UniqueName("tmpPath", 12, 0)
-	NewPath/Q $tmpPath, pathStr
-	if ( V_flag )
-		return ""
-	endif
-	
-	int i, n
-	String listStr, rtnStr
-	
-	//	最初にディレクトリの中にあるipfファイルを探す
-	listStr = IndexedFile($tmpPath, -1, ".ipf")
-	for ( i = 0, n = ItemsInList(listStr); i < n; i++ )
-		Grep/E=("(?i)function "+fnStr+"[^a-zA-Z0-9]")/Q/LIST/P=$tmpPath StringFromList(i, listStr)
-		if ( V_value )	//	見つかったら
-			KillPath $tmpPath
-			KillStrings/Z S_fileName
-			return pathStr + ":" + StringFromList(i, listStr) + sepStr + S_value[9,strlen(S_value)-2]
-		endif
-	endfor 
-	
-	//	ipfファイルの中に目的のものが見つからなければ、含まれているディレクトリの中を再帰的に探す
-	listStr = IndexedDir($tmpPath, -1, 1)
-	KillPath $tmpPath
-	for ( i = 0, n = ItemsInList(listStr); i < n; i++ )
-		rtnStr = KMGetFunction(fnStr, sepStr=sepStr, pathStr=StringFromList(i, listStr))
-		if ( strlen(rtnStr) )
-			return rtnStr
-		endif
-	endfor
-	
-	return ""
-End
-
-
-//******************************************************************************
 //	KMCheckUpdate
 //		更新チェック
 //******************************************************************************
