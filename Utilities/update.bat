@@ -16,8 +16,8 @@ echo Igor Pro folder was not found.
 goto :EOF
 )
 
-echo Install Kohsaka macro.
+echo Install SIDAM.
 pause
-robocopy "../Igor Procedures" "%IGOR%/Igor Procedures" "Kohsaka Macro.ipf" /XO /NJH /NJS /NP
-robocopy "../User Procedures/KM" "%IGOR%/User Procedures/KM" /XO /NJH /NJS /NP /MIR /XD extension
+robocopy "../Igor Procedures" "%IGOR%/Igor Procedures" "SIDAM.ipf" /XO /NJH /NJS /NP
+robocopy "../User Procedures/SIDAM" "%IGOR%/User Procedures/SIDAM" /XO /NJH /NJS /NP /MIR /XD extension
 pause
