@@ -405,7 +405,6 @@ End
 //	ボタン
 //-------------------------------------------------------------
 Static Function aaPnlButton(STRUCT WMButtonAction &s)
-	
 	if (s.eventCode != 2)
 		return 0
 	endif
@@ -427,7 +426,6 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function aaPnlSetVar(STRUCT WMSetVariableAction &s)
-	
 	if (s.eventCode == -1)
 		return 1
 	endif
@@ -447,7 +445,6 @@ End
 //	チェックボックス
 //-------------------------------------------------------------
 Static Function aaPnlCheck(STRUCT WMCheckboxAction &s)
-	
 	if (s.eventCode != 2)
 		return 1
 	endif
@@ -481,9 +478,9 @@ Static Function aaSet(String pnlName, int mode)
 			SetWindow $LVName userData(AAdigit)=""
 			SetWindow $LVName userData(AAlayer)=""
 			TextBox/K/N=$GetUserData(LVName, "", "AAname")
-			SetWindow $LVName userData(AAname)=""			
+			SetWindow $LVName userData(AAname)=""
 			break
-
+			
 		case 1:	//	設定
 			//	Annotationを変更するhook関数
 			SetWindow $LVName hook(AA)=KMLayerViewer#aaHook
@@ -501,9 +498,8 @@ Static Function aaSet(String pnlName, int mode)
 				//	Hook関数実行時に必要となる情報をパネルの初期値から得てuserDataに書き込む
 				SetWindow $LVName userData(AAstr)=GetUserData(pnlName,"legendV","init")
 				SetWindow $LVName userData(AAdigit)=GetUserData(pnlName,"digitV","init")
-				SetWindow $LVName userData(AAname)=UniqueName("Text", 14, 0, LVName)
 				aaChange(LVName)
-			else
+			elseif (strlen(GetUserData(LVName, "", "AAname")))
 				aaSet(pnlName,0)
 			endif
 			break
@@ -520,7 +516,7 @@ Static Function aaChange(String LVName, [Variable layer])
 		return 0
 	endif
 	SetWindow $LVName userData(AAlayer)=num2istr(layerPresent)
-
+	
 	String legendStr = GetUserData(LVName, "", "AAstr")
 	String digitStr = "%."+GetUserData(LVName, "", "AAdigit")+"f"
 	Wave w = KMGetImageWaveRef(LVName)
