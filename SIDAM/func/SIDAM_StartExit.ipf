@@ -47,7 +47,7 @@ Static Function makeProcFile()
 	if (!V_flag)
 		fprintf refNum,  "#ifndef SIDAMshowProc\r#pragma hide = 1\r#endif\r"
 		for(i = 0; i < numpnts(lw); i += 1)
-			fprintf refNum, "#include \""+RemoveEnding(lw[i],".ipf")+"\"\r"
+			fprintf refNum, "#include \"%s\"\r", RemoveEnding(lw[i],".ipf")
 		endfor
 		Close refNum
 	endif
@@ -62,10 +62,10 @@ End
 Static Function/WAVE fnList(String subFolder)
 	String pathName = UniqueName("tmpPath",12,0)
 	NewPath/O/Q/Z $pathName, KMGetPath()+subFolder
-	String listStr = IndexedFile($pathName,-1,".ipf")
+	String listStr = IndexedFile($pathName,-1,".ipf") + IndexedFile($pathName,-1,".lnk")
 	KillPath $pathName
 	
-	Make/FREE/T/N=(ItemsInList(listStr)) w = StringFromList(p,listStr)
+	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
 	return w
 End
 

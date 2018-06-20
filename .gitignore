@@ -1,3 +1,5 @@
+/SIDAM/extension/*
+!/SIDAM/extension/readme.md
 /SIDAM/fileloader/*
 !/SIDAM/fileloader/functions.default.ini
 !/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
