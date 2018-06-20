@@ -247,6 +247,6 @@ Static Function pnlUpdate(String pnlName)
 		Wave w = KMGetImageWaveRef(grfName)
 		AppendToGraph/W=$grfName qw vs pw
 		ModifyGraph/W=$grfName offset($NameOfWave(qw))={DimOffset(w,0),DimOffset(w,1)}
-		ModifyGraph/W=$grfName muloffset($NameOfWave(qw))={DimDelta(w,0),DimDelta(w,1)}, mode=3
+		ModifyGraph/W=$grfName muloffset($NameOfWave(qw))={DimDelta(w,0),DimDelta(w,1)}, mode($NameOfWave(qw))=3
 	endif
 End
