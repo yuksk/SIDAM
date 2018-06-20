@@ -412,6 +412,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 		Duplicate w $ORIGINALNAME/WAVE=ow
 	else
 		Duplicate/R=[][][0] w $ORIGINALNAME/WAVE=ow
+		Redimension/N=(-1,-1) ow
 	endif
 	
 	//	フィルタをかけた結果ウエーブ
