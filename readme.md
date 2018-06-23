@@ -1,43 +1,49 @@
-﻿# Requirement
+﻿# SIDAM
 
-Igor Pro 7 is required. Practically, however, Igor Pro 8 is recommended because the macro is developed with Igor Pro 8 and not tested with Igor Pro 7. Since no functions of Igor Pro 8 have been used so far, the macro is expected to work in Igor Pro 7 but not guaranteed.
-
-
-# How to install
-
-Move the macro files to the designated folders as follows.
-The way in the braket [] is recommended for git users.
-
-1. Download the macro file and unzip it.
-[Pull a branch from the repository.]
-
-2. Find Igor Pro User Files Folder (UserFiles). You can find it by selecting Igor Pro menu, Misc > Miscellaneous Settings > Igor User Files.
-(e.g.) C:\Users\(yourname)\Documents\WaveMetrics\Igor Pro 8 User Files
-
-3. Move SIDAM.ipf to \UserFiles\Igor Procedures.
-[Make a shortcut or a symbolic link of SIDAM.ipf in \UserFiles\Igor Procedures.]
-
-4. Move SIDAM folder to \UserFiles\User Procedures. 
-[Make a shortcut of a symbolic link of SIDAM folder in \UserFiles\User Procedures.]
-
-Windows user: if you have not changed the location of \UserFiles, install.bat in the Utilities folder is also available to copy the file and folder to the designated folders.
+Spectroscopic imaging data analysis macro for Igor Pro.
 
 
-# How to update
+## Description
 
-Remove old files and move new ones.
-Git user: if you follow the above recommendation in installing the macro, you can just pull a branch from the repository instead of #1-#3 below. Even in this case, do not forget #4.
+Noteworthy features distinct from generic SPM data analysis software are strong supports for analyzing 3D map data.
+- Flexible viewer: show spectra at a cursor or along a line on an image, which can be a topograph, a conductance map, or any other image of your analysis.
+- Powerful synchronization: layers of 3D map data, axis ranges of multiple images, and cursor locations of multiple images.
+- Attentive layer support: adjust color range, update an annotation text, and save a movie of layers.
 
-1. Download the macro file and unzip it.
-2. Remove old macro files except those in the extension folder if you added.
-3. Install new files as above.
-4. Start the macro (alternatively open SIDAM.itx in the Utilities folder).
+Of course, basic features (Subtraction, Line profile, Fourier transform, Fourier filter, Symmetrize Fourier transform, Correlation, Histogram, etc.) also included.
 
-If you skip #4 and open an existing experiment file, a compile error may occur.
+## Requirement
 
-Windows user: if you have not changed the location of \UserFiles, update.bat in the Utilities folder is available as an alternative of #2 and #3. You still need #4.
+Igor Pro 7 is required. Practically, however, Igor Pro 8 is recommended because the macro is developed with Igor Pro 8. Since no functions of Igor Pro 8 have been used so far, the macro should work in Igor Pro 7 but is not guaranteed.
 
 
-# How to uninstall
+## Install/Update
 
-Remove all installed files.
+### Install
+
+Copy the macro files to the designated folders.
+
+1. Copy SIDAM.ipf and the SIDAM folder to the Igor Procedures folder and the User Procedures folder, respectively. If you don't know where the folders are, choose "Help > Show Igor Pro User Files" in Igor Pro.
+
+2. Restart Igor Pro, and open SIDAM.itx or choose "Macros > SIDAM" in Igor Pro to start SIDAM.
+
+An alternative way is to make symbolic links of the above file and folder rather than copying them. This is recommended for continuous users who add and/or modify the procedure files because, in combination with git, this makes updating the macro much easier. To make symbolic links, run the following commands at the SIDAM folder in the command prompt with administrator privileges.
+
+~~~
+$ mklink "%USERPROFILE%/Documents/WaveMetrics/Igor Pro 8 User Files/Igor Procedures/SIDAM.ipf" "%cd%\SIDAM.ipf"
+$ mklink /d "%USERPROFILE%/Documents/WaveMetrics/Igor Pro 8 User Files/User Procedures/SIDAM" "%cd%\SIDAM"
+~~~
+
+### Update
+
+Renew the macro files as follows.
+
+1. Remove the SIDAM folder in the User Procedures folder.
+2. Overwrite SIDAM.ipf in the Igor Procedures and copy new SIDAM folder to the User Procedures folder.
+3. Start the macro to update the file list.
+
+Some additional notes.
+- Do not overwrite the SIDAM folder because old files may be left and cause a compile error.
+- If you have added and/or modified procedure files, do not forget to keep them before #1 and move them back after #2.
+- If you forget #3 and open an existing experiment file, a compile error may occur. In this case, stop opening the experiment file and start the macro in a new experiment file.
+- If you use git and made symbolic links in installing the macro, you can just fetch & merge to renew the procedure files. (You don't need to do #1 and #2, but still need to do #3.)
