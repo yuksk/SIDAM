@@ -535,7 +535,7 @@ End
 //	フック関数
 //******************************************************************************
 //-------------------------------------------------------------
-//	pnlHook:	パネル用
+//	パネル用
 //-------------------------------------------------------------
 Static Function pnlHook(STRUCT WMWinHookStruct &s)	
 	switch (s.eventCode)
@@ -544,34 +544,109 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 			
 		case 11:	//	keyboard
-			if (s.keycode == 27)		//	27: esc
-				SetWindow $GetUserData(s.winName,"","grf") hook(KMColorPnl)=$""
-				KillWindow $s.winName
-			endif
+			switch (s.keycode)
+				case 27:	//	esc
+					SetWindow $GetUserData(s.winName,"","grf") hook(KMColorPnl)=$""
+					KillWindow $s.winName
+					break
+				case 28:	//	left
+				case 29:	//	right
+				case 30:	//	up
+				case 31:	//	down
+					pnlHookArrows(s.winName, s.keycode)
+					break
+			endswitch
 			break
 			
 		case 22:	//	mouseWheel
 			//	マウスポインタがタブ内に入っている時には、表示タブを変更する
-			String pnlName = s.winName
-			if (ItemsInList(pnlName,"#") == 3)	//	ポインタがカラースケール表示のサブウインドウ内にある場合
-				pnlName = RemoveEnding(RemoveListItem(2,pnlName,"#"),"#")
-			endif
-			ControlInfo/W=$pnlName mTab
-			if (s.mouseLoc.h < V_left || s.mouseLoc.h > V_left+V_Width || s.mouseLoc.v < V_top || s.mouseLoc.v > V_top+V_Height)
-				break
-			endif
-			int newTab = V_Value-sign(s.wheelDy)		//	下向きに回すと右のタブへ移動
-			if (newTab >= 0 && newTab <= ItemsInList(SIDAM_CTABGROUPS))
-				clickTab(pnlName, newTab)
-			endif
+			pnlHookWheel(s)
 			break
 	endswitch
 End
+
+Static Function pnlHookArrows(String pnlName, int keycode)
+	//	get selected tab and checkbox
+	Variable tab0, box0
+	String list = ControlNameList(pnlName,";","cb_*")
+	Wave cw = KMGetCtrlValues(pnlName,list)
+	WaveStats/Q/M=1 cw
+	if (V_max)
+		sscanf StringFromList(V_maxloc,list), "cb_%d_%d", tab0, box0
+	else	//	no checkbox is checked
+		return 0
+	endif
+	int isInLeftColumn = box0 < ctabsInColumn
+	
+	//	get new tab and checkbox
+	Variable tab1, box1
+	switch (keycode)
+		case 28:	//	left
+			tab1 = isInLeftColumn ? tab0-1 : tab0
+			if (isInLeftColumn)
+				box1 = box0 + ctabsInColumn*bothColumnsExist(pnlName,tab1)
+			else
+				box1 = box0 - ctabsInColumn
+			endif
+			break
+		case 29:	//	right
+			tab1 = !isInLeftColumn || !bothColumnsExist(pnlName,tab0) ? tab0+1 : tab0
+			if (isInLeftColumn)
+				box1 = box0 + ctabsInColumn*bothColumnsExist(pnlName,tab0)
+			else
+				box1 = box0 - ctabsInColumn
+			endif
+			break
+		case 30:	//	up
+			tab1 = tab0
+			box1 = box0 - (mod(box0,ctabsInColumn)!=0)
+			break
+		case 31:	//	down
+			tab1 = tab0
+			box1 = box0 + (mod(box0,ctabsInColumn)!=ctabsInColumn-1)
+	endswitch
+	
+	if (tab1 < 0 || tab1 > ItemsInList(SIDAM_CTABGROUPS))
+		return 0
+	endif
+	box1 = limit(box1,0,ItemsInList(ControlNameList(pnlName,";","cb_"+num2istr(tab1)+"_*"))-1)
+	
+	if (tab1 == tab0 && box1 == box0)
+		return 0
+	endif
+		
+	String cbName = "cb_"+num2istr(tab1)+"_"+num2istr(box1)
+	KMClickCheckBox(pnlName, cbName)
+	clickTab(pnlName, tab1)
+End
+
+Static Function bothColumnsExist(String pnlName, int tab)
+	if (tab < 0 || tab > ItemsInList(SIDAM_CTABGROUPS))
+		return 0
+	else
+		return ItemsInList(ControlNameList(pnlName,";","cb_"+num2istr(tab)+"_*")) > ctabsInColumn
+	endif
+End
+
+Static Function pnlHookWheel(STRUCT WMWinHookStruct &s)
+	String pnlName = s.winName
+	if (ItemsInList(pnlName,"#") == 3)	//	ポインタがカラースケール表示のサブウインドウ内にある場合
+		pnlName = RemoveEnding(RemoveListItem(2,pnlName,"#"),"#")
+	endif
+	ControlInfo/W=$pnlName mTab
+	if (s.mouseLoc.h < V_left || s.mouseLoc.h > V_left+V_Width || s.mouseLoc.v < V_top || s.mouseLoc.v > V_top+V_Height)
+		return 0
+	endif
+	int newTab = V_Value-sign(s.wheelDy)		//	下向きに回すと右のタブへ移動
+	if (newTab >= 0 && newTab <= ItemsInList(SIDAM_CTABGROUPS))
+		clickTab(pnlName, newTab)
+	endif
+End
+
 //-------------------------------------------------------------
-//	pnlHookParent:	親ウインドウ用
+//	親ウインドウ用
 //-------------------------------------------------------------
 Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
-	
 	//	modified だけを扱う
 	if (s.eventCode != 8)
 		return 0
