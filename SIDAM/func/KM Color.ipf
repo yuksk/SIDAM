@@ -252,14 +252,8 @@ Static Function pnl(String grfName)
 	int i, n
 	int needUpdate = DataFolderExists(SIDAM_DF_CTAB) ? NumVarOrDefault(SIDAM_DF_CTAB+"needUpdate",1) : 1
 	
-	//	カラーテーブルが読み込まれていなければ読み込む
-	if (needUpdate)
-		loadColorTableWaves()
-		Variable/G $(SIDAM_DF_CTAB+"needUpdate") = 0
-		//	読み込まれていなかったということは、旧バージョンでのカラーインデックスウエーブが
-		//	使われている可能性がある。存在を調べて、新形式に変換する。
-		cindexWave2ctabWave()
-	endif
+	//	カラーテーブルを読み込む必要がある場合、読み込みに少し時間がかかる
+	//	そのため、まずはパネルの概観を表示し、必要に応じて読み込み中の表示をする
 	
 	//	パネル作成
 	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,560,655)/K=1
@@ -269,12 +263,10 @@ Static Function pnl(String grfName)
 	
 	//	タブ
 	String tabNameList = "Igor;" + SIDAM_CTABGROUPS
-	Variable activeTab = findTabForPresentCtab(grfName,imgName)
 	TabControl mTab pos={3,topMargin-30}, size={557,520}, proc=KMColor#pnlTab, win=$pnlName
 	for (i = 0, n = ItemsInList(tabNameList); i < n; i++)
 		TabControl mTab tabLabel(i)=StringFromList(i,tabNameList), win=$pnlName
 	endfor
-	TabControl mTab value=activeTab, win=$pnlName
 	
 	//	カラーテーブルを表示するためのサブウインドウ用ガイド定義
 	DefineGuide/W=$pnlname ctab0L = {FL, leftMargin}
@@ -283,12 +275,6 @@ Static Function pnl(String grfName)
 	DefineGuide/W=$pnlName ctab1R = {FL, leftMargin+columnWidth+ctabWidth}
 	DefineGuide/W=$pnlName ctabT = {FT, topMargin}
 	DefineGuide/W=$pnlName ctabB = {FT, topMargin+(ctabHeight+ctabMargin)*ctabsInColumn-ctabMargin}
-	
-	//	各タブの中の要素を配置する
-	for (i = 0, n = getNumberOfTabs(pnlName, "mTab"); i < n; i++)
-		pnlTabComponents(pnlName, i, i!=activeTab)
-	endfor
-	SetActiveSubwindow ##
 	
 	//	タブ外共通要素
 	PopupMenu imageP pos={7,5},size={235,19},bodyWidth=200,title="image",win=$pnlName
@@ -318,6 +304,26 @@ Static Function pnl(String grfName)
 	ModifyControlList ControlNameList(pnlName,";","*C") proc=KMColor#pnlCheck, win=$pnlName
 	CheckBox allC proc=KMColor#pnlCheckAllC, win=$pnlName
 	
+	//	カラーテーブルが読み込まれていなければ読み込む
+	if (needUpdate)
+		loading(pnlName)
+		loadColorTableWaves()
+		Variable/G $(SIDAM_DF_CTAB+"needUpdate") = 0
+		//	読み込まれていなかったということは、旧バージョンでのカラーインデックスウエーブが
+		//	使われている可能性がある。存在を調べて、新形式に変換する。
+		cindexWave2ctabWave()
+	endif
+	
+	//	適切なタブを選択する
+	Variable activeTab = findTabForPresentCtab(grfName,imgName)
+	TabControl mTab value=activeTab, win=$pnlName
+	
+	//	各タブの中の要素を配置する
+	for (i = 0, n = getNumberOfTabs(pnlName, "mTab"); i < n; i++)
+		pnlTabComponents(pnlName, i, i!=activeTab)
+	endfor
+	SetActiveSubwindow ##
+	
 	SetWindow $grfName hook(KMColorPnl)=KMColor#pnlHookParent
 	SetWindow $pnlName hook(self)=KMColor#pnlHook
 	SetWindow $pnlName userData(grf)=grfName, activeChildFrame=0
@@ -333,6 +339,38 @@ Static Function pnl(String grfName)
 	
 	//	rev, log, mixRGB, maxRGBに関するコントロールの状態を更新
 	updateOptionControls(pnlName,imgName)
+	
+	if (needUpdate)
+		loading(pnlName)
+	endif
+End
+
+//-----------------------------------------------------------------------
+//	読み込み中表示
+//-----------------------------------------------------------------------
+Static Function loading(String pnlName)
+	String name = "loading"
+	
+	DrawAction/L=Overlay/W=$pnlName getgroup=$name
+	
+	//	読み込み中表示がなければ表示、あれば消去
+	if (V_flag)
+		DrawAction/L=Overlay/W=$pnlName getgroup=$name, delete
+	else
+		SetDrawLayer/W=$pnlName Overlay
+		SetDrawEnv/W=$pnlName gname=$name, gstart
+		
+		SetDrawEnv/W=$pnlName fillfgc=(0,0,0,32768),linethick=0
+		DrawRect/W=$pnlName 5,155,555,650
+		
+		SetDrawEnv/W=$pnlName textrgb=(65535,65535,65535), textxjust=1, textyjust=1
+		DrawText/W=$pnlName 275,400,"Now loading..."
+		
+		SetDrawEnv/W=$pnlName gstop
+		SetDrawLayer/W=$pnlName UserBack
+	endif
+	
+	DoUpdate/W=$pnlName
 End
 
 //-----------------------------------------------------------------------
