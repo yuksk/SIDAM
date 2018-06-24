@@ -1,5 +1,20 @@
+# extension
 /SIDAM/extension/*
 !/SIDAM/extension/readme.md
+
+# ctab
+/SIDAM/ctab/*
+!/SIDAM/ctab/CET
+!/SIDAM/ctab/IDL
+!/SIDAM/ctab/Matplotlib1
+!/SIDAM/ctab/Matplotlib2
+!/SIDAM/ctab/Nistview
+!/SIDAM/ctab/SIDAM
+!/SIDAM/ctab/Wolfram
+!/SIDAM/ctab/ctab.default.ini
+!/SIDAM/ctab/readme.md
+
+# fileloader
 /SIDAM/fileloader/*
 !/SIDAM/fileloader/functions.default.ini
 !/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf

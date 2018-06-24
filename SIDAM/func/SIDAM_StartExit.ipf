@@ -31,30 +31,37 @@ Function SIDAMStart()
 End
 
 Static Function makeProcFile()
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder NewFreeDataFolder()
-	
-	//	Make a list of ipf files
-	Concatenate/NP {fnList(SIDAM_FOLDER_FUNC), fnList(SIDAM_FOLDER_LOADER), fnList(SIDAM_FOLDER_EXT)}, listwave
-	Wave/T lw = listwave
-	
-	//	Write the list into SIDAM_Procedures.ipf
-	Variable refNum, i
+	// Prepare SIDAM_Procedures.ipf
+	Variable refNum
 	String pathStr = SpecialDirPath("Igor Pro User Files", 0, 0, 0) + "User Procedures:"
 	String pathName = UniqueName("path",12,0)
 	NewPath/Q $pathName, pathStr
 	Open/P=$pathName/Z refNum, as SIDAM_FILE_INCLUDE+".ipf"
-	if (!V_flag)
-		fprintf refNum,  "#ifndef SIDAMshowProc\r#pragma hide = 1\r#endif\r"
-		for(i = 0; i < numpnts(lw); i += 1)
-			fprintf refNum, "#include \"%s\"\r", RemoveEnding(lw[i],".ipf")
-		endfor
-		Close refNum
-	endif
 	KillPath $pathName
-	
+	if (V_flag)
+		return 0
+	endif
+
+	//	Make a list of ipf files
+	Wave/T w0 = fnList(SIDAM_FOLDER_FUNC), w1 = fnList(SIDAM_FOLDER_LOADER)
+	Wave/T w2 = fnList(SIDAM_FOLDER_EXT)
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder NewFreeDataFolder()
+	Concatenate/NP/T {w0, w1, w2}, lw
 	SetDataFolder dfrSav
 	
+	int i
+	
+	//	write the hide pragma
+	fprintf refNum,  "#ifndef SIDAMshowProc\r#pragma hide = 1\r#endif\r"
+	//	write #include ...
+	for(i = 0; i < numpnts(lw); i++)
+		fprintf refNum, "#include \"%s\"\r", RemoveEnding(lw[i],".ipf")
+	endfor
+	//	write StrConstant SIDAM_CTABGROUPS
+	fprintf refNum, "StrConstant SIDAM_CTABGROUPS = \"%s\"\r", getCtabGroups()
+	
+	Close refNum
 	return 1
 End
 
@@ -69,6 +76,31 @@ Static Function/WAVE fnList(String subFolder)
 	return w
 End
 
+//-----------------------------------------------------------------------
+//	Load the group list of color tables from ctab.ini (SIDAM_FILE_COLORLIST)
+//-----------------------------------------------------------------------
+Static Function/S getCtabGroups()
+	Variable refNum
+	String pathStr = KMGetPath()+SIDAM_FOLDER_COLOR+":"
+	
+	//	Open ctab.ini if exists. If not, open ctab.default.ini.
+	Open/R/Z refNum as (pathStr+SIDAM_FILE_COLORLIST)
+	if (V_flag)
+		Open/R refNum as (pathStr+SIDAM_FILE_COLORLIST_DEFAULT)
+	endif
+	
+	//	return the first line except for comment lines as the list
+	String listStr
+	do
+		FReadLine refNum, listStr
+		if (CmpStr(listStr[0,1],"//"))
+			break
+		endif
+	while (strlen(listStr))
+	Close refNum
+	
+	return listStr
+End
 
 //******************************************************************************
 //	Exit SIDAM

@@ -9,10 +9,6 @@
 #include <WMImageInfo>
 
 
-//	カラーテーブルグループの名前のリスト
-//	ctabフォルダ直下でのフォルダ分けの名前であり、パネルのタブに現れる名前でもある。
-Static StrConstant CTABGROUPS = "Nistview;SIDAM;Wolfram;Matplotlib1;Matplotlib2;IDL;CET;"
-
 //	カラーテーブル参照先
 //	Wolfram
 //	http://reference.wolfram.com/language/guide/ColorSchemes.ja.html
@@ -272,7 +268,7 @@ Static Function pnl(String grfName)
 	saveImageColorInfo(pnlName)
 	
 	//	タブ
-	String tabNameList = "Igor;" + CTABGROUPS + SelectString(DataFolderExists(SIDAM_DF_CTAB+"Ext"),"","Ext")
+	String tabNameList = "Igor;" + SIDAM_CTABGROUPS
 	Variable activeTab = findTabForPresentCtab(grfName,imgName)
 	TabControl mTab pos={3,topMargin-30}, size={557,520}, proc=KMColor#pnlTab, win=$pnlName
 	for (i = 0, n = ItemsInList(tabNameList); i < n; i++)
@@ -355,16 +351,11 @@ Static Function findTabForPresentCtab(String grfName, String imgName)
 	else
 		//	カラーテーブルウエーブを使っている場合は、カラーテーブルウエーブへの絶対パスの4番目の項目にグループ名が含まれる
 		String ctabGroupName = StringFromList(3,GetWavesDataFolder($ctabName,2),":")
-		int index = WhichListItem(ctabGroupName,CTABGROUPS)
+		int index = WhichListItem(ctabGroupName,SIDAM_CTABGROUPS)
 		if (index != -1)
 			return index+1	//	0番目はIgor標準に割り当てられているので1を足す
-		else	//	見つからない場合は Ext もしくは、カラーテーブルウエーブを別に設定している場合
-			//	ctabName の中に SIDAM_DF_CTAB(からrootを除いたもの)が含まれていれば、Extの場合に相当
-			if (strsearch(RemoveListItem(0,SIDAM_DF_CTAB,";"),ctabName,0) != -1)
-				return ItemsInList(CTABGROUPS)+1
-			else	//	カラーテーブルウエーブを別に設定している場合
-				return 0
-			endif
+		else	//	見つからない場合は カラーテーブルウエーブを別に設定している場合
+			return 0
 		endif
 	endif
 End
@@ -378,8 +369,7 @@ Static Function pnlTabComponents(String pnlName, int tab, int hide)
 	if (tab == 0)	//	Igor標準
 		list = CTabList()
 	else				//	カラーテーブルウエーブ
-		//	CTABGROUPSに　Ext を加えておいても良い。なぜなら、Extが読み込まれていない時には tab　が対応する番号にならないため。
-		list = fetchWavepathList($(SIDAM_DF_CTAB+StringFromList(tab-1,CTABGROUPS+"Ext")))
+		list = fetchWavepathList($(SIDAM_DF_CTAB+StringFromList(tab-1,SIDAM_CTABGROUPS)))
 	endif
 	int i, n
 	
@@ -533,7 +523,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				break
 			endif
 			int newTab = V_Value-sign(s.wheelDy)		//	下向きに回すと右のタブへ移動
-			if (newTab >= 0 && newTab <= ItemsInList(CTABGROUPS))
+			if (newTab >= 0 && newTab <= ItemsInList(SIDAM_CTABGROUPS))
 				clickTab(pnlName, newTab)
 			endif
 			break
@@ -945,12 +935,9 @@ Static Function loadColorTableWaves()
 	
 	//	ctabフォルダ以下
 	String path0 = KMGetPath() + SIDAM_FOLDER_COLOR + ":"
-	for (i = 0, n = ItemsInList(CTABGROUPS); i < n; i++)
-		all += ctabWavePathList(path0+StringFromList(i,CTABGROUPS))
+	for (i = 0, n = ItemsInList(SIDAM_CTABGROUPS); i < n; i++)
+		all += ctabWavePathList(path0+StringFromList(i,SIDAM_CTABGROUPS))
 	endfor
-	
-	//	extensionフォルダ以下
-	all += ctabWavePathList(KMGetPath()+SIDAM_FOLDER_EXT)
 	
 	for (i = 0, n = ItemsInList(all); i < n; i++)
 		//	loadColorTableWave中で使われているLoadWaveによって新しいパスが作られる。
@@ -972,13 +959,9 @@ Static Function/S loadColorTableWave(String ibwFilePath)
 	
 	//	ibwFilePath = ***:User Procedures:SIDAM:ctab:NistView:Autumn.ibw
 	//	colorFDpath = ***:User Procedures:SIDAM:ctab
-	//	extFDpath   = ***:User Procedures:SIDAM:extension
 	//	wPath       = :NistView:Autumn.ibw
 	String colorFDpath = KMGetPath() + SIDAM_FOLDER_COLOR
-	String extFDpath = KMGetPath() + SIDAM_FOLDER_EXT
 	String wPath = ReplaceString(colorFDpath, ibwFilePath, "")
-	//	extensionフォルダ直下にカラーテーブルウエーブがあるので、	:Ext:BlueBlackOrange.ibw となるようにする。
-	wPath = ReplaceString(extFDpath, wPath, ":Ext")
 	
 	//	既に読み込まれたものがあれば、終了
 	Wave/Z ctabw = $(RemoveEnding(SIDAM_DF_CTAB,":")+wPath)
