@@ -1,0 +1,4 @@
+IGOR
+X Execute/P/Q "COMPILEPROCEDURES "
+X Execute/P/Q "SIDAM()"
+X Execute/P/Q "KillStrings/Z S_waveNames,S_path,S_fileName"
