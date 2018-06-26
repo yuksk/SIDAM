@@ -198,7 +198,7 @@ Static Function/S echoStr(
 	String result
 	)
 	
-	String paramStr = GetWavesDataFolder(w,4)
+	String paramStr = GetWavesDataFolder(w,2)
 	paramStr += SelectString(mode, "", ",mode="+num2str(mode))
 	switch (mode)
 		case 0:

@@ -127,7 +127,7 @@ EndStructure
 //	履歴欄出力用文字列作成
 //-------------------------------------------------------------
 Static Function/S echoStr(STRUCT paramStruct &s)
-	String paramStr = GetWavesDataFolder(s.w,4)
+	String paramStr = GetWavesDataFolder(s.w,2)
 	paramStr += SelectString(stringmatch(s.result,DefaultBasename(s.w)), ",result=\""+s.result+"\"", "")
 	paramStr += SelectString(s.stats==1, ",stats="+num2str(s.stats),"")
 	paramStr += SelectString(!s.mode || WaveDims(s.w)==1, ",mode="+num2str(s.mode),"")

@@ -123,8 +123,8 @@ EndStructure
 //-------------------------------------------------------------
 Static Function/S echoStr(Wave srcw, Wave paramw, String result, int invert, int endeffect)
 	
-	String paramStr = GetWavesDataFolder(srcw,4)
-	paramStr += "," + SelectString(WaveType(paramw,2)==2, GetWavesDataFolder(paramw,4), KMWaveToString(paramw, noquot=1))
+	String paramStr = GetWavesDataFolder(srcw,2)
+	paramStr += "," + SelectString(WaveType(paramw,2)==2, GetWavesDataFolder(paramw,2), KMWaveToString(paramw, noquot=1))
 	paramStr += SelectString(CmpStr(NameOfWave(srcw)+ks_index_filter,result), "", ",result=\""+result+"\"")
 	paramStr += SelectString(invert, "", ",invert="+num2str(invert))
 	paramStr += SelectString(endeffect==1, ",endeffect="+num2str(endeffect), "")

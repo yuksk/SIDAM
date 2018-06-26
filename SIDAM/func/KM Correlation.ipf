@@ -136,8 +136,8 @@ Static Function/S echoStr(w1, w2, result, subtract, normalize, origin)
 	String result
 	Variable subtract, normalize, origin
 	
-	String paramStr = GetWavesDataFolder(w1,4)
-	paramStr += SelectString(WaveRefsEqual(w1, w2), ",w2="+GetWavesDataFolder(w2,4),  "")
+	String paramStr = GetWavesDataFolder(w1,2)
+	paramStr += SelectString(WaveRefsEqual(w1, w2), ",w2="+GetWavesDataFolder(w2,2),  "")
 	paramStr += SelectString(CmpStr(result, NameOfWave(w1)+ks_index_Correlation), "", ",result=\""+result+"\"")
 	paramStr += SelectString(subtract==1, ",subtract="+num2str(subtract), "")
 	paramStr += SelectString(normalize==1, ",normalize="+num2str(normalize), "")
