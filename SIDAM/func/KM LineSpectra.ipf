@@ -549,21 +549,17 @@ Static Function pnlUpdateLineSpectra(String pnlName)
 End
 //-------------------------------------------------------------
 //	ラインプロファイルに合わせてマーカーウエーブを更新する
+//	KMLineCommon#pnlCheckからも呼ばれる
 //-------------------------------------------------------------
 Static Function pnlUpdateTextmarker(String pnlName)
 	DFREF dfrTmp = $GetUserData(pnlName,"","dfTmp")
 	Wave/T/SDFR=dfrTmp tw = $PNL_T
 	
-	tw = ""
-	ControlInfo/W=$pnlName p1C;		Variable p1Checked = V_Value | !V_Flag		//	最初に呼び出されるときには1を代入するために!V_Flagを使う
-	ControlInfo/W=$pnlName p2C;		Variable p2Checked = V_Value | !V_Flag
+	tw[inf] = ""
 	Redimension/N=(DimSize(dfrTmp:$PNL_W,1)) tw
-	if (p1Checked)
-		tw[0] = "1"
-	endif
-	if (p2Checked)
-		tw[DimSize(dfrTmp:$PNL_W,1)-1] = "2"
-	endif
+	//	最初に呼び出されるときには1を代入するために!V_Flagを使う
+	ControlInfo/W=$pnlName p1C;	tw[0] = SelectString(V_Value|!V_Flag,"","1")	
+	ControlInfo/W=$pnlName p2C;	tw[inf] = SelectString(V_Value|!V_Flag,"","2")
 End
 //-------------------------------------------------------------
 //	カーソルの状態・位置に対応したトレースの色を変える
