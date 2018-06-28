@@ -419,6 +419,17 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 			if (V_Flag)
 				SetVariable widthV disable=!(p1Checked || p2Checked)*2, win=$s.win
 			endif
+			
+			//	テキストマーカーの表示状態を更新
+			GetWindow $s.win hook(self)
+			strswitch (StringFromList(0,S_Value,"#"))
+				case "KMLineSpectra":
+					KMLineSpectra#pnlUpdateTextmarker(s.win)
+					break
+				case "KMLineProfile":
+					KMLineProfile#pnlUpdateTextmarker(s.win)
+					break
+			endswitch				
 			break
 		
 		case "hiddenC":

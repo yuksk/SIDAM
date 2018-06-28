@@ -165,7 +165,7 @@ EndStructure
 //	履歴欄出力用文字列作成
 //-------------------------------------------------------------
 Static Function/S echoStr(Wave w, String result, String win, int out, int subtract)
-	String paramStr = GetWavesDataFolder(w,4)
+	String paramStr = GetWavesDataFolder(w,2)
 	paramStr += SelectString(CmpStr(result, NameOfWave(w)+SUFFIX), "", ",result=\""+result+"\"")
 	paramStr += SelectString(CmpStr(win, "none"), "", ",win=\""+win+"\"")
 	paramStr += SelectString(out==3, ",out="+num2str(out), "")

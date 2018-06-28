@@ -48,8 +48,8 @@ Function/WAVE KMCorrelation(
 	endif
 	
 	//  履歴欄出力
-	if (!ParamIsDefault(history) && history)
-		print PRESTR_CMD + echoStr(s.w1, s.w2, s.result, s.subtract, s.normalize, s.origin)
+	if (!ParamIsDefault(history) && (history & 0x01))
+		print PRESTR_CMD + echoStr(s.w1, s.w2, s.result, s.subtract, s.normalize, s.origin, history)
 	endif
 	
 	//  実行関数
@@ -131,17 +131,18 @@ EndStructure
 //-------------------------------------------------------------
 //	履歴欄出力用文字列作成
 //-------------------------------------------------------------
-Static Function/S echoStr(w1, w2, result, subtract, normalize, origin)
+Static Function/S echoStr(w1, w2, result, subtract, normalize, origin, history)
 	Wave w1, w2
 	String result
-	Variable subtract, normalize, origin
+	Variable subtract, normalize, origin, history
 	
-	String paramStr = GetWavesDataFolder(w1,4)
-	paramStr += SelectString(WaveRefsEqual(w1, w2), ",w2="+GetWavesDataFolder(w2,4),  "")
+	String paramStr = GetWavesDataFolder(w1,2)
+	paramStr += SelectString(WaveRefsEqual(w1, w2), ",w2="+GetWavesDataFolder(w2,2),  "")
 	paramStr += SelectString(CmpStr(result, NameOfWave(w1)+ks_index_Correlation), "", ",result=\""+result+"\"")
 	paramStr += SelectString(subtract==1, ",subtract="+num2str(subtract), "")
 	paramStr += SelectString(normalize==1, ",normalize="+num2str(normalize), "")
 	paramStr += SelectString(!origin, ",origin="+num2str(origin), "")
+	paramStr += SelectString(history&0x02, "", ",history=2")
 	Sprintf paramStr, "KMCorrelation(%s)", paramStr
 	
 	return paramStr
@@ -505,9 +506,9 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		case "toP":
 			Wave w1 = $GetUserData(s.win, "", "src")
 			Wave w2 = KMGetWaveRefFromPopup(s.win, "waveP")
-			Wave cvw = KMGetCtrlValues(s.win, "subtractC;normalizeC")
-			ControlInfo/W=$s.win resultV ;		String result = S_Value
-			String paramStr = echoStr(w1, w2, result, cvw[0], cvw[1], 0)
+			Wave cvw = KMGetCtrlValues(s.win, "subtractC;normalizeC;maxposC")
+			ControlInfo/W=$s.win resultV
+			String paramStr = echoStr(w1, w2, S_Value, cvw[0], cvw[1], 0, cvw[2]*2)
 			KMPopupTo(s, paramStr)
 			break
 	endswitch
@@ -547,7 +548,7 @@ Static Function pnlDo(String pnlName)
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 	KillWindow $pnlName
 	
-	Wave/Z resw = KMCorrelation(w1,w2=w2,result=result,subtract=cvw[0],normalize=cvw[1],history=1+cvw[2])
+	Wave/Z resw = KMCorrelation(w1,w2=w2,result=result,subtract=cvw[0],normalize=cvw[1],history=1+cvw[2]*2)
 	
 	if (cvw[3])
 		KMDisplay(w=resw)

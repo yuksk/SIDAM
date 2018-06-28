@@ -102,9 +102,9 @@ Static Function/S KMFourierSymEcho(w, q1w, q2w, sym, shear, endeffect, result)
 	Variable sym, shear, endeffect
 	String result
 	
-	String paramStr = GetWavesDataFolder(w,4)
-	paramStr += "," + SelectString(WaveType(q1w,2)==2, GetWavesDataFolder(q1w,4), KMWaveToString(q1w, noquot=1))
-	paramStr += "," + SelectString(WaveType(q2w,2)==2, GetWavesDataFolder(q2w,4), KMWaveToString(q2w, noquot=1))
+	String paramStr = GetWavesDataFolder(w,2)
+	paramStr += "," + SelectString(WaveType(q1w,2)==2, GetWavesDataFolder(q1w,2), KMWaveToString(q1w, noquot=1))
+	paramStr += "," + SelectString(WaveType(q2w,2)==2, GetWavesDataFolder(q2w,2), KMWaveToString(q2w, noquot=1))
 	paramStr += "," + num2str(sym)
 	paramStr += SelectString(shear, "", ",shear=1")
 	paramStr += SelectString(endeffect==2, ",endeffect="+num2str(endeffect), "")

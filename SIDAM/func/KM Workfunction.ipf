@@ -127,7 +127,7 @@ Static Function/S KMWorkfunctionEcho(w, result, startp, endp, offset)
 	String result
 	Variable startp, endp, offset
 	
-	String paramStr = GetWavesDataFolder(w,4)
+	String paramStr = GetWavesDataFolder(w,2)
 	paramStr += SelectString(stringmatch(result,NameOfWave(w)) || !strlen(result),",result=\""+result+"\"","")
 	paramStr += SelectString(startp,"",",startp="+num2str(startp))
 	paramStr += SelectString(endp==DimSize(w,WaveDims(w)-1)-1,",endp="+num2str(endp),"")

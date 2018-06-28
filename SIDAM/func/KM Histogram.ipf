@@ -160,7 +160,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 	
 	Wave minmaxw = getInitMinMax(s.w,"",cmplxmode=s.cmplxmode)
 	
-	String paramStr = GetWavesDataFolder(s.w,4)
+	String paramStr = GetWavesDataFolder(s.w,2)
 	paramStr += SelectString(CmpStr(s.result, NameOfWave(s.w)+ks_index_histogram), "", ",result=\""+s.result+"\"")
 	paramStr += SelectString(s.bins==k_bins, ",bins="+num2str(s.bins), "")
 	paramStr += SelectString(s.initialz==minmaxw[0], ",startz="+num2str(s.initialz), "")
