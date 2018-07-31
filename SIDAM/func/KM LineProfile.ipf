@@ -39,7 +39,7 @@ Function KMLineProfile(
 	])
 		
 	STRUCT paramStruct s
-	Wave s.w = w
+	Wave/Z s.w = w
 	s.p1 = p1
 	s.q1 = q1
 	s.p2 = p2
