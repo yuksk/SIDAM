@@ -181,7 +181,7 @@ Static Function getLineSpectra(STRUCT paramStruct &s)
 	SetScale/P x DimOffset(s.w,2), DimDelta(s.w,2), WaveUnits(s.w,2), s.waves.resw
 	SetScale/I y 0, sqrt(((s.p2-s.p1)*DimDelta(s.w,0))^2+((s.q2-s.q1)*DimDelta(s.w,1))^2), WaveUnits(s.w,0), s.waves.resw
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), s.waves.resw
-	Sprintf noteStr, "src@%s;start@p=%d,q=%d;end@p=%d,q=%d;", GetWavesDataFolder(s.w,2), s.p1, s.q1, s.p2, s.q2
+	Sprintf noteStr, "src@%s;start@p=%f,q=%f;end@p=%f,q=%f;", GetWavesDataFolder(s.w,2), s.p1, s.q1, s.p2, s.q2
 	Note s.waves.resw, noteStr
 	Duplicate/O s.waves.resw $s.result
 	
