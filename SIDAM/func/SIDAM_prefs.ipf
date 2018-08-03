@@ -65,7 +65,7 @@ Function SIDAMLoadPrefs(STRUCT SIDAMPrefs &prefs)
 		
 	endif
 	
-	//SIDAMSavePrefs(prefs)
+	SIDAMSavePrefs(prefs)
 End
 //-------------------------------------------------------------
 //	Put initial values of the preference to the structure
@@ -107,8 +107,8 @@ Static Function putInitialValues(STRUCT SIDAMPrefs &p, int mode)
 	p.last = DateTime
 	
 	//	For precision of coordinates in the info bar
-	//	0: low (2), 1: height (4)
-	p.precision = 0
+	//	1: low (2), 2: height (4)
+	p.precision = 1
 	
 	//	For Topometrix format, this is old
 	p.TopoGainFactor = 10		//	divider
@@ -142,13 +142,15 @@ Function SIDAMPrefsPnl()
 	TabControl mTab tabLabel(0)="Window", tabLabel(1)="Export Graphics", win=$pnlName
 	
 	//	tab 0
-	SetVariable sizeV title="width", pos={17,45}, size={104,18}, bodyWidth=70, userData(tab)="0", win=$pnlName
+	SetVariable sizeV title="width", pos={14,45}, size={104,18}, bodyWidth=70, userData(tab)="0", win=$pnlName
 	SetVariable sizeV limits={0,inf,0.1}, focusRing=0, proc=SIDAMPrefs#pnlSetVar, win=$pnlName
 	PopupMenu unitsP title="units", pos={133,44}, size={99,19}, bodyWidth=70, win=$pnlName
 	PopupMenu unitsP mode=1, popvalue="points", value= #"\"points;inches;cm\"", win=$pnlName
 	PopupMenu heightP title="height", pos={14,76}, size={297,19}, bodyWidth=260, win=$pnlName
 	PopupMenu heightP value= "Same as width;Plan, 1 * width * (left range / bottom range)"
-	ModifyControlList "unitsP;heightP" userData(tab)="0", focusRing=0, proc=SIDAMPrefs#pnlPopup, win=$pnlName
+	PopupMenu precisionP title="precision", pos={14,109}, size={101,19}, win=$pnlName
+	PopupMenu precisionP value=".00;.0000", bodyWidth=50, win=$pnlName
+	ModifyControlList "unitsP;heightP;precisionP" userData(tab)="0", focusRing=0, proc=SIDAMPrefs#pnlPopup, win=$pnlName
 	
 	TitleBox windowT title="Width 0 means \"Auto\"", pos={18,207}, win=$pnlName
 	TitleBox windowT frame=0,fColor=(30000,30000,30000), userData(tab)="0", win=$pnlName
@@ -188,14 +190,15 @@ Function SIDAMPrefsPnl()
 	KMTabControlInitialize(pnlName,"mTab")
 End
 
-Static Function setPresentValues(STRUCT SIDAMPrefs &prefs, String pnlName)
-	SetVariable sizeV value=_NUM:prefs.viewer.width, userData(value)=num2str(prefs.viewer.width), win=$pnlName
-	PopupMenu heightP mode=prefs.viewer.height, userData(value)=num2str(prefs.viewer.height), win=$pnlName
-	PopupMenu resolutionP mode=prefs.export[0], win=$pnlName
-	PopupMenu dpiP mode=1, popvalue=num2str(prefs.export[1]), disable=(prefs.export[0]!=6), win=$pnlName
-	CheckBox graphC value=(prefs.export[2]==0), win=$pnlName
-	CheckBox windowC value=(prefs.export[2]==1), win=$pnlName
-	CheckBox bothC value=(prefs.export[2]==2), win=$pnlName
+Static Function setPresentValues(STRUCT SIDAMPrefs &p, String pnlName)
+	SetVariable sizeV value=_NUM:p.viewer.width, userData(value)=num2str(p.viewer.width), win=$pnlName
+	PopupMenu heightP mode=p.viewer.height, userData(value)=num2str(p.viewer.height), win=$pnlName
+	PopupMenu precisionP mode=p.precision, win=$pnlName
+	PopupMenu resolutionP mode=p.export[0], win=$pnlName
+	PopupMenu dpiP mode=1, popvalue=num2str(p.export[1]), disable=(p.export[0]!=6), win=$pnlName
+	CheckBox graphC value=(p.export[2]==0), win=$pnlName
+	CheckBox windowC value=(p.export[2]==1), win=$pnlName
+	CheckBox bothC value=(p.export[2]==2), win=$pnlName
 End
 
 
@@ -288,8 +291,10 @@ End
 //-------------------------------------------------------------
 Static Function pnlDo(STRUCT SIDAMPrefs &prefs, String pnlName)
 
-	//	width and height of viewer	
-	Wave cw = KMGetCtrlValues(pnlName, "unitsP;sizeV;heightP;resolutionP")
+	Wave cw = KMGetCtrlValues(pnlName, "unitsP;sizeV;heightP;resolutionP;precisionP")
+	Wave cw2 = KMGetCtrlValues(pnlName, "graphC;windowC;bothC")
+		
+	//	width and height of viewer
 	switch (cw[0])
 		case 1:	//	point
 			prefs.viewer.width = cw[1]
@@ -307,14 +312,26 @@ Static Function pnlDo(STRUCT SIDAMPrefs &prefs, String pnlName)
 	prefs.export[0] = cw[3]
 	ControlInfo/W=$pnlName dpiP
 	prefs.export[1] = str2num(S_Value)
+	cw2 *= p
+	prefs.export[2] = sum(cw2)
 	
-	Wave cw = KMGetCtrlValues(pnlName, "graphC;windowC;bothC")
-	cw *= p
-	prefs.export[2] = sum(cw)
-	
+	//	precision
+	if (prefs.precision != cw[4])
+		prefs.precision = cw[4]
+		SIDAMInfoBarSetPrecision(cw[4]==2)
+	endif
+		
 	SIDAMSavePrefs(prefs)
 End
 
+Function SIDAMInfoBarSetPrecision(int mode)
+	if (mode)
+		Execute/P/Q "SetIgorOption poundDefine=SIDAMhighprecision"
+	else
+		Execute/P/Q "SetIgorOption poundUndefine=SIDAMhighprecision"
+	endif
+	Execute/P "COMPILEPROCEDURES "
+End
 
 //******************************************************************************
 //	Backward compatibility
