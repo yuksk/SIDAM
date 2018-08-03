@@ -5,16 +5,16 @@
 #pragma hide = 1
 #endif
 
-#include "KM Prefs"							//	for KMLoadPrefs, KMSavePrefs
+#include "SIDAM_Prefs"						//	for SIDAMLoadPrefs, SIDAMSavePrefs
 #include "SIDAM_Compatibility"			//	for SIDAMBackwardCompatibility
 
 //	AfterCompiledHook
 Function KMAfterCompiledHook()
 	//	save present time
-	STRUCT KMPrefs p
-	KMLoadPrefs(p)
+	STRUCT SIDAMPrefs p
+	SIDAMLoadPrefs(p)
 	p.last = DateTime
-	KMSavePrefs(p)
+	SIDAMSavePrefs(p)
 	
 	//	backward compatibility for an old experiment file
 	SIDAMBackwardCompatibility()

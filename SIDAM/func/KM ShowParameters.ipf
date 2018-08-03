@@ -19,8 +19,8 @@ Function KMShowParameters()
 	
 	//	notebookをgraphのサブウインドウにすることはできない
 	//	したがって、panelをgraphのサブウインドウにし、notebookはそのpanelのサブウインドウにする
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,10,10) as "properties"	//	大きさはとりあえずのもの
 	String pnlName = S_name, nbName = "nb"
 	ModifyPanel/W=$grfName#$pnlName fixedSize=0

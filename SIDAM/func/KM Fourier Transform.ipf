@@ -479,8 +479,8 @@ Static Function pnl(Wave w, [String grfName])
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	SetWindow $pnlName userData(dfTmp)=dfTmp, activeChildFrame=0
 	
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	
 	//  コントロール項目
 	SetVariable resultV title="output name:", pos={19,10}, size={324,16}, frame=1, bodyWidth=255, win=$pnlName
@@ -637,10 +637,10 @@ Static Function pnlDo(String pnlName)
 		KMDisplay(w=resw)
 	endif
 	
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	prefs.fourier[0] = cvw[1]
 	prefs.fourier[1] = cvw[0]
 	prefs.fourier[2] = cvw[3]
-	KMSavePrefs(prefs)
+	SIDAMSavePrefs(prefs)
 End

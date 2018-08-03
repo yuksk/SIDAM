@@ -31,7 +31,7 @@ Menu "SIDAM", dynamic
 	
 	"-"
 	
-	"Preference", /Q, KMPrefsPnl()
+	"Preference", /Q, SIDAMPrefsPnl()
 	
 	Submenu "Help"
 		"Command List", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_CMD)

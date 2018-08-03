@@ -13,6 +13,7 @@
 // Update All KM Procedures.ipf for backward compatibility
 Function SIDAMBackwardCompatibility()
 	updateOldIncludeFile()
+	updateOldPackageFile()
 End
 #endif
 
@@ -57,6 +58,14 @@ Static Function updateOldIncludeFile()
 	KillPath $pathName
 End
 
+Static Function updateOldPackageFile()
+	String packages = SpecialDirPath("Packages",0,0,0)
+	MoveFolder/Z packages+"Kohsaka Macro" as packages+"SIDAM"
+	if (V_flag)	//	Old directory did not exist
+		return 0
+	endif
+	MoveFile/Z packages+"SIDAM:KM.bin" as packages+"SIDAM:SIDAM.bin"
+End
 #endif
 
 //--------------------------------------------------------------------------------------

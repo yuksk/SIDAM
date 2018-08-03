@@ -675,8 +675,8 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 	GetWindow $grfName, gbRGB
 	gbRGB.red = V_Red ;	gbRGB.green = V_Green ;	gbRGB.blue = V_Blue
 		
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	
 	//	透明にするために一度背景を白にする
 	if (prefs.export[2] != 0)		//	1 or 2, Window or Both

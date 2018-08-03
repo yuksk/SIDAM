@@ -20,8 +20,8 @@ Function/S KMLayerViewerPnl(Wave w)
 	ModifyImage/W=$pnlName $NameOfWave(w) ctabAutoscale=3
 	
 	//  表示詳細
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	ModifyGraph/W=$pnlName width=prefs.viewer.width
 	if (prefs.viewer.height == 1)		//	same as width
 		ModifyGraph/W=$pnlName height=prefs.viewer.width
