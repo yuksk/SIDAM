@@ -131,7 +131,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
 		KMSaveGraphics#rightclickMenu(), /Q, KMSaveGraphics#rightclickDo()
-		KMSaveMovie#rightclickMenu(), /Q, KMSaveMovie#rightclickDo()
+		SIDAMSaveMovie#rightclickMenu(), /Q, SIDAMSaveMovie#rightclickDo()
 		
 		"-"
 		

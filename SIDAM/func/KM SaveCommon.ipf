@@ -141,15 +141,16 @@ End
 //	レイヤー範囲取得
 //-------------------------------------------------------------
 Static Function/WAVE getLayers(String pnlName)
+	String grfName = StringFromList(0,pnlName,"#")
+	int initIndex = KMLayerViewerDo(grfName)	//	現在の表示レイヤー
 	
 	ControlInfo/W=$pnlName all_rC
 	if (V_Value)
-		Wave w = KMGetImageWaveRef(StringFromList(0, pnlName, "#"))
-		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1}
+		Wave w = KMGetImageWaveRef(grfName)
+		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1, initIndex}
 	else
-		ControlInfo/W=$pnlName from_f_V ;	Variable from = V_Value
-		ControlInfo/W=$pnlName to_f_V ;		Variable to = V_Value
-		Make/W/U/FREE rtnw = {min(from,to), max(from,to)}
+		Wave cw = KMGetCtrlValues(pnlName,"from_f_V;to_f_V")
+		Make/W/U/FREE rtnw = {WaveMin(cw), WaveMax(cw), initIndex}
 	endif
 	
 	return rtnw
@@ -164,7 +165,7 @@ Static Function/S getPathName(String pnlName)
 			return  "KMSaveGraphicsPnl"
 			
 		case "SaveMovie":
-			return "KMSaveMoviePnl"
+			return "SIDAMSaveMoviePnl"
 			
 		default:
 			return ""

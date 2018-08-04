@@ -151,7 +151,6 @@ Static Function saveGraphics(String pnlName)
 	//	ウエーブ取得
 	String parentWin = StringFromList(0, pnlName, "#")
 	Wave w = KMGetImageWaveRef(parentWin)
-	int initIndex = KMLayerViewerDo(parentWin)	//	現在の表示レイヤー
 	
 	//	形式取得
 	String cmdExtStr = createCmdExtStr(pnlName)
@@ -186,7 +185,7 @@ Static Function saveGraphics(String pnlName)
 	endfor
 	
 	//	表示を元に戻す
-	KMLayerViewerDo(parentWin, index=initIndex)
+	KMLayerViewerDo(parentWin, index=lw[2])
 	
 End
 //-------------------------------------------------------------

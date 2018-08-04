@@ -1,39 +1,35 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
-#pragma ModuleName=KMSaveMovie
-
+#pragma ModuleName=SIDAMSaveMovie
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
 
 //-------------------------------------------------------------
-//	右クリックメニュー表示用
+//	return the menu item for the right-click menu
 //-------------------------------------------------------------
 Static Function/S rightclickMenu()
-	int isWindows = stringmatch(IgorInfo(2),"Windows")
-	
 	Wave/Z w = KMGetImageWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
 	endif
 	int is3D = WaveDims(w)==3
-	
+	int isWindows = stringmatch(IgorInfo(2),"Windows")	
 	return SelectString(isWindows && is3D, "", "\\M0Save Graphics (Movie)...")
 End
 
 //-------------------------------------------------------------
-//	右クリックメニューから実行される関数
+//	function invoked by the right-click menu
 //-------------------------------------------------------------
 Static Function rightclickDo()
 	pnl(WinName(0,1))
 End
 
 //******************************************************************************
-//	パネル
+//	Display panel
 //******************************************************************************
 Static Function pnl(String grfName)
-	//  パネル表示
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,320,270)
 	RenameWindow $grfName#$S_name, SaveMovie
 	String pnlName = grfName + "#SaveMovie"
@@ -49,7 +45,15 @@ Static Function pnl(String grfName)
 	
 	//	parameters
 	GroupBox formatG title="Parameters:", pos={5,60}, size={310,75}, win=$pnlName
-	CheckBox compressionC title="Change the compression settings", pos={16,83}, value=1, win=$pnlName
+	#if (IgorVersion() >= 8.00)
+		int isWindows = strsearch(IgorInfo(2), "Windows", 0, 2) >= 0
+		String codecList = "mp4;"+SelectString(isWindows,"","wmv")
+		PopupMenu codecP title="Compression codec:", pos={16,81}, size={169,19}, bodywidth=60, win=$pnlName
+		PopupMenu codecP value=#("\""+codecList+"\""), win=$pnlName
+		SetVariable factorV title="factor:", pos={198,81}, size={98,18}, value=_NUM:200, bodyWidth=60, win=$pnlName
+	#else
+		CheckBox compressionC title="Change the compression settings", pos={16,83}, value=1, win=$pnlName
+	#endif
 	SetVariable rateV title="Frames per second", pos={18,107}, size={151,15}, bodyWidth=50, value=_NUM:2, limits={1,60,1}, format="%d", win=$pnlName
 
 	//	file
@@ -62,34 +66,38 @@ Static Function pnl(String grfName)
 	SetVariable pathV pos={10,215}, size={300,15}, bodyWidth=300, value=_STR:"", format="", frame=0, noedit=1, labelBack=(56797,56797,56797), win=$pnlName
 
 	//	button
-	Button saveB title="Save", pos={4,243}, size={70,20}, proc=KMSaveCommon#pnlButton, userData(fn)="KMSaveMovie#saveMovie", win=$pnlName
+	Button saveB title="Save", pos={4,243}, size={70,20}, proc=KMSaveCommon#pnlButton, userData(fn)="SIDAMSaveMovie#saveMovie", win=$pnlName
 	Button closeB title="Close", pos={245,243}, size={70,20}, proc=KMSaveCommon#pnlButton, win=$pnlName
 	
-	//	一律設定
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
 
 //******************************************************************************
-//	ムービー作成・保存 (saveBの実行関数)
+//	function invoked by pressing "Save" button
 //******************************************************************************
 Static Function saveMovie(String pnlName)
 
-	String grfName = StringFromList(0,pnlName,"#")
-
-	//	範囲取得
-	Wave lw = KMSaveCommon#getLayers(pnlName)
-	int i, initIndex = KMLayerViewerDo(grfName)	//	現在の表示レイヤー
-
-	//	ファイル名取得
+	//	get name of file
 	ControlInfo/W=$pnlName filenameV
-	String filename = RemoveEnding(S_Value, ".avi")	//	.avi 付きでファイル名が指定されていた場合に備えて(後でつける)
-	
-	//	ムービーファイル作成	
-	String cmd	
-	sprintf cmd, "%s as \"%s.avi\"", createCmdStr(pnlName), filename
+	String fileName = S_Value, extStr
+	#if (IgorVersion() >= 8.00)
+		ControlInfo/W=$pnlName codecP
+		extStr = "."+S_value
+	#else
+		extStr = ".avi"
+	#endif
+	fileName = RemoveEnding(fileName, extStr) + extStr
+		
+	//	Execute NewMovie with flags specified in the panel
+	String cmd
+	sprintf cmd, "%s as \"%s\"", createCmdStr(pnlName), fileName
 	Execute/Z cmd
-	
-	//	ムービーフレーム追加	
+		
+	//	Add movie frames
+	//	lw[0]: start layer, lw[1]: end layer, lw[2]: present layer
+	Wave lw = KMSaveCommon#getLayers(pnlName)
+	String grfName = StringFromList(0,pnlName,"#")
+	int i
 	for (i = lw[0]; i <= lw[1]; i++)
 		KMLayerViewerDo(grfName, index=i)
 		DoUpdate/W=$grfName
@@ -97,37 +105,48 @@ Static Function saveMovie(String pnlName)
 	endfor
 	
 	CloseMovie
-	KMLayerViewerDo(grfName, index=initIndex)
+	KMLayerViewerDo(grfName, index=lw[2])
 End
 //-------------------------------------------------------------
-//	createCmdExtStr
-//		パネルコントロールの選択状態から実行コマンド文字列を構成する
+//	return the command string from the items chosen in the panel
 //-------------------------------------------------------------
 Static Function/S createCmdStr(String pnlName)
 
 	String cmdStr = "NewMovie"
 	
-	ControlInfo/W=$pnlName overwriteC
-	cmdStr += SelectString(V_Value, "", "/O")
+	Wave cw = KMGetCtrlValues(pnlName,"overwriteC;rateV")
+	cmdStr += SelectString(cw[0], "", "/O")
+	cmdStr += "/F="+num2istr(cw[1])
 	
-	ControlInfo/W=$pnlName compressionC
-	cmdStr += SelectString(V_Value, "", "/I")
-	
-	ControlInfo/W=$pnlName rateV
-	cmdStr += "/F="+num2istr(V_Value)
-	
-	//	パス名取得
-	ControlInfo/W=$pnlName pathP
-	if (V_Value > 2)
-		cmdStr += "/P="+S_Value
-	elseif (V_Value == 2)
-		ControlInfo/W=$pnlName pathV
-		if (strlen(S_value))
-			GetFileFolderInfo/Q/Z S_value
-			if (!V_Flag) 	//	file or folder was found
-				cmdStr += "/P="+KMSaveCommon#getPathName(StringFromList(1,pnlName,"#"))
-			endif
+	#if (IgorVersion() >= 8.00)
+		ControlInfo/W=$pnlname codecP
+		cmdStr += "/CTYP=\""+StringFromList(V_Value-1,"mp4v;WMV3")+"\""
+		ControlInfo/W=$pnlName factorV
+		if (V_Value != 200)
+			cmdStr += "/CF="+num2str(V_Value)
 		endif
+	#else
+		ControlInfo/W=$pnlName compressionC
+		cmdStr += SelectString(V_Value, "", "/I")
+	#endif
+	
+	//	get path
+	ControlInfo/W=$pnlName pathP
+	if (V_Value == 1)		// _Use Dialog_
+		return cmdStr
+	elseif (V_Value > 2)	//	a path is chosen
+		return cmdStr + "/P="+S_Value
+	endif
+	
+	// _Specify Path_
+	ControlInfo/W=$pnlName pathV
+	if (!strlen(S_value))
+		return cmdStr
+	endif
+
+	GetFileFolderInfo/Q/Z S_value
+	if (!V_Flag) 	//	file or folder was found
+		cmdStr += "/P="+KMSaveCommon#getPathName(StringFromList(1,pnlName,"#"))
 	endif
 	
 	return cmdStr
