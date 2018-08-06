@@ -37,11 +37,11 @@ Static Function pnl(String grfName)
 	
 	//	layer
 	GroupBox layerG title="Layer", pos={5,4}, size={310,50}, win=$pnlName
-	CheckBox all_rC title="all", pos={16,28}, value=1, proc=KMSaveCommon#pnlCheck, win=$pnlName
-	CheckBox select_rC title="", pos={78,28}, value=0, proc=KMSaveCommon#pnlCheck, win=$pnlName
+	CheckBox all_rC title="all", pos={16,28}, value=1, proc=SIDAMSaveCommon#pnlCheck, win=$pnlName
+	CheckBox select_rC title="", pos={78,28}, value=0, proc=SIDAMSaveCommon#pnlCheck, win=$pnlName
 	SetVariable from_f_V title="from:", pos={97,26}, size={79,15}, value=_NUM:0, win=$pnlName
 	SetVariable to_f_V title="to:", pos={186,26}, size={66,15}, value=_NUM:DimSize(w,2)-1, win=$pnlName
-	ModifyControlList "from_f_V;to_f_V" bodyWidth=50, limits={0,DimSize(w,2)-1,1}, format="%d", proc=KMSaveCommon#pnlSetVar, win=$pnlName
+	ModifyControlList "from_f_V;to_f_V" bodyWidth=50, limits={0,DimSize(w,2)-1,1}, format="%d", proc=SIDAMSaveCommon#pnlSetVar, win=$pnlName
 	
 	//	parameters
 	GroupBox formatG title="Parameters:", pos={5,60}, size={310,75}, win=$pnlName
@@ -59,15 +59,15 @@ Static Function pnl(String grfName)
 	//	file
 	GroupBox fileG title="File:", pos={5,141}, size={310,96}, win=$pnlName	
 	SetVariable filenameV title="Filename:", pos={12,164}, size={295,18}, bodyWidth=241, win=$pnlName
-	SetVariable filenameV value=_STR:NameOfWave(w), proc=KMSaveCommon#pnlSetVar, win=$pnlName
+	SetVariable filenameV value=_STR:NameOfWave(w), proc=SIDAMSaveCommon#pnlSetVar, win=$pnlName
 	PopupMenu pathP title="Path:", pos={12,189}, size={180,20}, bodyWidth=150, mode=1, win=$pnlName
-	PopupMenu pathP value="_Use Dialog_;_Specify Path_;"+PathList("*",";",""), proc=KMSaveCommon#pnlPopup, win=$pnlName
+	PopupMenu pathP value="_Use Dialog_;_Specify Path_;"+PathList("*",";",""), proc=SIDAMSaveCommon#pnlPopup, win=$pnlName
 	CheckBox overwriteC title="Force Overwrite", pos={206,191}, win=$pnlName	
 	SetVariable pathV pos={10,215}, size={300,15}, bodyWidth=300, value=_STR:"", format="", frame=0, noedit=1, labelBack=(56797,56797,56797), win=$pnlName
 
 	//	button
-	Button saveB title="Save", pos={4,243}, size={70,20}, proc=KMSaveCommon#pnlButton, userData(fn)="SIDAMSaveMovie#saveMovie", win=$pnlName
-	Button closeB title="Close", pos={245,243}, size={70,20}, proc=KMSaveCommon#pnlButton, win=$pnlName
+	Button saveB title="Save", pos={4,243}, size={70,20}, proc=SIDAMSaveCommon#pnlButton, userData(fn)="SIDAMSaveMovie#saveMovie", win=$pnlName
+	Button closeB title="Close", pos={245,243}, size={70,20}, proc=SIDAMSaveCommon#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
@@ -95,7 +95,7 @@ Static Function saveMovie(String pnlName)
 		
 	//	Add movie frames
 	//	lw[0]: start layer, lw[1]: end layer, lw[2]: present layer
-	Wave lw = KMSaveCommon#getLayers(pnlName)
+	Wave lw = SIDAMSaveCommon#getLayers(pnlName)
 	String grfName = StringFromList(0,pnlName,"#")
 	int i
 	for (i = lw[0]; i <= lw[1]; i++)
@@ -146,7 +146,7 @@ Static Function/S createCmdStr(String pnlName)
 
 	GetFileFolderInfo/Q/Z S_value
 	if (!V_Flag) 	//	file or folder was found
-		cmdStr += "/P="+KMSaveCommon#getPathName(StringFromList(1,pnlName,"#"))
+		cmdStr += "/P="+SIDAMSaveCommon#getPathName(StringFromList(1,pnlName,"#"))
 	endif
 	
 	return cmdStr
