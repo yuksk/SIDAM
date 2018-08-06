@@ -177,7 +177,7 @@ Static Function extractPnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "doB":
 			extractPnlSave(s.win)
-			// *** THROUGH ***
+			// *** FALLTHROUGH ***
 		case "closeB":
 			KillWindow $s.win
 			break
@@ -415,7 +415,7 @@ Static Function aaPnlButton(STRUCT WMButtonAction &s)
 			break
 		case "cancelB":
 			aaSet(s.win,2)
-			//**THROUGH**
+			//*** FALLTHROUGH ***
 		case "doB":
 			KillWindow $s.win
 			break

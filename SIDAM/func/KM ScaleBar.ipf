@@ -228,7 +228,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			if (as.xmin==ps.xmin && as.xmax==ps.xmax && as.ymin==ps.ymin && as.ymax==ps.ymax)
 				break
 			endif
-			//	*** THROUGH ***
+			//	*** FALLTHROUGH ***
 			
 		case 6:	//	resized
 			if (ps.stop)

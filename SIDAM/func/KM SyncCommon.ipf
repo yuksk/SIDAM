@@ -274,7 +274,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			String key = GetUserData(s.win, s.ctrlName, "key")
 			String fn = GetUserData(s.win, s.ctrlName, "fn")
 			pnlButtonDoSync(s.win, key, fn)
-			//	** THROUGH **
+			//	*** FALLTHROUGH ***
 		case "cancelB":
 			KillWindow $s.win
 			break

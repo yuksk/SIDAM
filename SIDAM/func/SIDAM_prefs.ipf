@@ -278,7 +278,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 		case "doB":
 			pnlDo(prefs, s.win)
-			// *** THROUGH ***
+			// *** FALLTHROUGH ***
 		case "cancelB":
 			KillWindow $s.win
 			break

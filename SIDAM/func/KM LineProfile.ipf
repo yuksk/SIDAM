@@ -496,7 +496,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			if (!strlen(GetUserData(pnlName,"","clicked")))
 				break
 			endif
-			//** THROUGH **
+			//*** FALLTHROUGH ***
 		case 8:	//	modified
 			//	rev. 1156 より前に作られたものであれば、後方互換確保の関数を動作させる
 			Variable rev = str2num(GetUserData(pnlName,"","rev"))
@@ -696,7 +696,7 @@ Static Function outputPnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "doB":
 			outputPnlDo(s.win)
-			//** THROUGH **
+			//*** FALLTHROUGH ***
 		case "closeB":
 			KillWindow $(s.win)
 			break

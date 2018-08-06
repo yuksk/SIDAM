@@ -407,7 +407,7 @@ Static Function setxyStr(String &xys, STRUCT KMMousePos &ms)
 	
 	strswitch (GetUserData(ms.winhs.winName,"","mode"))
 		default:
-			//	***THROUGH***
+			//	*** FALLTHROUGH ***
 		case "0":	//	x, y	トレースのみの場合もここ
 			if (!WaveExists(ms.w))
 				xys = "(x,y) = (-,-)"

@@ -895,7 +895,7 @@ Static Function outputPnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "doB":
 			outputPnlDo(s.win)
-			//** THROUGH **
+			//*** FALLTHROUGH ***
 		case "closeB":
 			KillWindow $s.win
 			break

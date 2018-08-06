@@ -567,7 +567,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			
 		case "endP":
 			TitleBox endT disable=(s.popNum == 2), win=$s.win
-			//*** THROUGH***
+			//*** FALLTHROUGH ***
 		case "invertP":
 			if (s.popNum != str2num(GetUserData(s.win, s.ctrlName, "")))
 				pnlUpdate(s.win, 1)
