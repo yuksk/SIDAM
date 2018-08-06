@@ -73,7 +73,6 @@ End
 #ifndef SIDAMstarting
 
 Static Function angstromStr(DFREF dfr)
-	
 	int i, n, dim
 	
 	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
@@ -153,5 +152,39 @@ Static Function updateTemporaryDF(String listStr)
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
 	endif
 End
+
+//--------------------------------------------------------------------------------------
+
+
+//******************************************************************************
+//	deprecated functions, to be removed in future
+//******************************************************************************
+Function/S KMSuffixStr(num,[digit])
+	int num, digit
+	
+	if (ParamIsDefault(digit))
+		digit = 3
+	endif
+	
+	String rtnStr = num2str(num)
+	int digitOfNum = abs(num) ? floor(log(num))+1 : 1
+	int i
+	
+	for (i = digitOfNum; i < digit; i++)
+		rtnStr = "0"+rtnStr
+	endfor
+	
+	printf "%sKMSuffixStr is deprecated and will be removed.\r", PRESTR_CAUTION
+	printf "%sUse %s%dd in the format string of prinf.\r", PRESTR_CAUTION, "%0", digit
+	
+	return rtnStr
+End
+
+Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
+	printf "%sKMCtrlClicked is deprecated and will be removed.\r", PRESTR_CAUTION
+	ControlInfo/W=$s.winName $grpName
+	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
+End
+
 
 #endif

@@ -361,15 +361,6 @@ End
 
 
 //******************************************************************************
-//	KMCtrlClicked:	グループボックスがクリックされたかどうかを返す
-//******************************************************************************
-Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
-	ControlInfo/W=$s.winName $grpName
-	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
-End
-
-
-//******************************************************************************
 //	KMPopupTo:	
 //******************************************************************************
 Function KMPopupTo(STRUCT WMPopupAction &s, String paramStr)

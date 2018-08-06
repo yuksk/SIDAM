@@ -278,12 +278,12 @@ Static Function extractPnlSave(String pnlName)
 
 	else
 
-		ControlInfo/W=$pnlName from_w_V ;	int from = round(V_Value)
-		ControlInfo/W=$pnlName to_w_V ;		int to = round(V_Value)
-		int i, digit = min(from,to) ? floor(log(max(from,to)))+1 : 1
+		Wave cw = KMGetCtrlValues(pnlName,"from_w_V;to_w_V")
+		int digit = WaveMin(cw) ? floor(log(WaveMax(cw)))+1 : 1
 		String name
-		for (i = min(from,to); i <= max(from,to); i++)
-			name = result+KMSuffixStr(i,digit=digit)
+		int i
+		for (i = WaveMin(cw); i <= WaveMax(cw); i++)
+			sprintf name, "%s%0"+num2istr(digit)+"d", result, i
 			Duplicate/O/R=[][][i] w, $name
 			Redimension/N=(-1,-1) $name
 		endfor
