@@ -162,7 +162,7 @@ Static Function/S getPathName(String pnlName)
 	
 	strswitch (pnlName)
 		case "SaveGraphics":
-			return  "KMSaveGraphicsPnl"
+			return  "SIDAMSaveGraphicsPnl"
 			
 		case "SaveMovie":
 			return "SIDAMSaveMoviePnl"

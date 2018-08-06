@@ -1,16 +1,20 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName= KMSaveGraphics
+#pragma ModuleName=SIDAMSaveGraphics
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
 
-//	フォーマットによって表示状態が異なるコントロールの名前のリスト
+//	When uncommented, the command string to save graphics is displayed in the history window
+//	instead of saving graphics.
+//#define DEBUG
+
+// The disable state of the controls in this list depends on the format of graphics
 Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embedC;exceptC;resolutionP;dpiP"
 
 //-------------------------------------------------------------
-//	右クリックメニュー表示用
+//	return the menu item for the right-click menu
 //-------------------------------------------------------------
 Static Function/S rightclickMenu()
 	int isWindows = stringmatch(IgorInfo(2),"Windows")
@@ -25,7 +29,7 @@ Static Function/S rightclickMenu()
 End
 
 //-------------------------------------------------------------
-//	右クリックメニューから実行される関数
+//	function invoked by the right-click menu
 //-------------------------------------------------------------
 Static Function rightclickDo()
 	pnl(WinName(0,1))
@@ -33,12 +37,9 @@ End
 
 
 //******************************************************************************
-//	パネル
+//	Display panel
 //******************************************************************************
-Static Function pnl(grfName)
-	String grfName
-	
-	//  パネル表示
+Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,390,390)
 	RenameWindow $grfName#$S_name, SaveGraphics
 	String pnlName = grfName + "#SaveGraphics"
@@ -91,21 +92,20 @@ Static Function pnl(grfName)
 	SetVariable pathV pos={10,330}, size={370,15}, bodyWidth=370, value=_STR:"", format="", frame=0, noedit=1, labelBack=(56797,56797,56797), win=$pnlName
 	
 	//	button
-	Button saveB title="Save", pos={4,363}, size={70,20}, proc=KMSaveCommon#pnlButton, userData(fn)="KMSaveGraphics#saveGraphics", win=$pnlName
+	Button saveB title="Save", pos={4,363}, size={70,20}, proc=KMSaveCommon#pnlButton, userData(fn)="SIDAMSaveGraphics#saveGraphics", win=$pnlName
 	Button closeB title="Close", pos={315,363}, size={70,20}, proc=KMSaveCommon#pnlButton, win=$pnlName
 	
-	//	一律設定
 	ModifyControlList FORMAT_DEPENDENT_CTRL, disable=1, win=$pnlName
-	ModifyControlList ControlNameList(pnlName,";","format_*_rC"), proc=KMSaveGraphics#pnlCheckFormat, win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","format_*_rC"), proc=SIDAMSaveGraphics#pnlCheckFormat, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*_rC") mode=1, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
 
 //******************************************************************************
-//	パネルコントロール
+//	Controls
 //******************************************************************************
 //-------------------------------------------------------------
-//	チェックボックス, Formatに関するもの
+//	Checkbox for format
 //-------------------------------------------------------------
 Static Function pnlCheckFormat(STRUCT WMCheckboxAction &s)
 	if (s.eventCode != 2)
@@ -114,13 +114,13 @@ Static Function pnlCheckFormat(STRUCT WMCheckboxAction &s)
 	
 	int i, n
 	
-	//	自分自身以外の他のフォーマットの値を0にする
+	// Make all checkboxes except the selected one zero
 	String list = RemoveFromList(s.ctrlName, ControlNameList(s.win,";","format_*_rC"))
 	for (i = 0, n = ItemsInList(list); i < n; i++)
 		CheckBox $StringFromList(i,list) value=0, win=$s.win
 	endfor
 	
-	//	フォーマットによって表示状態が異なるコントロールの表示状態を変更する
+	//	Change the disable state of controls
 	for (i = 0, n = ItemsInList(FORMAT_DEPENDENT_CTRL); i < n; i++)
 		String format = StringFromList(1,s.ctrlName,"_")
 		String ctrl = StringFromList(i,FORMAT_DEPENDENT_CTRL)
@@ -128,79 +128,75 @@ Static Function pnlCheckFormat(STRUCT WMCheckboxAction &s)
 		ModifyControl $ctrl disable=disable, win=$s.win
 	endfor
 	
-	//	embedCが表示されていて、かつ、チェックされていたら exceptC を表示する
+	//	if embedC is displayed and checked, display exceptC
 	ControlInfo/W=$s.win embedC
 	CheckBox exceptC disable=(V_disable || !V_Value), win=$s.win
 	
-	//	resolutionPが表示されていて、かつ、選択項目が"Other DPI"ならば dpiP を表示する
+	//	if resolutionP is displayed and "Other DPI" is selected, display dpiP
 	ControlInfo/W=$s.win resolutionP
 	PopupMenu dpiP disable=(V_disable || V_Value!=6), win=$s.win
 	
 	return 0
 End
 
-
 //******************************************************************************
-//	パネルコントロール補助関数
+//	function invoked by pressing "Save" button
 //******************************************************************************
-//-------------------------------------------------------------
-//	saveGraphics
-//		saveBの実行関数
-//-------------------------------------------------------------
 Static Function saveGraphics(String pnlName)
-	//	ウエーブ取得
 	String parentWin = StringFromList(0, pnlName, "#")
 	Wave w = KMGetImageWaveRef(parentWin)
 	
-	//	形式取得
+	//	collect information from the panel
 	String cmdExtStr = createCmdExtStr(pnlName)
-	String cmdStr = StringFromList(0,cmdExtStr), extStr = StringFromList(1,cmdExtStr)
 	
-	//	範囲取得
+	//	lw[0]: start layer, lw[1]: end layer, lw[2]: present layer
 	Wave lw = KMSaveCommon#getLayers(pnlName)
-	Variable digit = floor(log(lw[1]))+1
-	
-	//	ファイル出力
+		
 	ControlInfo/W=$pnlName filenameV
-	String basename = S_value, cmd
+	String basename = S_value
 	ControlInfo/W=$pnlName suffixP
-	int suffix = V_value, index
+	int suffix = V_value
+
+	String cmdStr = StringFromList(0,cmdExtStr)
+	String extStr = StringFromList(1,cmdExtStr)
+	String digitStr = "%0" + num2istr(floor(log(lw[1]))+1) + "d"	//	%01d for 0-9, %02d for 10-99,...
+	String cmd
+	int i
 	
+	//	Save graphics
 	DoWindow/F $parentWin
-	for (index = lw[0]; index <= lw[1]; index++)
-		Variable value = KMIndexToScale(w, index,2)
-		switch (suffix)
-			case 1:	//	index only
-				sprintf cmd, "%s as \"%s%s%s\"", cmdStr, basename, KMSuffixStr(index,digit=digit), extStr
-				break
-			case 2:	//	value only
-				sprintf cmd, "%s as \"%s%s%s\"", cmdStr, basename, num2str(value), extStr
-				break
-			default:	//	index and value
-				sprintf cmd, "%s as \"%s%s_%s\"", cmdStr, basename, KMSuffixStr(index,digit=digit), num2str(value), extStr
-		endswitch
-		ModifyImage/W=$parentWin $NameOfWave(w) plane=index
+	for (i = lw[0]; i <= lw[1]; i++)
+		if (suffix == 1)			//	index only
+			sprintf cmd, "%s as \"%s"+digitStr+"%s\"", cmdStr, basename, i, extStr
+		elseif (suffix == 2)	//	value only
+			sprintf cmd, "%s as \"%s%g%s\"", cmdStr, basename, KMIndexToScale(w,i,2), extStr
+		else						//	index and value
+			sprintf cmd, "%s as \"%s"+digitStr+"_%g%s\"", cmdStr, basename, i, KMIndexToScale(w,i,2), extStr
+		endif
+		ModifyImage/W=$parentWin $NameOfWave(w) plane=i
 		DoUpdate/W=$parentWin
-		Execute/Z cmd
+		#ifdef DEBUG
+			print cmd
+		#else
+			Execute/Z cmd
+		#endif
 	endfor
 	
-	//	表示を元に戻す
 	KMLayerViewerDo(parentWin, index=lw[2])
-	
 End
 //-------------------------------------------------------------
-//	createCmdExtStr
-//		パネルコントロールの選択状態から実行コマンド文字列・拡張子を構成する
+//	return the command string and the extension created from
+//	the items chosen in the panel
 //-------------------------------------------------------------
 Static Function/S createCmdExtStr(String pnlName)
 	
 	String cmdStr = "SavePICT"
 	
-	//	ファイル上書きについて
+	//	overwrite
 	ControlInfo/W=$pnlName overwriteC
-	cmdStr += SelectString(V_Value, "", "/O")	//	チェックされている	
+	cmdStr += SelectString(V_Value, "", "/O")	//	checked
 	
-	//	フォーマットについて
+	//	format
 	String ctrlList = ControlNameList(pnlName,";","format_*_rC")
 	Wave cw = KMGetCtrlValues(pnlName, ctrlList)
 	cw *= p
@@ -208,33 +204,33 @@ Static Function/S createCmdExtStr(String pnlName)
 	cmdStr += "/E=" + GetUserData(pnlName,selectedCheckbox,"value")
 	String extStr = "." + LowerStr(StringFromList(1,selectedCheckBox,"_"))
 	
-	//	色について
+	//	color
 	ControlInfo/W=$pnlName colorC
 	if (V_Value)
 		ControlInfo/W=$pnlName cmyk_rC
-		cmdStr += SelectString(V_disable!=1 && V_Value, "", "/C=2")	//	表示されていて、かつ、チェックされている
+		cmdStr += SelectString(V_disable!=1 && V_Value, "", "/C=2")	//	displayed and checked
 	else
 		cmdStr += "/C=0"
 	endif
 	
-	//	EPSのフォントについて
+	//	font of eps
 	ControlInfo/W=$pnlName dontembedC
-	cmdStr += SelectString(V_disable!=1 && V_Value, "", "/EF=1")	//	表示されていて、かつ、チェックされている
+	cmdStr += SelectString(V_disable!=1 && V_Value, "", "/EF=1")		//	displayed and checked
 	
-	//	PDFのフォントについて
+	//	font of pdf
 	ControlInfo/W=$pnlName exceptC
-	if (!V_disable && V_Value) //	表示されていて、かつ、チェックされている
+	if (V_disable!=1 && V_Value)		//	displayed and checked
 		cmdStr += "/EF=1"
 	else
 		ControlInfo/W=$pnlName embedC
-		cmdStr += SelectString(V_disable!=1 && V_Value, "", "/EF=2")	//	表示されていて、かつ、チェックされている
+		cmdStr += SelectString(V_disable!=1 && V_Value, "", "/EF=2")	//	displayed and checked
 	endif
 	
-	//	パスについて
+	//	get path
 	ControlInfo/W=$pnlName pathP
-	if (V_Value > 2)
+	if (V_Value > 2)			//	a path is chosen
 		cmdStr += "/P="+S_Value
-	elseif (V_Value == 2)
+	elseif (V_Value == 2)	// _Specify Path_
 		ControlInfo/W=$pnlName pathV
 		if (strlen(S_value))
 			GetFileFolderInfo/Q/Z S_value
@@ -244,20 +240,20 @@ Static Function/S createCmdExtStr(String pnlName)
 		endif
 	endif
 	
-	//	解像度について
+	//	resolution
 	ControlInfo/W=$pnlName dpiP
-	if (!V_disable) 		//	表示されている
+	if (V_disable!=1) 		//	displayed
 		cmdStr += "/RES="+S_Value
 	else
 		ControlInfo/W=$pnlName resolutionP
-		if (!V_disable) //	表示されている
+		if (V_disable!=1) 	//	displayed
 			cmdStr += "/B="+StringFromList(V_Value-1,GetUserData(pnlName,"resolutionP","value"))
 		endif
 	endif
 	
-	//	透明背景について
-	ControlInfo/W=$pnlName tranC
-	cmdStr += SelectString(V_disable!=1 && V_Value, "", "/TRAN=1")	//	表示されていて、かつ、チェックされている
+	//	transparent
+	ControlInfo/W=$pnlName transC
+	cmdStr += SelectString(V_disable!=1 && V_Value, "", "/TRAN=1")	//	displayed and checked
 	
 	return cmdStr + ";" + extStr
 End
