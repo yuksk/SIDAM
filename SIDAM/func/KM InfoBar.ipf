@@ -9,6 +9,14 @@
 Static StrConstant COORDINATESMENU = "x and y (rectangular);r and theta (polar);1/r and theta (polar, inverse magnitude);x' and y' (rectangular, including angle)"
 Static StrConstant TITLEMENU = "Name of graph;Name of wave;Setpoint;Displayed size;Path of wave"
 
+//	座標表示の桁数
+//	Preferenceの設定時に定義される
+#ifdef SIDAMhighprecision
+	Static Constant PRECISION = 4
+#else
+	Static Constant PRECISION = 2
+#endif
+
 //******************************************************************************
 //	情報表示用及び右クリックメニュー用のコントロールバー
 //******************************************************************************
@@ -330,76 +338,11 @@ Function KMDisplayCtrlBarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	int traceOnly = !strlen(ImageNameList(s.winName,";"))	//	トレースのみ
 	String pqs, xys, zs
 	
-	//	[p, q], z の表示
-	if (traceOnly)			//	トレースだけの場合には [p, q] z は表示しない
-		pqs = ""
-		zs = ""
-	elseif (strlen(ms.name))	//	イメージ範囲内
-		if (ms.grid)
-			Sprintf pqs, "[p,q] = [%d, %d]", ms.p, ms.q
-		else
-			Sprintf pqs, "[p,q] = [%.1f, %.1f]", ms.p, ms.q
-		endif
-		if (WaveType(ms.w)&0x01)
-			Variable mode = NumberByKey("imCmplxMode",ImageInfo(s.winName,NameOfWave(ms.w),0),"=")
-			switch (mode)
-				case 0:		//	magnitude
-					Sprintf zs, "z = %.2e", real(r2polar(ms.z))
-					break
-				case 1:		//	real
-					Sprintf zs, "z = %.2e", real(ms.z)
-					break
-				case 2:		//	imaginary
-					Sprintf zs, "z = %.2e", imag(ms.z)
-					break
-				case 3:		//	phase (in radian)
-					Sprintf zs, "z = %.4fpi", imag(r2polar(ms.z))/pi
-					break
-			endswitch
-		else
-			Sprintf zs, "z = %.2e", real(ms.z)
-		endif
-	else					//	イメージ範囲外
-		pqs = "[p,q] = [-, -]"
-		zs = "z = -"
-	endif
+	//	[p, q], z の文字列取得
+	setpqzStr(pqs, zs, ms, traceOnly)
 	
-	// (x, y) の表示
-	strswitch (GetUserData(s.winName,"","mode"))
-		default:
-			//	***THROUGH***
-		case "0":	//	x, y	トレースのみの場合もここ
-			if (!WaveExists(ms.w))
-				xys = "(x,y) = (-,-)"
-			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
-				Sprintf xys, "(x,y) = (%s %s, %.2f)", Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
-			elseif (stringmatch(WaveUnits(ms.w,1),"dat"))
-				Sprintf xys, "(x,y) = (%.2f, %s %s)", ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
-			else
-				Sprintf xys, "(x,y) = (%.2f, %.2f)", ms.x, ms.y
-			else
-			endif
-			break
-		case "1": 	//	r, theta
-			Sprintf xys, "(r,t) = (%.2f, %.2f)", sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
-			break
-		case "2": 	//	r^-1, theta-90
-			Sprintf xys, "(1/r,t) = (%.2f, %.2f)", 1/sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
-			break
-		case "3":	//	x', y', 角度は度
-			Variable angle = str2num(KMGetSettings(ms.w,4)) / 180 * pi
-			if (numtype(angle))
-				xys = "(x',y') = (-,-)"
-			else
-				Variable cx = DimOffset(ms.w,0) + DimDelta(ms.w,0)*(DimSize(ms.w,0)-1)/2
-				Variable cy = DimOffset(ms.w,1) + DimDelta(ms.w,1)*(DimSize(ms.w,1)-1)/2
-				Variable rx = (ms.x-cx)*cos(angle) - (ms.y-cy)*sin(angle) + cx
-				Variable ry = (ms.x-cx)*sin(angle) + (ms.y-cy)*cos(angle) + cy
-				Sprintf xys, "(x',y') = (%.2f, %.2f)", rx, ry
-			endif
-			break
-	endswitch
-	xys = ReplaceString("nan", xys, "-")		//	イメージ範囲外では nan が入るので、それの置き換え
+	// (x, y) の文字列取得
+	setxyStr(xys, ms)
 	
 	//	表示内容を設定する
 	if (traceOnly)
@@ -416,6 +359,89 @@ Function KMDisplayCtrlBarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	//	表示位置を更新する
 	adjustCtrlPos(win)
 End
+
+Static Function setpqzStr(String &pqs, String &zs, STRUCT KMMousePos &ms, int traceOnly)
+	//	トレースだけの場合には [p, q] z は表示しない
+	if (traceOnly)
+		pqs = ""
+		zs = ""
+		return 0
+	endif
+
+	//	イメージ範囲外
+	if (!strlen(ms.name))
+		pqs = "[p,q] = [-, -]"
+		zs = "z = -"
+		return 0
+	endif
+		
+	String formatStr = "[p,q] = " + SelectString(ms.grid, "[%.1f, %.1f]", "[%d, %d]")
+	Sprintf pqs, formatStr, ms.p, ms.q
+	
+	formatStr = "z = %."+num2istr(PRECISION)+"e"
+	if (WaveType(ms.w)&0x01)
+		Variable mode = NumberByKey("imCmplxMode",ImageInfo(ms.winhs.winName,NameOfWave(ms.w),0),"=")
+		switch (mode)
+			case 0:		//	magnitude
+				Sprintf zs, formatStr, real(r2polar(ms.z))
+				break
+			case 1:		//	real
+				Sprintf zs, formatStr, real(ms.z)
+				break
+			case 2:		//	imaginary
+				Sprintf zs, formatStr, imag(ms.z)
+				break
+			case 3:		//	phase (in radian)
+				Sprintf zs, "z = %.4fpi", imag(r2polar(ms.z))/pi
+				break
+		endswitch
+	else
+		Sprintf zs, formatStr, real(ms.z)
+	endif
+	return 1
+End
+
+Static Function setxyStr(String &xys, STRUCT KMMousePos &ms)
+	String pStr = "%."+num2istr(PRECISION)+"f"
+	String pStr2 = "("+pStr+", "+pStr+")"
+	
+	strswitch (GetUserData(ms.winhs.winName,"","mode"))
+		default:
+			//	*** FALLTHROUGH ***
+		case "0":	//	x, y	トレースのみの場合もここ
+			if (!WaveExists(ms.w))
+				xys = "(x,y) = (-,-)"
+			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
+				Sprintf xys, "(x,y) = (%s %s, "+pStr+")", Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
+			elseif (stringmatch(WaveUnits(ms.w,1),"dat"))
+				Sprintf xys, "(x,y) = ("+pStr+", %s %s)", ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
+			else
+				Sprintf xys, "(x,y) = "+pStr2, ms.x, ms.y
+			else
+			endif
+			break
+		case "1": 	//	r, theta
+			Sprintf xys, "(r,t) = "+pStr2, sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+			break
+		case "2": 	//	r^-1, theta-90
+			Sprintf xys, "(1/r,t) = "+pStr2, 1/sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+			break
+		case "3":	//	x', y', 角度は度
+			Variable angle = str2num(KMGetSettings(ms.w,4)) / 180 * pi
+			if (numtype(angle))
+				xys = "(x',y') = (-,-)"
+			else
+				Variable cx = DimOffset(ms.w,0) + DimDelta(ms.w,0)*(DimSize(ms.w,0)-1)/2
+				Variable cy = DimOffset(ms.w,1) + DimDelta(ms.w,1)*(DimSize(ms.w,1)-1)/2
+				Variable rx = (ms.x-cx)*cos(angle) - (ms.y-cy)*sin(angle) + cx
+				Variable ry = (ms.x-cx)*sin(angle) + (ms.y-cy)*cos(angle) + cy
+				Sprintf xys, "(x',y') = "+pStr2, rx, ry
+			endif
+			break
+	endswitch
+	xys = ReplaceString("nan", xys, "-")		//	イメージ範囲外では nan が入るので、それの置き換え
+End
+
 //-------------------------------------------------------------
 //	コントロールパネルの各項目の位置調整
 //-------------------------------------------------------------

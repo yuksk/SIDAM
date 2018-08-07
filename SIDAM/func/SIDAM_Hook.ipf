@@ -5,16 +5,24 @@
 #pragma hide = 1
 #endif
 
-#include "KM Prefs"							//	for KMLoadPrefs, KMSavePrefs
+#include "SIDAM_Prefs"						//	for SIDAMLoadPrefs, SIDAMSavePrefs
 #include "SIDAM_Compatibility"			//	for SIDAMBackwardCompatibility
 
 //	AfterCompiledHook
 Function KMAfterCompiledHook()
 	//	save present time
-	STRUCT KMPrefs p
-	KMLoadPrefs(p)
+	STRUCT SIDAMPrefs p
+	SIDAMLoadPrefs(p)
 	p.last = DateTime
-	KMSavePrefs(p)
+	SIDAMSavePrefs(p)
+	
+	// if the precision in the preference and the actual preference is different,
+	//	correct the latter
+	if (p.precision == 1 && defined(SIDAMhighprecision))
+		SIDAMInfoBarSetPrecision(0)
+	elseif (p.precision == 2 && !defined(SIDAMhighprecision))
+		SIDAMInfoBarSetPrecision(1)
+	endif
 	
 	//	backward compatibility for an old experiment file
 	SIDAMBackwardCompatibility()

@@ -851,7 +851,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "cancelB":
 			//	パネルを開いた時の元の状態に戻す
 			restoreImageColor(s.win)
-			//	*** THROUGH ***
+			//	*** FALLTHROUGH ***
 		case "doB":
 			KillWindow $(s.win)
 			DoUpdate/W=$StringFromList(0,s.win,"#")

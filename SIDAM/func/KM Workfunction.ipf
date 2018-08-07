@@ -141,16 +141,7 @@ End
 //	KMWorkfunctionR: 		右クリック用
 //-------------------------------------------------------------
 Function KMWorkfunctionR()
-	String grfName = WinName(0,1)
-	if (strlen(ImageNameList(grfName,";")))
-		KMWorkfunctionPnl(KMGetImageWaveRef(grfName), grfName=grfName)
-	else
-		String trcList = TraceNameList(grfName,";",1)
-		Variable num = KMWaveSelector("Work Function", trcList, grfName=grfName)
-		if (num)
-			KMWorkfunctionPnl(TraceNameToWaveRef(grfName,StringFromList(num-1,trcList)), grfName=grfName)
-		endif
-	endif
+	KMWorkfunctionPnl(KMGetImageWaveRef(WinName(0,1)), grfName=WinName(0,1))
 End
 
 

@@ -226,7 +226,7 @@ Function KMWaveSelectorButton(STRUCT WMButtonAction &s)
 			NVAR/Z popNum
 			ControlInfo/W=$s.win waveP
 			popNum = V_Value
-			//*** THROUGH ***
+			//*** FALLTHROUGH ***
 		case "cancelB":
 			KillWindow $s.win
 			break

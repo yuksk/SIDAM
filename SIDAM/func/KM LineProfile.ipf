@@ -39,7 +39,7 @@ Function KMLineProfile(
 	])
 		
 	STRUCT paramStruct s
-	Wave s.w = w
+	Wave/Z s.w = w
 	s.p1 = p1
 	s.q1 = q1
 	s.p2 = p2
@@ -228,7 +228,7 @@ Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw
 	endif
 	
 	String noteStr
-	Sprintf noteStr, "src@%s;start@p=%d,q=%d;end@p=%d,q=%d;width=%f", GetWavesDataFolder(s.w, 2), s.p1, s.q1, s.p2, s.q2, s.width
+	Sprintf noteStr, "src@%s;start@p=%f,q=%f;end@p=%f,q=%f;width=%f", GetWavesDataFolder(s.w, 2), s.p1, s.q1, s.p2, s.q2, s.width
 	Note linew, noteStr
 	Note sdevw, noteStr
 End
@@ -496,7 +496,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			if (!strlen(GetUserData(pnlName,"","clicked")))
 				break
 			endif
-			//** THROUGH **
+			//*** FALLTHROUGH ***
 		case 8:	//	modified
 			//	rev. 1156 より前に作られたものであれば、後方互換確保の関数を動作させる
 			Variable rev = str2num(GetUserData(pnlName,"","rev"))
@@ -696,7 +696,7 @@ Static Function outputPnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "doB":
 			outputPnlDo(s.win)
-			//** THROUGH **
+			//*** FALLTHROUGH ***
 		case "closeB":
 			KillWindow $(s.win)
 			break

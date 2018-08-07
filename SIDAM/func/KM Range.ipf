@@ -234,6 +234,8 @@ End
 //	パネルに関して
 //=====================================================================================================
 Static Constant CTRLHEIGHT = 170
+Static Constant PNLHEIGHT = 295
+Static Constant PNLWIDTH = 265
 
 //******************************************************************************
 //	パネル表示
@@ -253,7 +255,7 @@ Static Function pnl(String grfName)
 	String dfTmp = pnlInit(grfName, imgName, zmin, zmax)
 	
 	//	表示
-	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,265,295)/N=Range
+	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=Range
 	String pnlName = StringFromList(0, grfName, "#") + "#Range"
 	
 	//	パネルコントロール
@@ -748,8 +750,8 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 		endfor
 	else
 		//	allC の場合
-		Variable height = s.checked ? 150 : 280
-		MoveSubWindow/W=$s.win fnum=(0,0,300,height)
+		Variable height = s.checked ? CTRLHEIGHT-22 : PNLHEIGHT
+		MoveSubWindow/W=$s.win fnum=(0,0,PNLWIDTH,height)
 		ModifyControlList "imageP;histogramT;presentB;fullB;" disable=(s.checked*2), win=$s.win
 	endif
 	

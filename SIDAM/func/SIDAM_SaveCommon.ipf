@@ -1,19 +1,18 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
-#pragma ModuleName=KMSaveCommon
-
+#pragma ModuleName=SIDAMSaveCommon
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
 
-//	KM Save Graphics と KM Save Movie で共通に使われる関数
+//	Functions used commonly in SIDAM_SaveGraphics and SIDAM_SaveMovie
 
 //******************************************************************************
-//	パネルコントロール
+//	Controls
 //******************************************************************************
 //-------------------------------------------------------------
-//	ボタン
+//	Button
 //-------------------------------------------------------------
 Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
@@ -39,22 +38,23 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KMChangeAllControlsDisableState(s.win,0,2)
 			FUNCREF KMDoButtonPrototype fn = $GetUserData(s.win,s.ctrlName,"fn")
 			fn(s.win)
-			// *** THROUGH ***
+			// *** FALLTHROUGH ***
 		case "closeB":
-			KillPath/Z KMSaveCommon#getPathName(s.win)
+			KillPath/Z SIDAMSaveCommon#getPathName(s.win)
 			KillWindow $s.win
 			break
 	endswitch
 End
 //-------------------------------------------------------------
-//	チェックボックス, SaveGraphics の Formatに関するもの以外
+//	Checkbox for all except formatC in SaveGraphics
 //-------------------------------------------------------------
 Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	if (s.eventCode != 2)
 		return 0
 	endif
 	
-	//	all_rC と select_rC 以外はSaveMovieにはないが単に無視される
+	//	rgb_rC, cmyk_rC, and embedC, which are not used in SaveMovie,
+	//	are just ignored in SaveMovie
 	strswitch (s.ctrlName)
 		case "all_rC":
 			CheckBox select_rC value=0, win=$s.win
@@ -75,7 +75,7 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	return 0
 End
 //-------------------------------------------------------------
-//	値設定
+//	SetVariable
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	if (s.eventCode == -1)
@@ -96,7 +96,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	endswitch
 End
 //-------------------------------------------------------------
-//	ポップアップ
+//	Popupmenu
 //-------------------------------------------------------------
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
@@ -105,7 +105,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	
 	strswitch (s.ctrlName)
 		
-		//	resolutionP は SaveMovie にはないが単に無視されるだけ
+		//	resolutionP is not used in SaveMovie and just ignored
 		case "resolutionP":
 			PopupMenu dpiP disable=(s.popNum != 6), win=$s.win
 			break
@@ -135,36 +135,37 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 End
 
 //******************************************************************************
-//	パネルコントロール補助関数
+//	misc
 //******************************************************************************
 //-------------------------------------------------------------
-//	レイヤー範囲取得
+//	get "from", "to", and present layers
 //-------------------------------------------------------------
 Static Function/WAVE getLayers(String pnlName)
+	String grfName = StringFromList(0,pnlName,"#")
+	int initIndex = KMLayerViewerDo(grfName)	//	present layer
 	
 	ControlInfo/W=$pnlName all_rC
 	if (V_Value)
-		Wave w = KMGetImageWaveRef(StringFromList(0, pnlName, "#"))
-		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1}
+		Wave w = KMGetImageWaveRef(grfName)
+		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1, initIndex}
 	else
-		ControlInfo/W=$pnlName from_f_V ;	Variable from = V_Value
-		ControlInfo/W=$pnlName to_f_V ;		Variable to = V_Value
-		Make/W/U/FREE rtnw = {min(from,to), max(from,to)}
+		Wave cw = KMGetCtrlValues(pnlName,"from_f_V;to_f_V")
+		Make/W/U/FREE rtnw = {WaveMin(cw), WaveMax(cw), initIndex}
 	endif
 	
 	return rtnw
 End
 //-------------------------------------------------------------
-//	一時的に使用されるパス名を返す関数
+//	return a path name used temporary
 //-------------------------------------------------------------
 Static Function/S getPathName(String pnlName)
 	
 	strswitch (pnlName)
 		case "SaveGraphics":
-			return  "KMSaveGraphicsPnl"
+			return  "SIDAMSaveGraphicsPnl"
 			
 		case "SaveMovie":
-			return "KMSaveMoviePnl"
+			return "SIDAMSaveMoviePnl"
 			
 		default:
 			return ""
@@ -172,7 +173,7 @@ Static Function/S getPathName(String pnlName)
 	endswitch
 End
 //-------------------------------------------------------------
-//	Doボタンの実行関数のプロトタイプ
+//	Prototype for functions invoked by pressing "Do" button
 //-------------------------------------------------------------
 Function KMDoButtonPrototype(String pnlName)
 	return 0

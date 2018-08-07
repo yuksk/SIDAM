@@ -407,7 +407,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			elseif (!CmpStr(s.popStr,"Line"))
 				PopupMenu orderP mode=1, value= "0;1;2", win=$s.win
 			endif
-			//	*** THROUGH ***
+			//	*** FALLTHROUGH ***
 		case "orderP":
 			KMSubtractionPnlDisable(s.win)
 			break

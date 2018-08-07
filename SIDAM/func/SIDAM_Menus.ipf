@@ -31,7 +31,7 @@ Menu "SIDAM", dynamic
 	
 	"-"
 	
-	"Preference", /Q, KMPrefsPnl()
+	"Preference", /Q, SIDAMPrefsPnl()
 	
 	Submenu "Help"
 		"Command List", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_CMD)
@@ -130,8 +130,8 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
-		KMSaveGraphics#rightclickMenu(), /Q, KMSaveGraphics#rightclickDo()
-		KMSaveMovie#rightclickMenu(), /Q, KMSaveMovie#rightclickDo()
+		SIDAMSaveGraphics#rightclickMenu(), /Q, SIDAMSaveGraphics#rightclickDo()
+		SIDAMSaveMovie#rightclickMenu(), /Q, SIDAMSaveMovie#rightclickDo()
 		
 		"-"
 		

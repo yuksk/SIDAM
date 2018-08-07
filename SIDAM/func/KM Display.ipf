@@ -206,7 +206,7 @@ Static Function/S displayNumericWave(Wave w, int traces, int history)
 				KMInfoBar(S_name)
 				return S_name
 			endif
-			//	***THROUGH***
+			//	*** FALLTHROUGH ***
 		case 3:
 			return KMLayerViewerPnl(w)
 	endswitch

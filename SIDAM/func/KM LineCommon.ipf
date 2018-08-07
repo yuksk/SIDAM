@@ -469,7 +469,7 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 				SetVariable p1V value=_NUM:(grid ? round((vx-ox)/dx) : (vx-ox)/dx), win=$s.win
 				SetVariable q1V value=_NUM:(grid ? round((vy-oy)/dy) : (vy-oy)/dy), win=$s.win
 			endif
-			//	** THROUGH **
+			//	*** FALLTHROUGH ***
 		case "p1V":
 		case "p2V":
 		case "q1V":

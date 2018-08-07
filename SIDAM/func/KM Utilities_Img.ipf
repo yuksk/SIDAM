@@ -310,43 +310,6 @@ end
 
 
 //******************************************************************************
-//	KMGetCursorOneStepBack
-//		矢印キーによって移動したカーソルを元に戻す
-//		KMLineSpectraPnlHookArrows
-//		にて使用されている. カーソルが表示されていることは呼び出し元の関数で確認することにしている
-//******************************************************************************
-Function KMGetCursorOneStepBack(s, csr)
-	STRUCT WMWinHookStruct &s
-	String csr
-	
-	Variable pstep = 0, qstep = 0
-	if (s.keycode == 28)		//	左
-		pstep = -1
-	elseif (s.keycode == 29)	//	右
-		pstep = 1
-	elseif (s.keycode == 30)	//	上
-		qstep = 1
-	elseif (s.keycode == 31)	//	下
-		qstep = -1
-	endif
-	
-	if (WaveDims(CsrWaveRef($csr,s.winName)) == 1)
-		if (s.keycode == 28 || s.keycode == 29)	//	1次元ならば左右しか関係がない
-			Cursor/P/W=$s.winName $csr, $CsrWave($csr,s.winName,1), pcsr($csr,s.winName)-pstep
-		endif
-	else		//	2次元の場合は向きについての補正が必要になる
-		GetAxis/W=$s.winName/Q bottom ;	Variable dbottom = (V_max-V_min > 0) ? 1 : -1
-		GetAxis/W=$s.winName/Q left ;		Variable dleft= (V_max-V_min > 0) ? 1 : -1
-		Variable dx = (DimDelta(CsrWaveRef($csr,s.winName),0) > 0) ? 1 : -1
-		Variable dy = (DimDelta(CsrWaveRef($csr,s.winName),1) > 0) ? 1 : -1
-		pstep *= dbottom * dx
-		qstep *= dleft * dy
-		Cursor/I/P/W=$s.winName $csr, $CsrWave($csr,s.winName,1), pcsr($csr,s.winName)-pstep, qcsr($csr,s.winName)-qstep
-	endif
-End
-
-
-//******************************************************************************
 //	KMGetMousePos
 //		マウスカーソル位置の座標を取得します
 //******************************************************************************
@@ -675,8 +638,8 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 	GetWindow $grfName, gbRGB
 	gbRGB.red = V_Red ;	gbRGB.green = V_Green ;	gbRGB.blue = V_Blue
 		
-	STRUCT KMPrefs prefs
-	KMLoadPrefs(prefs)
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
 	
 	//	透明にするために一度背景を白にする
 	if (prefs.export[2] != 0)		//	1 or 2, Window or Both

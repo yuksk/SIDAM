@@ -6,28 +6,6 @@
 #endif
 
 //******************************************************************************
-//	KMSuffixStr:	入力番号をdigit桁の文字列として返す
-//******************************************************************************
-Function/S KMSuffixStr(num,[digit])
-	int num, digit
-	
-	if (ParamIsDefault(digit))
-		digit = 3
-	endif
-	
-	String rtnStr = num2str(num)
-	int digitOfNum = abs(num) ? floor(log(num))+1 : 1
-	int i
-	
-	for (i = digitOfNum; i < digit; i++)
-		rtnStr = "0"+rtnStr
-	endfor
-	
-	return rtnStr
-End
-
-
-//******************************************************************************
 //  文字列がシングルクォーテーションで挟まれていたら、それを除く
 //******************************************************************************
 Function/S KMUnquoteName(String str)

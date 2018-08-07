@@ -26,8 +26,8 @@ Function KMPreviewPnl()
 	endfor
 	
 	String dfTmp = pnlInit()
-	STRUCT KMPrefs p
-	KMLoadPrefs(p)
+	STRUCT SIDAMPrefs p
+	SIDAMLoadPrefs(p)
 	
 	NewPanel/K=1/W=(p.preview.size.left, p.preview.size.top, p.preview.size.right, p.preview.size.bottom) as "Preview"
 	String pnlName = S_name
@@ -162,8 +162,8 @@ End
 //------------------------------------------------------------
 Static Function pnlHookClose(String pnlName)
 	
-	STRUCT KMPrefs p
-	KMLoadPrefs(p)
+	STRUCT SIDAMPrefs p
+	SIDAMLoadPrefs(p)
 	
 	GetWindow $pnlName wsizeDC
 	p.preview.size.left = V_left
@@ -171,7 +171,7 @@ Static Function pnlHookClose(String pnlName)
 	p.preview.size.top = V_top
 	p.preview.size.bottom = V_bottom
 	
-	KMSavePrefs(p)
+	SIDAMSavePrefs(p)
 	
 	KMonClosePnl(pnlName)
 End

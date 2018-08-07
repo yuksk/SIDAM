@@ -413,8 +413,8 @@ Static Function/WAVE ReadTopoMapFile(GenHeader)
 				driveamp = 1
 			endif
 			if (sensitivity >= 1e-6 && sensitivity <= 10 && driveamp >= 0.003 && driveamp <= 5.001)
-				STRUCT KMPrefs prefs
-				KMLoadPrefs(prefs)
+				STRUCT SIDAMPrefs prefs
+				SIDAMLoadPrefs(prefs)
 				w *= prefs.TopoGainFactor*(sensitivity/10)/(driveamp/100)*prefs.TopoCorrFactor
 				valueunits = "nS"
 			endif
