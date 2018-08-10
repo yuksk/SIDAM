@@ -425,10 +425,9 @@ End
 
 
 //******************************************************************************
-//	Get wave reference, wave value, etc. at the position of the mouse cursor	
+//	Get wave reference, wave value, etc. at the position of the mouse cursor
 //******************************************************************************
 Structure SIDAMMousePos
-	uchar	grid
 	String	xaxis
 	String	yaxis
 	float	x
@@ -442,64 +441,91 @@ EndStructure
 Function SIDAMGetMousePos(
 	STRUCT SIDAMMousePos &s,
 	String grfName,
-	STRUCT Point &ps,		//	e.g., ***.mouseLoc
+	STRUCT Point &ps,		//	e.g., WMWinHookStruct.mouseLoc
 	[
 		int grid
 	])
 	
-	s.grid = ParamIsDefault(grid) ? 1 : grid
+	grid = ParamIsDefault(grid) ? 1 : grid
 	s.xaxis = ""	; s.yaxis = ""
 	s.x = NaN ;	s.y = NaN ;	s.z = NaN
 	s.p = NaN ;	s.q = NaN ;
 	Wave/Z s.w = $""
-
-	int swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
-	int imageExist = strlen(ImageNameList(grfName, ";"))
-
+	
 	getWaveAndValues(s,grfName,ps)
 	if (!WaveExists(s.w))	//	the mouse cursor is not on any image
 		return 1
-	elseif (WaveDims(s.w) > 1)
+	elseif (WaveExists(ImageNameToWaveRef(grfName,NameOfWave(s.w))))
+		//	The following is for when s.w is a 2D/3D wave and is displayed as an image,
+		//	but even when s.w is 2D/3D, it can be displayed as a trace.
+		//	The above if state is to exclude the latter situation.
+		//	(WaveDims(s.w) > 1 fails.)
 		Variable ox = DimOffset(s.w,0), oy = DimOffset(s.w,1)
 		Variable dx = DimDelta(s.w,0), dy = DimDelta(s.w,1)
 		Variable tx = limit(s.x, min(ox,ox+dx*(DimSize(s.w,0)-1)), max(ox,ox+dx*(DimSize(s.w,0)-1)))
 		Variable ty = limit(s.y, min(oy,oy+dy*(DimSize(s.w,1)-1)), max(oy,oy+dy*(DimSize(s.w,1)-1)))
 		Variable tp = (tx-ox)/dx, tq = (ty-oy)/dy
-		s.p = s.grid ? round(tp) : tp
-		s.q = s.grid ? round(tq) : tq
-		s.x = s.grid ? (ox + dx * s.p) : tx
-		s.y = s.grid ? (oy + dy * s.q) : ty
+		s.p = grid ? round(tp) : tp
+		s.q = grid ? round(tq) : tq
+		s.x = grid ? (ox + dx * s.p) : tx
+		s.y = grid ? (oy + dy * s.q) : ty
 		//	the present layer, 0 for 2D images
 		int layer = NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "=")
 		s.z = s.w(tx)(ty)[layer]
 	endif
+	return 0
 End
 
-Static Function getWaveAndValues(STRUCT SIDAMMousePos &s, String grfName, STRUCT Point &ps)
-	STRUCT KMAxisRange as
+Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUCT Point &ps)
+	STRUCT SIDAMAxisRange as
 	String listStr, itemName
-	Variable tx, ty
+	Variable mousex, mousey, axmin, axmax, aymin, aymax, wxmin, wxmax, wymin, wymax
+	Variable isInRange	//	isInRange has to be variable (not int)
 	int swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
-	int i, ntraces
-
-	//	search from the top image, then search from the top trace
-	listStr = TraceNameList(grfName, ";", 1) + ImageNameList(grfName,";")
-	ntraces = ItemsInList(TraceNameList(grfName, ";", 1))
+	int i, isImg
+	
+	//	Traces are handled only when there is no image.
+	listStr = ImageNameList(grfName,";")
+	if (!strlen(listStr))
+		listStr = TraceNameList(grfName, ";", 1)
+	endif
+	
+	//	search from the top item
 	for (i = ItemsInList(listStr)-1; i >= 0; i--)
 		itemName = StringFromList(i,listStr)
 		
-		KMGetAxis(grfName,itemName,as)
-		tx = AxisValFromPixel(grfName, as.xaxis, (swap ? ps.v : ps.h))
-		ty = AxisValFromPixel(grfName, as.yaxis, (swap ? ps.h : ps.v))		
-		if (tx <= as.xmax && tx >= as.xmin && ty <= as.ymax && ty >= as.ymin)
-			s.xaxis = as.xaxis
-			s.yaxis = as.yaxis
-			s.x = tx
-			s.y = ty
-			if (i >= ntraces)
-				Wave s.w = ImageNameToWaveRef(grfName,itemName)
+		SIDAMGetAxis(grfName,itemName,as)
+		
+		//	When the axis is reversed, as.xmin > as.xmax and as.ymin > as.ymax
+		axmin = min(as.xmin, as.xmax)
+		axmax = max(as.xmin, as.xmax)
+		aymin = min(as.ymin, as.ymax)
+		aymax = max(as.ymin, as.ymax)
+		
+		mousex = AxisValFromPixel(grfName, as.xaxis, (swap ? ps.v : ps.h))
+		mousey = AxisValFromPixel(grfName, as.yaxis, (swap ? ps.h : ps.v))
+		
+		Wave/Z w = ImageNameToWaveRef(grfName,itemName)
+		isImg = WaveExists(w)
+		
+		//	As for traces, the followings are chosen so that isInRange is always 1
+		wxmin = isImg ? DimOffset(w,0) : as.xmin
+		wxmax = isImg ? DimOffset(w,0)+DimDelta(w,0)*(DimSize(w,0)-1) : as.xmax
+		wymin = isImg ? DimOffset(w,1) : as.ymin
+		wymax = isImg ? DimOffset(w,1)+DimDelta(w,1)*(DimSize(w,1)-1) : as.ymax
+		
+		//	isInRange is always 1 for traces
+		isInRange = (mousex >= max(axmin, wxmin)) & (mousex <= min(axmax, wxmax)) & \
+			(mousey >= max(aymin, wymin)) & (mousey <= min(aymax, wymax))
+		if (isInRange)
+			ms.xaxis = as.xaxis
+			ms.yaxis = as.yaxis
+			ms.x = mousex
+			ms.y = mousey
+			if (isImg)
+				Wave ms.w = w
 			else
-				Wave s.w = TraceNameToWaveRef(grfName,itemName)
+				Wave ms.w = TraceNameToWaveRef(grfName,itemName)
 			endif
 			return 1
 		endif

@@ -305,9 +305,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			return keyboardShortcuts(s)
 			
 		case 22:	//	mouseWheel
-			if (s.eventMod & 8)	//	ctrlが押されていたら
+			if (s.eventMod & 8)		//	if the ctrl key is pressed
 				magnify(s)
-			elseif (is3D)			//	ctrlキーが押されておらず3Dウエーブの場合は、表示レイヤーの変更
+			elseif (is3D)			//	if the ctrl key is not pressed and the wave is 3D
 				int direction = (s.wheelDy > 0) ? 1 : -1
 				STRUCT SIDAMMousePos ms
 				SIDAMGetMousePos(ms, s.winName, s.mouseLoc)
@@ -322,67 +322,55 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 End
 
 //******************************************************************************
-//	KMDisplayCtrlBarUpdatePos : マウス位置を取得して代入する
+//	マウス位置を取得して代入する
 //******************************************************************************
 Function KMDisplayCtrlBarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	
-	//	マウス位置取得ウインドウと表示先ウインドウが異なる場合(取得ウインドウがサブウインドウなど)に表示先ウインドウを指定する
-	if (ParamIsDefault(win))
-		win = s.winName
-	endif
+	//	If a window to get the location of the mouse cursor is different from
+	//	a window to display the coordinates (e.g., the former is a subwindow),
+	//	the latter window has to be explicitly given.
+	win = SelectString(ParamIsDefault(win),win,s.winName)
 	
-	STRUCT KMMousePos ms
-	Variable grid = (str2num(GetUserData(s.winName,"","free")) != 1)	//  0 または NaN が相当する (ver. 0.93b以前で作成されたものはNaNを返す)
-	if (KMGetMousePos(ms, winhs=s, grid=grid) > 1)
-		return 1
-	endif
+	STRUCT SIDAMMousePos ms
+	int grid = str2num(GetUserData(s.winName,"","free")) != 1
+	SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=grid)
 	
-	int traceOnly = !strlen(ImageNameList(s.winName,";"))	//	トレースのみ
 	String pqs, xys, zs
-	
-	//	[p, q], z の文字列取得
-	setpqzStr(pqs, zs, ms, traceOnly)
-	
-	// (x, y) の文字列取得
-	setxyStr(xys, ms)
-	
-	//	表示内容を設定する
-	if (traceOnly)
-		TitleBox xyT title=xys, win=$win
-	else
+
+	int isPQZdisplayed = 1
+	ControlInfo/W=$win pqT	; isPQZdisplayed *= V_flag
+	ControlInfo/W=$win zT	; isPQZdisplayed *= V_flag
+	if (isPQZdisplayed)
+		setpqzStr(pqs, zs, ms, grid, s.winName)
 		TitleBox pqT title=pqs, win=$win
-		TitleBox xyT title=xys, win=$win
 		TitleBox zT title=zs, win=$win
-		if (str2num(GetUserData(s.winName,"","title")) == 1)
-			DoWindow/T $win, ms.name
-		endif
+	endif
+
+	setxyStr(xys, ms, s.winName)
+	TitleBox xyT title=xys, win=$win
+
+	if (str2num(GetUserData(s.winName,"","title")) == 1)
+		DoWindow/T $win, NameOfWave(ms.w)
 	endif
 	
-	//	表示位置を更新する
 	adjustCtrlPos(win)
 End
 
-Static Function setpqzStr(String &pqs, String &zs, STRUCT KMMousePos &ms, int traceOnly)
-	//	トレースだけの場合には [p, q] z は表示しない
-	if (traceOnly)
-		pqs = ""
-		zs = ""
-		return 0
-	endif
-
-	//	イメージ範囲外
-	if (!strlen(ms.name))
+Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int grid, String grfName)
+	if (!WaveExists(ms.w))		//	the mouse cursor is not on any image
 		pqs = "[p,q] = [-, -]"
 		zs = "z = -"
 		return 0
+	elseif (WaveDims(ms.w) == 1)
+		return 0
 	endif
-		
-	String formatStr = "[p,q] = " + SelectString(ms.grid, "[%.1f, %.1f]", "[%d, %d]")
+	
+	String formatStr = "[p,q] = " + SelectString(grid, "[%.1f, %.1f]", "[%d, %d]")
 	Sprintf pqs, formatStr, ms.p, ms.q
 	
 	formatStr = "z = %."+num2istr(PRECISION)+"e"
 	if (WaveType(ms.w)&0x01)
-		Variable mode = NumberByKey("imCmplxMode",ImageInfo(ms.winhs.winName,NameOfWave(ms.w),0),"=")
+		Variable mode = NumberByKey("imCmplxMode",ImageInfo(grfName,NameOfWave(ms.w),0),"=")
 		switch (mode)
 			case 0:		//	magnitude
 				Sprintf zs, formatStr, real(r2polar(ms.z))
@@ -403,14 +391,14 @@ Static Function setpqzStr(String &pqs, String &zs, STRUCT KMMousePos &ms, int tr
 	return 1
 End
 
-Static Function setxyStr(String &xys, STRUCT KMMousePos &ms)
+Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 	String pStr = "%."+num2istr(PRECISION)+"f"
 	String pStr2 = "("+pStr+", "+pStr+")"
 	
-	strswitch (GetUserData(ms.winhs.winName,"","mode"))
+	strswitch (GetUserData(grfName,"","mode"))
 		default:
 			//	*** FALLTHROUGH ***
-		case "0":	//	x, y	トレースのみの場合もここ
+		case "0":		//	x, y	(also for traces)
 			if (!WaveExists(ms.w))
 				xys = "(x,y) = (-,-)"
 			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
@@ -428,7 +416,7 @@ Static Function setxyStr(String &xys, STRUCT KMMousePos &ms)
 		case "2": 	//	r^-1, theta-90
 			Sprintf xys, "(1/r,t) = "+pStr2, 1/sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
-		case "3":	//	x', y', 角度は度
+		case "3":		//	x', y', angle is degree
 			Variable angle = str2num(KMGetSettings(ms.w,4)) / 180 * pi
 			if (numtype(angle))
 				xys = "(x',y') = (-,-)"
@@ -441,7 +429,6 @@ Static Function setxyStr(String &xys, STRUCT KMMousePos &ms)
 			endif
 			break
 	endswitch
-	xys = ReplaceString("nan", xys, "-")		//	イメージ範囲外では nan が入るので、それの置き換え
 End
 
 //-------------------------------------------------------------
@@ -543,17 +530,17 @@ End
 //-------------------------------------------------------------
 //	マウスホイールで表示範囲を拡大縮小する. ctrlを押しているときに有効
 //-------------------------------------------------------------
-Static Function magnify(STRUCT WMWinHookStruct &hs)
-	
-	STRUCT KMMousePos s
-	if (KMGetMousePos(s, winhs=hs, grid=0) > 0)
+Static Function magnify(STRUCT WMWinHookStruct &s)
+	STRUCT SIDAMMousePos ms
+	SIDAMGetMousePos(ms, s.winName, s.mouseLoc)
+	if (!WaveExists(ms.w))
 		return 1
 	endif
-	Variable coef = 1 - 0.1*sign(hs.wheelDy)	//	上に回すと数字が小さくなる -> 表示範囲が小さくなる -> 拡大する
-	GetAxis/Q/W=$hs.winName $s.xaxis
-	SetAxis/W=$hs.winName $s.xaxis  s.x+(V_min-s.x)*coef, s.x+(V_max-s.x)*coef
-	GetAxis/Q/W=$hs.winName $s.yaxis
-	SetAxis/W=$hs.winName $s.yaxis  s.y+(V_min-s.y)*coef, s.y+(V_max-s.y)*coef
+	Variable coef = 1 - 0.1*sign(s.wheelDy)	//	上に回すと数字が小さくなる -> 表示範囲が小さくなる -> 拡大する
+	GetAxis/Q/W=$s.winName $ms.xaxis
+	SetAxis/W=$s.winName $ms.xaxis  ms.x+(V_min-ms.x)*coef, ms.x+(V_max-ms.x)*coef
+	GetAxis/Q/W=$s.winName $ms.yaxis
+	SetAxis/W=$s.winName $ms.yaxis  ms.y+(V_min-ms.y)*coef, ms.y+(V_max-ms.y)*coef
 End
 
 //-------------------------------------------------------------
