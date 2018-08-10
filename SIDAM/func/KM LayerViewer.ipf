@@ -104,16 +104,11 @@ Static Function/S rightclickMenu(int menuitem)
 End
 
 Static Function/S rightclickDo(int mode)
-
 	switch (mode)
 		case 0:	//	
 			extractPnl(WinName(0,1))
 			break
-		case 1:	//
-			aaPnl(WinName(0,1))
-			break
 	endswitch
-	
 End
 
 
@@ -356,181 +351,6 @@ End
 
 //=====================================================================================================
 
-
-//******************************************************************************
-//	auto annotation 設定用パネル
-//******************************************************************************
-Static Function aaPnl(String LVName)
-	
-	if (WhichListItem("AA",ChildWindowList(LVName)) != -1)
-		return 0
-	endif
-	
-	Wave w = KMGetImageWaveRef(LVName)
-	
-	//  パネル表示
-	NewPanel/HOST=$LVName/EXT=0/W=(0,0,255,110) as "Auto annotation"
-	RenameWindow $LVName#$S_name, AA
-	String pnlName = LVName + "#AA"
-	
-	SetWindow $pnlName hook(self)=KMClosePnl
-	
-	String legendStr = GetUserData(LVName, "", "AAstr")
-	int isLegendOn = strlen(legendStr) > 0
-	CheckBox legendC title="show annotation", pos={8,8}, value=isLegendOn, focusRing=0, win=$pnlName
-	CheckBox legendC proc=KMLayerViewer#aaPnlCheck, userData(init)=num2str(isLegendOn), win=$pnlName
-	SetVariable legendV title="text", pos={12,31}, size={234,15}, bodyWidth=210, focusRing=0, proc=KMLayerViewer#aaPnlSetVar, win=$pnlName
-	SetVariable legendV value=_STR:SelectString(isLegendOn, "$+$$value$ $unit$", legendStr), userData(init)=legendStr, win=$pnlName
-	
-	String digitStr = GetUserData(LVName, "", "AAdigit")
-	int digit = strlen(digitStr) ? str2num(digitStr) : 0
-	SetVariable digitV title="digit", pos={10,53}, size={76,15}, bodyWidth=50, value=_NUM:digit, focusRing=0, win=$pnlName
-	SetVariable digitV format="%d", limits={0,inf,1}, proc=KMLayerViewer#aaPnlSetVar, userData(init)=digitStr, win=$pnlName
-	
-	Button doB title="Do it", pos={7,83}, win=$pnlName
-	Button helpB title="Help", pos={117,83}, win=$pnlName
-	Button cancelB title="Cancel", pos={186,83}, win=$pnlName
-	ModifyControlList "doB;helpB;cancelB" size={60,20}, focusRing=0, proc=KMLayerViewer#aaPnlButton, win=$pnlName
-	
-	//	表示状態
-	ControlInfo/W=$pnlName legendC
-	SetVariable legendV disable=(!V_Value)*2, win=$pnlName
-	SetVariable digitV disable=(!V_Value)*2, win=$pnlName
-End
-
-//******************************************************************************
-//	パネルコントロール
-//******************************************************************************
-//-------------------------------------------------------------
-//	ボタン
-//-------------------------------------------------------------
-Static Function aaPnlButton(STRUCT WMButtonAction &s)
-	if (s.eventCode != 2)
-		return 0
-	endif
-	
-	strswitch (s.ctrlName)
-		case "helpB":
-			KMOpenHelpNote("autoannotation",pnlName=s.win,title="Auto Annotation")
-			break
-		case "cancelB":
-			aaSet(s.win,2)
-			//*** FALLTHROUGH ***
-		case "doB":
-			KillWindow $s.win
-			break
-		default:
-	endswitch
-End
-//-------------------------------------------------------------
-//	値設定
-//-------------------------------------------------------------
-Static Function aaPnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1)
-		return 1
-	endif
-	
-	String LVName = StringFromList(0, s.win, "#")
-	strswitch (s.ctrlName)
-		case "legendV":
-			SetWindow $LVName userData(AAstr)=s.sval
-			break
-		case "digitV":
-			SetWindow $LVName userData(AAdigit)=num2str(round(s.dval))
-			break
-	endswitch
-	aaChange(LVName)
-End
-//-------------------------------------------------------------
-//	チェックボックス
-//-------------------------------------------------------------
-Static Function aaPnlCheck(STRUCT WMCheckboxAction &s)
-	if (s.eventCode != 2)
-		return 1
-	endif
-	
-	//	legendCのみなのでs.ctrlNameのチェックはしない
-	SetVariable legendV disable=(!s.checked)*2, win=$s.win
-	SetVariable digitV disable=(!s.checked)*2, win=$s.win
-	
-	//	AutoAnnotationの開始・解除
-	aaSet(s.win, s.checked)
-End
-//-------------------------------------------------------------
-//	Auto Annotation実行のためにLayerViewerに設定されるフック関数
-//-------------------------------------------------------------
-Static Function aaHook(STRUCT WMWinHookStruct &s)
-	if (s.eventCode == 8)	//	modified
-		aaChange(s.winName, layer=str2num(GetUserData(s.winName,"","AAlayer")))
-	endif
-	return 0
-End
-//-------------------------------------------------------------
-//	Auto Annotationを設定・解除する関数
-//-------------------------------------------------------------
-Static Function aaSet(String pnlName, int mode)
-	String LVName = StringFromList(0, pnlName, "#")
-	switch (mode)
-		case 0:	//	解除
-			//	hook関数やuserDataの削除
-			SetWindow $LVName hook(AA)=$""
-			SetWindow $LVName userData(AAstr)=""
-			SetWindow $LVName userData(AAdigit)=""
-			SetWindow $LVName userData(AAlayer)=""
-			TextBox/K/N=$GetUserData(LVName, "", "AAname")
-			SetWindow $LVName userData(AAname)=""
-			break
-			
-		case 1:	//	設定
-			//	Annotationを変更するhook関数
-			SetWindow $LVName hook(AA)=KMLayerViewer#aaHook
-			//	Hook関数実行時に必要となる情報をパネルから得てuserDataに書き込む
-			ControlInfo/W=$pnlName legendV ;	SetWindow $LVName userData(AAstr)=S_Value
-			ControlInfo/W=$pnlName digitV ;	SetWindow $LVName userData(AAdigit)=num2str(V_Value)
-			SetWindow $LVName userData(AAname)=UniqueName("Text", 14, 0, LVName)
-			aaChange(LVName)
-			break
-			
-		case 2:	//	パネルでキャンセルした場合、初期値に戻す
-			if (str2num(GetUserData(pnlName,"legendC","init")))
-				//	Annotationを変更するhook関数
-				SetWindow $LVName hook(AA)=KMLayerViewer#aaHook
-				//	Hook関数実行時に必要となる情報をパネルの初期値から得てuserDataに書き込む
-				SetWindow $LVName userData(AAstr)=GetUserData(pnlName,"legendV","init")
-				SetWindow $LVName userData(AAdigit)=GetUserData(pnlName,"digitV","init")
-				aaChange(LVName)
-			elseif (strlen(GetUserData(LVName, "", "AAname")))
-				aaSet(pnlName,0)
-			endif
-			break
-	endswitch
-End
-//-------------------------------------------------------------
-//	Annotationを実際に変更する関数
-//	記録されているレイヤーと現在の表示レイヤーが異なる(表示レイヤーに変更があった)
-//	場合にのみ動作する
-//-------------------------------------------------------------
-Static Function aaChange(String LVName, [Variable layer])
-	Variable layerPresent = KMLayerViewerDo(LVName)
-	if (!ParamIsDefault(layer) && layer == layerPresent)
-		return 0
-	endif
-	SetWindow $LVName userData(AAlayer)=num2istr(layerPresent)
-	
-	String legendStr = GetUserData(LVName, "", "AAstr")
-	String digitStr = "%."+GetUserData(LVName, "", "AAdigit")+"f"
-	Wave w = KMGetImageWaveRef(LVName)
-	Variable value = KMIndexToScale(w, layerPresent,2)	//	現在の表示レイヤーに対応するエネルギー
-	
-	String str
-	Sprintf str, ReplaceString("$value$",legendStr,digitStr), value
-	str = ReplaceString("$unit$",str,WaveUnits(w,2))
-	str = ReplaceString("$+$",str,SelectString(value>0,"","+"))
-	TextBox/C/N=$GetUserData(LVName, "", "AAname")/W=$LVName str
-End
-
-//=====================================================================================================
-
 //-------------------------------------------------------------
 //	古いバージョンからの変更点を反映させる
 //	SyncLayerの動作を問題なく行うために、この関数が呼ばれたら全てのウインドウに
@@ -635,4 +455,11 @@ End
 //-------------------------------------------------------------
 Function KMLayerViewerAAHook(STRUCT WMWinHookStruct &s)
 	SetWindow $s.winName hook(AA)=KMLayerViewer#aaHook
+End
+
+//-------------------------------------------------------------
+//	v8.0.2以前で使われていたフック関数
+//-------------------------------------------------------------
+Static Function aaHook(STRUCT WMWinHookStruct &s)
+	SIDAMLayerAnnotation#backCompFromLayerViewerAA(s.winName)
 End
