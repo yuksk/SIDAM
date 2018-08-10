@@ -309,7 +309,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				magnify(s)
 			elseif (is3D)			//	ctrlキーが押されておらず3Dウエーブの場合は、表示レイヤーの変更
 				int direction = (s.wheelDy > 0) ? 1 : -1
-				KMLayerViewerDo(s.winName, direction=direction)
+				STRUCT SIDAMMousePos ms
+				SIDAMGetMousePos(ms, s.winName, s.mouseLoc)
+				KMLayerViewerDo(s.winName, w=ms.w, direction=direction)
 			endif
 			return 0
 			

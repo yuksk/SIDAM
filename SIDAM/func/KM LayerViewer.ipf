@@ -62,9 +62,11 @@ End
 //		返り値は変更後のレイヤーの値
 //		indexもdirectionも指定しない場合には何もしないので、現在のレイヤーの値が返される
 //******************************************************************************
-Function KMLayerViewerDo(String grfName, [int index, int direction])
+Function KMLayerViewerDo(String grfName, [Wave/Z w, int index, int direction])
 	
-	Wave/Z w =  KMGetImageWaveRef(grfName)
+	if (ParamIsDefault(w))
+		Wave/Z w =  KMGetImageWaveRef(grfName)
+	endif
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return NaN
 	endif

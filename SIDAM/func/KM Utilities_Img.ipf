@@ -354,7 +354,7 @@ Function KMGetMousePos(s, [winhs, grid])
 	Variable swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
 	Variable imageExist = strlen(ImageNameList(grfName, ";"))
 	
-	if ( imageExist )		//	イメージが存在する場合にはそちらを優先
+	if (imageExist)		//	イメージが存在する場合にはそちらを優先
 		s.xaxis = StringByKey("XAXIS", ImageInfo(grfName,"",0))
 		s.yaxis = StringByKey("YAXIS", ImageInfo(grfName,"",0))
 		Variable tx = AxisValFromPixel(grfName, s.xaxis, (swap ? v : h))
@@ -397,6 +397,7 @@ Function KMGetMousePos(s, [winhs, grid])
 		return 0
 	endif
 End
+
 //	マウスカーソルが乗っているイメージへの参照を返す
 Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 	Variable xvalue, yvalue
@@ -421,6 +422,91 @@ Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 	
 	return $""		//	全てのウエーブの範囲外にある場合は空文字列
 End
+
+
+//******************************************************************************
+//	Get wave reference, wave value, etc. at the position of the mouse cursor	
+//******************************************************************************
+Structure SIDAMMousePos
+	uchar	grid
+	String	xaxis
+	String	yaxis
+	float	x
+	float	y
+	Variable/C	z
+	float	p
+	float	q
+	Wave	w
+EndStructure
+
+Function SIDAMGetMousePos(
+	STRUCT SIDAMMousePos &s,
+	String grfName,
+	STRUCT Point &ps,		//	e.g., ***.mouseLoc
+	[
+		int grid
+	])
+	
+	s.grid = ParamIsDefault(grid) ? 1 : grid
+	s.xaxis = ""	; s.yaxis = ""
+	s.x = NaN ;	s.y = NaN ;	s.z = NaN
+	s.p = NaN ;	s.q = NaN ;
+	Wave/Z s.w = $""
+
+	int swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
+	int imageExist = strlen(ImageNameList(grfName, ";"))
+
+	getWaveAndValues(s,grfName,ps)
+	if (!WaveExists(s.w))	//	the mouse cursor is not on any image
+		return 1
+	elseif (WaveDims(s.w) > 1)
+		Variable ox = DimOffset(s.w,0), oy = DimOffset(s.w,1)
+		Variable dx = DimDelta(s.w,0), dy = DimDelta(s.w,1)
+		Variable tx = limit(s.x, min(ox,ox+dx*(DimSize(s.w,0)-1)), max(ox,ox+dx*(DimSize(s.w,0)-1)))
+		Variable ty = limit(s.y, min(oy,oy+dy*(DimSize(s.w,1)-1)), max(oy,oy+dy*(DimSize(s.w,1)-1)))
+		Variable tp = (tx-ox)/dx, tq = (ty-oy)/dy
+		s.p = s.grid ? round(tp) : tp
+		s.q = s.grid ? round(tq) : tq
+		s.x = s.grid ? (ox + dx * s.p) : tx
+		s.y = s.grid ? (oy + dy * s.q) : ty
+		//	the present layer, 0 for 2D images
+		int layer = NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "=")
+		s.z = s.w(tx)(ty)[layer]
+	endif
+End
+
+Static Function getWaveAndValues(STRUCT SIDAMMousePos &s, String grfName, STRUCT Point &ps)
+	STRUCT KMAxisRange as
+	String listStr, itemName
+	Variable tx, ty
+	int swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
+	int i, ntraces
+
+	//	search from the top image, then search from the top trace
+	listStr = TraceNameList(grfName, ";", 1) + ImageNameList(grfName,";")
+	ntraces = ItemsInList(TraceNameList(grfName, ";", 1))
+	for (i = ItemsInList(listStr)-1; i >= 0; i--)
+		itemName = StringFromList(i,listStr)
+		
+		KMGetAxis(grfName,itemName,as)
+		tx = AxisValFromPixel(grfName, as.xaxis, (swap ? ps.v : ps.h))
+		ty = AxisValFromPixel(grfName, as.yaxis, (swap ? ps.h : ps.v))		
+		if (tx <= as.xmax && tx >= as.xmin && ty <= as.ymax && ty >= as.ymin)
+			s.xaxis = as.xaxis
+			s.yaxis = as.yaxis
+			s.x = tx
+			s.y = ty
+			if (i >= ntraces)
+				Wave s.w = ImageNameToWaveRef(grfName,itemName)
+			else
+				Wave s.w = TraceNameToWaveRef(grfName,itemName)
+			endif
+			return 1
+		endif
+	endfor
+	return 0
+End
+
 
 //******************************************************************************
 //	KMGetCursor :	カーソル位置の座標を返す
