@@ -117,19 +117,20 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookParentMouse(
 	STRUCT WMWinHookStruct &s,
-	STRUCT KMMousePos &ms,
 	String pnlName
 	)
 	
+	STRUCT SIDAMMousePos ms	
 	Wave cvw = KMGetCtrlValues(pnlName,"p1C;p2C")
 	int p1Checked = cvw[0], p2Checked = cvw[1]
+	int grid = str2num(GetUserData(pnlName,"","grid"))
 	
 	switch (s.eventCode)
 		case 3:	//	mousedown
 			//	shiftまたはaltが押されている、マウスポインタが外れている、両方の点が固定されている、
 			//	のどれかに当てはまる場合には動作しない
 			//	s.eventMod&22 は 2^1+2^2+2^4 で、shiftまたはaltが押されているまたは右クリックを意味する
-			if ((s.eventMod&22)|| KMGetMousePos(ms) || (!p1Checked && !p2Checked))
+			if ((s.eventMod&22)|| SIDAMGetMousePos(ms,s.winName,s.mouseLoc,grid=grid) || (!p1Checked && !p2Checked))
 				break
 			endif
 			if (strlen(GetUserData(pnlName,"","clicked")))	//	2回目のクリック
@@ -150,7 +151,7 @@ Static Function pnlHookParentMouse(
 		case 4 :	//	mousemoved
 			//	shiftが押されている、マウスポインタが外れている、1回目のクリックの後ではない、
 			//	のどれかに当てはまる場合には動作しない
-			if ((s.eventMod&2) || KMGetMousePos(ms) || !strlen(GetUserData(pnlName,"","clicked")))
+			if ((s.eventMod&2) || SIDAMGetMousePos(ms,s.winName,s.mouseLoc,grid=grid) || !strlen(GetUserData(pnlName,"","clicked")))
 				break
 			elseif (p2Checked)		//  以下、1回目のクリックがあった後
 				SetVariable p2V value=_NUM:ms.p, win=$pnlName

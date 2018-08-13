@@ -71,9 +71,9 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 				return 0
 			endif
 			
-			STRUCT KMMousePos ms
+			STRUCT SIDAMMousePos ms
 			ControlInfo/w=$pnlName gridC
-			if (KMGetMousePos(ms, winhs=s, grid=V_Value))
+			if (SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=V_Value))
 				return 0
 			endif
 			

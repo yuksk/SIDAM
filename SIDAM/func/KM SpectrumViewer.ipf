@@ -275,21 +275,21 @@ End
 //	マウス動作時の表示動作
 //	マウス位置を取得してスペクトル表示を更新する
 //-------------------------------------------------------------
-Static Function pnlHookMouseMov(STRUCT WMWinHookStruct &ws)
-	STRUCT KMMousePos s
-	if (KMGetMousePos(s, grid=1, winhs=ws))
+Static Function pnlHookMouseMov(STRUCT WMWinHookStruct &s)
+	STRUCT SIDAMMousePos ms
+	if (SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1))
 		return 0
 	endif
 	
-	String pnlListStr = GetUserData(s.winhs.winName,"","KMSpectrumViewerPnl")	//	更新対象となるウインドウのリスト
+	String pnlListStr = GetUserData(s.winName,"","KMSpectrumViewerPnl")	//	更新対象となるウインドウのリスト
 	int i, n = ItemsInList(pnlListStr)
 	for (i = 0; i < n; i++)
 		String pnlName = StringFromList(i, pnlListStr)
 		DoWindow $pnlName
 		if (!V_Flag)	//	KM非動作中に当該ウインドウが閉じられた場合に備えて
-			pnlResetRelation(s.winhs.winName, pnlName)
+			pnlResetRelation(s.winName, pnlName)
 		elseif (str2num(GetUserData(pnlName, "", "live")) == 0)
-			pnlUpdateSpec(pnlName, s.p, s.q)	//	表示更新
+			pnlUpdateSpec(pnlName, ms.p, ms.q)	//	表示更新
 		endif
 	endfor
 End

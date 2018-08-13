@@ -645,8 +645,6 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			break
 		case 3:	//	mousedown
 		case 4:	//	mousemoved
-			STRUCT KMMousePos ms
-			ms.winhs = s
 			for (i = 0; i < n; i++)
 				String pnlName = StringFromList(i, list)
 				//	rev. 1156 より前に作られたものであれば、後方互換確保の関数を動作させる
@@ -656,8 +654,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 					break
 				endif
 				//	---(後方互換ここまで)
-				ms.grid = str2num(GetUserData(pnlName,"","grid"))
-				KMLineCommon#pnlHookParentMouse(s, ms, pnlName)
+				KMLineCommon#pnlHookParentMouse(s, pnlName)
 				pnlUpdateLineSpectra(pnlName)
 				pnlUpdateTextmarker(pnlName)
 				DoUpdate/W=$pnlName

@@ -489,14 +489,12 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
 	//	マウスカーソルの位置を取得する
-	STRUCT KMMousePos ms
-	ms.winhs = s
-	ms.winhs.winName = s.winName
-	if (KMGetMousePos(ms, grid=1))
+	STRUCT SIDAMMousePos ms
+	if (SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1))
 		return 1
 	endif
 	
-	String  pnlName = StringFromList(0, s.winName, "#")
+	String pnlName = StringFromList(0, s.winName, "#")
 	SetActiveSubWindow $pnlName
 	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") selw = $KM_WAVE_SELECTED
 	Wave/SDFR=$GetUserData(pnlName,"","dfTmp")/T listw = $KM_WAVE_LIST

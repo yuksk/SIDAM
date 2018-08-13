@@ -548,8 +548,8 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			//	(左クリック限定にしておかないとマーキーメニューの項目がうまく動作しない)
 			if (!(eventMod & 16))
 				String pnlName = GetUserData(s.winName, "", "KMFourierSymPnl")
-				STRUCT KMMousePos ms
-				KMGetMousePos(ms, winhs=s, grid=1)
+				STRUCT SIDAMMousePos ms
+				SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1)
 				if (str2num(GetUserData(pnlName,"v1G","selected")))
 					pnlPutNumbers(pnlName, 1, {ms.p,ms.q})
 				elseif (str2num(GetUserData(pnlName,"v2G","selected")))

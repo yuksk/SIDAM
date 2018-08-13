@@ -489,10 +489,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			break
 		case 3:	//	mousedown
 		case 4:	//	mousemoved
-			STRUCT KMMousePos ms
-			ms.grid = str2num(GetUserData(pnlName,"","grid"))
-			ms.winhs = s
-			KMLineCommon#pnlHookParentMouse(s, ms, pnlName)
+			KMLineCommon#pnlHookParentMouse(s, pnlName)
 			if (!strlen(GetUserData(pnlName,"","clicked")))
 				break
 			endif
