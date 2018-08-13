@@ -255,7 +255,7 @@ Static Function grfActivate(String grfName, String pnlName)
 	Wave/Z/T/SDFR=dfrTmp lgw = list_graph
 	Wave/Z/SDFR=dfrTmp sw = $KM_WAVE_SELECTED
 	if (WaveExists(lgw) && WaveExists(sw))
-		FindValue/TEXT=(grfName) lgw
+		FindValue/TEXT=(grfName)/TXOP=2 lgw
 		if (V_Value != -1)
 			sw[V_Value][0][0] = (sw[V_Value][0][0] & 0x10) ? 0x20 : 0x30
 		endif
