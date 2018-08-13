@@ -93,13 +93,13 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				KMSyncCommon#releaseBlock(s.winName, ks_key)
 				break
 			endif
-			STRUCT KMAxisRange axis0 ;	KMGetAxis(s.winName, topName(s.winName), axis0)
-			STRUCT KMAxisRange axis1
+			STRUCT SIDAMAxisRange axis0 ;	SIDAMGetAxis(s.winName, topName(s.winName), axis0)
+			STRUCT SIDAMAxisRange axis1
 			String win, list = KMSyncCommon#getSyncList(s.winName, ks_key)
 			int i, n = ItemsInList(list)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i,list)
-				KMGetAxis(win, topName(win), axis1)
+				SIDAMGetAxis(win, topName(win), axis1)
 				KMSyncCommon#setBlock(win, ks_key)	//	循環動作を防ぐため
 				SetAxis/W=$win $axis1.xaxis axis0.xmin, axis0.xmax
 				KMSyncCommon#setBlock(win, ks_key)	//	循環動作を防ぐため

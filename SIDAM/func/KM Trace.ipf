@@ -472,8 +472,8 @@ End
 Function KMTraceOffsetIncrement(String grfName, int axis)	//	0:x, 1:y
 	String trcList = TraceNameList(grfName,";",1)
 	Variable numOfTrc = ItemsInList(trcList)
-	STRUCT KMAxisRange s
-	KMGetAxis(grfName, StringFromList(0,trcList), s)
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(grfName, StringFromList(0,trcList), s)
 	return axis ? (s.ymax-s.ymin)/(numOfTrc-1)/16 : (s.xmax-s.xmin)/(numOfTrc-1)/16
 End
 //-------------------------------------------------------------

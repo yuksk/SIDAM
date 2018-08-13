@@ -223,8 +223,8 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			
 		case 8: 	//	modified
 			//	表示領域に変更がなければ動作しない
-			STRUCT KMAxisRange as
-			KMGetAxis(s.winName,StringFromList(0,ImageNameList(s.winName,";")),as)
+			STRUCT SIDAMAxisRange as
+			SIDAMGetAxis(s.winName,StringFromList(0,ImageNameList(s.winName,";")),as)
 			if (as.xmin==ps.xmin && as.xmax==ps.xmax && as.ymin==ps.ymin && as.ymax==ps.ymax)
 				break
 			endif
@@ -307,8 +307,8 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	String str
 	
 	//	表示領域
-	STRUCT KMAxisRange as
-	KMGetAxis(grfName,NameOfWave(w),as)
+	STRUCT SIDAMAxisRange as
+	SIDAMGetAxis(grfName,NameOfWave(w),as)
 	Variable L = as.xmax-as.xmin		//	横幅　(Å)
 	s.xmin = as.xmin
 	s.xmax = as.xmax

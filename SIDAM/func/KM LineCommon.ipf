@@ -28,12 +28,14 @@ Static Function pnlCtrls(String pnlName)
 	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
 	DefineGuide/W=$pnlName KMFT={FT, height}
 	
-	STRUCT KMAxisRange s
-	KMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)	
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)	
 	
 	//	コントロール項目の初期値
-	int p1 = round(s.pmin*0.75 + s.pmax*0.25), q1 = round(s.qmin*0.75 + s.qmax*0.25)
-	int p2 = round(s.pmin*0.25 + s.pmax*0.75), q2 = round(s.qmin*0.25 + s.qmax*0.75)
+	int pmin = max(s.pmin, 0), pmax = min(s.pmax, DimSize(w,0)-1)
+	int qmin = max(s.qmin, 0), qmax = min(s.qmax, DimSize(w,1)-1)
+	int p1 = round(pmin*0.75 + pmax*0.25), q1 = round(qmin*0.75 + qmax*0.25)
+	int p2 = round(pmin*0.25 + pmax*0.75), q2 = round(qmin*0.25 + qmax*0.75)
 	Variable distance = sqrt((p1-p2)^2*dx^2+(q1-q2)^2*dy^2)
 	Variable angle = atan2((q2-q1)*dy,(p2-p1)*dx)/pi*180
 	
@@ -499,8 +501,8 @@ End
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = GetUserData(pnlName,"","parent")
 	Wave w = KMGetImageWaveRef(grfName)
-	STRUCT KMAxisRange s
-	KMGetAxis(grfName,NameOfWave(w),s)
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
 End
 //-------------------------------------------------------------
