@@ -133,7 +133,7 @@ Static Function/WAVE KMLoadDataFile(String pathStr, int history)
 		endif
 		//	ctrlが押されていれば読み込まれたウエーブを表示
 		if (GetKeyState(1)&1)
-			KMDisplay(w=w)
+			KMDisplay(w=w, history=1)
 		endif
 		return w
 	endfor

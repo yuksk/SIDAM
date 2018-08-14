@@ -656,7 +656,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			print PRESTR_CMD + KMFourierSymEcho(w, q1tw, q2tw, cvw[0], cvw[1]-1, cvw[2]-1, result)
 			Wave resw = KMFourierSym(w, q1w, q2w, cvw[0], shear=cvw[1]-1, endeffect=cvw[2]-1, result=result)
 			if (cvw[3])
-				KMDisplay(w=resw)
+				KMDisplay(w=resw, history=1)
 			endif
 			break
 		case "cancelB":

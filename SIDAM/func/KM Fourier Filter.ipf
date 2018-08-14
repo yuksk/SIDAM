@@ -719,7 +719,7 @@ Static Function pnlButtonSave(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T lis
 	
 	ControlInfo/W=$s.win displayC
 	if (V_Value)
-		KMDisplay(w=resw)
+		KMDisplay(w=resw, history=1)
 	endif
 End
 

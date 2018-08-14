@@ -549,6 +549,6 @@ Static Function pnlDo(String pnlName)
 	Wave/Z resw = KMCorrelation(w1,w2=w2,result=result,subtract=cvw[0],normalize=cvw[1],history=1+cvw[2]*2)
 	
 	if (cvw[3])
-		KMDisplay(w=resw)
+		KMDisplay(w=resw, history=1)
 	endif
 End

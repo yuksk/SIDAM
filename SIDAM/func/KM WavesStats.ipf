@@ -403,6 +403,6 @@ Static Function pnlDo(String pnlName)
 				DeletePoints i, 1, resw
 			endif
 		endfor
-		KMDisplay(w=resw)
+		KMDisplay(w=resw, history=1)
 	endif
 End

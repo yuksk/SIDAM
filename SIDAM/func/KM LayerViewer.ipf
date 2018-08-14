@@ -295,12 +295,12 @@ End
 Static Function extractPnlDisplay(Wave extw, String LVName)
 	
 	//	ウエーブを表示する
-	String grfName = KMDisplay(w=extw)
+	String grfName = KMDisplay(w=extw, history=1)
 	
 	//	LayerViewerでのz表示範囲を適用する
 	Wave srcw = KMGetImageWaveRef(LVName)
 	Wave rw = KM_GetColorTableMinMax(LVName, NameOfWave(srcw))
-	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=rw[0],zmax=rw[1])
+	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=rw[0],zmax=rw[1],history=1)
 	
 	//	LayerViewerでのカラーテーブルを適用する
 	String ctab = WM_ColorTableForImage(LVName, NameOfWave(srcw))
@@ -308,7 +308,8 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	int log = KM_ColorTableLog(LVName,NameOfWave(srcw))
 	Wave minRGB = makeRGBWave(LVName, NameOfWave(srcw), 0)
 	Wave maxRGB = makeRGBWave(LVName, NameOfWave(srcw), 1)
-	KMColor(grfName=grfName,imgList=NameOfWave(extw),ctable=ctab,rev=rev,log=log,minRGB=minRGB,maxRGB=maxRGB)
+	KMColor(grfName=grfName,imgList=NameOfWave(extw),ctable=ctab,rev=rev,log=log,\
+	minRGB=minRGB,maxRGB=maxRGB,history=1)
 	
 	//	expand, axis, textboxをコピーする
 	String cmd, recStr = WinRecreation(LVName, 4)
