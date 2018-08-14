@@ -385,8 +385,6 @@ Static Function pnl(Wave w, [String grfName])
 	CheckBox normalizeC title="normalize after computing", pos={22,208}, size={150,14}, value=1, win=$pnlName
 	CheckBox maxposC title="output max/min value and location in the history", pos={22,230}, value=0, win=$pnlName
 	
-	CheckBox displayC title="display", pos={97,286}, value=1, win=$pnlName
-	
 	Button doB title="Do It", pos={8,264}, win=$pnlName
 	CheckBox displayC title="display", pos={76,267}, value=1, win=$pnlName
 	PopupMenu toP title="To", pos={140,264}, size={50,20}, bodyWidth=50, win=$pnlName
