@@ -55,7 +55,7 @@ End
 //-------------------------------------------------------------
 Static Function isValidArguments(STRUCT paramStruct &s)
 	
-	s.errMsg = "**KMFilter gave error: "
+	s.errMsg = PRESTR_CAUTION + "KMFilter gave error: "
 	
 	String msg = KMFFTCheckWaveMsg(s.srcw)
 	if (strlen(msg))

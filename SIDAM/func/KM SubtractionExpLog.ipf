@@ -18,6 +18,7 @@ Function/WAVE KMExpLogSubtraction(w, mode, direction)
 	Variable isXrev = direction & 2
 	Variable isYrev = direction & 4
 	Variable V_fitOptions=4, V_FitMaxIters = k__FitMaxIters
+	String errMsg = PRESTR_CAUTION + "KMSubtraction gave an error: "
 	
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
@@ -38,7 +39,7 @@ Function/WAVE KMExpLogSubtraction(w, mode, direction)
 	try
 		Wave coefw = KMExpLogSubtractionInitGuess(w, mode, direction)
 	catch
-		printf  "**KMSubtraction gave an error: %s in getting initial values.\r", GetErrMessage(GetRTError(1))
+		printf "%s%s in getting initial values.\r", errMsg, GetErrMessage(GetRTError(1))
 		SetDataFolder dfrSav
 		Abort
 	endtry
@@ -67,7 +68,7 @@ Function/WAVE KMExpLogSubtraction(w, mode, direction)
 				break
 		endswitch
 	catch
-		printf  "**KMSubtraction gave an error: %s in 2D fitting.\r", GetErrMessage(GetRTError(1))
+		printf "%s%s in 2D fitting.\r", errMsg, GetErrMessage(GetRTError(1))
 		SetDataFolder dfrSav
 		Abort
 	endtry

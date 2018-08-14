@@ -16,7 +16,7 @@ Function KMLoadDataFromFolder()
 	if (V_Flag == -1)	//	キャンセル
 		return 1
 	elseif (V_Flag > 0)	//	指定したフォルダが見つからない
-		print "**KMLoadDataFromFolder gave error: folder not found."
+		print PRESTR_CAUTION+"KMLoadDataFromFolder gave error: folder not found."
 		return 1
 	endif
 	
@@ -31,11 +31,12 @@ End
 //******************************************************************************
 Function/WAVE KMLoadData(String pathStr,[int history])
 	int i, n
+	String errMsg = PRESTR_CAUTION + "KMLoadData gave error: "
 	
 	if (strlen(pathStr))	//	パスが渡された場合
 		GetFileFolderInfo/Q/Z pathStr
 		if (V_Flag)
-			print "**KMLoadData gave error: file or folder not found."
+			printf "%sfile or folder not found.\r", errMsg
 			return $""
 		endif
 	else		//	メニューからの実行などの場合
@@ -43,7 +44,7 @@ Function/WAVE KMLoadData(String pathStr,[int history])
 		if (V_Flag == -1)	//	キャンセル
 			return $""
 		elseif (V_Flag) //	ファイルが見つからない場合
-			print "**KMLoadData gave error: file not found."
+			printf "%sfile not found.\r", errMsg
 			return $""
 		endif
 		pathStr = S_path

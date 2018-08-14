@@ -615,7 +615,7 @@ Function KMSpectrumViewerPnlHook(STRUCT WMWinHookStruct &s)
 	KillControl/W=$s.winName liveC
 	SetWindow $s.winName userData(live)="0"
 	SetWindow $s.winName hook(self)=KMSpectrumViewer#pnlHook
-	printf "**%s was updated.\r", s.winName
+	printf "%s%s was updated.\r", PRESTR_CAUTION, s.winName
 End
 Function KMSpectrumViewerPnl2HookParent(STRUCT WMWinHookStruct &s)
 	SetWindow $s.winName hook(KMSpectrumViewerPnl)=KMSpectrumViewer#pnlHookParent
