@@ -162,7 +162,7 @@ End
 //	Store the param structure as userData of grfName or ctrlName
 //	The userData is like
 //	imgName0:***,***,***;imgName1:***,***,***;
-//	but ",", ":", and ";" are num2char(LISTSEP), num2char(KEYSEP), and num2char(ITEMSEP), respectively.
+//	but ",", ":", and ";" are num2char(ITEMSEP), num2char(KEYSEP), and num2char(LISTSEP), respectively.
 //	These separation characters are chosen because they are not included in the legend string.
 //---------------------------------------------------------------------------------------------------
 Static Function setData(String grfName, String ctrlName, String imgName, STRUCT paramStruct &s)
@@ -263,16 +263,34 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 	
+	int i, n
+	
+	//	update existing legends
 	String listStr = ImageNameList(s.winName,";")
-	int i
-	for (i = 0; i < ItemsInList(listStr); i++)
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
 		updateLegend(s.winName,StringFromList(i,listStr))
 	endfor
+	
+	//	clean legends of non-existing images
+	String dataStr = GetUserData(s.winName,"",USERDATANAME)
+	if (!strlen(dataStr))
+		SetWindow $s.winName hook($USERDATANAME)=$""
+		return 0
+	endif
+	
+	String imgName
+	for (i = 0, n = ItemsInList(dataStr,num2char(LISTSEP)); i < n; i++)
+		imgName = StringFromList(0,StringFromList(i,dataStr,num2char(LISTSEP)),num2char(KEYSEP))
+		if (WhichListItem(imgName,listStr) < 0)
+			clearLegend(s.winName, imgName, force=1)
+		endif
+	endfor
+	
 	return 0
 End
 
-Static Function clearLegend(String grfName, String imgName)
-	if (WaveDims(ImageNameToWaveref(grfName,imgName)) != 3)
+Static Function clearLegend(String grfName, String imgName, [int force])
+	if (ParamIsDefault(force) && WaveDims(ImageNameToWaveref(grfName,imgName)) != 3)
 		return 0
 	endif
 	
