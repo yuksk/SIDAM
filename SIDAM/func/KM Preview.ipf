@@ -270,7 +270,7 @@ Static Function pnlListWave(STRUCT WMListboxAction &s)
 			break
 		case 3:	//	double click
 			Wave/WAVE/SDFR=$GetWavesDataFolder(s.selWave,1) ref
-			KMDisplay(w=ref[s.row])
+			KMDisplay(w=ref[s.row], history=1)
 			break
 		case 4:	//	cell selection
 		case 5:	//	cell selection + shift
@@ -375,7 +375,7 @@ Static Function dipslayWaves(String pnlName)
 			tw[n] = ref[i]
 		endif
 	endfor
-	KMDisplay(w=tw)	
+	KMDisplay(w=tw, history=1)	
 End
 
 //------------------------------------------------------------

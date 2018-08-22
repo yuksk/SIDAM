@@ -121,8 +121,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 			KMInfoBar#rightclickMenu(3), /Q,  KMInfoBar#rightclickDo(3)
 		End
 		"Scale Bar...", /Q, KMScaleBar#rightclickDo()
-		//	Auto Annotation of LayerViewer
-		KMLayerViewer#rightclickMenu(1), /Q, KMLayerViewer#rightclickDo(1)
+		"Layer Annotation...", /Q, SIDAMLayerAnnotation#rightclickDo()
 		//	Show/Hide Axis
 		KMInfoBar#rightclickMenu(2), /Q, KMInfoBar#rightclickDo(2)
 		help = {"Show/Hide axes of the graph."}

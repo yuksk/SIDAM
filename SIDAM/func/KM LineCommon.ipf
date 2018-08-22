@@ -28,12 +28,14 @@ Static Function pnlCtrls(String pnlName)
 	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
 	DefineGuide/W=$pnlName KMFT={FT, height}
 	
-	STRUCT KMAxisRange s
-	KMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)	
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)	
 	
 	//	コントロール項目の初期値
-	int p1 = round(s.pmin*0.75 + s.pmax*0.25), q1 = round(s.qmin*0.75 + s.qmax*0.25)
-	int p2 = round(s.pmin*0.25 + s.pmax*0.75), q2 = round(s.qmin*0.25 + s.qmax*0.75)
+	int pmin = max(s.pmin, 0), pmax = min(s.pmax, DimSize(w,0)-1)
+	int qmin = max(s.qmin, 0), qmax = min(s.qmax, DimSize(w,1)-1)
+	int p1 = round(pmin*0.75 + pmax*0.25), q1 = round(qmin*0.75 + qmax*0.25)
+	int p2 = round(pmin*0.25 + pmax*0.75), q2 = round(qmin*0.25 + qmax*0.75)
 	Variable distance = sqrt((p1-p2)^2*dx^2+(q1-q2)^2*dy^2)
 	Variable angle = atan2((q2-q1)*dy,(p2-p1)*dx)/pi*180
 	
@@ -117,19 +119,20 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookParentMouse(
 	STRUCT WMWinHookStruct &s,
-	STRUCT KMMousePos &ms,
 	String pnlName
 	)
 	
+	STRUCT SIDAMMousePos ms	
 	Wave cvw = KMGetCtrlValues(pnlName,"p1C;p2C")
 	int p1Checked = cvw[0], p2Checked = cvw[1]
+	int grid = str2num(GetUserData(pnlName,"","grid"))
 	
 	switch (s.eventCode)
 		case 3:	//	mousedown
 			//	shiftまたはaltが押されている、マウスポインタが外れている、両方の点が固定されている、
 			//	のどれかに当てはまる場合には動作しない
 			//	s.eventMod&22 は 2^1+2^2+2^4 で、shiftまたはaltが押されているまたは右クリックを意味する
-			if ((s.eventMod&22)|| KMGetMousePos(ms) || (!p1Checked && !p2Checked))
+			if ((s.eventMod&22)|| SIDAMGetMousePos(ms,s.winName,s.mouseLoc,grid=grid) || (!p1Checked && !p2Checked))
 				break
 			endif
 			if (strlen(GetUserData(pnlName,"","clicked")))	//	2回目のクリック
@@ -150,7 +153,7 @@ Static Function pnlHookParentMouse(
 		case 4 :	//	mousemoved
 			//	shiftが押されている、マウスポインタが外れている、1回目のクリックの後ではない、
 			//	のどれかに当てはまる場合には動作しない
-			if ((s.eventMod&2) || KMGetMousePos(ms) || !strlen(GetUserData(pnlName,"","clicked")))
+			if ((s.eventMod&2) || SIDAMGetMousePos(ms,s.winName,s.mouseLoc,grid=grid) || !strlen(GetUserData(pnlName,"","clicked")))
 				break
 			elseif (p2Checked)		//  以下、1回目のクリックがあった後
 				SetVariable p2V value=_NUM:ms.p, win=$pnlName
@@ -498,8 +501,8 @@ End
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = GetUserData(pnlName,"","parent")
 	Wave w = KMGetImageWaveRef(grfName)
-	STRUCT KMAxisRange s
-	KMGetAxis(grfName,NameOfWave(w),s)
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
 End
 //-------------------------------------------------------------

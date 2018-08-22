@@ -634,7 +634,7 @@ Static Function pnlDo(String pnlName)
 	Wave/Z resw = KMFFT(w,result=ctw[0],win=ctw[1],out=cvw[0],subtract=cvw[1],history=1)
 	
 	if (cvw[2])
-		KMDisplay(w=resw)
+		KMDisplay(w=resw, history=1)
 	endif
 	
 	STRUCT SIDAMPrefs prefs

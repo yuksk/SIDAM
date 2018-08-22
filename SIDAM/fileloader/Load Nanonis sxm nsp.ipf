@@ -367,7 +367,7 @@ Static Function/S CleanupWaveName(String name, String suffix)
 	String str1 = name[0,a-1]
 	String str2 = name[a,inf] + suffix
 	if (strlen(str1) > MAX_OBJ_NAME-strlen(str2))
-		printf "**\"%s%s\" is renamed to \"%s%s\" (too long name)\r", str1, str2, str1[0,MAX_OBJ_NAME-strlen(str2)-1], str2
+		printf "%s\"%s%s\" is renamed to \"%s%s\" (too long name)\r", PRESTR_CAUTION, str1, str2, str1[0,MAX_OBJ_NAME-strlen(str2)-1], str2
 		return str1[0,MAX_OBJ_NAME-strlen(str2)-1] + str2
 	else
 		return str1 + str2

@@ -548,8 +548,8 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			//	(左クリック限定にしておかないとマーキーメニューの項目がうまく動作しない)
 			if (!(eventMod & 16))
 				String pnlName = GetUserData(s.winName, "", "KMFourierSymPnl")
-				STRUCT KMMousePos ms
-				KMGetMousePos(ms, winhs=s, grid=1)
+				STRUCT SIDAMMousePos ms
+				SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1)
 				if (str2num(GetUserData(pnlName,"v1G","selected")))
 					pnlPutNumbers(pnlName, 1, {ms.p,ms.q})
 				elseif (str2num(GetUserData(pnlName,"v2G","selected")))
@@ -656,7 +656,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			print PRESTR_CMD + KMFourierSymEcho(w, q1tw, q2tw, cvw[0], cvw[1]-1, cvw[2]-1, result)
 			Wave resw = KMFourierSym(w, q1w, q2w, cvw[0], shear=cvw[1]-1, endeffect=cvw[2]-1, result=result)
 			if (cvw[3])
-				KMDisplay(w=resw)
+				KMDisplay(w=resw, history=1)
 			endif
 			break
 		case "cancelB":

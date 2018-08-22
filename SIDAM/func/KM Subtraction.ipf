@@ -360,7 +360,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			endswitch
 			
 			if (cvw[4])
-				KMDisplay(w=resw)
+				KMDisplay(w=resw, history=1)
 			endif
 			break
 		case "helpB":

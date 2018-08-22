@@ -476,6 +476,6 @@ Static Function KMWorkfunctionPnlButtonDo(String pnlName)
 	Wave/WAVE refw = KMWorkfunction(w,result=result,startp=cvw[0],endp=cvw[1],offset=offset,history=1+cvw[4]*2)
 	
 	if (cvw[4] && WaveDims(w) == 3)
-		KMDisplay(w=refw)
+		KMDisplay(w=refw, history=1)
 	endif
 End

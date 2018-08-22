@@ -47,7 +47,7 @@ Function KMRange([grfName, imgList, zmin, zmax, zminmode, zmaxmode, history])
 		paramStr += SelectString(ParamIsDefault(zmax), ",zmax="+num2str(zmax), "")
 		paramStr += SelectString(ParamIsDefault(zminmode), ",zminmode="+num2istr(s.zminmode), "")
 		paramStr += SelectString(ParamIsDefault(zmaxmode), ",zmaxmode="+num2istr(s.zmaxmode), "")
-		printf "%sKMRange2(%s)\r", PRESTR_CMD, paramStr
+		printf "%sKMRange(%s)\r", PRESTR_CMD, paramStr
 	endif
 	
 	//	zminmode, zmaxmodeの値に応じたzmin, zmaxのデフォルト値の設定
