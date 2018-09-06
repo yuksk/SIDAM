@@ -89,7 +89,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		return 0
 	endif
 	
-	s.subtract = s.subtract ? 0 : 1
+	s.subtract = s.subtract ? 1 : 0
 	
 	return 1
 End
