@@ -29,7 +29,7 @@ Copy the macro files to the designated folders.
 
 An alternative way is to make symbolic links of the above file and folder rather than copying them. This is recommended for continuous users who add and/or modify the procedure files because, in combination with git, this makes updating the macro much easier. To make symbolic links in Windows, run the following commands at the SIDAM folder in the command prompt with administrator privileges.
 
-~~~
+~~~Shell
 $ mklink "%USERPROFILE%/Documents/WaveMetrics/Igor Pro 8 User Files/Igor Procedures/SIDAM.ipf" "%cd%\SIDAM.ipf"
 $ mklink /d "%USERPROFILE%/Documents/WaveMetrics/Igor Pro 8 User Files/User Procedures/SIDAM" "%cd%\SIDAM"
 ~~~
