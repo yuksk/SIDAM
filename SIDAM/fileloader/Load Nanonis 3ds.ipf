@@ -475,7 +475,7 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		if (!DimSize(tw2,2))
 			Redimension/N=(-1,-1,1) tw2
 		endif
-		MatrixOP $namew[i]/WAVE=specw = transposeVol(tw2,4)
+		MatrixOP $CleanupName(namew[i],1)/WAVE=specw = transposeVol(tw2,4)	//	名前に : が含まれることがあるので CleanupName が必要
 		
 		if (s.pnts.y == 1)		//	linecut
 			SetScale/I x, 0, s.size.x*1e10, "\u00c5", specw				//	m -> angstrom
