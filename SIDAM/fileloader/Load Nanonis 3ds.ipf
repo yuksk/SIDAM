@@ -193,21 +193,21 @@ End
 
 Static Structure Nanonis3ds
 	STRUCT	ixyz	pnts			//	Grid dim, Points
-	STRUCT	vxy	center, size	//	Grid settings
-	Variable	angle			//	Grid settings
-	String	type				//	Filetype
-	String	signal			//	Sweep signal
-	String	paramList		//	Fixed parameters + ";" + Experiment parameters
-	uint16	numParam		//	# Parameters (4 byte)
-	uint16	expSize			//	Experiment size (bytes)
-	String	channels			//	Channels
-	Variable	delay			//	Delay before measuring (s)
-	String	exp				//	Experiment
-	uint32	start, end		//	Start time, End time
-	String	user				//	User
+	STRUCT	vxy	center, size		//	Grid settings
+	Variable	angle				//	Grid settings
+	String	type					//	Filetype
+	String	signal					//	Sweep signal
+	String	paramList				//	Fixed parameters + ";" + Experiment parameters
+	uint16	numParam				//	# Parameters (4 byte)
+	uint16	expSize				//	Experiment size (bytes)
+	String	channels				//	Channels
+	Variable	delay				//	Delay before measuring (s)
+	String	exp						//	Experiment
+	uint32	start, end			//	Start time, End time
+	String	user					//	User
 	Variable	temperature		//	Temperature	(拡張), 使用されていない場合には NaN
 	Variable	field				//	Field (拡張), 使用されていない場合には NaN
-	String	comment		//	Comment
+	String	comment				//	Comment
 	STRUCT	Nanonis3dsSetpoint	bias
 	STRUCT	Nanonis3dsBiasSpectrscopy	spec
 	STRUCT	Nanonis3dsSetpoint	current
@@ -216,93 +216,93 @@ Static Structure Nanonis3ds
 	STRUCT	Nanonis3dsPiezo		piezo
 	STRUCT	Nanonis3dsScan		scan
 	STRUCT	Nanonis3dsZCtrl		zctrl
-	Wave	mlsw			//	MLSモードでのｌ電圧情報
-	uint16	headerSize		//	ヘッダのサイズ, 読み込みルーチン用
-	String	filename			//	ファイル名, ログ作成用
+	Wave	mlsw					//	MLSモードでのｌ電圧情報
+	uint16	headerSize			//	ヘッダのサイズ, 読み込みルーチン用
+	String	filename				//	ファイル名, ログ作成用
 EndStructure
 
 Static Structure Nanonis3dsSetpoint
-	Variable	value			//	Bias (V), Current (A)
+	Variable	value				//	Bias (V), Current (A)
 	Variable	calibration		//	calibration (V/V)
-	Variable	offset			//	Offset (V)
+	Variable	offset				//	Offset (V)
 	Variable	gain				//	Gain
 EndStructure
 
 Static Structure Nanonis3dsBiasSpectrscopy
 	Variable	start, end		//	Sweep Start (V), Sweep End (V)
-	uint16	zpnts			//	Num Pixels
+	uint16	zpnts					//	Num Pixels
 	Variable	zavg				//	Z Avg time (s)
 	Variable	zoffset			//	Z offset (m)
 	Variable	initdelay			//	1st Settling time (s)
 	Variable	sampledelay		//	Settling time (s)
-	Variable	integ			//	Integration time (s)
+	Variable	integ				//	Integration time (s)
 	Variable	enddelay			//	End Settling time (s)
-	Variable	zctrl			//	Z control time (s)
+	Variable	zctrl				//	Z control time (s)
 	Variable	rate				//	Max Slew rate (V/s)
-	String	backward			//	backward sweep
-	String	hold				//	Z-controller hold
-	uint16	sweeps			//	Number of sweeps
-	String	channels			//	Channels
-	String	resetbias			//	Reset bias
-	String	finalz			//	Record final Z
-	String	lockin			//	Lock-in run
-	String	mode			//	Sweep mode
+	String	backward				//	backward sweep
+	String	hold					//	Z-controller hold
+	uint16	sweeps					//	Number of sweeps
+	String	channels				//	Channels
+	String	resetbias				//	Reset bias
+	String	finalz					//	Record final Z
+	String	lockin					//	Lock-in run
+	String	mode					//	Sweep mode
 EndStructure
 
 Static Structure Nanonis3dsLockin
-	String 	status			//	Lock-in status
-	String	modulated		//	Modulated signal
+	String 	status				//	Lock-in status
+	String	modulated				//	Modulated signal
 	Variable	freq				//	Frequency (Hz)
-	Variable	amp				//	Amplitude
-	String 	signal			//	Demodulated signal
-	uchar	harmonic		//	Harmonic
-	Variable	phase			//	Reference phase (deg)
+	Variable	amp					//	Amplitude
+	String 	signal				//	Demodulated signal
+	uchar	harmonic				//	Harmonic
+	Variable	phase				//	Reference phase (deg)
 EndStructure
 
 Static Structure Nanonis3dsMain
-	String	path				//	Session path
-	String	version			//	SW Version
-	uint16	ui				//	UI Release
-	uint16	rt				//	RT Release
+	String	path					//	Session path
+	String	version				//	SW Version
+	uint16	ui						//	UI Release
+	uint16	rt						//	RT Release
 	Variable	freq				//	RT Frequency (Hz)
-	uint16	oversampling		//	Signals Oversampling
+	uint16	oversampling			//	Signals Oversampling
 	Variable	animations		//	Animations Period (s)
 	Variable	indicators		//	Indicators Period (s)
-	Variable	measurements	//	Measurements Period (s)
+	Variable	measurements		//	Measurements Period (s)
 EndStructure
 
 Static Structure Nanonis3dsPiezo
-	String	active			//	Avtive calib.
-	STRUCT	vxyz	piezo		//	Calib. X, Y, Z (m/V)
+	String	active					//	Avtive calib.
+	STRUCT	vxyz	piezo			//	Calib. X, Y, Z (m/V)
 	STRUCT	ixyz	gain			//	HV Gain X, Y, Z
-	STRUCT	vxy	tilt			//	Tilt X, Y (deg)
-	STRUCT	vxy	curvature	//	Curvature radius X, Y (m)
-	STRUCT	vxy	correction	//	2nd order corr X, Y (V/m^2)
+	STRUCT	vxy	tilt				//	Tilt X, Y (deg)
+	STRUCT	vxy	curvature			//	Curvature radius X, Y (m)
+	STRUCT	vxy	correction		//	2nd order corr X, Y (V/m^2)
 	STRUCT	vxyz	drift			//	Drift X, Y, Z (m/s)
-	String	status			//	Drift correction status (on/off)
+	String	status					//	Drift correction status (on/off)
 EndStructure
 
 Static Structure Nanonis3dsScan
-	STRUCT	vxy	center, size	//	Scanfield
-	Variable	angle			//	Scanfield
-	String	name			//	series name
-	String	channels			//	channels
-	STRUCT	ixy	pnts			//	pixels/line, lines
+	STRUCT	vxy	center, size		//	Scanfield
+	Variable	angle				//	Scanfield
+	String	name					//	series name
+	String	channels				//	channels
+	STRUCT	ixy	pnts				//	pixels/line, lines
 	Variable	forward			//	speed forw. (m/s)
 	Variable	backward			//	speed backw. (m/s)
 EndStructure
 
 Static Structure Nanonis3dsZCtrl
-	Variable	z				//	Z (m)
-	String	name			//	Controller name
-	String	status			//	Controller status
+	Variable	z					//	Z (m)
+	String	name					//	Controller name
+	String	status					//	Controller status
 	Variable	setpoint			//	Setpoint
-	String	unit				//	Setpoint unit
-	Variable	p				//	P gain
-	Variable	i				//	I gain
-	Variable	tconst			//	Time constant (s)
+	String	unit					//	Setpoint unit
+	Variable	p					//	P gain
+	Variable	i					//	I gain
+	Variable	tconst				//	Time constant (s)
 	Variable	lift				//	Tiplift (m)
-	Variable	delay			//	Switch off delay (s)
+	Variable	delay				//	Switch off delay (s)
 EndStructure
 
 Static Structure vxyz
@@ -458,13 +458,13 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 	
 	Variable startIndex = WhichListItem("Sweep Start", s.paramList)	//	0のはず
 	Variable endIndex = WhichListItem("Sweep End", s.paramList)	//	1のはず
-	Variable biasStart = w[startIndex][0][0], biasEnd = w[endIndex][0][0]
+	Variable sweepStart = w[startIndex][0][0], sweepEnd = w[endIndex][0][0]
 	Variable nchan = ItemsInList(s.channels), nparam =  ItemsInList(s.paramList)
-	Variable i, v
+	int i, v
 	
 	Make/N=(nchan)/FREE/WAVE refw
 	
-	for (i = 0; i < nchan; i += 1)
+	for (i = 0; i < nchan; i++)
 		
 		v = nparam + i*s.pnts.z
 		Duplicate/FREE/R=[v,v+s.pnts.z-1][][] w tw
@@ -475,7 +475,7 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		if (!DimSize(tw2,2))
 			Redimension/N=(-1,-1,1) tw2
 		endif
-		MatrixOP $namew[i]/WAVE=specw = transposeVol(tw2,4)
+		MatrixOP $CleanupName(namew[i],1)/WAVE=specw = transposeVol(tw2,4)	//	名前に : が含まれることがあるので CleanupName が必要
 		
 		if (s.pnts.y == 1)		//	linecut
 			SetScale/I x, 0, s.size.x*1e10, "\u00c5", specw				//	m -> angstrom
@@ -486,10 +486,20 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		endif
 		
 		if (WaveExists(s.mlsw))	//	MLS
-			LoadNanonis3dsSetMLSBias(specw, s.mlsw)
-		else					//	linear
-			SetScale/I z, biasStart*1e3, biasEnd*1e3, "mV", specw	//	V -> mV
-			if (biasStart > biasEnd)
+			LoadNanonis3dsSetMLSBias(specw, s)
+		else							//	linear
+			strswitch (s.signal)
+				case "Bias (V)":
+					SetScale/I z, sweepStart*1e3, sweepEnd*1e3, "mV", specw			//	V -> mV
+					break
+				case "Z (m)":
+					SetScale/I z, sweepStart*1e10, sweepEnd*1e10, "\u00c5", specw	//	m -> angstrom
+					break
+				default:
+					SetScale/I z, sweepStart, sweepEnd, "", specw
+					break
+			endswitch
+			if (sweepStart > sweepEnd)
 				Reverse/DIM=2 specw
 			endif
 		endif
@@ -507,7 +517,8 @@ End
 //	multiline segments関連
 //----------------------------------------------------------------------
 //	バイアス電圧の値をDimension labelに保存
-Static Function LoadNanonis3dsSetMLSBias(Wave specw, Wave mlsw)
+Static Function LoadNanonis3dsSetMLSBias(Wave specw, STRUCT Nanonis3ds &s)
+	Wave mlsw = s.mlsw
 	int segIndex, segSteps, layer, i, n, last
 	Variable segStart, segEnd
 	
@@ -523,7 +534,17 @@ Static Function LoadNanonis3dsSetMLSBias(Wave specw, Wave mlsw)
 			ew[n] = segStart + (segEnd - segStart) / (segSteps - 1) * i
 		endfor
 	endfor
-	ew *= 1e3	//	V -> mV
+	
+	strswitch (s.signal)
+		case "Bias (V)":
+			ew *= 1e3		//	V -> mV
+			break
+		case "Z (m)":
+			ew *= 1e10	//	m -> angstrom
+			break
+		default:
+			//	do nothing
+	endswitch	
 	
 	KMSetBias(specw, ew)
 End
