@@ -23,7 +23,7 @@ Static StrConstant PNL_T = "KMLineSpectraPnlT"
 //	 KMLineSpectra
 //		条件振り分け・チェック
 //******************************************************************************
-Function KMLineSpectra(
+Function/WAVE KMLineSpectra(
 	Wave/Z w,			//	実行対象となる2D/3Dウエーブ
 	Variable p1,		//	開始点のp, q値
 	Variable q1,
@@ -54,7 +54,7 @@ Function KMLineSpectra(
 	
 	if (!isValidArguments(s))
 		print s.errMsg
-		return 1
+		return $""
 	endif
 	
 	//	履歴欄出力
@@ -69,9 +69,9 @@ Function KMLineSpectra(
 	endif
 	
 	//	実行関数
-	getLineSpectra(s)
+	Wave rtnw = getLineSpectra(s)
 	
-	return 0
+	return rtnw
 End
 
 Static Function isValidArguments(STRUCT paramStruct &s)
@@ -148,7 +148,7 @@ End
 //		各モードの実行関数からは2次元ウエーブの形で結果を受け取る
 //		結果はカレントデータフォルダに出力する
 //******************************************************************************
-Static Function getLineSpectra(STRUCT paramStruct &s)
+Static Function/WAVE getLineSpectra(STRUCT paramStruct &s)
 	
 	int i
 	String noteStr
@@ -183,7 +183,7 @@ Static Function getLineSpectra(STRUCT paramStruct &s)
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), s.waves.resw
 	Sprintf noteStr, "src@%s;start@p=%f,q=%f;end@p=%f,q=%f;", GetWavesDataFolder(s.w,2), s.p1, s.q1, s.p2, s.q2
 	Note s.waves.resw, noteStr
-	Duplicate/O s.waves.resw $s.result
+	Duplicate/O s.waves.resw $s.result/WAVE=rtnw
 	
 	if (KMisUnevenlySpacedBias(s.w))
 		Duplicate/O KMGetBias(s.w,1) $(s.result+"_b")
@@ -196,10 +196,9 @@ Static Function getLineSpectra(STRUCT paramStruct &s)
 		Duplicate/O yw $(s.result+"Y")
 	endif
 	
-	int rtn = DimSize(s.waves.resw,1)
 	SetDataFolder dfrSav
 	
-	return rtn
+	return rtnw
 End
 
 //******************************************************************************

@@ -23,7 +23,7 @@ Static StrConstant PNL_T = "KMLineProfilePnlT"
 //	KMLineProfile
 //		条件振り分け・チェック
 //******************************************************************************
-Function KMLineProfile(
+Function/WAVE KMLineProfile(
 	Wave/Z w,			//	実行対象となる2D/3Dウエーブ
 	Variable p1,		//	開始点のp, q値
 	Variable q1,
@@ -51,7 +51,7 @@ Function KMLineProfile(
 	
 	if (!isValidArguments(s))
 		print s.errMsg
-		return 1
+		return $""
 	endif
 	
 	//	履歴欄出力
@@ -66,9 +66,9 @@ Function KMLineProfile(
 	endif
 	
 	//	実行関数
-	getLineProfile(s)
+	Wave rtnw = getLineProfile(s)
 	
-	return 0
+	return rtnw
 End
 
 Static Function isValidArguments(STRUCT paramStruct &s)
@@ -131,7 +131,7 @@ End
 //******************************************************************************
 //	実行関数
 //******************************************************************************
-Static Function getLineProfile(STRUCT paramStruct &s)
+Static Function/WAVE getLineProfile(STRUCT paramStruct &s)
 	
 	int i
 	DFREF dfrSav = GetDataFolderDFR(), dfr = s.dfr
@@ -163,7 +163,7 @@ Static Function getLineProfile(STRUCT paramStruct &s)
 		MatrixOP/C sdevw = cmplx(sdevw0,sdevw1)
 		//	スケーリング・出力
 		scalingLineProfile(s,linew,sdevw)
-		Duplicate/O linew dfr:$s.result
+		Duplicate/O linew dfr:$s.result/WAVE=rtnw
 		if (s.output&2)
 			Duplicate/O sdevw dfr:$STDV_1D_NAME
 		endif
@@ -173,7 +173,7 @@ Static Function getLineProfile(STRUCT paramStruct &s)
 		ImageLineProfile/S/SC xWave=xw, yWave=yw, srcwave=s.w, width=s.width
 		//	スケーリング・出力
 		scalingLineProfile(s,$PROF_1D_NAME,$STDV_1D_NAME)
-		Duplicate/O $PROF_1D_NAME dfr:$s.result
+		Duplicate/O $PROF_1D_NAME dfr:$s.result/WAVE=rtnw
 		if (s.output&2)
 			Duplicate/O $STDV_1D_NAME dfr:$STDV_1D_NAME
 		endif
@@ -193,7 +193,7 @@ Static Function getLineProfile(STRUCT paramStruct &s)
 		MatrixOP/C sdevw = cmplx(sdevw0,sdevw1)
 		//	スケーリング・出力	
 		scalingLineProfile(s, linew, sdevw)
-		outputLineProfileWaves(s, linew, sdevw)	
+		Wave rtnw = outputLineProfileWaves(s, linew, sdevw)	
 		
 	//	3D & real
 	elseif (WaveDims(s.w)==3)
@@ -201,7 +201,7 @@ Static Function getLineProfile(STRUCT paramStruct &s)
 		ImageLineProfile/S/SC/P=-2 xWave=xw, yWave=yw, srcwave=s.w, width=s.width
 		//	スケーリング・出力
 		scalingLineProfile(s, $PROF_2D_NAME, $STDV_2D_NAME)
-		outputLineProfileWaves(s, $PROF_2D_NAME, $STDV_2D_NAME)
+		Wave rtnw = outputLineProfileWaves(s, $PROF_2D_NAME, $STDV_2D_NAME)
 	endif
 	
 	//	サンプリング点を記録したウエーブを出力
@@ -214,6 +214,7 @@ Static Function getLineProfile(STRUCT paramStruct &s)
 	endif
 	
 	SetDataFolder dfrSav
+	return rtnw
 End
 //-------------------------------------------------------------
 //	scaling 設定、note 設定などの共通部分
@@ -233,9 +234,9 @@ Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw
 	Note sdevw, noteStr
 End
 
-Static Function outputLineProfileWaves(STRUCT paramStruct &s, Wave linew, Wave sdevw)
+Static Function/WAVE outputLineProfileWaves(STRUCT paramStruct &s, Wave linew, Wave sdevw)
 	DFREF dfr = s.dfr
-	Duplicate/O linew dfr:$s.result
+	Duplicate/O linew dfr:$s.result/WAVE=rtnw
 	if (KMisUnevenlySpacedBias(s.w))
 		Duplicate/O KMGetBias(s.w,1) dfr:$(s.result+"_b")
 		Duplicate/O KMGetBias(s.w,2) dfr:$(s.result+"_y")
@@ -243,6 +244,8 @@ Static Function outputLineProfileWaves(STRUCT paramStruct &s, Wave linew, Wave s
 	if (s.output & 2)
 		Duplicate/O $STDV_2D_NAME dfr:$STDV_2D_NAME
 	endif
+	
+	return rtnw
 End
 
 
