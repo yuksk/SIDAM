@@ -252,7 +252,7 @@ Static Function/S createCmdExtStr(String pnlName)
 	endif
 	
 	//	transparent
-	ControlInfo/W=$pnlName transC
+	ControlInfo/W=$pnlName tranC
 	cmdStr += SelectString(V_disable!=1 && V_Value, "", "/TRAN=1")	//	displayed and checked
 	
 	return cmdStr + ";" + extStr
