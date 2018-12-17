@@ -331,6 +331,14 @@ Function KMDisplayCtrlBarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	//	the latter window has to be explicitly given.
 	win = SelectString(ParamIsDefault(win),win,s.winName)
 	
+	//	If the current datafolder is a free datafolder, force to move to root:
+	//	to avoid errors returned by TitleBox and CheckBox
+	DFREF dfr = GetDataFolderDFR()
+	int isInFreeDataFolder = DataFolderRefStatus(dfr)==3
+	if (isInFreeDataFolder)
+		SetDataFolder root:
+	endif
+	
 	STRUCT SIDAMMousePos ms
 	int grid = str2num(GetUserData(s.winName,"","free")) != 1
 	SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=grid)

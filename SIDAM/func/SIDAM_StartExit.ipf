@@ -65,14 +65,22 @@ Static Function makeProcFile()
 	return 1
 End
 
-//	make a list of ipf files in subFolder
+//	make a list of ipf files under subFolder
 Static Function/WAVE fnList(String subFolder)
 	String pathName = UniqueName("tmpPath",12,0)
 	NewPath/O/Q/Z $pathName, KMGetPath()+subFolder
+	
 	String listStr = IndexedFile($pathName,-1,".ipf") + IndexedFile($pathName,-1,".lnk")
+	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
+
+	String dirListStr = IndexedDir($pathName,-1,0)
+	int i, n = ItemsInList(dirListStr)
+	for (i = 0; i < n; i++)
+		Concatenate/T {fnList(subFolder+":"+StringFromList(i,dirListStr))}, w
+	endfor
+
 	KillPath $pathName
 	
-	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
 	return w
 End
 

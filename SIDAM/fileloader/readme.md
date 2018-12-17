@@ -1,4 +1,4 @@
-# About file loader folder
+# File loader folder
 
 Procedure files containing data loading functions are in this folder.
 
