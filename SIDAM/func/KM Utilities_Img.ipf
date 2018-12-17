@@ -394,10 +394,10 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 		isImg = WaveExists(w)
 
 		//	As for traces, the followings are chosen so that isInRange is always 1
-		wxmin = isImg ? DimOffset(w,0) : as.xmin
-		wxmax = isImg ? DimOffset(w,0)+DimDelta(w,0)*(DimSize(w,0)-1) : as.xmax
-		wymin = isImg ? DimOffset(w,1) : as.ymin
-		wymax = isImg ? DimOffset(w,1)+DimDelta(w,1)*(DimSize(w,1)-1) : as.ymax
+		wxmin = isImg ? DimOffset(w,0)-0.5*DimDelta(w,0) : as.xmin
+		wxmax = isImg ? DimOffset(w,0)+DimDelta(w,0)*(DimSize(w,0)-0.5) : as.xmax
+		wymin = isImg ? DimOffset(w,1)-0.5*DimDelta(w,1) : as.ymin
+		wymax = isImg ? DimOffset(w,1)+DimDelta(w,1)*(DimSize(w,1)-0.5) : as.ymax
 
 		//	isInRange is always 1 for traces
 		isInRange = (mousex >= max(axmin, wxmin)) & (mousex <= min(axmax, wxmax)) & \
