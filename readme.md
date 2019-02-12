@@ -44,6 +44,6 @@ Renew the macro files as follows.
 
 Some additional notes.
 - Do not overwrite the SIDAM folder because old files may be left and cause a compile error.
-- If you have added and/or modified procedure files, do not forget to keep them before #1 and move them back after #2.
-- If you forget #3 and open an existing experiment file, a compile error may occur. In this case, stop opening the experiment file and start the macro in a new experiment file.
-- If you use git and made symbolic links in installing the macro, you can just fetch & merge to renew the procedure files. (You don't need to do #1 and #2, but still need to do #3.)
+- If you have added and/or modified procedure files, do not forget to keep them before 1 and move them back after 2.
+- If you forget 3 and open an existing experiment file, a compile error may occur. In this case, stop opening the experiment file and start the macro in a new experiment file.
+- If you use git and made symbolic links in installing the macro, you can just fetch & merge to renew the procedure files. (You don't need to do 1 and 2, but still need to do 3.)
