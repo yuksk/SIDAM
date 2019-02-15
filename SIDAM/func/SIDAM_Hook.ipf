@@ -9,7 +9,7 @@
 #include "SIDAM_Compatibility"			//	for SIDAMBackwardCompatibility
 
 //	AfterCompiledHook
-Function KMAfterCompiledHook()
+Function SIDAMAfterCompiledHook()
 	//	save present time
 	STRUCT SIDAMPrefs p
 	SIDAMLoadPrefs(p)
@@ -32,7 +32,7 @@ End
 #ifndef SIDAMstarting
 
 //	BeforeFileOpenHook
-Function KMFileOpenHook(refNum,filename,path,type,creator,kind)
+Function SIDAMFileOpenHook(refNum,filename,path,type,creator,kind)
 	Variable refNum,kind
 	String filename,path,type,creator
 	
@@ -56,7 +56,7 @@ Function KMFileOpenHook(refNum,filename,path,type,creator,kind)
 End
 
 //	BeforeExperimentSaveHook
-Function KMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
+Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 	Variable refNum,kind
 	String filename,path,type,creator
 	
@@ -67,3 +67,9 @@ Function KMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 End
 
 #endif
+
+
+//	For backward compatibility
+Function KMAfterCompiledHook()
+	SIDAMAfterCompiledHook()
+End

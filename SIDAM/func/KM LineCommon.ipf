@@ -549,7 +549,7 @@ Static Function/S pnlRightClickMenu(int mode)
 			return rtnStr
 			
 		case 1:	//	dim
-			return KMAddCheckmark(dim-1, "1D traces;2D image")	//	nan　に対しては空文字を返す
+			return SIDAMAddCheckmark(dim-1, "1D traces;2D image")	//	nan　に対しては空文字を返す
 			
 		case 2:	//	complex
 			int isComplex = WaveType($GetUserData(pnlName,"","src")) & 0x01
@@ -558,10 +558,10 @@ Static Function/S pnlRightClickMenu(int mode)
 				return ""
 			elseif (dim==2)
 				cmplxMode = NumberByKey("imCmplxMode",ImageInfo(pnlName+"#image", "", 0),"=")
-				return KMAddCheckmark(cmplxMode, MENU_COMPLEX2D)
+				return SIDAMAddCheckmark(cmplxMode, MENU_COMPLEX2D)
 			else
 				cmplxMode = NumberByKey("cmplxMode(x)",TraceInfo(pnlName+"#line", "", 0),"=")
-				return KMAddCheckmark(cmplxMode, MENU_COMPLEX1D)
+				return SIDAMAddCheckmark(cmplxMode, MENU_COMPLEX1D)
 			endif
 			
 		case 3:	//	Free

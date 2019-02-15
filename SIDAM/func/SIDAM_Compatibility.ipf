@@ -1,10 +1,6 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
 
-#ifndef SIDAMstarting
-#include "KM Utilities_Str"		//	for KMUnquoteName
-#endif
-
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -24,7 +20,10 @@ Function SIDAMBackwardCompatibility()
 
 	//	Rename the temporary folder from '_KM' to '_SIDAM'
 	updateTemporaryDF("")
-
+	
+	//	Rename KM*Hook to SIDAM*Hook
+	updateHookFunctions()
+	
 	//	If All KM Procedures.ipf is included, it means that this function is called in opening 
 	//	an experiment file in which KM was used and that #include "All KM Procedures" exists
 	//	in the procedure window. The following is to remove the dependence to the old file.
@@ -118,10 +117,7 @@ Static Function changeUnitStr(Wave w, int dim)
 	return 1
 End
 
-//--------------------------------------------------------------------------------------
-
 StrConstant OLD_DF = "root:'_KM'"
-
 Static Function updateTemporaryDF(String listStr)
 	if (!strlen(listStr))
 		listStr = WinList("*",";","WIN:1")
@@ -145,12 +141,32 @@ Static Function updateTemporaryDF(String listStr)
 	endfor
 	
 	if (DataFolderExists(OLD_DF))
-		RenameDataFolder $OLD_DF $KMUnquoteName(StringFromList(1,SIDAM_DF,":"))
+		RenameDataFolder $OLD_DF $ReplaceString("'",StringFromList(1,SIDAM_DF,":"),"")
 	endif
 	
 	if (DataFolderExists(SIDAM_DF_CTAB+"KM"))
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
 	endif
+End
+
+Static Function updateHookFunctions()
+	SetIgorHook BeforeFileOpenHook
+	if (WhichListItem("ProcGlobal#KMFileOpenHook",S_info) >= 0)
+		SetIgorHook/K BeforeFileOpenHook = KMFileOpenHook
+		SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
+	endif
+	
+	SetIgorHook BeforeExperimentSaveHook
+	if (WhichListItem("ProcGlobal#KMBeforeExperimentSaveHook",S_info) >= 0)
+		SetIgorHook/K BeforeExperimentSaveHook = KMBeforeExperimentSaveHook
+		SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
+	endif
+	
+	SetIgorHook AfterCompiledHook
+	if (WhichListItem("ProcGlobal#KMAfterCompiledHook",S_info) >= 0)
+		SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
+		SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
+	endif	
 End
 
 //--------------------------------------------------------------------------------------
@@ -159,11 +175,40 @@ End
 //******************************************************************************
 //	deprecated functions, to be removed in future
 //******************************************************************************
+
+//	v8.1.3 ----------------------------------------------------------------------
+Function/S KMDisplay([Wave/Z w, int traces, int history	])
+	printf "%sKMDisplay is deprecated. Use SIDAMDisplay.\r", PRESTR_CAUTION
+	SIDAMDisplay(w,traces=traces,history=history)
+End
+
+Function KMKillVariablesStrings(DFREF dfr)
+	printf "%sKMKillVariablesStrings is deprecated. Use SIDAMKillVariablesStrings.\r", PRESTR_CAUTION
+	SIDAMKillVariablesStrings(dfr)
+End
+
+Function/S KMAddCheckmark(Variable num, String menuStr)
+	printf "%sKMAddCheckmark is deprecated. Use SIDAMAddCheckmark.\r", PRESTR_CAUTION
+	SIDAMAddCheckmark(num, menuStr)
+End
+
+Function/S KMGetPath()
+	printf "%sKMGetPath is deprecated. Use SIDAMPath.\r", PRESTR_CAUTION
+	SIDAMPath()
+End
+
+Function/S KMUnquoteName(String str)
+	printf "%sKMUnquoteName is deprecated and will be removed in future.\r", PRESTR_CAUTION
+	if (!CmpStr("'",str[strlen(str)-1]))
+		str = str[0,strlen(str)-2]
+	endif
+	if (!CmpStr("'",str[0]))
+		str = str[1,strlen(str)-1]
+	endif
+	return str
+End
+
 //	v8.1.0 ----------------------------------------------------------------------
-//******************************************************************************
-//	KMGetMousePos
-//		マウスカーソル位置の座標を取得します
-//******************************************************************************
 Structure KMMousePos
 	//	入力
 	STRUCT WMWinHookStruct winhs

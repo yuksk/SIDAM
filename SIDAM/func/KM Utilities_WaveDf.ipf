@@ -294,31 +294,12 @@ Function/WAVE KMEndEffect(w,endeffect)
 End
 
 //******************************************************************************
-//	dfr 以下にある V_*, S_* を削除する
+//	return number of waves selected in the data browser
 //******************************************************************************
-Function KMKillVariablesStrings(DFREF dfr)
-	DFREF dfrSav = GetDataFolderDFR()
-	String listStr
-	int i, n
-	
-	//	データフォルダに対しては自身を再帰的に実行
-	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
-		KMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
-	endfor
-	
-	SetDataFolder dfr
-	
-	//	Variable
-	listStr = VariableList("V_*", ";", 4)
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillVariables $StringFromList(i, listStr)
-	endfor
-	
-	//	String
-	listStr = StringList("S_*", ";")
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillStrings $StringFromList(i, listStr)
-	endfor
-	
-	SetDataFolder dfrSav
+Function SIDAMnumberOfSelectedWaves()
+	int i = 0, n = 0
+	do
+		n += WaveExists($GetBrowserSelection(i))
+	while(strlen(GetBrowserSelection(++i)))
+	return n
 End

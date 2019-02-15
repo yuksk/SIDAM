@@ -759,7 +759,7 @@ Static Function/S pnlRightclickMenu()
 	
 	String pnlName = WinName(0,1)	
 	int mode = str2num(GetUserData(pnlName,"","mode"))
-	return KMAddCheckmark(mode, "Raw data;Interpolate;ImageLineProfile")
+	return SIDAMAddCheckmark(mode, "Raw data;Interpolate;ImageLineProfile")
 End
 //-------------------------------------------------------------
 //	右クリックメニューの実行項目

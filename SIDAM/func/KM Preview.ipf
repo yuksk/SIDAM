@@ -9,9 +9,14 @@
 Static StrConstant ks_columntitile = "wave;bias;current;comment"		//	ウエーブリストの項目タイトル
 Static StrConstant ks_popupStr = "Display;Plane Subtraction;Select All"	//	ウエーブリストの右クリックメニュー項目
 
+Static Function/S menu(String shortCutStr)
+	int isBrowserShown = strlen(GetBrowserSelection(-1))
+	int n = SIDAMnumberOfSelectedWaves()
+	return SelectString(!isBrowserShown || !n, "", "Preview"+shortCutStr)	
+End
+
 //******************************************************************************
-//	KMPreviewPnl
-//		パネル表示
+//	Main
 //******************************************************************************
 Function KMPreviewPnl()
 	
@@ -270,7 +275,7 @@ Static Function pnlListWave(STRUCT WMListboxAction &s)
 			break
 		case 3:	//	double click
 			Wave/WAVE/SDFR=$GetWavesDataFolder(s.selWave,1) ref
-			KMDisplay(w=ref[s.row], history=1)
+			SIDAMDisplay(ref[s.row], history=1)
 			break
 		case 4:	//	cell selection
 		case 5:	//	cell selection + shift
@@ -375,7 +380,7 @@ Static Function dipslayWaves(String pnlName)
 			tw[n] = ref[i]
 		endif
 	endfor
-	KMDisplay(w=tw, history=1)	
+	SIDAMDisplay(tw, history=1)	
 End
 
 //------------------------------------------------------------

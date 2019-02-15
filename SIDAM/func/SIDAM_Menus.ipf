@@ -19,10 +19,13 @@ Menu "SIDAM", dynamic
 	End
 	
 	Submenu "Display..."
-		KMDisplay#menu(0)+"/F3", /Q, KMDisplay(history=1)
+		KMPreview#menu("/F3"), /Q, KMPreviewPnl()
+		help = {"Display a preview panel"}
+		
+		SIDAMDisplay#menu(0,"/F3"), /Q, SIDAMDisplay#menuDo()
 		help = {"Display a wave(s)"}
 		
-		KMDisplay#menu(1), /Q, KMDisplay(w=$GetBrowserSelection(0),traces=1,history=1)
+		SIDAMDisplay#menu(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
 		help = {"Display a 2D wave as traces"}
 		
 		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
@@ -52,7 +55,7 @@ Menu "SIDAM", dynamic
 	
 	Submenu "Developer"
 		SIDAMShowProcedures#menu(), /Q, SIDAMshowProcedures()
-		"Kill Variables", /Q, KMKillVariablesStrings(root:)
+		"Kill Variables", /Q, SIDAMKillVariablesStrings(root:)
 		help = {"Kill \"V_*\" variables and \"S_*\" strings"}
 	End
 	
@@ -284,4 +287,27 @@ Menu "GraphMarquee", dynamic
 		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(2)
 		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(3)
 	End
+End
+
+
+//******************************************************************************
+//	Utilities
+//******************************************************************************
+//	Add the check mark to num-th item of menuStr and return it
+Function/S SIDAMAddCheckmark(Variable num, String menuStr)
+	if (numtype(num))
+		return ""
+	elseif (num < 0)
+		return menuStr
+	endif
+	
+	String checked = "\\M0:!" + num2char(18)+":", escCode = "\\M0"
+	
+	//	add escCode before all items
+	menuStr = ReplaceString(";", menuStr, ";"+escCode)
+	menuStr = escCode + RemoveEnding(menuStr, escCode)
+	
+	//	replace escCode of num-item with the check mark
+	menuStr = AddListItem(checked, menuStr, ";", num)
+	return ReplaceString(":;"+escCode, menuStr, ":")
 End

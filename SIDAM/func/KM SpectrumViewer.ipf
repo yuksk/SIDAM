@@ -488,7 +488,7 @@ Static Function/S rightclickMenuComplex()
 		trcName = StringFromList(i,trcList)
 		if (WaveType(TraceNameToWaveRef(win,trcName)) & 0x01)
 			int mode = NumberByKey("cmplxMode(x)",TraceInfo(win, trcName, 0),"=")
-			return KMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
+			return SIDAMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
 		endif
 	endfor
 	return ""
@@ -504,7 +504,7 @@ End
 Static Function/S rightclickMenuLive()
 	String win = WinName(0,1)
 	int num = strlen(win) ? str2num(GetUserData(win,"","live")) : 0
-	return KMAddCheckmark(num, "Mouse;Cursor A;None;")
+	return SIDAMAddCheckmark(num, "Mouse;Cursor A;None;")
 End
 //-------------------------------------------------------------
 //	マウス座標を取得するウインドウを変更する

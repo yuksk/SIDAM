@@ -476,7 +476,7 @@ Static Function pnlDo(String pnlName)
 	endif
 	
 	if (cvw[9])
-		KMDisplay(w=resw, history=1)
+		SIDAMDisplay(resw, history=1)
 	endif
 End
 

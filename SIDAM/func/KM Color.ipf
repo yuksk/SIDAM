@@ -58,7 +58,7 @@ Function KMColor(
 		Wave/Z s.maxRGB = maxRGB
 	endif
 	
-	if (!CmpStr(GetRTStackInfo(2),"KMBeforeExperimentSaveHook"))
+	if (!CmpStr(GetRTStackInfo(2),"SIDAMBeforeExperimentSaveHook"))
 		killUnusedWaves()
 		return 0
 	elseif (!isValidArguments(s))
@@ -1047,7 +1047,7 @@ Static Function loadColorTableWaves()
 	String all = ""
 	
 	//	ctabフォルダ以下
-	String path0 = KMGetPath() + SIDAM_FOLDER_COLOR + ":"
+	String path0 = SIDAMPath() + SIDAM_FOLDER_COLOR + ":"
 	for (i = 0, n = ItemsInList(SIDAM_CTABGROUPS); i < n; i++)
 		all += ctabWavePathList(path0+StringFromList(i,SIDAM_CTABGROUPS))
 	endfor
@@ -1073,7 +1073,7 @@ Static Function/S loadColorTableWave(String ibwFilePath)
 	//	ibwFilePath = ***:User Procedures:SIDAM:ctab:NistView:Autumn.ibw
 	//	colorFDpath = ***:User Procedures:SIDAM:ctab
 	//	wPath       = :NistView:Autumn.ibw
-	String colorFDpath = KMGetPath() + SIDAM_FOLDER_COLOR
+	String colorFDpath = SIDAMPath() + SIDAM_FOLDER_COLOR
 	String wPath = ReplaceString(colorFDpath, ibwFilePath, "")
 	
 	//	既に読み込まれたものがあれば、終了
@@ -1089,7 +1089,7 @@ Static Function/S loadColorTableWave(String ibwFilePath)
 	SetDataFolder root:
 	//	root:'_SIDAM':ctable　まで作成
 	for (i = 1, n = ItemsInList(SIDAM_DF_CTAB,":"); i < n; i++)
-		NewDataFolder/O/S $KMUnquoteName(StringFromList(i, SIDAM_DF_CTAB,":"))
+		NewDataFolder/O/S $ReplaceString("'",StringFromLIst(i,SIDAM_DF_CTAB,":"),"")
 	endfor
 	//	ctable以下を作成
 	for (i = 1, n = ItemsInList(wPath,":"); i < n-1; i++)	//	wPathは : から始まるので最初は除外する。最後はファイル名なのでやはり除外する。

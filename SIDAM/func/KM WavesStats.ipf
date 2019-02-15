@@ -59,7 +59,7 @@ End
 //-------------------------------------------------------------
 Static Function/S DefaultBasename(Wave/Z w)
 	if (WaveDims(w) == 1)	//	参照ウエーブは1次元なのでこれでよい
-		return KMUnquoteName(GetWavesDataFolder(w,0))
+		return ReplaceString("'",GetWavesDataFolder(w,0),"")
 	elseif (WaveDims(w) == 3)
 		return NameOfWave(w)
 	else
@@ -403,6 +403,6 @@ Static Function pnlDo(String pnlName)
 				DeletePoints i, 1, resw
 			endif
 		endfor
-		KMDisplay(w=resw, history=1)
+		SIDAMDisplay(resw, history=1)
 	endif
 End

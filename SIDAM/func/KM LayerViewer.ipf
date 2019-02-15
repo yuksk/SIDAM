@@ -295,7 +295,7 @@ End
 Static Function extractPnlDisplay(Wave extw, String LVName)
 	
 	//	ウエーブを表示する
-	String grfName = KMDisplay(w=extw, history=1)
+	String grfName = SIDAMDisplay(extw, history=1)
 	
 	//	LayerViewerでのz表示範囲を適用する
 	Wave srcw = KMGetImageWaveRef(LVName)
