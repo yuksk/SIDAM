@@ -41,7 +41,7 @@ Function KMFileOpenHook(refNum,filename,path,type,creator,kind)
 	if (kind == 0 || kind == 6 || kind == 7)
 		PathInfo $path
 		try
-			KMLoadData(S_path+filename,history=1)
+			SIDAMLoadData(S_path+filename,history=1)
 			KillStrings/Z S_waveNames
 			dontInvokeIgorFn = 1
 		catch
