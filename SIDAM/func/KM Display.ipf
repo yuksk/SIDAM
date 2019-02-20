@@ -271,20 +271,21 @@ Static Function/S echo(Wave w, int traces)
 	
 	elseif (WaveType(w,1) == 4)	//	reference
 		Wave/WAVE ww = w
-		int i
-		String cmdStr = PRESTR_CMD+"AppendToGraph ", paramStr, addStr
-		paramStr = GetWavesDataFolder(ww[0],4)
+		int i, length
+		String cmdStr = PRESTR_CMD+"AppendToGraph ", addStr
 		
-		printf "%sDisplay\r", PRESTR_CMD
-		for (i = 1; i < numpnts(ww); i++)
+		printf "%sDisplay", PRESTR_CMD
+		
+		for (i = 0; i < numpnts(ww); i++)
 			addStr = GetWavesDataFolder(ww[i],4)
-			if (strlen(cmdStr)+strlen(paramStr)+strlen(addStr)+1 < MAXCMDLEN)	//	+1 はコンマの分
-				paramStr += "," + addStr
+			if (i==0 || length+strlen(addStr)+1>=MAXCMDLEN)	//	+1 はコンマの分
+				printf "\r%s%s", cmdStr, addStr
+				length = strlen(cmdStr)+strlen(addStr)
 			else
-				printf "%s\r", cmdStr+paramStr
-				paramStr = addStr
+				printf ",%s", addStr
+				length += strlen(addStr)+1
 			endif
 		endfor
-		printf "%s\r", cmdStr+paramStr
+		printf "\r"
 	endif
 End
