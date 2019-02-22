@@ -96,11 +96,12 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/S pnlInit()
-	
-	String dfSav = KMNewTmpDf("","KMPreviewPnl"), str
-	String dfTmp = GetDataFolder(1)
+	DFREF dfrSav = GetDataFolderDFR()
+	String dfTmp = SIDAMNewDF("","KMPreviewPnl"), str
 	int i
-	
+
+	SetDataFolder $dfTmp
+		
 	//	リストアップされるウエーブへの参照保存用ウエーブ
 	Make/N=1/O/WAVE ref
 	
@@ -123,7 +124,7 @@ Static Function/S pnlInit()
 	//	変数リスト用 listWave
 	Make/N=(0,2)/O/T vlist
 	
-	SetDataFolder $dfSav
+	SetDataFolder dfrSav
 	return dfTmp
 End
 

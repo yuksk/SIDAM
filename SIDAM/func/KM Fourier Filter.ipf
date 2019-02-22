@@ -404,8 +404,9 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/S pnlInit(String pnlName, Wave w)
-	String dfSav = KMNewTmpDf(pnlName,"KMFilterPnl")	//  一時データフォルダ作成
-	String dfTmp = GetDataFolder(1)
+	DFREF dfrSav = GetDataFolderDFR()
+	String dfTmp = SIDAMNewDF(pnlName,"KMFilterPnl")
+	SetDataFolder $dfTmp
 	
 	//	表示用オリジナルウエーブ
 	if (WaveDims(w)==2)
@@ -445,7 +446,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	maskw[][][3] = 0
 	CopyScales $FOURIERNAME maskw
 	
-	SetDataFolder $dfSav
+	SetDataFolder dfrSav
 	return dfTmp
 End
 

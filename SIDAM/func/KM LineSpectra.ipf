@@ -407,9 +407,14 @@ Static Function pnl(String LVName)
 	endif
 	
 	//	初期設定
-	String dfTmp = pnlInit(LVName)
 	DFREF dfrSav = GetDataFolderDFR()
+	String dfTmp = SIDAMNewDF(LVName,"KMLineSpectraPnl")
 	SetDataFolder $dfTmp
+	
+	Make/N=(1,1) $PNL_W
+	Make/N=1 $PNL_X, $PNL_Y, $PNL_B1, $PNL_B2
+	Make/N=(1,3) $PNL_C
+	Make/T/N=2 $PNL_T = {"1","2"}
 	
 	Wave w = KMGetImageWaveRef(LVName)
 	int i
@@ -458,21 +463,6 @@ Static Function pnl(String LVName)
 	pnlSetParent(LVName,pnlName)
 	
 	SetDataFolder dfrSav
-End
-//-------------------------------------------------------------
-//	パネル初期設定
-//-------------------------------------------------------------
-Static Function/S pnlInit(String grfName)
-	String dfSav = KMNewTmpDf(grfName,"KMLineSpectraPnl")
-	String dfTmp = GetDataFolder(1)
-	
-	Make/N=(1,1) $PNL_W
-	Make/N=1 $PNL_X, $PNL_Y, $PNL_B1, $PNL_B2
-	Make/N=(1,3) $PNL_C
-	Make/T/N=2 $PNL_T = {"1","2"}
-	
-	SetDataFolder $dfSav
-	return dfTmp
 End
 //-------------------------------------------------------------
 //	指定されたウインドウを親ウインドウにする

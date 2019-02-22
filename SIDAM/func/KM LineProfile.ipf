@@ -264,9 +264,13 @@ Static Function pnl(String grfName, String imgName)
 	
 	//	初期設定
 	DFREF dfrSav = GetDataFolderDFR()
-	String dfTmp = pnlInit(grfName)
+	String dfTmp = SIDAMNewDF(grfName,"KMLineProfilePnl")
 	SetDataFolder $dfTmp
 	
+	Make/N=(1,1) $PNL_W
+	Make/N=(1,3) $PNL_C
+	Make/T/N=2 $PNL_T = {"1","2"}
+		
 	Wave w = KMGetImageWaveRef(grfName)
 	int i
 	
@@ -328,20 +332,6 @@ Static Function pnl(String grfName, String imgName)
 	ModifyGraph/W=$grfName mode($trcName)=4,textMarker($trcName)={$PNL_T,"default",0,0,1,0.00,0.00},msize($trcName)=5
 	
 	SetDataFolder dfrSav
-End
-//-------------------------------------------------------------
-//	パネル初期設定
-//-------------------------------------------------------------
-Static Function/S pnlInit(String grfName)
-	String dfSav = KMNewTmpDf(grfName,"KMLineProfilePnl")
-	String dfTmp = GetDataFolder(1)
-	
-	Make/N=(1,1) $PNL_W
-	Make/N=(1,3) $PNL_C
-	Make/T/N=2 $PNL_T = {"1","2"}
-	
-	SetDataFolder $dfSav
-	return dfTmp
 End
 //-------------------------------------------------------------
 //	グラフ領域の表示詳細

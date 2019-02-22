@@ -170,9 +170,10 @@ End
 //	引数の key は sync, syncaxisrange, synccursor のいずれか
 //-------------------------------------------------------------
 Static Function/S pnlInit(String pnlName, String key)
+	DFREF dfrSav = GetDataFolderDFR()
 	String grfName = StringFromList(0, pnlName, "#")
-	String dfSav = KMNewTmpDf(grfName, key+"#"+GetRTStackInfo(2))	//	GetRTStackInfo(2) のみだと第2引数は pnl になってしまう
-	String dfTmp = GetDataFolder(1)
+	String dfTmp = SIDAMNewDF(grfName, key+"#"+GetRTStackInfo(2))	//	GetRTStackInfo(2) のみだと第2引数は pnl になってしまう
+	SetDataFolder $dfTmp
 	
 	//	同期設定用のリストボックスのための準備
 	Make/N=0/T/O $KM_WAVE_LIST/WAVE=lw, $"list_graph"/WAVE=lgw
@@ -205,7 +206,7 @@ Static Function/S pnlInit(String pnlName, String key)
 		KMPanelSelectionSet(StringFromList(i, list), pnlName, "KMSyncCommon#grfActivate")
 	endfor
 	
-	SetDataFolder $dfSav
+	SetDataFolder dfrSav
 	
 	return dfTmp
 End

@@ -18,8 +18,8 @@ Function SIDAMBackwardCompatibility()
 	//	Change the unit string from ﾅ \u00c5 (Igor Pro 6 -> 7)
 	angstromStr(root:)
 
-	//	Rename the temporary folder from '_KM' to '_SIDAM'
-	updateTemporaryDF("")
+	//	Set the temporary folder to root:Packages:SIDAM
+	updateDF("")
 	
 	//	Rename KM*Hook to SIDAM*Hook
 	updateHookFunctions()
@@ -117,35 +117,67 @@ Static Function changeUnitStr(Wave w, int dim)
 	return 1
 End
 
-StrConstant OLD_DF = "root:'_KM'"
-Static Function updateTemporaryDF(String listStr)
-	if (!strlen(listStr))
-		listStr = WinList("*",";","WIN:1")
+StrConstant OLD_DF1 = "root:'_KM'"
+StrConstant OLD_DF2 = "root:'_SIDAM'"
+
+Static Function updateDF(String grfPnlList)
+	if (strlen(grfPnlList))
+		int i
+		for (i = 0; i < ItemsInList(grfPnlList); i++)
+			updateDFUserData(StringFromList(i,grfPnlList))
+		endfor
+		return 0
 	endif
+		
+	DFREF dfrSav = GetDataFolderDFR()
 	
-	int i, j
-	String win, chdList, dfTmp
-	for (i = 0; i < ItemsInList(listStr); i++)
-		win = StringFromList(i,listStr)
-		chdList = ChildWindowList(win)
-		if (strlen(chdList))
-			for (j = 0; j < ItemsInList(chdList); j++)
-				updateTemporaryDF(win+"#"+StringFromList(j,chdList))
-			endfor
-		endif
-		dfTmp = GetUserData(win,"","dfTmp")
-		if (!strlen(dfTmp))
-			continue
-		endif
-		SetWindow $win userData(dfTmp) = ReplaceString(OLD_DF,dfTmp,SIDAM_DF)
-	endfor
-	
-	if (DataFolderExists(OLD_DF))
-		RenameDataFolder $OLD_DF $ReplaceString("'",StringFromList(1,SIDAM_DF,":"),"")
+	if (DataFolderExists(OLD_DF1))
+		NewDataFolder/O/S root:Packages
+		MoveDataFolder $OLD_DF1 :
+		RenameDataFolder '_KM', SIDAM
+	elseif (DataFolderExists(OLD_DF2))
+		NewDataFolder/O/S root:Packages
+		MoveDataFolder $OLD_DF2 :
+		RenameDataFolder '_SIDAM', SIDAM
 	endif
-	
+
 	if (DataFolderExists(SIDAM_DF_CTAB+"KM"))
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
+	endif
+
+	SetDataFolder dfrSav
+	
+	String winListStr = WinList("*",";","WIN:65")
+	if (strlen(winListStr))
+		updateDF(winListStr)
+	endif
+End
+
+Static Function updateDFUserData(String grfName)
+	String chdList = ChildWindowList(grfName), chdName
+	String oldTmp, newTmp
+	int i, j, n0, n1
+	for (i = 0; i < ItemsInList(chdList); i++)
+		chdName = StringFromList(i,chdList)
+		if (CmpStr(chdName,"Color"))
+			updateDFUserData(grfName+"#"+chdName)
+		else
+			String oldList = GetUserData(chdName,"","KMColorSettings"), newList="", item
+			for (j = 0; j < ItemsInList(oldList); j++)
+				item = StringFromList(j,oldList)
+				n0 = strsearch(item,"ctab=",0)
+				n1 = strsearch(item,":ctable:",n1)
+				newList += ReplaceString(item[n0+5,n1+7],item,SIDAM_DF_CTAB)+";"
+			endfor
+			SetWindow $chdName userData(SIDAMColorSettings)=newList
+			SetWindow $chdName userData(KMColorSettings)=""
+		endif
+	endfor
+	oldTmp = GetUserData(grfName,"","dfTmp")
+	if (strlen(oldTmp))
+		newTmp = ReplaceString(OLD_DF1,oldTmp,SIDAM_DF)
+		newTmp = ReplaceString(OLD_DF2,newTmp,SIDAM_DF)
+		SetWindow $grfName userData(dfTmp)=newTmp
 	endif
 End
 

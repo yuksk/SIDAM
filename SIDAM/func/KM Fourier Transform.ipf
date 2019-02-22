@@ -536,16 +536,14 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/S pnlInit(String pnlName)
-	String dfSav = KMNewTmpDf(pnlName,"KMFFTPnl")	//  一時データフォルダ作成
-	String dfTmp = GetDataFolder(1)
+	String dfTmp = SIDAMNewDF(pnlName,"KMFFTPnl")
 	
-	Make/N=256 win1 = 1
-	Make/N=(256,256) win2 = 1
+	Make/N=256 $(dfTmp+"win1")/WAVE=w1 = 1
+	Make/N=(256,256) $(dfTmp+"win2")/WAVE=w2 = 1
 	
-	SetScale/I x 0, 1, "", win1, win2
-	SetScale/I y 0, 1, "", win2
+	SetScale/I x 0, 1, "", w1, w2
+	SetScale/I y 0, 1, "", w2
 	
-	SetDataFolder $dfSav
 	return dfTmp
 End
 //-------------------------------------------------------------

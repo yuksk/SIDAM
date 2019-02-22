@@ -374,31 +374,6 @@ Static Function loading(String pnlName)
 End
 
 //-----------------------------------------------------------------------
-//	imgNameの現在のカラーテーブルに対応して選択されてべきタブの番号を返す
-//-----------------------------------------------------------------------
-Static Function findTabForPresentCtab(String grfName, String imgName)
-	
-	String ctabName = WM_ColorTableForImage(grfName,imgName)
-	
-	// Color Table Wave を使っているのであれば、ctabNameにはウエーブへの相対パスが入る
-	//	(KM一時フォルダ内のウエーブと同じデータフォルダにいない限り)
-	//	したがって、ctabNameの最初の文字が":"で始まる場合にはColor Table Waveを使っているとわかる
-	//	いきなり名前が始まる場合にはIgor標準のカラーテーブルが使われている(とみなす)
-	if (CmpStr(ctabName[0],":"))
-		return 0	//	Igor標準
-	else
-		//	カラーテーブルウエーブを使っている場合は、カラーテーブルウエーブへの絶対パスの4番目の項目にグループ名が含まれる
-		String ctabGroupName = StringFromList(3,GetWavesDataFolder($ctabName,2),":")
-		int index = WhichListItem(ctabGroupName,SIDAM_CTABGROUPS)
-		if (index != -1)
-			return index+1	//	0番目はIgor標準に割り当てられているので1を足す
-		else	//	見つからない場合は カラーテーブルウエーブを別に設定している場合
-			return 0
-		endif
-	endif
-End
-
-//-----------------------------------------------------------------------
 //	カラーテーブルとチェックボックスを表示する
 //-----------------------------------------------------------------------
 Static Function pnlTabComponents(String pnlName, int tab, int hide)
@@ -434,13 +409,12 @@ Static Function pnlTabComponents(String pnlName, int tab, int hide)
 		String titleName = ParseFilePath(0, StringFromList(i, list), ":", 1, 0)
 		Variable left = leftMargin+ctabWidth+checkBoxMargin+columnWidth*floor(i/ctabsInColumn)
 		Variable top = topMargin+((ctabHeight+ctabMargin)*mod(i,ctabsInColumn))
-		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, proc=KMColor#pnlCheck, userdata(ctab)=ctabName, win=$pnlName
+		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, proc=KMColor#pnlCheck, win=$pnlName
 	endfor
 End
 
-//-----------------------------------------------------------------------
-//	dfr以下にある(サブデータフォルダを含む)全てのウエーブへの絶対パスのリストを返す
-//-----------------------------------------------------------------------
+//	Return a string containing a list of absolulte paths of all waves
+//	under dfr including subdatafolder
 Static Function/S fetchWavepathList(DFREF dfr)
 	
 	int i, n
@@ -450,8 +424,7 @@ Static Function/S fetchWavepathList(DFREF dfr)
 		list += fetchWavepathList(dfr:$GetIndexedObjNameDFR(dfr, 4, i))
 	endfor
 	
-	//	GetIndexedObjNameDFR をそのまま使うと、読み込まれた順番で表示されることになる
-	//	いつも同じ順番で表示するために、ソートする
+	//	Sort by name, instead of order added to parent datafolder of GetIndexedObjNameDFR
 	n = CountObjectsDFR(dfr,1)
 	Make/N=(n)/T/FREE namew = GetIndexedObjNameDFR(dfr,1,p)
 	Sort namew, namew
@@ -464,25 +437,66 @@ Static Function/S fetchWavepathList(DFREF dfr)
 	return list
 End
 
-//-----------------------------------------------------------------------
-//	イメージで使用されているカラーテーブル名、もしくは、カラーテーブルウエーブへのパスから
-//	対応するチェックボックスの名前を返す
-//-----------------------------------------------------------------------
+//	Return tab number where the present color scale is included
+Static Function findTabForPresentCtab(String grfName, String imgName)
+	String ctabName = WM_ColorTableForImage(grfName,imgName)
+	if (strsearch(ctabName,":",0) == -1)	//	Igor
+		return 0
+	endif
+	String abspath = GetWavesDataFolder($ctabName,2)
+	String groupName = StringFromList(ItemsInList(SIDAM_DF,":")+1,abspath,":")
+	return WhichListItem(groupName,SIDAM_CTABGROUPS)+1
+End
+
+//	Return name of checkbox corresponding to the color scale
+//	used for imgName in pnlName
 Static Function/S findCheckBox(String pnlName, String imgName)
 	
 	String grfName = GetUserData(pnlName,"","grf")
 	String ctabName = WM_ColorTableForImage(grfName,imgName)
-	String list = ControlNameList(pnlName,";","cb_*")
-	int i, n
+	String chdWinName, chdWinList = ChildWindowList(pnlName)
+	String clrscaleList, clrscaleName, scaleStr, name
 	
-	for (i = 0, n = ItemsInList(list); i < n; i++)
-		String cbName = StringFromList(i,list)
-		String userData = GetUserData(pnlName,cbName,"ctab")
-		if (!CmpStr(ctabName,userData) || WaveRefsEqual($ctabName,$userData))
-			return cbName
-		endif
+	int i, j, n0, n1
+	for (i = 0; i < ItemsInList(chdWinList); i++)
+		chdWinName = pnlName+"#"+StringFromList(i,chdWinList)
+		clrscaleList = AnnotationList(chdWinName)
+		for (j = 0; j < ItemsInList(clrscaleList); j++)
+			clrscaleName = StringFromList(j,clrscaleList)
+			scaleStr = StringByKey("COLORSCALE", AnnotationInfo(chdWinName,clrscaleName))
+			n0 = strsearch(scaleStr,"ctab={",0)
+			n1 = strsearch(scaleStr,"}",n0)
+			name = StringFromList(2,scaleStr[n0+6,n1-1],",")
+			if (!CmpStr(ctabName,name) || WaveRefsEqual($ctabName,$name))
+				return ReplaceString("cs_", clrscaleName ,"cb_")
+			endif
+		endfor
 	endfor
+	return ""
+End
+
+//	Return name of color scale or path to color table wave
+//	by giving name of checkbox
+Static Function/S findColorScale(String pnlName, String cbName)
+	String chdWinName, chdWinList = ChildWindowList(pnlName)
+	String clrscaleList, clrscaleName, scaleStr, name
 	
+	int i, j, n0, n1
+	for (i = 0; i < ItemsInList(chdWinList); i++)
+		chdWinName = pnlName+"#"+StringFromList(i,chdWinList)
+		clrscaleList = AnnotationList(chdWinName)
+		for (j = 0; j < ItemsInList(clrscaleList); j++)
+			clrscaleName = StringFromList(j,clrscaleList)
+			if (CmpStr(ReplaceString("cs_",clrscaleName,"cb_",0,1),cbName))
+				continue
+			endif
+			scaleStr = StringByKey("COLORSCALE", AnnotationInfo(chdWinName,clrscaleName))
+			n0 = strsearch(scaleStr,"ctab={",0)
+			n1 = strsearch(scaleStr,"}",n0)
+			name = StringFromList(2,scaleStr[n0+6,n1-1],",")
+			return SelectString(CmpStr(name[0],":"),"root","")+name
+		endfor
+	endfor	
 	return ""
 End
 
@@ -490,7 +504,7 @@ End
 //	パネル表示時の初期カラーテーブル状態を保存する
 //	imgName@ctab=***,rev=***,log=***,m0=***,r0=***,g0=***,b0=***,m1=***,r1=***,g1=***,b1=***;
 //-----------------------------------------------------------------------
-Static StrConstant MODEKEY = "KMColorSettings"
+Static StrConstant MODEKEY = "SIDAMColorSettings"
 
 Static Function saveImageColorInfo(String pnlName)
 	
@@ -748,7 +762,7 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 			KMColor(grfName=grfName, imgList=imgList, maxRGB={NaN})
 			break
 		default:	//	"cb_*"
-			KMColor(grfName=grfName, imgList=imgList, ctable=GetUserData(s.win,s.ctrlName,"ctab"))
+			KMColor(grfName=grfName, imgList=imgList, ctable=findColorScale(s.win,s.ctrlName))
 	endswitch
 	
 	return 0
@@ -779,7 +793,7 @@ Static Function pnlCheckAllC(STRUCT  WMCheckboxAction &s)
 	Wave cw = KMGetCtrlValues(s.win, cbList)
 	cw *= p
 	String cbName = StringFromList(sum(cw),cbList)	//	チェックが入っているチェックボックスの名前
-	String ctable = GetUserData(s.win,cbName,"ctab")
+	String ctable = findColorScale(s.win,cbName)
 	
 	ControlInfo/W=$s.win revC
 	int rev = V_Value
@@ -981,7 +995,7 @@ Static Function updateColorscales(String pnlName)
 		for (j = 0; j < ItemsInList(csNameList); j++)
 			csName = StringFromList(j,csNameList)			//	e.g., cs_0_0
 			cbName = ReplaceString("cs",csName,"cb")		//	e.g., cb_0_0
-			ctabName = GetUserData(pnlName,cbName,"ctab")
+			ctabName = findColorScale(pnlName,cbName)
 			ColorScale/W=$(pnlName+"#"+column)/C/N=$csName ctab={0,100,$ctabName,cw[0]}, log=cw[1]
 		endfor
 	endfor	
@@ -1084,7 +1098,7 @@ End
 //	カラーテーブルウエーブのibwファイルを読みこむ。読み込んだウエーブは一時データフォルダ内へ保存する。
 //	ibwFilePath = ***:User Procedures:SIDAM:ctab:NistView:Autumn.ibw
 //	の場合、ウエーブは
-//	root:'_SIDAM':ctable:NistView:Autumn
+//	root:Packages:SIDAM:ctable:NistView:Autumn
 //	となる。
 //-----------------------------------------------------------------------
 Static Function/S loadColorTableWave(String ibwFilePath)
@@ -1106,7 +1120,7 @@ Static Function/S loadColorTableWave(String ibwFilePath)
 	
 	//	カラーテーブルウエーブを収めるデータフォルダを作る
 	SetDataFolder root:
-	//	root:'_SIDAM':ctable　まで作成
+	//	root:Packages:SIDAM:ctable　まで作成
 	for (i = 1, n = ItemsInList(SIDAM_DF_CTAB,":"); i < n; i++)
 		NewDataFolder/O/S $ReplaceString("'",StringFromLIst(i,SIDAM_DF_CTAB,":"),"")
 	endfor

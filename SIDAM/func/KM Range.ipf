@@ -344,15 +344,15 @@ End
 //	パネル初期設定, 表示用ヒストグラム作成
 //-------------------------------------------------------------
 Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variable zmax)
-	
-	String dfSav = KMNewTmpDf(StringFromList(0, grfName, "#"),"KMRangePnl")
-	String dfTmp = GetDataFolder(1)
+	DFREF dfrSav = GetDataFolderDFR()
+	String dfTmp = SIDAMNewDF(StringFromList(0, grfName, "#"),"KMRangePnl")
+	SetDataFolder $dfTmp
 	
 	//	ヒストグラムウエーブ
 	Wave w = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
 	KMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, bins=k_bins, result=ks_name, dfr=GetDataFolderDFR())
 	
-	SetDataFolder $dfSav
+	SetDataFolder dfrSav
 	return dfTmp
 End
 

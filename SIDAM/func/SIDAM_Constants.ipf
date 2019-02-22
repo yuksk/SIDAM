@@ -15,8 +15,8 @@ Constant SIDAM_VERSION_PATCH = 4
 //------------------------------------------------------------------------------------------------
 //	Data Folder
 //------------------------------------------------------------------------------------------------
-StrConstant SIDAM_DF = "root:'_SIDAM'"					//	the temporary datafolder
-StrConstant SIDAM_DF_CTAB = "root:'_SIDAM':ctable:"
+StrConstant SIDAM_DF = "root:Packages:SIDAM"			//	the temporary datafolder
+StrConstant SIDAM_DF_CTAB = "root:Packages:SIDAM:ctable:"
 StrConstant SIDAM_DF_SETTINGS = "settings"				//	header information is stored in this datafolder
 
 //------------------------------------------------------------------------------------------------

@@ -6,25 +6,21 @@
 #endif
 
 //******************************************************************************
-//  KMNewTmpDf
-//    作業用一時フォルダの作成
-//    続けて変数等を作成するために、データフォルダは移動したまま
-//    ただし、実行前のデータフォルダのパスを返す
+//	Create SIDAM temporary folder root:Packages:SIDAM:procName:grfName and
+//	return a string containing the path.
 //******************************************************************************
-Function/S KMNewTmpDf(grfName,procName)
-	String procName, grfName
-	
-	String dfSav = GetDataFolder(1)
-	NewDataFolder/O/S $SIDAM_DF
-	if (strlen(procName))
-		NewDataFolder/O/S $(procName)
-		if (strlen(grfName))
-			NewDataFolder/O/S $(grfName)
-		endif
-	endif
-	return dfSav
+Function/S SIDAMNewDF(String grfName, String procName)
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder root:
+	String path = SIDAM_DF+":"+procName+":"+grfName
+	int i
+	for (i = 1; i < ItemsInList(path,":"); i++)
+		NewDataFolder/O/S $StringFromList(i,path,":")
+	endfor
+	String dfTmp = GetDataFolder(1)
+	SetDataFolder dfrSav
+	return dfTmp
 End
-
 
 //******************************************************************************
 //	KMWaveList

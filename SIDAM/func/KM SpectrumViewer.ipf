@@ -79,10 +79,8 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/WAVE pnlInit(Wave srcw, String pnlName, String &dfTmp)
-	String dfSav = KMNewTmpDf(pnlName,"KMSpectrumViewerPnl")		//  一時データフォルダ作成
-	Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
-	dfTmp = GetDataFolder(1)
-	SetDataFolder $dfSav
+	dfTmp = SIDAMNewDF(pnlName,"KMSpectrumViewerPnl")
+	Duplicate/O KMGetBias(srcw, 1) $(dfTmp+NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
 	return tw
 End
 //-------------------------------------------------------------
