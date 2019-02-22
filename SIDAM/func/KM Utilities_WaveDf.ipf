@@ -298,6 +298,9 @@ End
 //******************************************************************************
 Function SIDAMnumberOfSelectedWaves()
 	int i = 0, n = 0
+	if (!strlen(GetBrowserSelection(-1)))
+		return 0
+	endif
 	do
 		n += WaveExists($GetBrowserSelection(i))
 	while(strlen(GetBrowserSelection(++i)))

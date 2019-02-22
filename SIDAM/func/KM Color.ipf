@@ -495,14 +495,20 @@ Static StrConstant MODEKEY = "KMColorSettings"
 Static Function saveImageColorInfo(String pnlName)
 	
 	String grfName = GetUserData(pnlName,"","grf")
-	String imgList = ImageNameList(grfName,";")
+	String imgList = ImageNameList(grfName,";"), imgName, str, name
 	int i, n
 	STRUCT RGBColor s
 	
 	for (i = 0, n = ItemsInList(imgList); i < n; i++)
-		String imgName = StringFromList(i,imgList), str = ""
+		imgName = StringFromList(i,imgList)
+		str = ""
 		
-		str += "ctab=" + WM_ColorTableForImage(grfName,imgName) + ","
+		name = WM_ColorTableForImage(grfName,imgName)
+		if (strsearch(name,":",0) < 0)
+			str += "ctab=" + name + ","
+		else
+			str += "ctab=" + GetWavesDataFolder($name,2) + ","
+		endif
 		str += "rev=" + num2istr(WM_ColorTableReversed(grfName,imgName)) + ","
 		str += "log=" + num2istr(KM_ColorTableLog(grfName,imgName)) + ","
 		
@@ -539,6 +545,19 @@ End
 //-------------------------------------------------------------
 Static Function pnlHook(STRUCT WMWinHookStruct &s)	
 	switch (s.eventCode)
+		case 0:	//	activate
+			//	bug fix for issue #1
+			String oldList = GetUserData(s.winName,"",MODEKEY), newList="", item
+			int i, n0, n1
+			for (i = 0; i < ItemsInList(oldList); i++)
+				item = StringFromList(i,oldList)
+				n0 = strsearch(item,"ctab=",0)
+				n1 = strsearch(item,":ctable:",n1)
+				newList += ReplaceString(item[n0+5,n1+7],item,SIDAM_DF_CTAB)+";"
+			endfor
+			SetWindow $s.winName userData($MODEKEY)=newList
+			break
+			
 		case 2:	//	kill
 			SetWindow $GetUserData(s.winName,"","grf") hook(KMColorPnl)=$""
 			break
