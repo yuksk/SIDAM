@@ -121,6 +121,8 @@ StrConstant OLD_DF1 = "root:'_KM'"
 StrConstant OLD_DF2 = "root:'_SIDAM'"
 
 Static Function updateDF(String grfPnlList)
+	//	When grfPnlList is given, update the information recorded
+	//	in userdata of each window.
 	if (strlen(grfPnlList))
 		int i
 		for (i = 0; i < ItemsInList(grfPnlList); i++)
@@ -128,7 +130,9 @@ Static Function updateDF(String grfPnlList)
 		endfor
 		return 0
 	endif
-		
+	
+	//	When grfPnlList is empty (this is how this function called
+	//	from SIDAMBackwardCompatibility), update the datafolders.
 	DFREF dfrSav = GetDataFolderDFR()
 	
 	if (DataFolderExists(OLD_DF1))
@@ -140,17 +144,49 @@ Static Function updateDF(String grfPnlList)
 		MoveDataFolder $OLD_DF2 :
 		RenameDataFolder '_SIDAM', SIDAM
 	endif
-
+	
 	if (DataFolderExists(SIDAM_DF_CTAB+"KM"))
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
-	endif
-
+	endif	
+	
+	updateDFMatplotlib()
+	
 	SetDataFolder dfrSav
 	
 	String winListStr = WinList("*",";","WIN:65")
 	if (strlen(winListStr))
 		updateDF(winListStr)
 	endif
+End
+
+Static Function updateDFMatplotlib()
+	int exist1 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib1")
+	int exist2 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib2")
+	
+	if (!exist1 && !exist2)
+		return 0
+	elseif (exist1 && !exist2)
+		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib1") Matplotlib
+		return 0
+	elseif (!exist1 && exist2)
+		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib2") Matplotlib
+		return 0
+	endif
+	
+	//	The remaining case is both 1 and 2 exist
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder $SIDAM_DF_CTAB
+	
+	RenameDataFolder Matplotlib1 Matplotlib
+	SetDataFolder Matplotlib2
+	int i
+	for (i = CountObjectsDFR(:,4)-1; i >= 0; i--)
+		MoveDataFolder $GetIndexedObjNameDFR(:,4,i) ::Matplotlib
+	endfor
+	SetDataFolder ::
+	KillDataFolder Matplotlib2
+	
+	SetDataFolder dfrSav
 End
 
 Static Function updateDFUserData(String grfName)

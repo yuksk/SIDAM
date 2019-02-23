@@ -97,14 +97,20 @@ Static Function/S getCtabGroups()
 		Open/R refNum as (pathStr+SIDAM_FILE_COLORLIST_DEFAULT)
 	endif
 	
-	//	return the first line except for comment lines as the list
-	String listStr
+	//	return a list of the first item of each line except for comment lines
+	String listStr = "", buffer
+	int i
 	do
-		FReadLine refNum, listStr
-		if (CmpStr(listStr[0,1],"//"))
-			break
+		FReadLine refNum, buffer
+		//	exclude comment
+		i = strsearch(buffer,"//",0)
+		if (i == 0)
+			continue
+		elseif (i != -1)
+			buffer = buffer[0,i-1]
 		endif
-	while (strlen(listStr))
+		listStr += SelectString(strlen(buffer),"",StringFromList(0,buffer)+";")
+	while (strlen(buffer))
 	Close refNum
 	
 	return listStr

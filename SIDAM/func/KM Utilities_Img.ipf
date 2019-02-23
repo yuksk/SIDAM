@@ -9,7 +9,24 @@
 #include <Graph Utility Procs>		//	WMGetRECREATIONInfoByKey を使用するため
 											//	いずれにせよ WMImageInfo から呼び出されることにはなる
 
-//  WMImageInfo の拡張
+//  Extension of WMImageInfo
+
+//******************************************************************************
+//	Extension of WM_ColorTableForImage
+//		When WM_ColorTableForImage returns a name of color table of Igor Pro,
+//		SIDAM_ColorTableForImage returns it.
+//		When WM_ColorTableForImage returns a path to color table wave,
+//		SIDAM_ColorTableForImage returns the absolute path of the wave
+//******************************************************************************
+Function/S SIDAM_ColorTableForImage(String grfName, String imgName)
+	String rtnStr = WM_ColorTableForImage(grfName,imgName)
+	int isPath = strsearch(rtnStr,":",0) != -1
+	if (isPath)
+		return GetWavesDataFolder($rtnStr,2)
+	else
+		return rtnStr
+	endif
+End
 
 //******************************************************************************
 //  KM_GetColorTableMinMax

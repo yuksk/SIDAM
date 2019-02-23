@@ -6,8 +6,7 @@
 /SIDAM/ctab/*
 !/SIDAM/ctab/CET
 !/SIDAM/ctab/IDL
-!/SIDAM/ctab/Matplotlib1
-!/SIDAM/ctab/Matplotlib2
+!/SIDAM/ctab/Matplotlib
 !/SIDAM/ctab/Nistview
 !/SIDAM/ctab/SIDAM
 !/SIDAM/ctab/Wolfram
