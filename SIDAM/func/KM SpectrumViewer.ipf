@@ -119,8 +119,7 @@ Static Function pnlResetRelation(String mouseWin, String specWin)
 	//	スペクトル表示ウインドウについての処理
 	//	指定されたマウス位置取得ウインドウをリストから削除する
 	//	リストが空になってもスペクトル表示ウインドウのフック関数は解除しない(メニュー等の表示が必要)
-	DoWindow $specWin	//	KM非動作中にウインドウが閉じられた場合の処理からもこの関数が呼ばれることに備えて
-	if (V_Flag)
+	if (SIDAMWindowExists(specWin))	//	SIDAM非動作中にウインドウが閉じられた場合の処理からもこの関数が呼ばれることに備えて
 		newList = RemoveFromList(mouseWin, GetUserData(specWin, "", "parent"))
 		SetWindow $specWin userData(parent)=newList
 	endif

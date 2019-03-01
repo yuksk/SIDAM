@@ -12,19 +12,20 @@
 //  Extension of WMImageInfo
 
 //******************************************************************************
-//	Extension of WM_ColorTableForImage
-//		When WM_ColorTableForImage returns a name of color table of Igor Pro,
-//		SIDAM_ColorTableForImage returns it.
-//		When WM_ColorTableForImage returns a path to color table wave,
-//		SIDAM_ColorTableForImage returns the absolute path of the wave
+///Extension of WM_ColorTableForImage
+///	@param grfName	Name of a window.
+///	@param imgName	Name of an image.
+///	@return	Name of a color table or absolute path to a color table wave
+///				Empty When the image is not found
 //******************************************************************************
-Function/S SIDAM_ColorTableForImage(String grfName, String imgName)
-	String rtnStr = WM_ColorTableForImage(grfName,imgName)
-	int isPath = strsearch(rtnStr,":",0) != -1
-	if (isPath)
-		return GetWavesDataFolder($rtnStr,2)
+Function/S SIDAM_ColorTableForImage(String grfName, String imgName)	//	tested
+	String str = WM_ColorTableForImage(grfName,imgName)
+	if (GetRTError(1) || !strlen(str))
+		return ""
+	elseif (WhichListItem(str,CTabList()) >= 0)	//	color table
+		return str
 	else
-		return rtnStr
+		return GetWavesDataFolder($str,2)
 	endif
 End
 
@@ -51,60 +52,86 @@ Function/WAVE KM_GetColorTableMinMax(grfName,imgName)
 End
 
 //******************************************************************************
-//	カラーテーブルにlogが指定されているかどうかを返す関数
-//	WM_ColorTableReversed の log版
+///Returns if a logarithmically-spaced color is set.
+///	(log version of WM_ColorTableReversed)
+///	@param grfName	Name of a window.
+///	@param imgName	Name of an image.
+///	@return	0: a linearly-spaced color
+///				1: a logarithmically-spaced color
+///				-1: any error
 //******************************************************************************
-Function KM_ColorTableLog(String grfName, String imgName)
+Function SIDAM_ColorTableLog(String grfName, String imgName)	//	tested
 	String info = ImageInfo(grfName, imgName, 0)
-	Variable num = NaN
-	if( strlen(info) )
-		num = str2num(TrimString(WMGetRECREATIONInfoByKey("log",info)))
+	if (GetRTError(1))
+		return -1
 	endif
-	return num
+	return str2num(TrimString(WMGetRECREATIONInfoByKey("log",info)))
 End
 
 //******************************************************************************
-//	minRGB, maxRGBに関する情報を返す関数
+///	Returns mode of minRGB/maxRGB
+///	@param grfName	Name of a window.
+///	@param imgName	Name of an image.
+///	@param key		"minRGB" or "maxRGB"
+///	@return	0: use first/last color
+///				1: (r,g,b)
+///				2: transparent
+///				-1: any error
 //******************************************************************************
-Function KM_ImageColorMinRGBMode(String grfName, String imgName)
-	String minStr = WMGetRECREATIONInfoByKey("minRGB",ImageInfo(grfName,imgName,0))
-	if (CmpStr(minStr,"0") > 0)		//	NaN
-		return 2
-	elseif (CmpStr(minStr,"0") < 0)	//	(r,g,b)
-		return 1
-	else
+Function SIDAM_ImageColorRGBMode(String grfName, String imgName, String key) //	tested
+	String info = ImageInfo(grfName, imgName, 0)
+	if (GetRTError(1))
+		return -1
+	endif
+	
+	if (CmpStr(key,"minRGB") && CmpStr(key,"maxRGB"))
+		return -1
+	endif
+	
+	String str = WMGetRECREATIONInfoByKey(key,info)
+	if (!CmpStr(str,"0"))	//	use first/last color
 		return 0
+	elseif (GrepString(str,"\([0-9]+,[0-9]+,[0-9]+\)"))	//	(r,g,b)
+		return 1
+	elseif (!CmpStr(LowerStr(str),"nan"))	//	transparent
+		return 2
+	else
+		return -1
 	endif
 End
 
-Function KM_ImageColorMinRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
-	String minStr = WMGetRECREATIONInfoByKey("minRGB",ImageInfo(grfName,imgName,0))
-	int red, green, blue
-	sscanf minStr, "(%d,%d,%d)", red, green, blue	//	形式が合わなければ全てに0が入る
-	s.red = red
-	s.green = green
-	s.blue = blue
-End
+//******************************************************************************
+///	Returns values of minRGB/maxRGB
+///	@param grfName	Name of a window.
+///	@param imgName	Name of an image.
+///	@param key		"minRGB" or "maxRGB"
+///	@param[out] s	rgb color
+///	@return	0: no error
+///				!0: any error
+//******************************************************************************
+Function SIDAM_ImageColorRGBValues(String grfName, String imgName, String key,
+	STRUCT RGBColor &s) //	tested
 
-Function KM_ImageColorMaxRGBMode(String grfName, String imgName)
-	String maxStr = WMGetRECREATIONInfoByKey("maxRGB",ImageInfo(grfName,imgName,0))
-	if (CmpStr(maxStr,"0") > 0)		//	NaN
-		return 2
-	elseif (CmpStr(maxStr,"0") < 0)	//	(r,g,b)
+	String info = ImageInfo(grfName, imgName, 0)
+	if (GetRTError(1))
 		return 1
-	else
-		return 0
+	elseif (!strlen(info))
+		return 2
 	endif
+	
+	String str = WMGetRECREATIONInfoByKey(key,info)
+	if (!GrepString(str,"\([0-9]+,[0-9]+,[0-9]+\)"))
+		return 3
+	endif
+	
+	str = str[1,strlen(str)-2]
+	s.red = str2num(StringFromList(0,str,","))
+	s.green = str2num(StringFromList(1,str,","))
+	s.blue = str2num(StringFromList(2,str,","))
+
+	return 0
 End
 
-Function KM_ImageColorMaxRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
-	String minStr = WMGetRECREATIONInfoByKey("maxRGB",ImageInfo(grfName,imgName,0))
-	int red, green, blue
-	sscanf minStr, "(%d,%d,%d)", red, green, blue	//	形式が合わなければ全てに0が入る
-	s.red = red
-	s.green = green
-	s.blue = blue
-End
 
 //******************************************************************************
 //	表示されているイメージのZ範囲がautoであるかどうかを返す
@@ -627,11 +654,8 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 
 	if (ParamIsDefault(grfName))
 		grfName = WinName(0,1)
-	else
-		DoWindow $grfName
-		if (!V_Flag)
-			return 0
-		endif
+	elseif (!SIDAMWindowExists(grfName))
+		return 0
 	endif
 
 	//	表示色を取得する

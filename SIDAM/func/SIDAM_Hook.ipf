@@ -61,7 +61,7 @@ Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 	String filename,path,type,creator
 	
 	//	Remove unused color scales
-	KMColor(kill=1)
+	SIDAMColor(kill=1)
 	
 	return 0
 End

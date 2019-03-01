@@ -456,8 +456,7 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	String grfName = GetUserData(s.winName,"","parent")
-	DoWindow $grfName
-	if (V_Flag)
+	if (SIDAMWindowExists(grfName))
 		SetWindow $grfName hook(KMLineProfilePnl)=$"",userdata(KMLineProfilePnl)=""
 		KMRemoveAll(grfName,df=GetUserData(s.winName,"","dfTmp"))
 	endif
@@ -642,7 +641,7 @@ End
 //	断面図出力用パネル定義
 //******************************************************************************
 Static Function outputPnl(String profileGrfName)
-	if (WhichListItem("Save",ChildWindowList(profileGrfName)) != -1)
+	if (SIDAMWindowExists(profileGrfName+"#Save"))
 		return 0
 	endif
 	

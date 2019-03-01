@@ -71,16 +71,9 @@ End
 //		ウインドウが存在しない、ウエーブが存在しない、指定ウインドウにトレースが存在しない
 //		指定ウエーブが指定ウインドウに表示されていない、の場合には空文字列を返す
 //******************************************************************************
-Function/S KMWaveToTraceName(pnlName,w)
-	String pnlName
-	Wave w
+Function/S KMWaveToTraceName(String pnlName, Wave w)
 	
-	DoWindow $pnlName
-	if (!V_Flag)
-		return ""
-	endif
-	
-	if (!WaveExists(w))
+	if (!SIDAMWindowExists(pnlName) || !WaveExists(w))
 		return ""
 	endif
 	

@@ -70,8 +70,7 @@ Static Function verifyVariables(String &grfName, String &imgName, String legendS
 	String errMsg = PRESTR_CAUTION + "SIDAMLayerAnnotation gave error: "
 	
 	if (strlen(grfName))
-		DoWindow $grfName
-		if (V_flag != 1)
+		if (!SIDAMWindowExists(grfName))
 			printf "%s\"%s\" is not found.\r", errMsg, grfName
 			return 1
 		endif
@@ -320,7 +319,7 @@ End
 //-------------------------------------------------------------
 Static Function pnl(String grfName)
 	
-	if (WhichListItem("SIDAM_LA",ChildWindowList(grfName)) != -1)
+	if (SIDAMWindowExists(grfName+"#SIDAM_LA"))
 		return 0
 	endif
 	

@@ -610,8 +610,7 @@ End
 Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	String prtName = GetUserData(s.winName,"","parent")
 	
-	DoWindow $prtName
-	if (V_Flag)
+	if (SIDAMWindowExists(prtName))
 		pnlResetParent(prtName,s.winName)
 	endif
 	
@@ -842,7 +841,7 @@ End
 //	断面図出力用パネル定義
 //******************************************************************************
 Static Function outputPnl(String profileGrfName)
-	if (WhichListItem("Save",ChildWindowList(profileGrfName)) != -1)
+	if (SIDAMWindowExists(profileGrfName+"#Save"))
 		return 0
 	endif
 	

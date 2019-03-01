@@ -95,7 +95,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	if (!strlen(s.grfName))
 		s.errMsg += "graph not found."
 		return 0
-	elseif (!KMWindowExists(s.grfName))
+	elseif (!SIDAMWindowExists(s.grfName))
 		s.errMsg += "an window named \"" + s.grfName + "\" is not found."
 		return 0
 	elseif (!strlen(ImageNameList(s.grfName,";")))
@@ -575,8 +575,7 @@ Static Function pnlHookClose(String pnlName)
 	
 	String grfName = StringFromList(0, pnlName, "#")
 	
-	DoWindow $grfName
-	if (V_Flag)
+	if (SIDAMWindowExists(grfName))
 		SetWindow $grfName userdata(KMRangePnl)=""
 		if(isAllZmodeAutoOrFix(grfName))
 			deleteZmodeValues(grfName)
@@ -1190,8 +1189,7 @@ Override Function KMRangePnlHook(STRUCT WMWinHookStruct &s)
 	
 	//	パネルを閉じる処理
 	String grfName = StringFromList(0, s.winName, "#")
-	DoWindow $grfName
-	if (V_Flag)
+	if (SIDAMWindowExists(grfName))
 		SetWindow $grfName hook(KMRangePnl)=$"", userdata(KMRangePnl)=""
 	endif
 	KMKillWinGlobals(StringFromList(0, s.winName, "#")+"RangeGraph","Share_KMRangePnl")

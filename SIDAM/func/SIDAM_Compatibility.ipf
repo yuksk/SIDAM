@@ -244,29 +244,81 @@ End
 //	deprecated functions, to be removed in future
 //******************************************************************************
 
+//	print caution in the history window
+Static Function deprecatedCaution(String newName)
+	if (strlen(newName))
+		printf "%s%s is deprecated. Use %s.\r", PRESTR_CAUTION, GetRTStackInfo(2), newName
+	else
+		printf "%s%s is deprecated and will be removed in future.\r", PRESTR_CAUTION, GetRTStackInfo(2)
+	endif
+
+	String info = GetRTStackInfo(3)
+	Make/T/N=3/FREE tw = StringFromList(p,StringFromList(ItemsInList(info)-3,info),",")
+	if (strlen(tw[0]))
+		printf "%s(called from \"%s\" in %s (line %s))\r", PRESTR_CAUTION, tw[0], tw[1], tw[2]
+	endif
+End
+
 //	v8.1.3 ----------------------------------------------------------------------
+Function KM_ImageColorMinRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	SIDAM_ImageColorRGBValues(grfName, imgName, "minRGB", s)
+End
+
+Function KM_ImageColorMaxRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	SIDAM_ImageColorRGBValues(grfName, imgName, "maxRGB", s)
+End
+
+Function KM_ImageColorMinRGBMode(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	return SIDAM_ImageColorRGBMode(grfName,imgName,"minRGB")
+End
+
+Function KM_ImageColorMaxRGBMode(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	return SIDAM_ImageColorRGBMode(grfName,imgName,"maxRGB")
+End
+
+Function KM_ColorTableLog(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ColorTableLog")
+	return SIDAM_ColorTableLog(grfName, imgName)
+End
+
+Function KMColor([String grfName, String imgList, String ctable, int rev, int log,
+	Wave minRGB, Wave maxRGB, int history)
+	deprecatedCaution("SIDAMColor")
+	SIDAMColor(grfName=grfName, imgList=imgList, ctable=ctable, rev=rev, log=log,\
+	minRGB=minRGB, maxRGB=minRGB, history=history)
+End
+
+Function KMWindowExists(String pnlName)
+	deprecatedCaution("SIDAMWindowExists")
+	return SIDAMWindowExists(pnlName)
+End
+
 Function/S KMDisplay([Wave/Z w, int traces, int history	])
-	printf "%sKMDisplay is deprecated. Use SIDAMDisplay.\r", PRESTR_CAUTION
+	deprecatedCaution("SIDAMDisplay")
 	SIDAMDisplay(w,traces=traces,history=history)
 End
 
 Function KMKillVariablesStrings(DFREF dfr)
-	printf "%sKMKillVariablesStrings is deprecated. Use SIDAMKillVariablesStrings.\r", PRESTR_CAUTION
+	deprecatedCaution("SIDAMKillVariablesStrings")
 	SIDAMKillVariablesStrings(dfr)
 End
 
 Function/S KMAddCheckmark(Variable num, String menuStr)
-	printf "%sKMAddCheckmark is deprecated. Use SIDAMAddCheckmark.\r", PRESTR_CAUTION
+	deprecatedCaution("SIDAMAddCheckmark")
 	SIDAMAddCheckmark(num, menuStr)
 End
 
 Function/S KMGetPath()
-	printf "%sKMGetPath is deprecated. Use SIDAMPath.\r", PRESTR_CAUTION
+	deprecatedCaution("SIDAMPath")
 	SIDAMPath()
 End
 
 Function/S KMUnquoteName(String str)
-	printf "%sKMUnquoteName is deprecated and will be removed in future.\r", PRESTR_CAUTION
+	deprecatedCaution("")
 	if (!CmpStr("'",str[strlen(str)-1]))
 		str = str[0,strlen(str)-2]
 	endif
@@ -298,9 +350,8 @@ Function KMGetMousePos(s, [winhs, grid])
 	STRUCT WMWinHookStruct &winhs
 	Variable grid
 
-	printf "%sKMGetMousePos is deprecated and will be removed.\r", PRESTR_CAUTION
-	printf "%sUse SIDAMGetMousePos.\r", PRESTR_CAUTION
-		
+	deprecatedCaution("SIDAMGetMousePos")
+	
 	if (!ParamIsDefault(winhs))
 		s.winhs = winhs
 	endif
@@ -391,9 +442,11 @@ Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 End
 
 //	v8.0.2 ----------------------------------------------------------------------
-Function/S KMSuffixStr(num,[digit])
-	int num, digit
+Function/S KMSuffixStr(int num,[int digit])
 	
+	deprecatedCaution("")
+	printf "%sUse \"%s%dd\" in the format string of printf.\r", PRESTR_CAUTION, "%0", digit
+			
 	if (ParamIsDefault(digit))
 		digit = 3
 	endif
@@ -406,14 +459,11 @@ Function/S KMSuffixStr(num,[digit])
 		rtnStr = "0"+rtnStr
 	endfor
 	
-	printf "%sKMSuffixStr is deprecated and will be removed.\r", PRESTR_CAUTION
-	printf "%sUse %s%dd in the format string of prinf.\r", PRESTR_CAUTION, "%0", digit
-	
 	return rtnStr
 End
 
 Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
-	printf "%sKMCtrlClicked is deprecated and will be removed.\r", PRESTR_CAUTION
+	deprecatedCaution("")
 	ControlInfo/W=$s.winName $grpName
 	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
 End

@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName=KMColor
+#pragma ModuleName=SIDAMColor
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -24,7 +24,7 @@
 //	http://peterkovesi.com/projects/colourmaps/
 
 //******************************************************************************
-///	KMColor
+///	SIDAMColor
 ///	@param grfName [optional, default = WinName(0,1,1)]
 ///		Name of a window.
 ///	@param imgList [optional, default = ImageNameList(grfName,";")]
@@ -52,7 +52,7 @@
 ///	@param kill [optional, default = 0]
 ///		0 or !0. Set !0 to kill all unused color table waves.
 //******************************************************************************
-Function KMColor([String grfName, String imgList, String ctable, int rev, int log,
+Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int log,
 	Wave minRGB, Wave maxRGB, int history, int kill])
 	
 	if (!ParamIsDefault(kill) && kill)
@@ -81,7 +81,7 @@ Function KMColor([String grfName, String imgList, String ctable, int rev, int lo
 	endif
 		
 	if (validateInputs(s))
-		printf "%sKMColor gave error: %s\r", PRESTR_CAUTION, s.errMsg
+		printf "%sSIDAMColor gave error: %s\r", PRESTR_CAUTION, s.errMsg
 		return 1
 	elseif (ParamIsDefault(ctable) && ParamIsDefault(rev) && ParamIsDefault(log) \
 		&& ParamIsDefault(minRGB) && ParamIsDefault(maxRGB))
@@ -119,16 +119,16 @@ Static Function defaultValues(STRUCT paramStruct &s)
 	String imgName = StringFromList(0, s.imgList)
 	s.ctable = WM_ColorTableForImage(s.grfName, imgName)
 	s.rev = WM_ColorTableReversed(s.grfName, imgName)
-	s.log = KM_ColorTableLog(s.grfName, imgName)	
+	s.log = SIDAM_ColorTableLog(s.grfName, imgName)	
 
 	STRUCT RGBColor color
 	Make/N=1/FREE zerow = {0}, nanw = {NaN}
-	switch (KM_ImageColorMinRGBMode(s.grfName, imgName))
+	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "minRGB"))
 		case 0:
 			Wave s.minRGB = zerow
 			break
 		case 1:
-			KM_ImageColorMinRGBValues(s.grfName, imgName, color)
+			SIDAM_ImageColorRGBValues(s.grfName, imgName, "minRGB", color)
 			Make/N=3/FREE colorw = {color.red, color.green, color.blue}
 			Wave s.minRGB = colorw
 			break
@@ -137,12 +137,12 @@ Static Function defaultValues(STRUCT paramStruct &s)
 			break
 	endswitch
 	
-	switch (KM_ImageColorMaxRGBMode(s.grfName, imgName))
+	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "maxRGB"))
 		case 0:
 			Wave s.maxRGB = zerow
 			break
 		case 1:
-			KM_ImageColorMaxRGBValues(s.grfName, imgName, color)
+			SIDAM_ImageColorRGBValues(s.grfName, imgName, "maxRGB", color)
 			Make/N=3/FREE colorw = {color.red, color.green, color.blue}
 			Wave s.maxRGB = colorw
 			break
@@ -157,7 +157,7 @@ Static Function validateInputs(STRUCT paramStruct &s)
 	if (!strlen(s.grfName))
 		s.errMsg = "graph not found."
 		return 1
-	elseif (!KMWindowExists(s.grfName))
+	elseif (!SIDAMWindowExists(s.grfName))
 		s.errMsg = "a graph named " + s.grfName + " is not found."
 		return 1
 	elseif (!strlen(ImageNameList(s.grfName,";")))
@@ -209,7 +209,7 @@ Static Function printHistory(STRUCT paramStruct &s)
 	paramStr += SelectString(s.log==ds.log,",log="+num2istr(s.log)+"\"","")
 	paramStr += SelectString(equalWaves(s.minRGB,ds.minRGB,1),",minRGB="+KMWaveToString(s.minRGB)+"\"","")
 	paramStr += SelectString(equalWaves(s.maxRGB,ds.maxRGB,1),",maxRGB="+KMWaveToString(s.maxRGB)+"\"","")
-	printf "%sKMColor(%s)\r", PRESTR_CMD, paramStr[1,inf]
+	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, paramStr[1,inf]
 End
 
 //	Apply color table to an image in the list
@@ -275,7 +275,7 @@ Static Constant checkBoxMargin = 5
 Static Function pnl(String grfName)
 	String targetWin = StringFromList(0,grfName,"#")
 
-	if (KMWindowExists(grfName+"#Color"))
+	if (SIDAMWindowExists(grfName+"#Color"))
 		return 0
 	endif
 	
@@ -291,8 +291,8 @@ Static Function pnl(String grfName)
 	RenameWindow $targetWin#$S_name, Color
 	String pnlName = targetWin + "#Color"
 
-	SetWindow $grfName hook(KMColorPnl)=KMColor#pnlHookParent
-	SetWindow $pnlName hook(self)=KMColor#pnlHook
+	SetWindow $grfName hook(SIDAMColorPnl)=SIDAMColor#pnlHookParent
+	SetWindow $pnlName hook(self)=SIDAMColor#pnlHook
 	SetWindow $pnlName userData(grf)=grfName, activeChildFrame=0
 
 	saveImageColor(pnlName)
@@ -300,7 +300,7 @@ Static Function pnl(String grfName)
 	//	Tab
 	String tabNameList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTABGROUPS,"")
 	Variable activeTab = findTabForPresentCtab(grfName,imgName)
-	TabControl mTab pos={2,topMargin-30}, proc=KMColor#pnlTab, win=$pnlName
+	TabControl mTab pos={2,topMargin-30}, proc=SIDAMColor#pnlTab, win=$pnlName
 	TabControl mTab size={pnlwidth-2,pnlHeight-topMargin+30}, win=$pnlName
 	for (i = 0, n = ItemsInList(tabNameList); i < n; i++)
 		TabControl mTab tabLabel(i)=StringFromList(i,tabNameList), win=$pnlName
@@ -309,11 +309,11 @@ Static Function pnl(String grfName)
 
 	//	Controls ouside of the tab
 	PopupMenu imageP pos={7,7},size={235,19},bodyWidth=200,title="image",win=$pnlName
-	PopupMenu imageP proc=KMColor#pnlPopup,value=#"KMColor#imagePvalue()",win=$pnlName
+	PopupMenu imageP proc=SIDAMColor#pnlPopup,value=#"SIDAMColor#imagePvalue()",win=$pnlName
 	CheckBox allC pos={258,9},title=" all",value=0,win=$pnlName
 	CheckBox optionC title="Options",pos={310,10},mode=2,win=$pnlName
-	Button doB pos={410,6},size={70,22},title="Do It",proc=KMColor#pnlButton,win=$pnlName
-	Button cancelB pos={486,6},size={70,22},title="Cancel",proc=KMColor#pnlButton,win=$pnlName
+	Button doB pos={410,6},size={70,22},title="Do It",proc=SIDAMColor#pnlButton,win=$pnlName
+	Button cancelB pos={486,6},size={70,22},title="Cancel",proc=SIDAMColor#pnlButton,win=$pnlName
 
 	//	Controls ouside of the tab, and hidden depending on optionC
 	GroupBox op_revlogG pos={5,35},size={130,90},title="Color Table Options",win=$pnlName
@@ -332,10 +332,10 @@ Static Function pnl(String grfName)
 	CheckBox op_lastTransC pos={284,101},title=" Transparent",mode=1,win=$pnlName
 	PopupMenu op_lastClrP pos={302,77},size={40,19},bodyWidth=40,value= #"\"*COLORPOP*\"",win=$pnlName
 
-	ModifyControlList ControlNameList(pnlName,";","*C") proc=KMColor#pnlCheckRadio, win=$pnlName
-	ModifyControlList "allC;optionC" proc=KMColor#pnlCheck, win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","*C") proc=SIDAMColor#pnlCheckRadio, win=$pnlName
+	ModifyControlList "allC;optionC" proc=SIDAMColor#pnlCheck, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","op_*") disable=1,win=$pnlName
-	ModifyControlList ControlNameList(pnlName,";","*P") mode=1, proc=KMColor#pnlPopup, win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","*P") mode=1, proc=SIDAMColor#pnlPopup, win=$pnlName
 
 	if (needUpdate)
 		//	Load color table waves
@@ -448,7 +448,7 @@ Static Function pnlTabComponents(String pnlName, int tab, int hide)
 		String titleName = ParseFilePath(0, StringFromList(i, list), ":", 1, 0)
 		Variable left = leftMargin+ctabWidth+checkBoxMargin+columnWidth*floor(i/ctabsInColumn)
 		Variable top = topMargin+((ctabHeight+ctabMargin)*mod(i,ctabsInColumn))
-		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, proc=KMColor#pnlCheckRadio, win=$pnlName
+		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, proc=SIDAMColor#pnlCheckRadio, win=$pnlName
 	endfor
 End
 
@@ -602,16 +602,16 @@ Static Function saveImageColor(String pnlName)
 
 		ctabName = SIDAM_ColorTableForImage(grfName,imgName)
 		s.rev = WM_ColorTableReversed(grfName,imgName)
-		s.log = KM_ColorTableLog(grfName,imgName)
+		s.log = SIDAM_ColorTableLog(grfName,imgName)
 
-		s.min.mode = KM_ImageColorMinRGBMode(grfName,imgName)
+		s.min.mode = SIDAM_ImageColorRGBMode(grfName,imgName,"minRGB")
 		if (s.min.mode == 1) // (r,g,b)
-			KM_ImageColorMinRGBValues(grfName,imgName,s.min.clr)
+			SIDAM_ImageColorRGBValues(grfName,imgName,"minRGB",s.min.clr)
 		endif
 
-		s.max.mode = KM_ImageColorMaxRGBMode(grfName,imgName)
+		s.max.mode = SIDAM_ImageColorRGBMode(grfName,imgName,"maxRGB")
 		if (s.max.mode == 1) // (r,g,b)
-			KM_ImageColorMaxRGBValues(grfName,imgName,s.max.clr)
+			SIDAM_ImageColorRGBValues(grfName,imgName,"maxRGB",s.max.clr)
 		endif
 
 		StructPut/S s, str
@@ -629,13 +629,13 @@ End
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
-			SetWindow $GetUserData(s.winName,"","grf") hook(KMColorPnl)=$""
+			SetWindow $GetUserData(s.winName,"","grf") hook(SIDAMColorPnl)=$""
 			break
 
 		case 11:	//	keyboard
 			switch (s.keycode)
 				case 27:	//	esc
-					SetWindow $GetUserData(s.winName,"","grf") hook(KMColorPnl)=$""
+					SetWindow $GetUserData(s.winName,"","grf") hook(SIDAMColorPnl)=$""
 					KillWindow $s.winName
 					break
 				case 28:	//	left
@@ -812,36 +812,36 @@ Static Function pnlCheckRadio(STRUCT WMCheckboxAction &s)
 	String imgList = targetImageList(s.win)
 	strswitch (s.ctrlName)
 		case "op_revC":
-			KMColor(grfName=grfName, imgList=imgList, rev=s.checked)
+			SIDAMColor(grfName=grfName, imgList=imgList, rev=s.checked)
 			updateColorscales(ParseFilePath(1,s.win,"#",1,0))
 			break
 		case "op_logC":
-			KMColor(grfName=grfName, imgList=imgList, log=s.checked)
+			SIDAMColor(grfName=grfName, imgList=imgList, log=s.checked)
 			updateColorscales(ParseFilePath(1,s.win,"#",1,0))
 			break
 		case "op_beforeUseC":
-			KMColor(grfName=grfName, imgList=imgList, minRGB={0})
+			SIDAMColor(grfName=grfName, imgList=imgList, minRGB={0})
 			break
 		case "op_beforeClrC":
 			ControlInfo/W=$s.win op_beforeClrP
-			KMColor(grfName=grfName, imgList=imgList, minRGB={V_Red,V_Green,V_Blue})
+			SIDAMColor(grfName=grfName, imgList=imgList, minRGB={V_Red,V_Green,V_Blue})
 			break
 		case "op_beforeTransC":
-			KMColor(grfName=grfName, imgList=imgList, minRGB={NaN})
+			SIDAMColor(grfName=grfName, imgList=imgList, minRGB={NaN})
 			break
 		case "op_lastUseC":
-			KMColor(grfName=grfName, imgList=imgList, maxRGB={0})
+			SIDAMColor(grfName=grfName, imgList=imgList, maxRGB={0})
 			break
 		case "op_lastClrC":
 			ControlInfo/W=$s.win op_lastClrP
-			KMColor(grfName=grfName, imgList=imgList, maxRGB={V_Red,V_Green,V_Blue})
+			SIDAMColor(grfName=grfName, imgList=imgList, maxRGB={V_Red,V_Green,V_Blue})
 			break
 		case "op_lastTransC":
-			KMColor(grfName=grfName, imgList=imgList, maxRGB={NaN})
+			SIDAMColor(grfName=grfName, imgList=imgList, maxRGB={NaN})
 			break
 
 		default:	//	"cb_*"
-			KMColor(grfName=grfName, imgList=imgList, ctable=findColorScale(s.win,s.ctrlName))
+			SIDAMColor(grfName=grfName, imgList=imgList, ctable=findColorScale(s.win,s.ctrlName))
 	endswitch
 
 	return 0
@@ -875,9 +875,9 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			int red, green, blue
 			sscanf s.popStr, "(%d,%d,%d)", red, green, blue
 			if (stringmatch(s.ctrlName,"op_beforeClrP"))
-				KMColor(grfName=grfName,imgList=imgList, minRGB={red,green,blue})
+				SIDAMColor(grfName=grfName,imgList=imgList, minRGB={red,green,blue})
 			else
-				KMColor(grfName=grfName,imgList=imgList, maxRGB={red,green,blue})
+				SIDAMColor(grfName=grfName,imgList=imgList, maxRGB={red,green,blue})
 			endif
 			break
 	endswitch
@@ -1000,7 +1000,7 @@ Static Function updateAllImaeges(STRUCT  WMCheckboxAction &s)
 			break
 	endswitch
 
-	KMColor(grfName=grfName,imgList=imgList,ctable=ctable,rev=rev,log=log,minRGB=minRGB,maxRGB=maxRGB)
+	SIDAMColor(grfName=grfName,imgList=imgList,ctable=ctable,rev=rev,log=log,minRGB=minRGB,maxRGB=maxRGB)
 End
 
 //--------------------------------------------------------------------
@@ -1010,11 +1010,11 @@ End
 Static Function updateOptionControls(String pnlName, String imgName)
 	String grfName = GetUserData(pnlName,"","grf")
 	CheckBox op_revC value=WM_ColorTableReversed(grfName,imgName),win=$pnlName
-	CheckBox op_logC value=KM_ColorTableLog(grfName,imgName),win=$pnlName
+	CheckBox op_logC value=SIDAM_ColorTableLog(grfName,imgName),win=$pnlName
 
-	int minMode = KM_ImageColorMinRGBMode(grfName,imgName)
+	int minMode = SIDAM_ImageColorRGBMode(grfName,imgName,"minRGB")
 	STRUCT RGBColor s
-	KM_ImageColorMinRGBValues(grfName,imgName,s)
+	SIDAM_ImageColorRGBValues(grfName,imgName,"minRGB",s)
 	CheckBox op_beforeUseC value=(minMode==0),win=$pnlName
 	CheckBox op_beforeClrC value=(minMode==1),win=$pnlName
 	CheckBox op_beforeTransC value=(minMode==2),win=$pnlName
@@ -1022,8 +1022,8 @@ Static Function updateOptionControls(String pnlName, String imgName)
 		PopupMenu op_beforeClrP popColor=(s.red,s.green,s.blue),win=$pnlName
 	endif
 	
-	int maxMode = KM_ImageColorMaxRGBMode(grfName,imgName)
-	KM_ImageColorMaxRGBValues(grfName,imgName,s)
+	int maxMode = SIDAM_ImageColorRGBMode(grfName,imgName,"maxRGB")
+	SIDAM_ImageColorRGBValues(grfName,imgName,"maxRGB",s)
 	CheckBox op_lastUseC value=(maxMode==0),win=$pnlName
 	CheckBox op_lastClrC value=(maxMode==1),win=$pnlName
 	CheckBox op_lastTransC value=(maxMode==2),win=$pnlName
@@ -1128,7 +1128,7 @@ Static Function revertImageColor(String pnlName)
 				Make/FREE maxRGB = {NaN}
 				break
 		endswitch
-		KMColor(grfName=grfName,imgList=imgName,ctable=ctab,rev=s.rev,log=s.log,minRGB=minRGB,maxRGB=maxRGB)
+		SIDAMColor(grfName=grfName,imgList=imgName,ctable=ctab,rev=s.rev,log=s.log,minRGB=minRGB,maxRGB=maxRGB)
 	endfor
 End
 
@@ -1372,7 +1372,7 @@ Static Function cindexWave2ctabWave()
 
 				//	Convert to the new format
 				int rev = NumberByKey("rev",note(cindexw)) & 1	//	Ignore invert
-				KMColor(grfName=win,imgList=imgName,ctable=ctabWavePath,rev=rev)
+				SIDAMColor(grfName=win,imgList=imgName,ctable=ctabWavePath,rev=rev)
 
 				//	Kill the old color index wave if it is no longer used.
 				CheckDisplayed/A cindexw

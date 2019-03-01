@@ -21,7 +21,7 @@ Function KMOpenHelpNote(
 	
 	//	パラメータの検証
 	if (!ParamIsDefault(pnlName))
-		if (!KMWindowExists(pnlName))
+		if (!SIDAMWindowExists(pnlName))
 			return 2		//	呼び出したパネルの名前が正しくない(存在しない)場合
 		endif
 		if (strlen(GetUserData(pnlName,"","KMOpenHelpNote")))	//	既にヘルプウインドウが開かれていたらフォーカスして終了
@@ -71,7 +71,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 	
-	if(!KMWindowExists(parent))
+	if(!SIDAMWindowExists(parent))
 		return 0
 	endif
 	

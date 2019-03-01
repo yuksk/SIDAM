@@ -568,7 +568,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				KMRange()
 				return 1
 			case 5:		//	F5
-				KMColor()
+				SIDAMColor()
 				return 1
 			case 6:		//	F6
 				KMSubtraction#rightclickDo()

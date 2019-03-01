@@ -122,7 +122,7 @@ End
 //******************************************************************************
 Static Function extractPnl(String LVName)
 	
-	if (WhichListItem("ExtractLayers",ChildWindowList(StringFromList(0, LVName, "#"))) != -1)
+	if (SIDAMWindowExists(LVName+"#ExtractLayers"))
 		return 0
 	endif
 	
@@ -305,10 +305,10 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	//	LayerViewerでのカラーテーブルを適用する
 	String ctab = WM_ColorTableForImage(LVName, NameOfWave(srcw))
 	int rev = WM_ColorTableReversed(LVName, NameOfWave(srcw))
-	int log = KM_ColorTableLog(LVName,NameOfWave(srcw))
-	Wave minRGB = makeRGBWave(LVName, NameOfWave(srcw), 0)
-	Wave maxRGB = makeRGBWave(LVName, NameOfWave(srcw), 1)
-	KMColor(grfName=grfName,imgList=NameOfWave(extw),ctable=ctab,rev=rev,log=log,\
+	int log = SIDAM_ColorTableLog(LVName,NameOfWave(srcw))
+	Wave minRGB = makeRGBWave(LVName, NameOfWave(srcw), "minRGB")
+	Wave maxRGB = makeRGBWave(LVName, NameOfWave(srcw), "maxRGB")
+	SIDAMColor(grfName=grfName,imgList=NameOfWave(extw),ctable=ctab,rev=rev,log=log,\
 	minRGB=minRGB,maxRGB=maxRGB,history=1)
 	
 	//	expand, axis, textboxをコピーする
@@ -327,21 +327,15 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	Execute/Z cmd
 End
 
-Static Function/WAVE makeRGBWave(String grfName, String imgName, int minOrMax)
+Static Function/WAVE makeRGBWave(String grfName, String imgName, String key)
 	
-	int mode = (minOrMax==0) ? KM_ImageColorMinRGBMode(grfName,imgName) : KM_ImageColorMaxRGBMode(grfName,imgName)
-	
-	switch (mode)
+	switch (SIDAM_ImageColorRGBMode(grfName,imgName,key))
 		case 0:
 			Make/FREE rgbw = {0}
 			break
 		case 1:
 			STRUCT RGBColor s
-			if (minOrMax==0)
-				KM_ImageColorMinRGBValues(grfName,imgName,s)
-			else
-				KM_ImageColorMaxRGBValues(grfName,imgName,s)
-			endif
+			SIDAM_ImageColorRGBValues(grfName,imgName,key,s)
 			Make/FREE rgbw = {s.red,s.green,s.blue}
 			break
 		case 2:

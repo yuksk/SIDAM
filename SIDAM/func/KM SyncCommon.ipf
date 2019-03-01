@@ -122,8 +122,7 @@ Static Function renewSyncList(String grfName, String key, [String oldName])
 	
 	//	存在しない(閉じられた)ウインドウはリストからも削除する
 	for (i = ItemsInList(listStr)-1; i >= 0; i--)
-		DoWindow $StringFromList(i, listStr)
-		if (!V_flag)
+		if (!SIDAMWindowExists(StringFromList(i, listStr)))
 			listStr = RemoveListItem(i, listStr)
 			changed = 1
 		endif
