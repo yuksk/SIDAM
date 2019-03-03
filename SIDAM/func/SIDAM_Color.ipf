@@ -51,18 +51,20 @@
 ///		0 or !0. Set !0 to print this command in the history.
 ///	@param kill [optional, default = 0]
 ///		0 or !0. Set !0 to kill all unused color table waves.
+///	@return
+///		0 for normal exit, 1 for any error in input parameters
 //******************************************************************************
 Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int log,
 	Wave minRGB, Wave maxRGB, int history, int kill])
-	
+
 	if (!ParamIsDefault(kill) && kill)
 		killUnusedWaves()
 		return 0
 	endif
-	
+
 	STRUCT paramStruct ds
 	defaultValues(ds)
-	
+
 	STRUCT paramStruct s
 	s.grfName = SelectString(ParamIsDefault(grfName), grfName, ds.grfName)
 	s.imgList = SelectString(ParamIsDefault(imgList), imgList, ds.imgList)
@@ -79,7 +81,7 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int
 	else
 		Wave s.maxRGB = maxRGB
 	endif
-		
+
 	if (validateInputs(s))
 		printf "%sSIDAMColor gave error: %s\r", PRESTR_CAUTION, s.errMsg
 		return 1
@@ -90,7 +92,7 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int
 	endif
 
 	if (!ParamIsDefault(history) && history)
-		printHistory(s)
+		printHistory(s,ds)
 	endif
 
 	int i, n
@@ -115,11 +117,11 @@ EndStructure
 Static Function defaultValues(STRUCT paramStruct &s)
 	s.grfName = WinName(0,1,1)
 	s.imgList = ImageNameList(s.grfName,";")
-	
+
 	String imgName = StringFromList(0, s.imgList)
 	s.ctable = WM_ColorTableForImage(s.grfName, imgName)
 	s.rev = WM_ColorTableReversed(s.grfName, imgName)
-	s.log = SIDAM_ColorTableLog(s.grfName, imgName)	
+	s.log = SIDAM_ColorTableLog(s.grfName, imgName)
 
 	STRUCT RGBColor color
 	Make/N=1/FREE zerow = {0}, nanw = {NaN}
@@ -136,7 +138,7 @@ Static Function defaultValues(STRUCT paramStruct &s)
 			Wave s.minRGB = nanw
 			break
 	endswitch
-	
+
 	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "maxRGB"))
 		case 0:
 			Wave s.maxRGB = zerow
@@ -197,24 +199,21 @@ Static Function validateInputs(STRUCT paramStruct &s)
 	return 0
 End
 
-Static Function printHistory(STRUCT paramStruct &s)
-	STRUCT paramStruct ds
-	defaultValues(ds)
-	
+Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
 	String paramStr = ""
-	paramStr += SelectString(CmpStr(s.grfName,ds.grfName),"",",grfName=\""+s.grfName+"\"")
-	paramStr += SelectString(CmpStr(s.imgList,ds.imgList),"",",imgList=\""+s.imgList+"\"")
-	paramStr += SelectString(CmpStr(s.ctable,ds.ctable),"",",ctable=\""+s.ctable+"\"")
-	paramStr += SelectString(s.rev==ds.rev,",rev="+num2istr(s.rev)+"\"","")
-	paramStr += SelectString(s.log==ds.log,",log="+num2istr(s.log)+"\"","")
-	paramStr += SelectString(equalWaves(s.minRGB,ds.minRGB,1),",minRGB="+KMWaveToString(s.minRGB)+"\"","")
-	paramStr += SelectString(equalWaves(s.maxRGB,ds.maxRGB,1),",maxRGB="+KMWaveToString(s.maxRGB)+"\"","")
+	paramStr += SelectString(CmpStr(s.grfName,base.grfName),"",",grfName=\""+s.grfName+"\"")
+	paramStr += SelectString(CmpStr(s.imgList,base.imgList),"",",imgList=\""+s.imgList+"\"")
+	paramStr += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
+	paramStr += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
+	paramStr += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
+	paramStr += SelectString(equalWaves(s.minRGB,base.minRGB,1),",minRGB="+KMWaveToString(s.minRGB),"")
+	paramStr += SelectString(equalWaves(s.maxRGB,base.maxRGB,1),",maxRGB="+KMWaveToString(s.maxRGB),"")
 	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, paramStr[1,inf]
 End
 
 //	Apply color table to an image in the list
 Static Function applyColorTable(STRUCT paramStruct &s, int i)
-	
+
 	String imgName = StringFromList(i, s.imgList)
 	Wave rw = KM_GetColorTableMinMax(s.grfName, imgName)
 	Variable zmin = isFirstZAuto(s.grfName, imgName) ? NaN : rw[0]
@@ -229,7 +228,7 @@ Static Function applyColorTable(STRUCT paramStruct &s, int i)
 	else
 		ModifyImage/W=$s.grfName $imgName ctab={zmin,zmax,$s.ctable,s.rev}, log=s.log
 	endif
-	
+
 	if (numpnts(s.minRGB)==1)
 		ModifyImage/W=$s.grfName $imgName minRGB=s.minRGB[0]
 	elseif (numpnts(s.minRGB)==3)	//	(r,g,b)
@@ -247,7 +246,7 @@ End
 
 //=====================================================================================================
 //	Panel
-//================================================================================================//=====
+//=====================================================================================================
 //	Positions of tab
 Static Constant leftMargin = 10
 Static Constant topMargin = 65
@@ -278,7 +277,7 @@ Static Function pnl(String grfName)
 	if (SIDAMWindowExists(grfName+"#Color"))
 		return 0
 	endif
-	
+
 	String imgName = StringFromList(0,ImageNameList(grfName,";"))
 	int needUpdate = DataFolderExists(SIDAM_DF_CTAB) ? \
 		NumVarOrDefault(SIDAM_DF_CTAB+"needUpdate",1) : 1
@@ -295,7 +294,7 @@ Static Function pnl(String grfName)
 	SetWindow $pnlName hook(self)=SIDAMColor#pnlHook
 	SetWindow $pnlName userData(grf)=grfName, activeChildFrame=0
 
-	saveImageColor(pnlName)
+	saveInitialColor(pnlName)
 
 	//	Tab
 	String tabNameList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTABGROUPS,"")
@@ -333,9 +332,20 @@ Static Function pnl(String grfName)
 	PopupMenu op_lastClrP pos={302,77},size={40,19},bodyWidth=40,value= #"\"*COLORPOP*\"",win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*C") proc=SIDAMColor#pnlCheckRadio, win=$pnlName
-	ModifyControlList "allC;optionC" proc=SIDAMColor#pnlCheck, win=$pnlName
+	ModifyControlList "allC;optionC;op_revC;op_logC" proc=SIDAMColor#pnlCheck, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","op_*") disable=1,win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*P") mode=1, proc=SIDAMColor#pnlPopup, win=$pnlName
+
+	//	Update controls involved with rev, log, mixRGB, and maxRGB
+	updateOptionControls(pnlName,imgName)
+
+	//	Guides for subwindows in which color scales are shown
+	DefineGuide/W=$pnlname ctab0L = {FL, leftMargin}
+	DefineGuide/W=$pnlName ctab0R = {FL, leftMargin+ctabWidth}
+	DefineGuide/W=$pnlname ctab1L = {FL, leftMargin+columnWidth}
+	DefineGuide/W=$pnlName ctab1R = {FL, leftMargin+columnWidth+ctabWidth}
+	DefineGuide/W=$pnlName ctabT = {FT, topMargin}
+	DefineGuide/W=$pnlName ctabB = {FT, topMargin+(ctabHeight+ctabMargin)*ctabsInColumn-ctabMargin}
 
 	if (needUpdate)
 		//	Load color table waves
@@ -347,20 +357,8 @@ Static Function pnl(String grfName)
 		cindexWave2ctabWave()
 	endif
 
-	//	Guides for subwindows in which color scales are shown
-	DefineGuide/W=$pnlname ctab0L = {FL, leftMargin}
-	DefineGuide/W=$pnlName ctab0R = {FL, leftMargin+ctabWidth}
-	DefineGuide/W=$pnlname ctab1L = {FL, leftMargin+columnWidth}
-	DefineGuide/W=$pnlName ctab1R = {FL, leftMargin+columnWidth+ctabWidth}
-	DefineGuide/W=$pnlName ctabT = {FT, topMargin}
-	DefineGuide/W=$pnlName ctabB = {FT, topMargin+(ctabHeight+ctabMargin)*ctabsInColumn-ctabMargin}
-
-	//	Create components in each tab
-	for (i = 0, n = ItemsInList(SIDAM_CTABGROUPS)+1; i < n; i++)
-		pnlTabComponents(pnlName, i, i!=activeTab)
-	endfor
-	SetActiveSubwindow ##
-	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
+	//	Create and draw the active tab before the others
+	pnlTabComponents(pnlName, activeTab, 0)
 
 	//	Check the checkbox of the present color scale
 	String selected = findCheckBox(pnlName,imgName)
@@ -368,12 +366,25 @@ Static Function pnl(String grfName)
 		CheckBox $selected value=1, win=$pnlName
 	endif
 
-	//	Update controls involved with rev, log, mixRGB, and maxRGB
-	updateOptionControls(pnlName,imgName)
+	//	Reflect rev and log to the color scales in the active tab
+	updateColorscales(pnlName,onlyInThisTab=activeTab)
 
 	if (needUpdate)
 		deleteLoading(pnlName)
 	endif
+	DoUpdate/W=$pnlName
+
+	//	Create the other tabs
+	for (i = 0, n = ItemsInList(SIDAM_CTABGROUPS)+1; i < n; i++)
+		if (i == activeTab)
+			continue
+		endif
+		pnlTabComponents(pnlName, i, 1)
+	endfor
+	SetActiveSubwindow ##
+	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
+
+	updateColorscales(pnlName)
 End
 
 //-----------------------------------------------------------------------
@@ -448,7 +459,8 @@ Static Function pnlTabComponents(String pnlName, int tab, int hide)
 		String titleName = ParseFilePath(0, StringFromList(i, list), ":", 1, 0)
 		Variable left = leftMargin+ctabWidth+checkBoxMargin+columnWidth*floor(i/ctabsInColumn)
 		Variable top = topMargin+((ctabHeight+ctabMargin)*mod(i,ctabsInColumn))
-		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, proc=SIDAMColor#pnlCheckRadio, win=$pnlName
+		CheckBox $cbName pos={left,top}, title=" "+titleName, disable=(hide), mode=1, win=$pnlName
+		CheckBox $cbName proc=SIDAMColor#pnlCheckRadio, userData(ctabName)=ctabName, win=$pnlName
 	endfor
 End
 
@@ -498,78 +510,14 @@ End
 //	used for imgName in pnlName
 //-----------------------------------------------------------------------
 Static Function/S findCheckBox(String pnlName, String imgName)
-
 	String grfName = GetUserData(pnlName,"","grf")
-	String ctabName = WM_ColorTableForImage(grfName,imgName)
-	String chdWinName, chdWinList = ChildWindowList(pnlName)
-	String clrscaleList, clrscaleName, name
+	String ctabName = SIDAM_ColorTableForImage(grfName,imgName)
 
-	int i, j
-	for (i = 0; i < ItemsInList(chdWinList); i++)
-		chdWinName = pnlName+"#"+StringFromList(i,chdWinList)
-		if (WinType(chdWinName) != 1)
-			continue
-		endif
-		clrscaleList = AnnotationList(chdWinName)
-		for (j = 0; j < ItemsInList(clrscaleList); j++)
-			clrscaleName = StringFromList(j,clrscaleList)
-			name = getColorTable(chdWinName,clrscaleName)
-			if (!CmpStr(ctabName,name) || WaveRefsEqual($ctabName,$name))
-				return ReplaceString("cs_", clrscaleName ,"cb_")
-			endif
-		endfor
-	endfor
-	return ""
-End
-
-//-----------------------------------------------------------------------
-//	Return name of color scale or path to color table wave
-//	by giving name of checkbox
-//-----------------------------------------------------------------------
-Static Function/S findColorScale(String pnlName, String cbName)
-	String chdWinName, chdWinList = ChildWindowList(pnlName)
-	String clrscaleList, clrscaleName
-
-	int i, j
-	for (i = 0; i < ItemsInList(chdWinList); i++)
-		chdWinName = pnlName+"#"+StringFromList(i,chdWinList)
-		if (WinType(chdWinName) != 1)
-			continue
-		endif
-		clrscaleList = AnnotationList(chdWinName)
-		for (j = 0; j < ItemsInList(clrscaleList); j++)
-			clrscaleName = StringFromList(j,clrscaleList)
-			if (CmpStr(ReplaceString("cs_",clrscaleName,"cb_",0,1),cbName))
-				continue
-			endif
-			return getColorTable(chdWinName,clrscaleName)
-		endfor
-	endfor
-	return ""
-End
-
-//	Return name of Igor Pro's color table or path to color table wave
-//	by giving name of color scale
-Static Function/S getColorTable(String winNameStr, String annotationNameStr)
-	String infoStr = AnnotationInfo(winNameStr,annotationNameStr)
-	String scaleStr = StringByKey("COLORSCALE", infoStr)
-	int n0 = strsearch(scaleStr,"ctab={",0)
-	int n1 = strsearch(scaleStr,"}",n0)
-	String ctabStr = StringFromList(2,scaleStr[n0+6,n1-1],",")
-	//	If Igor Pro's color table is used, ctabStr is the name of table.
-	//	If a color table wave is used, ctabStr is supposed to be the path to the wave.
-	//	However, the path is neither the absolute path nor the partial path from
-	//	the current datafolder, but seems to be the partial path from root:, namely
-	//	"root"+ctabStr seems to give the absolute path to the wave.
-	//	The return of this function is based on this assumption.
-	if (CmpStr(ctabStr[0],":"))
-		return ctabStr	//	Igor Pro's color table
-	elseif (WaveExists($("root"+ctabStr)))
-		return "root"+ctabStr	//	The absolut path to the color table wave
-	else
-		//	The above assumption is not satisfied
-		Abort "color table wave is not found"
-	endif
+	Wave/T checkBoxListWave = ListToTextWave(ControlNameList(pnlName,";","cb_*"),";")
+	Make/T/N=(numpnts(checkBoxListWave))/FREE ctabNameListWave
+	ctabNameListWave = GetUserData(pnlName,checkBoxListWave[p],"ctabName")
+	FindValue/TEXT=ctabName ctabNameListWave
+	return SelectString(V_Value==-1, checkBoxListWave[V_Value], "")
 End
 
 //---------------------------------------------------------------------------
@@ -587,7 +535,7 @@ Static Structure initParamSub
 	STRUCT RGBColor clr
 EndStructure
 
-Static Function saveImageColor(String pnlName)
+Static Function saveInitialColor(String pnlName)
 	String grfName = GetUserData(pnlName,"","grf")
 	String imgList = ImageNameList(grfName,";")
 	String imgName, ctabName, str
@@ -744,14 +692,14 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	ControlInfo/W=$pnlName imageP
 	String imgName = S_Value
 
-	//	Open a tab containing the present color table
-	clickTab(pnlName, findTabForPresentCtab(s.winName, imgName))
-
 	//	Select a checkbox of the present color table
 	selectCheckBox(pnlName, findCheckBox(pnlName,imgName))
 
 	//	Reflect rev, log, minRGB, and maxRGB of the image to the panel
 	updateOptionControls(pnlName,imgName)
+
+	//	Update color scales in the panel to refrect rev and log
+	updateColorscales(pnlName)
 End
 
 
@@ -793,9 +741,21 @@ Static Function pnlCheck(STRUCT  WMCheckboxAction &s)
 			TabControl mTab pos+={0,dy}, win=$s.win
 			ModifyControlList ControlNameList(s.win,";","cb_*") pos+={0,dy}, win=$s.win
 			break
-			
+
+		case "op_revC":
+		case "op_logC":
+			String grfName = GetUserData(s.win,"","grf")
+			String imgList = targetImageList(s.win)
+			if (CmpStr(s.ctrlName,"op_revC"))
+				SIDAMColor(grfName=grfName, imgList=imgList, log=s.checked)
+			else
+				SIDAMColor(grfName=grfName, imgList=imgList, rev=s.checked)
+			endif
+			updateColorscales(ParseFilePath(1,s.win,"#",1,0))
+			break
+
 	endswitch
-	return 0		
+	return 0
 End
 
 //	Checkbox (radio buttons)
@@ -811,14 +771,6 @@ Static Function pnlCheckRadio(STRUCT WMCheckboxAction &s)
 	String grfName = GetUserData(s.win,"","grf")
 	String imgList = targetImageList(s.win)
 	strswitch (s.ctrlName)
-		case "op_revC":
-			SIDAMColor(grfName=grfName, imgList=imgList, rev=s.checked)
-			updateColorscales(ParseFilePath(1,s.win,"#",1,0))
-			break
-		case "op_logC":
-			SIDAMColor(grfName=grfName, imgList=imgList, log=s.checked)
-			updateColorscales(ParseFilePath(1,s.win,"#",1,0))
-			break
 		case "op_beforeUseC":
 			SIDAMColor(grfName=grfName, imgList=imgList, minRGB={0})
 			break
@@ -839,9 +791,8 @@ Static Function pnlCheckRadio(STRUCT WMCheckboxAction &s)
 		case "op_lastTransC":
 			SIDAMColor(grfName=grfName, imgList=imgList, maxRGB={NaN})
 			break
-
 		default:	//	"cb_*"
-			SIDAMColor(grfName=grfName, imgList=imgList, ctable=findColorScale(s.win,s.ctrlName))
+			SIDAMColor(grfName=grfName, imgList=imgList, ctable=GetUserData(s.win,s.ctrlName,"ctabName"))
 	endswitch
 
 	return 0
@@ -865,6 +816,9 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 
 			//	Update controls involved with rev, log, mixRGB, and maxRGB
 			updateOptionControls(s.win,s.popStr)
+
+			//	Update color scales in the panel to refrect rev and log
+			updateColorscales(s.win)
 			break
 
 		case "op_beforeClrP":
@@ -895,15 +849,12 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			//	*** FALLTHROUGH ***
 		case "doB":
 			KillWindow $(s.win)
-			DoUpdate/W=$StringFromList(0,s.win,"#")
-			DoWindow/F $StringFromList(0,s.win,"#")
 			break
 		default:
 	endswitch
 
 	return 0
 End
-
 
 //******************************************************************************
 //	Helper funcitons for control
@@ -958,49 +909,12 @@ Static Function updateAllImaeges(STRUCT  WMCheckboxAction &s)
 	String grfName = GetUserData(s.win,"","grf")
 	String imgList = ImageNameList(grfName,";")
 
-	String cbList = ControlNameList(s.win,";","cb_*")
-	Wave cw = KMGetCtrlValues(s.win, cbList)
-	cw *= p
-	String cbName = StringFromList(sum(cw),cbList)	//	name of the checked checkbox
-	String ctable = findColorScale(s.win,cbName)
+	String cbName = findSelectedCheckbox(s.win)
+	String ctable = GetUserData(s.win,cbName,"ctabName")
+	Wave cw = KMGetCtrlValues(s.win,"op_revC;op_logC")
 
-	ControlInfo/W=$s.win op_revC
-	int rev = V_Value
-
-	ControlInfo/W=$s.win op_logC
-	int log = V_Value
-
-	Wave cw = KMGetCtrlValues(s.win, "op_beforeUseC;op_beforeClrC;op_beforeTransC")
-	cw *= p
-	switch (sum(cw))
-		case 0:
-			Make/FREE minRGB={0}
-			break
-		case 1:
-			ControlInfo/W=$s.win op_beforeClrP
-			Make/FREE minRGB={V_Red,V_Green,V_Blue}
-			break
-		case 2:
-			Make/FREE minRGB={NaN}
-			break
-	endswitch
-
-	Wave cw = KMGetCtrlValues(s.win, "op_lastUseC;op_lastClrC;op_lastTransC")
-	cw *= p
-	switch (sum(cw))
-		case 0:
-			Make/FREE maxRGB={0}
-			break
-		case 1:
-			ControlInfo/W=$s.win op_lastClrP
-			Make/FREE maxRGB={V_Red,V_Green,V_Blue}
-			break
-		case 2:
-			Make/FREE maxRGB={NaN}
-			break
-	endswitch
-
-	SIDAMColor(grfName=grfName,imgList=imgList,ctable=ctable,rev=rev,log=log,minRGB=minRGB,maxRGB=maxRGB)
+	SIDAMColor(grfName=grfName,imgList=imgList,ctable=ctable,rev=cw[0],log=cw[1],\
+		minRGB=getRGBWave(s.win,"minRGB"),maxRGB=getRGBWave(s.win,"maxRGB"))
 End
 
 //--------------------------------------------------------------------
@@ -1021,7 +935,7 @@ Static Function updateOptionControls(String pnlName, String imgName)
 	if (minMode == 1)
 		PopupMenu op_beforeClrP popColor=(s.red,s.green,s.blue),win=$pnlName
 	endif
-	
+
 	int maxMode = SIDAM_ImageColorRGBMode(grfName,imgName,"maxRGB")
 	SIDAM_ImageColorRGBValues(grfName,imgName,"maxRGB",s)
 	CheckBox op_lastUseC value=(maxMode==0),win=$pnlName
@@ -1030,32 +944,36 @@ Static Function updateOptionControls(String pnlName, String imgName)
 	if (maxMode == 1)
 		PopupMenu op_lastClrP popColor=(s.red,s.green,s.blue),win=$pnlName
 	endif
-	
-	updateColorscales(pnlName)
 End
 
 //-------------------------------------------------------------
 //	Update the color scales shown in the panel so that they
 //	reflect the status of op_revC and op_logC.
 //-------------------------------------------------------------
-Static Function updateColorscales(String pnlName)
+Static Function updateColorscales(String pnlName, [int onlyInThisTab])
 	//	e.g., pnlName = Graph0#Color
 	Wave cw = KMGetCtrlValues(pnlName,"op_revC;op_logC")
 	String columnList = ChildWindowList(pnlName), column
 	String csNameList, csName, cbName, ctabName
 
-	int i, j
+	int i, j, tab
 
 	for (i = 0; i < ItemsInList(columnList); i++)
 		column = StringFromList(i,columnList)
 		if (WinType(pnlName+"#"+column) != 1)
 			continue
 		endif
+
+		tab = str2num(StringFromList(1,column,"_"))
+		if (!ParamIsDefault(onlyInThisTab) && tab != onlyInThisTab)
+			continue
+		endif
+
 		csNameList = AnnotationList(pnlName+"#"+column)
 		for (j = 0; j < ItemsInList(csNameList); j++)
 			csName = StringFromList(j,csNameList)			//	e.g., cs_0_0
 			cbName = ReplaceString("cs",csName,"cb")		//	e.g., cb_0_0
-			ctabName = findColorScale(pnlName,cbName)
+			ctabName = GetUserData(pnlName,cbName,"ctabName")
 			ColorScale/W=$(pnlName+"#"+column)/C/N=$csName ctab={0,100,$ctabName,cw[0]}, log=cw[1]
 		endfor
 	endfor
@@ -1087,6 +1005,16 @@ Static Function selectCheckBox(String pnlName, String ctrlName)
 End
 
 //-------------------------------------------------------------
+//	Return name of selected checkbox
+//-------------------------------------------------------------
+Static Function/S findSelectedCheckbox(String pnlName)
+	String cbList = ControlNameList(pnlName,";","cb_*")
+	Wave cw = KMGetCtrlValues(pnlName, cbList)
+	cw *= p
+	return StringFromList(sum(cw),cbList)	//	name of the checked checkbox
+End
+
+//-------------------------------------------------------------
 //	Revert changes and restore colors when the panel was opened
 //-------------------------------------------------------------
 Static Function revertImageColor(String pnlName)
@@ -1099,9 +1027,6 @@ Static Function revertImageColor(String pnlName)
 
 	for (i = 0, n = ItemsInList(imgList); i < n; i++)
 		imgName = StringFromList(i,imgList)
-		if (WhichListItem(imgName,ImageNameList(grfName,";")) == -1)
-			continue
-		endif
 		infoStr = GetUserData(pnlName,"",imgName)
 		ctab = StringFromList(0,infoStr,sepStr)
 		StructGet/S s, StringFromList(1,infoStr,sepStr)
@@ -1128,8 +1053,62 @@ Static Function revertImageColor(String pnlName)
 				Make/FREE maxRGB = {NaN}
 				break
 		endswitch
-		SIDAMColor(grfName=grfName,imgList=imgName,ctable=ctab,rev=s.rev,log=s.log,minRGB=minRGB,maxRGB=maxRGB)
+		SIDAMColor(grfName=grfName,imgList=imgName,ctable=ctab,rev=s.rev,log=s.log,\
+			minRGB=minRGB,maxRGB=maxRGB)
 	endfor
+End
+
+//-------------------------------------------------------------
+//	Return wave of minRGB/maxRGB
+//-------------------------------------------------------------
+Static Function/WAVE getRGBWave(String pnlName, String mode)
+	String list
+	strswitch (mode)
+		case "minRGB":
+			list = "op_beforeUseC;op_beforeClrC;op_beforeTransC"
+			break
+		case "maxRGB":
+			list = "op_lastUseC;op_lastClrC;op_lastTransC"
+			break
+		default:
+			return $""
+	endswitch
+
+	Wave cw = KMGetCtrlValues(pnlName, list)
+	cw *= p
+	switch (sum(cw))
+		case 0:
+			Make/FREE w={0}
+			return w
+		case 1:
+			ControlInfo/W=$pnlName $StringFromList(1,list)
+			Make/FREE w={V_Red,V_Green,V_Blue}
+			return w
+		case 2:
+			Make/FREE w={NaN}
+			return w
+	endswitch
+End
+
+//-------------------------------------------------------------
+//	collect parameters from the panel controls
+//-------------------------------------------------------------
+Static Function collectParamsFromPanel(STRUCT WMButtonAction &s, STRUCT paramStruct &ps)
+	ps.grfName = GetUserData(s.win,"","grf")
+
+	Wave cw = KMGetCtrlValues(s.win, "allC;op_revC;op_logC")
+	if (cw[0])
+		ps.imgList = ImageNameList(ps.grfName,";")
+	else
+		ControlInfo/W=$s.win imageP
+		ps.imgList = S_Value
+	endif
+
+	ps.ctable = GetUserData(s.win,findSelectedCheckbox(s.win),"ctabName")
+	ps.rev = cw[1]
+	ps.log = cw[2]
+	Wave ps.minRGB = getRGBWave(s.win,"minRGB")
+	Wave ps.maxRGB = getRGBWave(s.win,"maxRGB")
 End
 
 //=====================================================================================================
