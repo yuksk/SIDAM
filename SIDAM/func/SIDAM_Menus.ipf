@@ -11,10 +11,10 @@
 //******************************************************************************
 Menu "SIDAM", dynamic
 	SubMenu "Load Data..."
-		"Load Data...", /Q, KMLoadData("",history=1)
+		"Load Data...", /Q, SIDAMLoadData("", history=1)
 		help = {"Loads data from binary/text files into Igor waves."}
 		
-		"Load Data From a Folder...", /Q, KMLoadDataFromFolder()
+		"Load Data From a Folder...", /Q, SIDAMLoadData("", folder=1, history=1)
 		help = {"Loads all data in a folder."}
 	End
 	

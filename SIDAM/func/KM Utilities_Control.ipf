@@ -145,51 +145,45 @@ End
 //******************************************************************************
 //	KMCheckSetVarString
 //		値設定の文字列変数の内容をチェックする
-//		mode 0: 長さ, mode 1: eval可能かどうか
-//		不可の場合、値設定の背景色を変える
 //******************************************************************************
-Function KMCheckSetVarString(pnlName,ctrlName,mode,[minlength, maxlength])
-	String pnlName, ctrlName
-	int mode, minlength, maxlength
+Function KMCheckSetVarString(
+	String pnlName,
+	String ctrlName,
+	int mode,				//	0: check length of string, 1: check if eval is possible
+	[
+		int minlength,
+		int maxlength
+	])
 	
+	int isSetVarOK = 0
 	String str
+	
 	ControlInfo/W=$pnlName $ctrlName
-	if (strlen(S_DataFolder))	//	グローバル変数を使っている場合
+	if (V_flag == 0)
+		return isSetVarOK
+	elseif (strlen(S_DataFolder))		//	global string is used
 		SVAR/SDFR=$S_DataFolder gstr = $S_value
 		str = gstr
-	else						//	内部変数を使っている場合
+	else									//	internal string is used
 		str = S_value
 	endif
 	
-	if (ParamIsDefault(minlength))
-		minlength = 1
-	endif
-	if (ParamIsDefault(maxlength))
-		maxlength = MAX_OBJ_NAME
-	endif
+	minlength = ParamIsDefault(minlength) ? 1 : minlength
+	maxlength = ParamIsDefault(maxlength) ? MAX_OBJ_NAME : maxlength
 	
-	int rtn
-	if (mode)
-		rtn = numtype(KMEval(str)) > 0
-	else
-		rtn = strlen(str) < minlength || strlen(str) > maxlength
-	endif
+	isSetVarOK = mode ? \
+		numtype(eval(str))==0 : \
+		strlen(str) >= minlength && strlen(str) <= maxlength
 	
-	if (rtn)
-		SetVariable $ctrlName valueBackColor=(SIDAM_CLR_CAUTION_R,SIDAM_CLR_CAUTION_B,SIDAM_CLR_CAUTION_B), userData(check)="1", win=$pnlName
-	else
+	if (isSetVarOK)
 		SetVariable $ctrlName valueBackColor=0, userData(check)="", win=$pnlName
+	else
+		SetVariable $ctrlName valueBackColor=(SIDAM_CLR_CAUTION_R,SIDAM_CLR_CAUTION_B,SIDAM_CLR_CAUTION_B), userData(check)="1", win=$pnlName
 	endif
-	return rtn
+	return !isSetVarOK
 End
 
-//-------------------------------------------------------------
-//	KMEval
-//		入力された文字列を評価して数字を返す
-//-------------------------------------------------------------
-Static Function KMEval(str)
-	String str
-	
+Static Function eval(String str)
 	DFREF dfrSav = GetDataFolderDFR(), dfrTmp = NewFreeDataFolder()
 	SetDataFolder dfrTmp
 	Execute/Q/Z "Variable/G v=" + str
@@ -273,11 +267,11 @@ Function/WAVE KMGetCtrlValues(win, ctrlList)
 						resw[i] = V_Value
 						break
 					case 2:
-						resw[i] = KMEval(S_Value)
+						resw[i] = eval(S_Value)
 						break
 					case 3:
 						SVAR/SDFR=$S_DataFolder str = $S_value
-						resw[i] = KMEval(str)
+						resw[i] = eval(str)
 						break
 					default:
 						resw[i] = NaN

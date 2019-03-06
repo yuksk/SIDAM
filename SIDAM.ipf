@@ -21,5 +21,5 @@ End
 //******************************************************************************
 Menu "Macros", dynamic
 	//	nothing is displayed after SIDAM is started
-	SelectString(strlen(FunctionList("KMLoadData",";","")), "SIDAM", ""), /Q, sidam()
+	SelectString(strlen(FunctionList("SIDAMLoadData",";","")), "SIDAM", ""), /Q, sidam()
 End
