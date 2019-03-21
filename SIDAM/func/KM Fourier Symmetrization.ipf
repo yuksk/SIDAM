@@ -149,7 +149,7 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 	
 	//	拡張ウエーブを求める
 	TitleBox statusT title="extend", win=$pnlName;	DoUpdate/W=$pnlName
-	Wave ew = KMEndEffect(tw, endeffect)
+	Wave ew = SIDAMEndEffect(tw, endeffect)
 	
 	//	シアーを補正したウエーブを求める
 	TitleBox statusT title="expand and shear", win=$pnlName;	DoUpdate/W=$pnlName
@@ -164,7 +164,7 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 	
 	//	補正後のウエーブの拡張ウエーブを求める
 	TitleBox statusT title="extend", win=$pnlName;	DoUpdate/W=$pnlName
-	Wave ew0 = KMEndEffect(w0, endeffect)
+	Wave ew0 = SIDAMEndEffect(w0, endeffect)
 	
 	if (endeffect == 2)
 		Make/N=(nx*3, ny*3, nz)/FREE enw0

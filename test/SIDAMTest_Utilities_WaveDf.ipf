@@ -148,3 +148,96 @@ Static Function TestSIDAMIndexToScale()
 	CHECK_EQUAL_VAR(SIDAMIndexToScale(w0,0,3),nan)	//	invalid dim
 	CHECK_EQUAL_VAR(SIDAMIndexToScale(w0,0,4),nan)	//	invalid dim
 End
+
+Static Function TestSIDAMEndEffect()
+	int n = 4, m = n-1
+
+	//	3D --------------------------------
+	Make/N=(n,n,n) w = gnoise(1)
+	Make/N=3/D/FREE dw0 = {10,5,2}, ow0 = {-10*n,-5*n,0}
+	Make/N=3/T/FREE uw0 = {"x", "y", "z"}
+	Setscale/P x, 0, dw0[0], uw0[0], w
+	Setscale/P y, 0, dw0[1], uw0[1], w
+	Setscale/P z, 0, dw0[2], uw0[2], w
+
+	Make/N=4/WAVE/FREE ww = SIDAMEndEffect(w,p)
+	Wave w0 = ww[0], w1 = ww[1], w2 = ww[2], w3 = ww[3]
+
+	//	Check wave size
+	Make/N=(4,3)/B/U/FREE nw0
+	nw0[][0,1] = n*3
+	nw0[][2] = n
+	Make/N=(4,3)/B/U/FREE nw1= DimSize(ww[p],q)
+	CHECK_EQUAL_WAVES(nw0,nw1,mode=1)
+
+	//	Check wave scaling
+	Make/N=3/D/FREE dw1 = DimDelta(ww[0],p), ow1 = DimOffset(ww[0],p)
+	Make/N=3/T/FREE uw1 = WaveUnits(ww[0],p)
+	CHECK_EQUAL_WAVES(dw0,dw1,mode=1)
+	CHECK_EQUAL_WAVES(ow0,ow1,mode=1)
+	CHECK_EQUAL_TEXTWAVES(uw0,uw1)
+
+	//	Check values
+	Make/N=(3,3) tw0 = w0[n*p][n*q][1], ew0
+	ew0[][0] = {w[m][m][1],w[0][m][1],w[m][m][1]}
+	ew0[][1] = {w[m][0][1],w[0][0][1],w[m][0][1]}
+	ew0[][2] = {w[m][m][1],w[0][m][1],w[m][m][1]}
+	CHECK_EQUAL_WAVES(tw0,ew0,mode=1)
+
+	Make/N=(3,3) tw1 = w1[n*p][n*q][1], ew1 = w[0][0][1]
+	CHECK_EQUAL_WAVES(tw1,ew1,mode=1)
+
+	Make/N=(3,3) tw2 = w2[n*p][n*q][1], ew2 = 0
+	ew2[1][1] = w[0][0][1]
+	CHECK_EQUAL_WAVES(tw2,ew2,mode=1)
+
+	Make/N=(3,3) tw3 = w3[n*p][n*q][1], ew3
+	ew3[][0] = {w[0][0][1],w[0][0][1],w[m][0][1]}
+	ew3[][1] = {w[0][0][1],w[0][0][1],w[m][0][1]}
+	ew3[][2] = {w[0][m][1],w[0][m][1],w[m][m][1]}
+	CHECK_EQUAL_WAVES(tw3,ew3,mode=1)
+
+	//	2D --------------------------------
+	Redimension/N=(-1,-1) w
+	ww = SIDAMEndEffect(w,p)
+
+	//	Check wave size
+	Make/N=(4,3)/B/U/FREE nw0
+	Redimension/N=(-1,2) nw0, nw1
+	nw0 = n*3
+	nw1 = DimSize(ww[p],q)
+	CHECK_EQUAL_WAVES(nw0,nw1,mode=1)
+
+	//	Check wave scaling
+	Redimension/N=2 dw1, ow1, uw1, dw0, ow0, uw0
+	dw1 = DimDelta(ww[0],p)
+	ow1 = DimOffset(ww[0],p)
+	uw1 = WaveUnits(ww[0],p)
+	CHECK_EQUAL_WAVES(dw0,dw1,mode=1)
+	CHECK_EQUAL_WAVES(ow0,ow1,mode=1)
+	CHECK_EQUAL_TEXTWAVES(uw0,uw1)
+
+	//	Check values
+	tw0 = w0[n*p][n*q]
+	ew0[][0] = {w[m][m],w[0][m],w[m][m]}
+	ew0[][1] = {w[m][0],w[0][0],w[m][0]}
+	ew0[][2] = {w[m][m],w[0][m],w[m][m]}
+	CHECK_EQUAL_WAVES(tw0,ew0,mode=1)
+
+	tw1 = w1[n*p][n*q]
+	ew1 = w[0][0]
+	CHECK_EQUAL_WAVES(tw1,ew1,mode=1)
+
+	tw2 = w2[n*p][n*q]
+	ew2 = 0
+	ew2[1][1] = w[0][0]
+	CHECK_EQUAL_WAVES(tw2,ew2,mode=1)
+
+	tw3 = w3[n*p][n*q]
+	ew3[][0] = {w[0][0],w[0][0],w[m][0]}
+	ew3[][1] = {w[0][0],w[0][0],w[m][0]}
+	ew3[][2] = {w[0][m],w[0][m],w[m][m]}
+	CHECK_EQUAL_WAVES(tw3,ew3,mode=1)
+
+	KillWaves w, tw0, ew0, tw1, ew1, tw2, ew2, tw3, ew3
+End

@@ -145,7 +145,7 @@ Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffe
 	if (endeffect == 1)		//	wrap
 		Wave tsrcw = srcw
 	else
-		Wave tsrcw = KMEndEffect(srcw,endeffect)
+		Wave tsrcw = SIDAMEndEffect(srcw,endeffect)
 	endif
 	
 	//	端処理に応じてパラメータウエーブの内容を修正

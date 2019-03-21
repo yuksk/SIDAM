@@ -4,6 +4,7 @@
 #include "unit-testing"
 #include ":SIDAMTest_ImageInfo"
 #include ":SIDAMTest_Utilities_Panel"
+#include ":SIDAMTest_Utilities_WaveDf"
 
 Menu "SIDAM"
 	SubMenu "Developer"
@@ -12,6 +13,7 @@ Menu "SIDAM"
 			"-"
 			"ImageInfo", SIDAMTest("SIDAMTest_ImageInfo")
 			"Utilities_Panel", SIDAMTest("SIDAMTest_Utilities_Panel")
+			"Utilities_WaveDf", SIDAMTest("SIDAMTest_Utilities_WaveDf")
 		End
 	End
 End

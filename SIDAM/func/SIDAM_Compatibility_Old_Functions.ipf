@@ -87,6 +87,11 @@ Function KMIndexToScale(Wave w, int index, int dim)
 	return SIDAMIndexToScale(w, index, dim)
 End
 
+Function KMEndEffect(Wave w, int endeffect)
+	deprecatedCaution("SIDAMEndEffect")
+	SIDAMEndEffect(w, endeffect)
+End
+
 Function KMClosePnl(STRUCT WMWinHookStruct &s)
 	deprecatedCaution("SIDAMWindowHookClose")
 	SIDAMWindowHookClose(s)
