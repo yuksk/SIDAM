@@ -143,10 +143,10 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	"-"
 	
 	//	View spectra of LayerViewer
-	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, KMSpectrumViewer#rightclickDo()
-	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, KMLineSpectra#rightclickDo()
+	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#rightclickDo()
+	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#rightclickDo()
 	//	Line Profile
-	SIDAMMenus#menu("Line Profile..."),/Q, KMLineProfile#rightclickDo()
+	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#rightclickDo()
 	help = {"Make a line profile wave of the image in the active graph."}
 	
 	

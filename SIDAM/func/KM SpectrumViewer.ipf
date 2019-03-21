@@ -1,10 +1,12 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName=KMSpectrumViewer
+#pragma ModuleName = SIDAMSpectrumViewer
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
+
+Static StrConstant KEY = "SIDAMSpectrumViewer"
 
 //******************************************************************************
 //	レイヤーデータから1本のスペクトルを抜き出して表示するためのパネルを表示
@@ -17,22 +19,22 @@ Static Function rightclickDo()
 End
 
 Static Function pnl(String LVName)
-	
+
 	//	既に表示されているパネルがあればそれをフォーカスして終了
-	String pnlName = GetUserData(LVName,"","KMSpectrumViewerPnl")
-	if (strlen(pnlName))
-		DoWindow/F $StringFromList(0,pnlName)
+	String pnlName = StringFromList(0,GetUserData(LVName,"",KEY),"=")
+	if (SIDAMWindowExists(pnlName))
+		DoWindow/F $pnlName
 		return 0
 	endif
 	pnlName = UniqueName("Graph",6,0)
-	
+
 	Wave srcw =  KMGetImageWaveRef(LVName)
-	Variable isMLS = SIDAMisUnevenlySpacedBias(srcw)
+	int isMLS = SIDAMisUnevenlySpacedBias(srcw)
 	if (isMLS)		//	Nanonis MLSモードでのデータの場合は、横軸用ウエーブを一時データフォルダ内に用意する
 		String dfTmp
 		Wave xw = pnlInit(srcw, pnlName, dfTmp)
 	endif
-	
+
 	//  パネル表示
 	if (isMLS)
 		Display/K=1 srcw[0][0][] vs xw
@@ -40,10 +42,7 @@ Static Function pnl(String LVName)
 		Display/K=1 srcw[0][0][]
 	endif
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName
-	
-	//  マウス位置取得ウインドウの設定
-	pnlSetRelation(LVname, pnlName)
-	
+
 	//  グラフ詳細
 	ModifyGraph/W=$pnlName width=180*96/screenresolution, height=180*96/screenresolution, gfSize=10
 	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=12,margin(bottom)=36,margin(left)=44
@@ -56,22 +55,26 @@ Static Function pnl(String LVName)
 		ModifyGraph/W=$pnlName gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 		ModifyGraph/W=$pnlName wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	endif
-	
+
 	//	コントロールバー
 	ControlBar 48
-	SetVariable pV title="p:", pos={5,6}, size={72,15}, proc=KMSpectrumViewer#pnlSetVar, win=$pnlName
+	SetVariable pV title="p:", pos={5,6}, size={72,15}, proc=SIDAMSpectrumViewer#pnlSetVar, win=$pnlName
 	SetVariable pV bodyWidth=60, value=_NUM:0, limits={0,DimSize(srcw,0)-1,1}, win=$pnlName
-	SetVariable qV title="q:", pos={85,6}, size={72,15}, proc=KMSpectrumViewer#pnlSetVar, win=$pnlName
+	SetVariable qV title="q:", pos={85,6}, size={72,15}, proc=SIDAMSpectrumViewer#pnlSetVar, win=$pnlName
 	SetVariable qV bodyWidth=60, value=_NUM:0, limits={0,DimSize(srcw,1)-1,1}, win=$pnlName
 	TitleBox xyT pos={4,30}, frame=0, win=$pnlName
-	
+
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
-	
+
 	SetWindow $pnlName userData(live)="0"
+	SetWindow $pnlName userData(key)=KEY
 	if (isMLS)
 		SetWindow $pnlName userData(dfTmp)=dfTmp
 	endif
-	
+
+	//  マウス位置取得ウインドウの設定
+	pnlSetRelation(LVname, pnlName)
+
 	DoUpdate/W=$pnlName
 	ModifyGraph/W=$pnlName width=0, height=0
 End
@@ -79,7 +82,7 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/WAVE pnlInit(Wave srcw, String pnlName, String &dfTmp)
-	dfTmp = SIDAMNewDF(pnlName,"KMSpectrumViewerPnl")
+	dfTmp = SIDAMNewDF(pnlName,KEY)
 	Duplicate/O SIDAMGetBias(srcw, 1) $(dfTmp+NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
 	return tw
 End
@@ -88,40 +91,34 @@ End
 //	ウインドウとしての関係を設定する
 //-------------------------------------------------------------
 Static Function pnlSetRelation(String mouseWin, String specWin)
-	String list = GetUserData(mouseWin, "", "KMSpectrumViewerPnl")
-	SetWindow $mouseWin userData(KMSpectrumViewerPnl)=AddListItem(specWin, list)
-	SetWindow $mouseWin hook(KMSpectrumViewerPnl)=KMSpectrumViewer#pnlHookParent
-	
+	String list = GetUserData(mouseWin, "", KEY)
+	SetWindow $mouseWin userData($KEY)=AddListItem(specWin+"="+GetUserData(specWin,"","dfTmp"), list)
+	SetWindow $mouseWin hook($KEY)=SIDAMSpectrumViewer#pnlHookParent
+
 	list = GetUserData(specWin, "", "parent")
 	SetWindow $specWin userData(parent)=AddListItem(mouseWin, list)
-	SetWindow $specWin hook(self)=KMSpectrumViewer#pnlHook
+	SetWindow $specWin hook(self)=SIDAMSpectrumViewer#pnlHook
 End
 //-------------------------------------------------------------
 //	指定されたウインドウについて、マウス位置取得ウインドウとスペクトル表示
 //	ウインドウとしての関係を解除する
 //-------------------------------------------------------------
 Static Function pnlResetRelation(String mouseWin, String specWin)
-	
-	String newList
-	
 	//	マウス位置取得ウインドウについての処理
 	//	指定されたスペクトル表示ウインドウをリストから削除する
-	newList = RemoveFromList(specWin, GetUserData(mouseWin, "", "KMSpectrumViewerPnl"))
-	if (ItemsInlist(newList))
-		SetWindow $mouseWin userData(KMSpectrumViewerPnl)=newList
-	else
+	String newList = RemoveByKey(specWin, GetUserData(mouseWin,"",KEY),"=")
+	SetWindow $mouseWin userData($KEY)=newList
+	if (!ItemsInlist(newList))
 		//	リストからスペクトル表示ウインドウを削除した結果としてリストが空になったら
 		//	マウス位置取得ウインドウの役割を解除して良い
-		SetWindow $mouseWin hook(KMSpectrumViewerPnl)=$""
-		SetWindow $mouseWin userData(KMSpectrumViewerPnl)=""
+		SetWindow $mouseWin hook($KEY)=$""
 	endif
-	
+
 	//	スペクトル表示ウインドウについての処理
 	//	指定されたマウス位置取得ウインドウをリストから削除する
 	//	リストが空になってもスペクトル表示ウインドウのフック関数は解除しない(メニュー等の表示が必要)
 	if (SIDAMWindowExists(specWin))	//	SIDAM非動作中にウインドウが閉じられた場合の処理からもこの関数が呼ばれることに備えて
-		newList = RemoveFromList(mouseWin, GetUserData(specWin, "", "parent"))
-		SetWindow $specWin userData(parent)=newList
+		SetWindow $specWin userData(parent)=RemoveFromList(mouseWin,GetUserData(specWin,"","parent"))
 	endif
 End
 
@@ -135,8 +132,9 @@ End
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
-			pnlHookClose(s)
+			SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 			return 0
+
 		case 3:	//	mousedown
 			GetWindow $s.winName, wsizeDC
 			if (s.mouseLoc.v > V_top)	//	コントロールバー外なら
@@ -145,14 +143,16 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				PopupContextualMenu/N "KMSpectrumViewerMenu"
 			endif
 			return 1
+
 		case 4:	//	mouse move
 			if (!(s.eventMod&0x02))	//	shiftキーが押されていなければ
 				KMDisplayCtrlBarUpdatePos(s)		//	マウス位置座標表示
 			endif
 			return 0
+
 		case 11: 	//	keyboard
 			if (s.keycode == 27)		//	esc
-				pnlHookClose(s)
+				SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 				KillWindow $s.winName
 			elseif (s.keycode >= 28 && s.keycode <= 31)	//	arrows
 				pnlHookArrows(s)
@@ -160,112 +160,69 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				KMInfobar#keyboardShortcuts(s)
 			endif
 			return 1
+
 		case 13: //	renamed
-			pnlHookRename(s)
+			SIDAMLineCommon#pnlHookRename(s)
 			return 0
+
 		default:
 			return 0
 	endswitch
 End
 //-------------------------------------------------------------
-//	親ウインドウ用のフック関数
+//	Hook function for the parent window
 //-------------------------------------------------------------
-Static Function pnlHookParent(STRUCT WMWinHookStruct &s)	
+Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
+	String pnlList, pnlName
+	int i, n
+
+	if (SIDAMLineCommon#pnlHookParentCheckChild(s.winName,KEY,pnlResetRelation))
+		return 0
+	endif
+
 	switch (s.eventCode)
 		case 2:	//	kill
-			String specWinList = GetUserData(s.winName, "", "KMSpectrumViewerPnl")
-			Variable i, n = ItemsInList(specWinList)
-			for (i = 0; i < n; i += 1)
-				pnlResetRelation(s.winName, StringFromList(i, specWinList))
+			pnlList = GetUserData(s.winName,"",KEY)
+			for (i = 0, n = ItemsInList(pnlList); i < n; i += 1)
+				pnlName = StringFromList(0,StringFromList(i,pnlList),"=")
+				pnlResetRelation(s.winName, pnlName)
 			endfor
-			break
+			return 0
+
 		case 3:	//	mouse down
 			SetWindow $s.winName userData(mousePressed)="1"
-			break
+			return 0
+
 		case 4:	//	mouse moved
-			if (s.eventMod&2^1)	//	shiftキーが押されていたら動作しない
-				return 0
+			if (!(s.eventMod&2^1))		//	unless the shift key is pressed
+				pnlHookMouseMov(s)
 			endif
-			pnlHookMouseMov(s)
-			break
+			return 0
+
 		case 5:	//	mouse up
 			GetWindow $s.winName, wsizeDC
 			if (s.mouseLoc.h < V_left || s.mouseLoc.h > V_right || s.mouseLoc.v > V_bottom || s.mouseLoc.v < V_top)
 				return 0
-			elseif (!strlen(GetUserData(s.winName,"","mousePressed")))	//	カーソルをドラッグで動かした場合に相当
+			elseif (!strlen(GetUserData(s.winName,"","mousePressed")))	//	when the cursor is dragged
 				return 0
-			elseif (s.eventMod&2^3)	//  ctrlキーが押されていたら
+			elseif (s.eventMod&2^3)	// if the ctrl key is pressed
 				pnlHookClick(s)
 			endif
 			SetWindow $s.winName userData(mousePressed)=""
-			break
+			return 0
+
 		case 7:	//	cursor moved
 			pnlHookCsrMov(s)
 			SetWindow $s.winName userData(mousePressed)=""
-			break
+			return 0
+
 		case 13:	//	renamed
-			pnlHookRename(s)
-			break
+			SIDAMLineCommon#pnlHookParentRename(s,KEY)
+			return 0
+
 		default:
+			return 0
 	endswitch
-	
-	return 0
-End
-//-------------------------------------------------------------
-//	スペクトル表示ウインドウが閉じられたときの動作
-//	スペクトル表示関係の解除と、一時データフォルダを使用していた場合はその削除
-//-------------------------------------------------------------
-Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
-	//	マウス位置取得ウインドウとの関係を解除する
-	String mouseWinList = GetUserData(s.winName, "", "parent")
-	Variable i, n = ItemsInList(mouseWinList)
-	for (i = 0; i < n; i += 1)
-		pnlResetRelation(StringFromList(i, mouseWinList), s.winName)
-	endfor
-	
-	SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
-End
-//-------------------------------------------------------------
-//	ウインドウの名前が変更された場合の動作
-//	リストに含まれている古い名前を新しい名前に更新する
-//-------------------------------------------------------------
-Static Function pnlHookRename(STRUCT WMWinHookStruct &s)
-	String winListStr	//	名前の変更を伝える相手のウインドウの名前のリスト
-	String key
-	strswitch (GetRTStackInfo(2))	//	呼び出し元関数名で判別
-		case "pnlHook" :		//	スペクトル表示ウインドウの名前が変更された場合
-			winListStr = GetUserData(s.winName, "", "parent")
-			key = "KMSpectrumViewerPnl"
-			break
-		case "pnlHookParent":	//	マウス位置取得ウインドウの名前が変更された場合
-			winListStr = GetUserData(s.winName, "", "KMSpectrumViewerPnl")
-			key = "parent"
-			break
-		default:
-	endswitch
-	
-	//	リストに含まれている古い名前を新しいものに変更
-	int i, n = ItemsInList(winListStr)
-	for (i = 0; i < n; i++)
-		String win = StringFromList(i, winListStr)
-		String list = GetUserData(win, "", key)
-		list = AddListItem(s.winName, RemoveFromList(s.oldWinName, list))
-		SetWindow $win userData($key)=list
-	endfor
-	
-	//	一時データフォルダを使用している場合(MLSウエーブ表示時)は、一時データフォルダの名前を変更する
-	//	必要がある (そうしないと後々名前の競合が起こる可能性がある)
-	if (!CmpStr(key, "KMSpectrumViewerPnl"))
-		String dfTmp = GetUserData(s.winName,"","dfTmp")
-		if (strlen(dfTmp))
-			DFREF dfrSav = GetDataFolderDFR()
-			SetDataFolder $dfTmp
-			RenameDataFolder $dfTmp, $s.winName
-			//	変更後のパスを保存
-			SetWindow $s.winName userData(dfTmp)=GetDataFolder(1)
-			SetDataFolder dfrSav
-		endif
-	endif
 End
 //-------------------------------------------------------------
 //	マウス動作時の表示動作
@@ -276,15 +233,12 @@ Static Function pnlHookMouseMov(STRUCT WMWinHookStruct &s)
 	if (SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1))
 		return 0
 	endif
-	
-	String pnlListStr = GetUserData(s.winName,"","KMSpectrumViewerPnl")	//	更新対象となるウインドウのリスト
-	int i, n = ItemsInList(pnlListStr)
-	for (i = 0; i < n; i++)
-		String pnlName = StringFromList(i, pnlListStr)
-		DoWindow $pnlName
-		if (!V_Flag)	//	KM非動作中に当該ウインドウが閉じられた場合に備えて
-			pnlResetRelation(s.winName, pnlName)
-		elseif (str2num(GetUserData(pnlName, "", "live")) == 0)
+
+	String pnlList = GetUserData(s.winName,"",KEY), pnlName
+	int i, n
+	for (i = 0, n = ItemsInList(pnlList); i < n; i++)
+		pnlName = StringFromList(0,StringFromList(i,pnlList),"=")
+		if (str2num(GetUserData(pnlName, "", "live")) == 0)
 			pnlUpdateSpec(pnlName, ms.p, ms.q)	//	表示更新
 		endif
 	endfor
@@ -299,11 +253,11 @@ Static Function pnlHookCsrMov(STRUCT WMWinHookStruct &ws)
 	if (KMGetCursor("A", ws.winName, s))
 		return 0
 	endif
-	
-	String pnlListStr = GetUserData(ws.winName,"","KMSpectrumViewerPnl")	//	更新対象となるウインドウのリスト
-	int i, n = ItemsInList(pnlListStr)
+
+	String pnlList = GetUserData(ws.winName,"",KEY)	//	更新対象となるウインドウのリスト
+	int i, n = ItemsInList(pnlList)
 	for (i = 0; i < n; i++)
-		String pnlName = StringFromList(i, pnlListStr)
+		String pnlName = StringFromList(0,StringFromList(i,pnlList),"=")
 		if (str2num(GetUserData(pnlName, "", "live")) == 1)
 			pnlUpdateSpec(pnlName, s.p, s.q)	//	表示更新
 		endif
@@ -317,7 +271,7 @@ Static Function pnlHookArrows(STRUCT WMWinHookStruct &s)
 	String mouseWinList = GetUserData(s.winName,"","parent")
 	int i, n = ItemsInList(mouseWinList)
 	Make/N=10/FREE tw
-	
+
 	for (i = 0; i < n; i++)
 		int step = (s.eventMod & 2) ? 10 : 1
 		ControlInfo/W=$s.winName pV ;	Variable posp = V_Value
@@ -345,17 +299,17 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookClick(STRUCT WMWinHookStruct &s)
 	//	複数のspectrum viewerのターゲットになっている可能性があり、それらのリストが入る
-	String specWinList = GetUserData(s.winName, "", "KMSpectrumViewerPnl")
-	
+	String specWinList = GetUserData(s.winName, "", KEY)
+
 	String specWin, trcList, trcName
 	STRUCT RGBColor clr
 	int i, j
-	
+
 	for (i = 0; i < ItemsInList(specWinList); i++)
-		specWin = StringFromList(i, specWinList)
+		specWin = StringFromList(0,StringFromList(i,specWinList),"=")
 		trcList = TraceNameList(specWin,";",1)
 		Wave cw = KMGetCtrlValues(specWin,"pV;qV")
-		
+
 		for (j = 0; j < ItemsInList(trcList); j++)
 			trcName = StringFromList(j,trcList)
 			//	追加表示されたトレースであれば削除する
@@ -417,12 +371,12 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 	if (recursive)
 		return 0
 	endif
-	
+
 	int i, n
 	String trcList = TraceNameList(pnlName,";",1), trcName
-	
-	//	スペクトル表示の更新	
-	for (i = 0; i < ItemsInList(trcList); i++)
+
+	//	スペクトル表示の更新
+	for (i = 0, n = ItemsInList(trcList); i < n; i++)
 		trcName = StringFromList(i,trcList)
 		//	追加表示されたトレースは更新しない
 		if (strsearch(trcName,"#",0)>=0)
@@ -433,12 +387,12 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 		posq = limit(posq, 0, DimSize(srcw,1)-1)
 		ReplaceWave/W=$pnlName trace=$NameOfWave(srcw), srcw[posp][posq][]
 	endfor
-			
+
 	//	パネル表示の更新
 	SetVariable pV value=_NUM:posp, win=$pnlName
 	SetVariable qV value=_NUM:posq, win=$pnlName
 	DoUpdate/W=$pnlName
-	
+
 	//	カーソル位置を使用している場合、かつ、カーソル位置変化に伴う呼び出しでない場合
 	//	(SetVariableの値変化やスペクトル表示ウインドウでの矢印キー)には、カーソルを移動する
 	if (str2num(GetUserData(pnlName,"","live"))==1 && CmpStr(GetRTStackInfo(2), "pnlHookCsrMov"))
@@ -455,15 +409,15 @@ End
 //-------------------------------------------------------------
 Menu "KMSpectrumViewerMenu", dynamic, contextualmenu
 	SubMenu "Live Update"
-		KMSpectrumViewer#rightclickMenuLive(), KMSpectrumViewer#rightclickDoLive()
+		SIDAMSpectrumViewer#rightclickMenuLive(), SIDAMSpectrumViewer#rightclickDoLive()
 	End
 	SubMenu "Target window"
-		KMSpectrumViewer#rightclickMenuTarget(WinName(0,1)), KMSpectrumViewer#rightclickDoTarget()
+		SIDAMLineCommon#rightclickMenuTarget(), SIDAMSpectrumViewer#rightclickDoTarget()
 	End
 	SubMenu "Complex"
-		KMSpectrumViewer#rightclickMenuComplex(), KMSpectrumViewer#rightclickDoComplex()
+		SIDAMSpectrumViewer#rightclickMenuComplex(), SIDAMSpectrumViewer#rightclickDoComplex()
 	End
-	"Save", KMSpectrumViewer#saveSpectrum(WinName(0,1))
+	"Save", SIDAMSpectrumViewer#saveSpectrum(WinName(0,1))
 	"-"
 	"Help", SIDAMOpenHelpNote("spectrumviewer",WinName(0,1),"Spectrum Viewer")
 End
@@ -516,73 +470,29 @@ Static Function rightclickDoTarget()
 	endif
 End
 //-------------------------------------------------------------
-//	マウス座標を取得するウインドウのリストを作成する
-//		KM LineSpectra.ipfからも使用されている
-//-------------------------------------------------------------
-Static Function/S rightclickMenuTarget(String pnlName)
-	//	現在使われているウインドウの判別に使う文字列を得る
-	//	呼び出し元関数が含まれているファイル名で判別する
-	//	(呼び出し元関数はいずれにせよ pnlHook)
-	String chdPnl
-	if (strsearch(GetRTStackInfo(3),"KM SpectrumViewer.ipf",0) >= 0)
-		chdPnl = "KMSpectrumViewerPnl"
-		Wave/Z srcw = TraceNameToWaveRef(pnlName,StringFromList(0,TraceNameList(pnlName,";",1)))
-	elseif (strsearch(GetRTStackInfo(3),"KM LineSpectra.ipf",0) >= 0)
-		chdPnl = "KMLineSpectraPnl"
-		Wave/Z srcw = $GetUserData(pnlName, "", "src")
-	else
-		return ""	//	呼び出し元に関する制限、かつ、ウインドウが表示されていない場合
-	endif
-	
-	if (!WaveExists(srcw))
-		return ""
-	endif
-	
-	String allList = WinList("*",";","WIN:1,VISIBLE:1"), win
-	String rtnList = ""		//	メニュー表示用文字列
-	String grfList = ""		//	メニュー選択時に使用されるグラフリスト
-	int i, n
-	
-	for (i = 0, n = ItemsInList(allList); i < n; i += 1)
-		win = StringFromList(i, allList)
-		Wave/Z imgw = KMGetImageWaveRef(win)
-		if (WaveExists(imgw) && DimSize(srcw,0) == DimSize(imgw,0) && DimSize(srcw,1) == DimSize(imgw,1))
-			if (WhichListItem(pnlName, GetUserData(win, "", chdPnl)) != -1)
-				rtnList += "\\M0:!" + num2char(18) + ":"+NameOfWave(imgw) + " (" + win + ");"	//	チェックがつき、選択不可
-			else
-				rtnList += "\\M0" + NameOfWave(imgw) + " (" + win + ");"
-			endif
-			grfList += win + ";"
-		endif
-	endfor
-	SetWindow $pnlName userData(target)=grfList
-	
-	return rtnList
-End
-//-------------------------------------------------------------
 //	指定点におけるウエーブを抜き出す
 //-------------------------------------------------------------
 Static Function saveSpectrum(String pnlName)
 	ControlInfo/W=$pnlName pV ;	Variable posp = V_Value
-	ControlInfo/W=$pnlName qV ;	Variable posq = V_Value	
+	ControlInfo/W=$pnlName qV ;	Variable posq = V_Value
 	String trcList = TraceNameList(pnlName,";",1), trcName, result
 	DFREF dfrSav = GetDataFolderDFR()
 	int i
-	
+
 	for (i = 0; i < ItemsInList(trcList); i++)
 		trcName = StringFromList(i,trcList)
 		if (strsearch(trcName,"#",0)>=0)
 			continue
 		endif
-		
+
 		Wave srcw = TraceNameToWaveRef(pnlName,trcName)
 		if (WaveDims(srcw)!=3)
 			continue
 		endif
-		
+
 		sprintf result, "%s_p%dq%d", NameOfWave(srcw), posp, posq
 		result = CleanupName(result,1)
-		
+
 		SetDataFolder GetWavesDataFolderDFR(srcw)
 		MatrixOP/O $result/WAVE=extw = beam(srcw, posp, posq)
 		if (SIDAMisUnevenlySpacedBias(srcw))
@@ -591,28 +501,7 @@ Static Function saveSpectrum(String pnlName)
 			SetScale/P x DimOffset(srcw,2), DimDelta(srcw,2), WaveUnits(srcw,2), extw
 		endif
 		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(srcw,0)), extw
-		
+
 		SetDataFolder dfrSav
 	endfor
-End
-
-
-//******************************************************************************
-//	後方互換性
-//******************************************************************************
-Function KMSpectrumViewerPnlHook2(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(self)=KMSpectrumViewer#pnlHook
-End
-Function KMSpectrumViewerPnlHookParent(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(self)=KMSpectrumViewer#pnlHookParent
-End
-//	rev. 748以前
-Function KMSpectrumViewerPnlHook(STRUCT WMWinHookStruct &s)
-	KillControl/W=$s.winName liveC
-	SetWindow $s.winName userData(live)="0"
-	SetWindow $s.winName hook(self)=KMSpectrumViewer#pnlHook
-	printf "%s%s was updated.\r", PRESTR_CAUTION, s.winName
-End
-Function KMSpectrumViewerPnl2HookParent(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(KMSpectrumViewerPnl)=KMSpectrumViewer#pnlHookParent
 End
