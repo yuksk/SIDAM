@@ -407,9 +407,14 @@ Static Function pnl(String LVName)
 	endif
 	
 	//	初期設定
-	String dfTmp = pnlInit(LVName)
 	DFREF dfrSav = GetDataFolderDFR()
+	String dfTmp = SIDAMNewDF(LVName,"KMLineSpectraPnl")
 	SetDataFolder $dfTmp
+	
+	Make/N=(1,1) $PNL_W
+	Make/N=1 $PNL_X, $PNL_Y, $PNL_B1, $PNL_B2
+	Make/N=(1,3) $PNL_C
+	Make/T/N=2 $PNL_T = {"1","2"}
 	
 	Wave w = KMGetImageWaveRef(LVName)
 	int i
@@ -458,21 +463,6 @@ Static Function pnl(String LVName)
 	pnlSetParent(LVName,pnlName)
 	
 	SetDataFolder dfrSav
-End
-//-------------------------------------------------------------
-//	パネル初期設定
-//-------------------------------------------------------------
-Static Function/S pnlInit(String grfName)
-	String dfSav = KMNewTmpDf(grfName,"KMLineSpectraPnl")
-	String dfTmp = GetDataFolder(1)
-	
-	Make/N=(1,1) $PNL_W
-	Make/N=1 $PNL_X, $PNL_Y, $PNL_B1, $PNL_B2
-	Make/N=(1,3) $PNL_C
-	Make/T/N=2 $PNL_T = {"1","2"}
-	
-	SetDataFolder $dfSav
-	return dfTmp
 End
 //-------------------------------------------------------------
 //	指定されたウインドウを親ウインドウにする
@@ -620,8 +610,7 @@ End
 Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	String prtName = GetUserData(s.winName,"","parent")
 	
-	DoWindow $prtName
-	if (V_Flag)
+	if (SIDAMWindowExists(prtName))
 		pnlResetParent(prtName,s.winName)
 	endif
 	
@@ -759,7 +748,7 @@ Static Function/S pnlRightclickMenu()
 	
 	String pnlName = WinName(0,1)	
 	int mode = str2num(GetUserData(pnlName,"","mode"))
-	return KMAddCheckmark(mode, "Raw data;Interpolate;ImageLineProfile")
+	return SIDAMAddCheckmark(mode, "Raw data;Interpolate;ImageLineProfile")
 End
 //-------------------------------------------------------------
 //	右クリックメニューの実行項目
@@ -852,7 +841,7 @@ End
 //	断面図出力用パネル定義
 //******************************************************************************
 Static Function outputPnl(String profileGrfName)
-	if (WhichListItem("Save",ChildWindowList(profileGrfName)) != -1)
+	if (SIDAMWindowExists(profileGrfName+"#Save"))
 		return 0
 	endif
 	

@@ -124,8 +124,7 @@ Function KMGetVarLimits(pnlName,ctrlName,kind)
 	String pnlName, ctrlName
 	int kind	//	0: 最小値, 1: 最大値, 2: ステップ
 	
-	DoWindow $pnlName
-	if (!V_Flag)
+	if (!SIDAMWindowExists(pnlName))
 		return NaN
 	endif
 	ControlInfo/W=$pnlName $ctrlName
@@ -377,7 +376,7 @@ Function KMClickButton(pnlName,ctrlName,eventCode)
 	String pnlName, ctrlName
 	Variable eventCode
 	
-	if (!KMWindowExists(pnlName))
+	if (!SIDAMWindowExists(pnlName))
 		return 1
 	endif
 	
@@ -411,7 +410,7 @@ End
 //		実際にクリックするのと同じように(厳密に同じではない)コントロール関数を呼び出す、checkbox用
 //******************************************************************************
 Function KMClickCheckBox(String pnlName, String ctrlName)
-	if (!KMWindowExists(pnlName))
+	if (!SIDAMWindowExists(pnlName))
 		return 1
 	endif
 	
@@ -456,7 +455,7 @@ Function KMClickSetVariable(pnlName,ctrlName,eventCode)
 	String pnlName, ctrlName
 	Variable eventCode
 	
-	if (!KMWindowExists(pnlName))
+	if (!SIDAMWindowExists(pnlName))
 		return 1
 	endif
 	
@@ -506,7 +505,7 @@ Function KMClickPopupMenu(pnlName, ctrlName, popNum, popStr)
 	String pnlName, ctrlName, popStr
 	Variable popNum
 	
-	if (!KMWindowExists(pnlName))
+	if (!SIDAMWindowExists(pnlName))
 		return 1
 	endif
 	

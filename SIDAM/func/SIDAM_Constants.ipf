@@ -10,13 +10,13 @@
 //------------------------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8		//	developed with Igor Pro 8, and does not mean Igor Pro 8 is required
 Constant SIDAM_VERSION_MINOR = 1
-Constant SIDAM_VERSION_PATCH = 4
+Constant SIDAM_VERSION_PATCH = 5
 
 //------------------------------------------------------------------------------------------------
 //	Data Folder
 //------------------------------------------------------------------------------------------------
-StrConstant SIDAM_DF = "root:'_SIDAM'"					//	the temporary datafolder
-StrConstant SIDAM_DF_CTAB = "root:'_SIDAM':ctable:"
+StrConstant SIDAM_DF = "root:Packages:SIDAM"			//	the temporary datafolder
+StrConstant SIDAM_DF_CTAB = "root:Packages:SIDAM:ctable:"
 StrConstant SIDAM_DF_SETTINGS = "settings"				//	header information is stored in this datafolder
 
 //------------------------------------------------------------------------------------------------

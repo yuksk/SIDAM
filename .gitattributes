@@ -1,0 +1,13 @@
+.git* export-ignore
+
+*.ipf diff=igorpro
+*.ipf whitespace=cr-at-eol
+
+# mark files as binary
+*.ibw binary
+*.ifn binary
+*.pdf binary
+*.eps binary
+*.ai binary
+*.xlsx binary
+*.png binary

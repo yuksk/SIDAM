@@ -1,0 +1,2 @@
+[diff "igorpro"]
+xfuncname = "^([[:space:]]*(.*[Ff]unction|Macro|Window|Proc|Structure).*)$"

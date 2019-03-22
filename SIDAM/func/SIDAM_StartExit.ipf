@@ -6,7 +6,7 @@
 #endif
 
 #include "SIDAM_Constants"
-#include "KM Utilities_Str"		//	for KMGetPath
+#include "SIDAM_Utilities_misc"	//	for SIDAMPath
 #include "SIDAM_Hook"				//	for hook functions
 #include "SIDAM_Compatibility"	//	for SIDAMBackwardCompatibility
 
@@ -25,9 +25,9 @@ Function SIDAMStart()
 	
 	Execute/P "COMPILEPROCEDURES "
 	
-	SetIgorHook BeforeFileOpenHook = KMFileOpenHook
-	SetIgorHook BeforeExperimentSaveHook = KMBeforeExperimentSaveHook
-	SetIgorHook AfterCompiledHook = KMAfterCompiledHook
+	SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
+	SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
+	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
 End
 
 Static Function makeProcFile()
@@ -68,7 +68,7 @@ End
 //	make a list of ipf files under subFolder
 Static Function/WAVE fnList(String subFolder)
 	String pathName = UniqueName("tmpPath",12,0)
-	NewPath/O/Q/Z $pathName, KMGetPath()+subFolder
+	NewPath/O/Q/Z $pathName, SIDAMPath()+subFolder
 	
 	String listStr = IndexedFile($pathName,-1,".ipf") + IndexedFile($pathName,-1,".lnk")
 	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
@@ -89,7 +89,7 @@ End
 //-----------------------------------------------------------------------
 Static Function/S getCtabGroups()
 	Variable refNum
-	String pathStr = KMGetPath()+SIDAM_FOLDER_COLOR+":"
+	String pathStr = SIDAMPath()+SIDAM_FOLDER_COLOR+":"
 	
 	//	Open ctab.ini if exists. If not, open ctab.default.ini.
 	Open/R/Z refNum as (pathStr+SIDAM_FILE_COLORLIST)
@@ -97,14 +97,20 @@ Static Function/S getCtabGroups()
 		Open/R refNum as (pathStr+SIDAM_FILE_COLORLIST_DEFAULT)
 	endif
 	
-	//	return the first line except for comment lines as the list
-	String listStr
+	//	return a list of the first item of each line except for comment lines
+	String listStr = "", buffer
+	int i
 	do
-		FReadLine refNum, listStr
-		if (CmpStr(listStr[0,1],"//"))
-			break
+		FReadLine refNum, buffer
+		//	exclude comment
+		i = strsearch(buffer,"//",0)
+		if (i == 0)
+			continue
+		elseif (i != -1)
+			buffer = buffer[0,i-1]
 		endif
-	while (strlen(listStr))
+		listStr += SelectString(strlen(buffer),"",StringFromList(0,buffer)+";")
+	while (strlen(buffer))
 	Close refNum
 	
 	return listStr
@@ -114,9 +120,9 @@ End
 //	Exit SIDAM
 //******************************************************************************
 Function sidamExit()
-	SetIgorHook/K BeforeFileOpenHook = KMFileOpenHook
-	SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
-	SetIgorHook/K BeforeExperimentSaveHook = KMBeforeExperimentSaveHook
+	SetIgorHook/K BeforeFileOpenHook = SIDAMFileOpenHook
+	SetIgorHook/K AfterCompiledHook = SIDAMAfterCompiledHook
+	SetIgorHook/K BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
 	Execute/P/Q/Z "DELETEINCLUDE \""+SIDAM_FILE_INCLUDE+"\""
 	Execute/P/Q/Z "DELETEINCLUDE \""+KM_FILE_INCLUDE+"\""			//	backward compatibility
 	Execute/P/Q/Z "SetIgorOption poundUndefine=SIDAMshowProc"

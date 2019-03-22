@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMUtilHelp
 
-#include "KM Utilities_Str"
+#include "SIDAM_Utilities_misc"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -21,7 +21,7 @@ Function KMOpenHelpNote(
 	
 	//	パラメータの検証
 	if (!ParamIsDefault(pnlName))
-		if (!KMWindowExists(pnlName))
+		if (!SIDAMWindowExists(pnlName))
 			return 2		//	呼び出したパネルの名前が正しくない(存在しない)場合
 		endif
 		if (strlen(GetUserData(pnlName,"","KMOpenHelpNote")))	//	既にヘルプウインドウが開かれていたらフォーカスして終了
@@ -30,7 +30,7 @@ Function KMOpenHelpNote(
 		endif
 	endif
 	
-	NewPath/O/Q/Z KMHelp, KMGetPath() + SIDAM_FOLDER_HELP
+	NewPath/O/Q/Z KMHelp, SIDAMPath() + SIDAM_FOLDER_HELP
 	OpenNoteBook/K=1/P=KMHelp/R/Z (noteFileName+".ifn")
 	if (V_flag)
 		OpenNoteBook/K=1/P=KMHelp/R/Z (noteFileName+".ifn.lnk")	//	ショートカットでもいいように
@@ -71,7 +71,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 	
-	if(!KMWindowExists(parent))
+	if(!SIDAMWindowExists(parent))
 		return 0
 	endif
 	
@@ -94,7 +94,7 @@ End
 //	Open a help file specified by filename
 //******************************************************************************
 Function/S SIDAMOpenExternalHelp(String filename)
-	String pathStr = KMGetPath() + SIDAM_FOLDER_HELP + ":" + filename
+	String pathStr = SIDAMPath() + SIDAM_FOLDER_HELP + ":" + filename
 	//	This should be only for Windows. I don't know how to do it for Macintosh.
 	BrowseURL "file:///"+ParseFilePath(5,pathStr,"\\",0,0)
 End

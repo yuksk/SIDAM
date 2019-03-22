@@ -1,10 +1,6 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
 
-#ifndef SIDAMstarting
-#include "KM Utilities_Str"		//	for KMUnquoteName
-#endif
-
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -22,9 +18,12 @@ Function SIDAMBackwardCompatibility()
 	//	Change the unit string from ﾅ \u00c5 (Igor Pro 6 -> 7)
 	angstromStr(root:)
 
-	//	Rename the temporary folder from '_KM' to '_SIDAM'
-	updateTemporaryDF("")
-
+	//	Set the temporary folder to root:Packages:SIDAM
+	updateDF("")
+	
+	//	Rename KM*Hook to SIDAM*Hook
+	updateHookFunctions()
+	
 	//	If All KM Procedures.ipf is included, it means that this function is called in opening 
 	//	an experiment file in which KM was used and that #include "All KM Procedures" exists
 	//	in the procedure window. The following is to remove the dependence to the old file.
@@ -118,39 +117,124 @@ Static Function changeUnitStr(Wave w, int dim)
 	return 1
 End
 
-//--------------------------------------------------------------------------------------
+StrConstant OLD_DF1 = "root:'_KM'"
+StrConstant OLD_DF2 = "root:'_SIDAM'"
 
-StrConstant OLD_DF = "root:'_KM'"
-
-Static Function updateTemporaryDF(String listStr)
-	if (!strlen(listStr))
-		listStr = WinList("*",";","WIN:1")
+Static Function updateDF(String grfPnlList)
+	//	When grfPnlList is given, update the information recorded
+	//	in userdata of each window.
+	if (strlen(grfPnlList))
+		int i
+		for (i = 0; i < ItemsInList(grfPnlList); i++)
+			updateDFUserData(StringFromList(i,grfPnlList))
+		endfor
+		return 0
 	endif
 	
-	int i, j
-	String win, chdList, dfTmp
-	for (i = 0; i < ItemsInList(listStr); i++)
-		win = StringFromList(i,listStr)
-		chdList = ChildWindowList(win)
-		if (strlen(chdList))
-			for (j = 0; j < ItemsInList(chdList); j++)
-				updateTemporaryDF(win+"#"+StringFromList(j,chdList))
-			endfor
-		endif
-		dfTmp = GetUserData(win,"","dfTmp")
-		if (!strlen(dfTmp))
-			continue
-		endif
-		SetWindow $win userData(dfTmp) = ReplaceString(OLD_DF,dfTmp,SIDAM_DF)
-	endfor
+	//	When grfPnlList is empty (this is how this function called
+	//	from SIDAMBackwardCompatibility), update the datafolders.
+	DFREF dfrSav = GetDataFolderDFR()
 	
-	if (DataFolderExists(OLD_DF))
-		RenameDataFolder $OLD_DF $KMUnquoteName(StringFromList(1,SIDAM_DF,":"))
+	if (DataFolderExists(OLD_DF1))
+		NewDataFolder/O/S root:Packages
+		MoveDataFolder $OLD_DF1 :
+		RenameDataFolder '_KM', SIDAM
+	elseif (DataFolderExists(OLD_DF2))
+		NewDataFolder/O/S root:Packages
+		MoveDataFolder $OLD_DF2 :
+		RenameDataFolder '_SIDAM', SIDAM
 	endif
 	
 	if (DataFolderExists(SIDAM_DF_CTAB+"KM"))
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
+	endif	
+	
+	updateDFMatplotlib()
+	
+	SetDataFolder dfrSav
+	
+	String winListStr = WinList("*",";","WIN:65")
+	if (strlen(winListStr))
+		updateDF(winListStr)
 	endif
+End
+
+Static Function updateDFMatplotlib()
+	int exist1 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib1")
+	int exist2 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib2")
+	
+	if (!exist1 && !exist2)
+		return 0
+	elseif (exist1 && !exist2)
+		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib1") Matplotlib
+		return 0
+	elseif (!exist1 && exist2)
+		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib2") Matplotlib
+		return 0
+	endif
+	
+	//	The remaining case is both 1 and 2 exist
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder $SIDAM_DF_CTAB
+	
+	RenameDataFolder Matplotlib1 Matplotlib
+	SetDataFolder Matplotlib2
+	int i
+	for (i = CountObjectsDFR(:,4)-1; i >= 0; i--)
+		MoveDataFolder $GetIndexedObjNameDFR(:,4,i) ::Matplotlib
+	endfor
+	SetDataFolder ::
+	KillDataFolder Matplotlib2
+	
+	SetDataFolder dfrSav
+End
+
+Static Function updateDFUserData(String grfName)
+	String chdList = ChildWindowList(grfName), chdName
+	String oldTmp, newTmp
+	int i, j, n0, n1
+	for (i = 0; i < ItemsInList(chdList); i++)
+		chdName = StringFromList(i,chdList)
+		if (CmpStr(chdName,"Color"))
+			updateDFUserData(grfName+"#"+chdName)
+		else
+			String oldList = GetUserData(chdName,"","KMColorSettings"), newList="", item
+			for (j = 0; j < ItemsInList(oldList); j++)
+				item = StringFromList(j,oldList)
+				n0 = strsearch(item,"ctab=",0)
+				n1 = strsearch(item,":ctable:",n1)
+				newList += ReplaceString(item[n0+5,n1+7],item,SIDAM_DF_CTAB)+";"
+			endfor
+			SetWindow $chdName userData(SIDAMColorSettings)=newList
+			SetWindow $chdName userData(KMColorSettings)=""
+		endif
+	endfor
+	oldTmp = GetUserData(grfName,"","dfTmp")
+	if (strlen(oldTmp))
+		newTmp = ReplaceString(OLD_DF1,oldTmp,SIDAM_DF)
+		newTmp = ReplaceString(OLD_DF2,newTmp,SIDAM_DF)
+		SetWindow $grfName userData(dfTmp)=newTmp
+	endif
+End
+
+Static Function updateHookFunctions()
+	SetIgorHook BeforeFileOpenHook
+	if (WhichListItem("ProcGlobal#KMFileOpenHook",S_info) >= 0)
+		SetIgorHook/K BeforeFileOpenHook = KMFileOpenHook
+		SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
+	endif
+	
+	SetIgorHook BeforeExperimentSaveHook
+	if (WhichListItem("ProcGlobal#KMBeforeExperimentSaveHook",S_info) >= 0)
+		SetIgorHook/K BeforeExperimentSaveHook = KMBeforeExperimentSaveHook
+		SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
+	endif
+	
+	SetIgorHook AfterCompiledHook
+	if (WhichListItem("ProcGlobal#KMAfterCompiledHook",S_info) >= 0)
+		SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
+		SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
+	endif	
 End
 
 //--------------------------------------------------------------------------------------
@@ -159,11 +243,92 @@ End
 //******************************************************************************
 //	deprecated functions, to be removed in future
 //******************************************************************************
+
+//	print caution in the history window
+Static Function deprecatedCaution(String newName)
+	if (strlen(newName))
+		printf "%s%s is deprecated. Use %s.\r", PRESTR_CAUTION, GetRTStackInfo(2), newName
+	else
+		printf "%s%s is deprecated and will be removed in future.\r", PRESTR_CAUTION, GetRTStackInfo(2)
+	endif
+
+	String info = GetRTStackInfo(3)
+	Make/T/N=3/FREE tw = StringFromList(p,StringFromList(ItemsInList(info)-3,info),",")
+	if (strlen(tw[0]))
+		printf "%s(called from \"%s\" in %s (line %s))\r", PRESTR_CAUTION, tw[0], tw[1], tw[2]
+	endif
+End
+
+//	v8.1.3 ----------------------------------------------------------------------
+Function KM_ImageColorMinRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	SIDAM_ImageColorRGBValues(grfName, imgName, "minRGB", s)
+End
+
+Function KM_ImageColorMaxRGBValues(String grfName, String imgName, STRUCT RGBColor &s)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	SIDAM_ImageColorRGBValues(grfName, imgName, "maxRGB", s)
+End
+
+Function KM_ImageColorMinRGBMode(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	return SIDAM_ImageColorRGBMode(grfName,imgName,"minRGB")
+End
+
+Function KM_ImageColorMaxRGBMode(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ImageColorRGBMode")
+	return SIDAM_ImageColorRGBMode(grfName,imgName,"maxRGB")
+End
+
+Function KM_ColorTableLog(String grfName, String imgName)
+	deprecatedCaution("SIDAM_ColorTableLog")
+	return SIDAM_ColorTableLog(grfName, imgName)
+End
+
+Function KMColor([String grfName, String imgList, String ctable, int rev, int log,
+	Wave minRGB, Wave maxRGB, int history)
+	deprecatedCaution("SIDAMColor")
+	SIDAMColor(grfName=grfName, imgList=imgList, ctable=ctable, rev=rev, log=log,\
+	minRGB=minRGB, maxRGB=minRGB, history=history)
+End
+
+Function KMWindowExists(String pnlName)
+	deprecatedCaution("SIDAMWindowExists")
+	return SIDAMWindowExists(pnlName)
+End
+
+Function/S KMDisplay([Wave/Z w, int traces, int history	])
+	deprecatedCaution("SIDAMDisplay")
+	SIDAMDisplay(w,traces=traces,history=history)
+End
+
+Function KMKillVariablesStrings(DFREF dfr)
+	deprecatedCaution("SIDAMKillVariablesStrings")
+	SIDAMKillVariablesStrings(dfr)
+End
+
+Function/S KMAddCheckmark(Variable num, String menuStr)
+	deprecatedCaution("SIDAMAddCheckmark")
+	SIDAMAddCheckmark(num, menuStr)
+End
+
+Function/S KMGetPath()
+	deprecatedCaution("SIDAMPath")
+	SIDAMPath()
+End
+
+Function/S KMUnquoteName(String str)
+	deprecatedCaution("")
+	if (!CmpStr("'",str[strlen(str)-1]))
+		str = str[0,strlen(str)-2]
+	endif
+	if (!CmpStr("'",str[0]))
+		str = str[1,strlen(str)-1]
+	endif
+	return str
+End
+
 //	v8.1.0 ----------------------------------------------------------------------
-//******************************************************************************
-//	KMGetMousePos
-//		マウスカーソル位置の座標を取得します
-//******************************************************************************
 Structure KMMousePos
 	//	入力
 	STRUCT WMWinHookStruct winhs
@@ -185,9 +350,8 @@ Function KMGetMousePos(s, [winhs, grid])
 	STRUCT WMWinHookStruct &winhs
 	Variable grid
 
-	printf "%sKMGetMousePos is deprecated and will be removed.\r", PRESTR_CAUTION
-	printf "%sUse SIDAMGetMousePos.\r", PRESTR_CAUTION
-		
+	deprecatedCaution("SIDAMGetMousePos")
+	
 	if (!ParamIsDefault(winhs))
 		s.winhs = winhs
 	endif
@@ -278,9 +442,11 @@ Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 End
 
 //	v8.0.2 ----------------------------------------------------------------------
-Function/S KMSuffixStr(num,[digit])
-	int num, digit
+Function/S KMSuffixStr(int num,[int digit])
 	
+	deprecatedCaution("")
+	printf "%sUse \"%s%dd\" in the format string of printf.\r", PRESTR_CAUTION, "%0", digit
+			
 	if (ParamIsDefault(digit))
 		digit = 3
 	endif
@@ -293,14 +459,11 @@ Function/S KMSuffixStr(num,[digit])
 		rtnStr = "0"+rtnStr
 	endfor
 	
-	printf "%sKMSuffixStr is deprecated and will be removed.\r", PRESTR_CAUTION
-	printf "%sUse %s%dd in the format string of prinf.\r", PRESTR_CAUTION, "%0", digit
-	
 	return rtnStr
 End
 
 Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
-	printf "%sKMCtrlClicked is deprecated and will be removed.\r", PRESTR_CAUTION
+	deprecatedCaution("")
 	ControlInfo/W=$s.winName $grpName
 	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
 End

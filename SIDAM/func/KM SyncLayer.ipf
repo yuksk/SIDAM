@@ -57,8 +57,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	for (i = 0; i < n; i++)
 		grfName = StringFromList(i, s.list)
-		DoWindow $grfName
-		if (!V_Flag)
+		if (!SIDAMWindowExists(grfName))
 			s.errMsg += "the window list contains a window not found."
 			return 0
 		endif

@@ -129,7 +129,7 @@ Static Function isInvalidWindow(String grfName)
 	if (!strlen(grfName))
 		printf "%sgraph not found.\r", errMsg
 		return 1
-	elseif (!KMWindowExists(grfName))
+	elseif (!SIDAMWindowExists(grfName))
 		printf "%sa graph named %s is not found.\r", errMsg, grfName
 		return 1
 	elseif (!strlen(ImageNameList(grfName,";")))
@@ -395,7 +395,7 @@ End
 //	設定用パネル
 //******************************************************************************
 Static Function pnl(String grfName)
-	if (WhichListItem("Scalebar",ChildWindowList(grfName)) != -1)
+	if (SIDAMWindowExists(grfName+"#Scalebar"))
 		return 0
 	endif
 	

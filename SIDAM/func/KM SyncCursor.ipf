@@ -59,8 +59,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	endif
 	
 	for (i = 0; i < n; i++)
-		DoWindow $StringFromList(i,s.list)
-		if (!V_Flag)
+		if (!SIDAMWindowExists(StringFromList(i,s.list)))
 			s.errMsg += "\"" + StringFromList(i,s.list) + "\" is not found."
 			return 0
 		endif

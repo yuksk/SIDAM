@@ -79,10 +79,8 @@ End
 //	パネル初期設定
 //-------------------------------------------------------------
 Static Function/WAVE pnlInit(Wave srcw, String pnlName, String &dfTmp)
-	String dfSav = KMNewTmpDf(pnlName,"KMSpectrumViewerPnl")		//  一時データフォルダ作成
-	Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
-	dfTmp = GetDataFolder(1)
-	SetDataFolder $dfSav
+	dfTmp = SIDAMNewDF(pnlName,"KMSpectrumViewerPnl")
+	Duplicate/O KMGetBias(srcw, 1) $(dfTmp+NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
 	return tw
 End
 //-------------------------------------------------------------
@@ -121,8 +119,7 @@ Static Function pnlResetRelation(String mouseWin, String specWin)
 	//	スペクトル表示ウインドウについての処理
 	//	指定されたマウス位置取得ウインドウをリストから削除する
 	//	リストが空になってもスペクトル表示ウインドウのフック関数は解除しない(メニュー等の表示が必要)
-	DoWindow $specWin	//	KM非動作中にウインドウが閉じられた場合の処理からもこの関数が呼ばれることに備えて
-	if (V_Flag)
+	if (SIDAMWindowExists(specWin))	//	SIDAM非動作中にウインドウが閉じられた場合の処理からもこの関数が呼ばれることに備えて
 		newList = RemoveFromList(mouseWin, GetUserData(specWin, "", "parent"))
 		SetWindow $specWin userData(parent)=newList
 	endif
@@ -488,7 +485,7 @@ Static Function/S rightclickMenuComplex()
 		trcName = StringFromList(i,trcList)
 		if (WaveType(TraceNameToWaveRef(win,trcName)) & 0x01)
 			int mode = NumberByKey("cmplxMode(x)",TraceInfo(win, trcName, 0),"=")
-			return KMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
+			return SIDAMAddCheckmark(mode-1, "real only;imaginary only;magnitude;phase in radian")
 		endif
 	endfor
 	return ""
@@ -504,7 +501,7 @@ End
 Static Function/S rightclickMenuLive()
 	String win = WinName(0,1)
 	int num = strlen(win) ? str2num(GetUserData(win,"","live")) : 0
-	return KMAddCheckmark(num, "Mouse;Cursor A;None;")
+	return SIDAMAddCheckmark(num, "Mouse;Cursor A;None;")
 End
 //-------------------------------------------------------------
 //	マウス座標を取得するウインドウを変更する

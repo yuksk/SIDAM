@@ -6,25 +6,21 @@
 #endif
 
 //******************************************************************************
-//  KMNewTmpDf
-//    作業用一時フォルダの作成
-//    続けて変数等を作成するために、データフォルダは移動したまま
-//    ただし、実行前のデータフォルダのパスを返す
+//	Create SIDAM temporary folder root:Packages:SIDAM:procName:grfName and
+//	return a string containing the path.
 //******************************************************************************
-Function/S KMNewTmpDf(grfName,procName)
-	String procName, grfName
-	
-	String dfSav = GetDataFolder(1)
-	NewDataFolder/O/S $SIDAM_DF
-	if (strlen(procName))
-		NewDataFolder/O/S $(procName)
-		if (strlen(grfName))
-			NewDataFolder/O/S $(grfName)
-		endif
-	endif
-	return dfSav
+Function/S SIDAMNewDF(String grfName, String procName)
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder root:
+	String path = SIDAM_DF+":"+procName+":"+grfName
+	int i
+	for (i = 1; i < ItemsInList(path,":"); i++)
+		NewDataFolder/O/S $StringFromList(i,path,":")
+	endfor
+	String dfTmp = GetDataFolder(1)
+	SetDataFolder dfrSav
+	return dfTmp
 End
-
 
 //******************************************************************************
 //	KMWaveList
@@ -75,16 +71,9 @@ End
 //		ウインドウが存在しない、ウエーブが存在しない、指定ウインドウにトレースが存在しない
 //		指定ウエーブが指定ウインドウに表示されていない、の場合には空文字列を返す
 //******************************************************************************
-Function/S KMWaveToTraceName(pnlName,w)
-	String pnlName
-	Wave w
+Function/S KMWaveToTraceName(String pnlName, Wave w)
 	
-	DoWindow $pnlName
-	if (!V_Flag)
-		return ""
-	endif
-	
-	if (!WaveExists(w))
+	if (!SIDAMWindowExists(pnlName) || !WaveExists(w))
 		return ""
 	endif
 	
@@ -294,31 +283,15 @@ Function/WAVE KMEndEffect(w,endeffect)
 End
 
 //******************************************************************************
-//	dfr 以下にある V_*, S_* を削除する
+//	return number of waves selected in the data browser
 //******************************************************************************
-Function KMKillVariablesStrings(DFREF dfr)
-	DFREF dfrSav = GetDataFolderDFR()
-	String listStr
-	int i, n
-	
-	//	データフォルダに対しては自身を再帰的に実行
-	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
-		KMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
-	endfor
-	
-	SetDataFolder dfr
-	
-	//	Variable
-	listStr = VariableList("V_*", ";", 4)
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillVariables $StringFromList(i, listStr)
-	endfor
-	
-	//	String
-	listStr = StringList("S_*", ";")
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillStrings $StringFromList(i, listStr)
-	endfor
-	
-	SetDataFolder dfrSav
+Function SIDAMnumberOfSelectedWaves()
+	int i = 0, n = 0
+	if (!strlen(GetBrowserSelection(-1)))
+		return 0
+	endif
+	do
+		n += WaveExists($GetBrowserSelection(i))
+	while(strlen(GetBrowserSelection(++i)))
+	return n
 End

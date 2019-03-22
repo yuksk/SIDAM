@@ -274,7 +274,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 					break
 				case 5:	//	F5
 					if (str2num(GetUserData(s.winName,"","dim"))==2)
-						KMColor(grfName=s.winName+"#image")
+						SIDAMColor(grfName=s.winName+"#image")
 						return 1
 					endif
 					break
@@ -356,7 +356,7 @@ Static Function keySpecial(STRUCT WMWinHookStruct &s)
 			KMRange(grfName=s.winName+"#image")
 			break
 		case 5:	//	F5
-			KMColor(grfName=s.winName+"#image")
+			SIDAMColor(grfName=s.winName+"#image")
 			break
 	endswitch
 	return 0
@@ -514,7 +514,7 @@ Static Function pnlSetVarAxlen(STRUCT WMSetVariableAction &s)
 	//	表示ウエーブを削除しても wavez が表示されたままの扱いになってしまう (Igorのバグ?)
 	//	そのため、s.win を閉じる時に、エラーが出ないように s.win+#line を先に閉じる
 	//	したがって、この関数が呼ばれる際に　s.win+#line が存在しないタイミングがあるため、存在チェックを行う
-	if (KMWindowExists(s.win+"#line"))
+	if (SIDAMWindowExists(s.win+"#line"))
 		ModifyWaterfall/W=$(s.win+"#line") axlen=s.dval
 	endif
 End
@@ -549,7 +549,7 @@ Static Function/S pnlRightClickMenu(int mode)
 			return rtnStr
 			
 		case 1:	//	dim
-			return KMAddCheckmark(dim-1, "1D traces;2D image")	//	nan　に対しては空文字を返す
+			return SIDAMAddCheckmark(dim-1, "1D traces;2D image")	//	nan　に対しては空文字を返す
 			
 		case 2:	//	complex
 			int isComplex = WaveType($GetUserData(pnlName,"","src")) & 0x01
@@ -558,10 +558,10 @@ Static Function/S pnlRightClickMenu(int mode)
 				return ""
 			elseif (dim==2)
 				cmplxMode = NumberByKey("imCmplxMode",ImageInfo(pnlName+"#image", "", 0),"=")
-				return KMAddCheckmark(cmplxMode, MENU_COMPLEX2D)
+				return SIDAMAddCheckmark(cmplxMode, MENU_COMPLEX2D)
 			else
 				cmplxMode = NumberByKey("cmplxMode(x)",TraceInfo(pnlName+"#line", "", 0),"=")
-				return KMAddCheckmark(cmplxMode, MENU_COMPLEX1D)
+				return SIDAMAddCheckmark(cmplxMode, MENU_COMPLEX1D)
 			endif
 			
 		case 3:	//	Free

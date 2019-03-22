@@ -44,7 +44,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	if (!strlen(s.grfName))
 		s.errMsg += "graph not found."
 		return 0
-	elseif (!KMWindowExists(s.grfName))
+	elseif (!SIDAMWindowExists(s.grfName))
 		s.errMsg += "a graph named \"" + s.grfName + "\" is not found."
 		return 0
 	endif
@@ -186,7 +186,7 @@ Static Function isValidArguments2(STRUCT paramStruct2 &s)
 	if (!strlen(s.grfName))
 		s.errMsg += "graph not found."
 		return 0
-	elseif (!KMWindowExists(s.grfName))
+	elseif (!SIDAMWindowExists(s.grfName))
 		s.errMsg += "a graph named \"" + s.grfName + "\" is not found."
 		return 0
 	endif
@@ -264,8 +264,7 @@ End
 //	パネル表示
 //******************************************************************************
 Static Function pnl(String grfName)
-	//	重複チェック
-	if (WhichListItem("Traces",ChildWindowList(grfName)) != -1)
+	if (SIDAMWindowExists(grfName+"#Traces"))
 		return 0
 	endif
 	

@@ -93,7 +93,7 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 	//	Fetch function names from functions.ini (or functions.default.ini).
 	String fnName = fetchFunctionName(extStr)
 	if (!strlen(fnName))	//	function is not found
-		if (strsearch(GetRTStackInfo(3),"KMFileOpenHook",0) >= 0)		//	called by drag && drop
+		if (strsearch(GetRTStackInfo(3),"SIDAMFileOpenHook",0) >= 0)		//	called by drag && drop
 			AbortOnValue 1, 1
 		else
 			printf "%sNo file loader is found for %s\r", PRESTR_CAUTION, pathStr
@@ -129,7 +129,7 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 		
 		int isCtrlPressed = GetKeyState(1)&1
 		if (isCtrlPressed)
-			KMDisplay(w=w, history=1)
+			SIDAMDisplay(w, history=1)
 		endif
 		return w
 	endfor
@@ -138,7 +138,7 @@ End
 Static Function/S fetchFunctionName(String extStr)
 	//	Open functions.ini if exists. If not, open functions.default.ini.
 	Variable refNum
-	String pathStr = KMGetPath()+SIDAM_FOLDER_LOADER+":"
+	String pathStr = SIDAMPath()+SIDAM_FOLDER_LOADER+":"
 	Open/R/Z refNum as (pathStr+SIDAM_FILE_LOADERLIST)
 	if (V_flag)
 		Open/R refNum as (pathStr+SIDAM_FILE_LOADERLIST_DEFAULT)

@@ -42,28 +42,29 @@ Function/S KMNewPanel(title,width,height,[float,nofixed,kill])
 	return pnlName
 End
 
-
 //******************************************************************************
-//	KMWindowExists
-//		pnlNameが存在するかどうかを確認する。DoWindowがサブパネルには使えないので拡張した。
+// Returns 0 if the window does not exists, !0 otherwise
 //******************************************************************************
-Function KMWindowExists(String pnlName)
-	
-	//	childwindow でなければ単純に DoWindow を実行して終わり
-	if (strsearch(pnlName, "#", 0) == -1)
-		DoWindow $pnlName	//	# を含む場合にはここでエラーが出るので上記の場合分けが必要
-		return V_flag
-	else
-		String hostName = RemoveEnding(ParseFilePath(1,pnlName,"#",1,0),"#")		//	最後についている # を除く
-		String subName = ParseFilePath(0,pnlName,"#",1,0)
-		String listStr = ChildWindowList(hostName)
-		if (ItemsInList(listStr))
-			return WhichListItem(subName, listStr) != -1
-		else
-			return 0
-		endif
+Function SIDAMWindowExists(String pnlName)		//	tested
+	if (!strlen(pnlName))
+		return 0
 	endif
 	
+	int hasChild = strsearch(pnlName, "#", 0) != -1
+	if (!hasChild)
+		DoWindow $pnlName
+		return V_flag
+	endif
+	
+	String hostName = RemoveEnding(ParseFilePath(1,pnlName,"#",1,0),"#")	
+	String subName = ParseFilePath(0,pnlName,"#",1,0)
+
+	//	listStr is empty if "hostName" does not exist or
+	//	"hostName" does not have a child window
+	String listStr = ChildWindowList(hostName)
+	
+	//	if listStr is empty, the following WhichListItem returns -1
+	return WhichListItem(subName, listStr) != -1
 End
 
 

@@ -158,7 +158,7 @@ Static Function/S rightclickMenu(int menuitem)
 		case 0:	//	座標表示設定切り替え
 			
 			mode = str2num(GetUserData(grfName,"","mode"))
-			String menuStr = KMAddCheckmark(mode, COORDINATESMENU)
+			String menuStr = SIDAMAddCheckmark(mode, COORDINATESMENU)
 			
 			Wave/Z w = KMGetImageWaveRef(grfName)
 			if (!WaveExists(w) || numtype(str2num(KMGetSettings(w,4))))		//	ウエーブが存在しない(1D)、または角度が得られない場合
@@ -170,13 +170,13 @@ Static Function/S rightclickMenu(int menuitem)
 			endif
 			
 			Variable isFree = str2num(GetUserData(grfName,"","free"))
-			menuStr += "-;" + KMAddCheckmark(isFree, "free (allows selecting 'between' pixels);")
+			menuStr += "-;" + SIDAMAddCheckmark(isFree, "free (allows selecting 'between' pixels);")
 			
 			return menuStr
 			
 		case 1:	//	ウインドウタイトル切り替え
 			mode = str2num(GetUserData(grfName,"","title"))
-			return KMAddCheckmark(mode, TITLEMENU)
+			return SIDAMAddCheckmark(mode, TITLEMENU)
 		
 		case 2:	//	軸表示切替
 			return SelectString(KMGetAxThick(grfName),"Show","Hide") + " Axis"
@@ -184,7 +184,7 @@ Static Function/S rightclickMenu(int menuitem)
 		case 3:	//	複素数表示切替 (2D/3D)
 			if (isContainedComplexWave(grfName,2))
 				mode = NumberByKey("imCmplxMode",ImageInfo(grfName, "", 0),"=")
-				return KMAddCheckmark(mode, MENU_COMPLEX2D)
+				return SIDAMAddCheckmark(mode, MENU_COMPLEX2D)
 			else
 				return ""
 			endif
@@ -192,7 +192,7 @@ Static Function/S rightclickMenu(int menuitem)
 		case 4:	//	複素数表示切替 (1D)
 			if (isContainedComplexWave(grfName,1))
 				mode = NumberByKey("cmplxMode(x)",TraceInfo(grfName, "", 0),"=")
-				return KMAddCheckmark(mode, MENU_COMPLEX1D)
+				return SIDAMAddCheckmark(mode, MENU_COMPLEX1D)
 			else
 				return ""
 			endif
@@ -568,7 +568,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				KMRange()
 				return 1
 			case 5:		//	F5
-				KMColor()
+				SIDAMColor()
 				return 1
 			case 6:		//	F6
 				KMSubtraction#rightclickDo()
@@ -860,8 +860,8 @@ Function KMDisplayCtrlBarHook(STRUCT WMWinHookStruct &s)	//	rev. 901 -> 903
 	
 	//	rev. 900で導入されたフック関数を設定する
 	SetIgorHook AfterCompiledHook
-	if (strsearch(S_info, "ProcGlobal#KMAfterCompiledHook", 0) == -1)
-		SetIgorHook AfterCompiledHook = KMAfterCompiledHook
+	if (strsearch(S_info, "ProcGlobal#SIDAMAfterCompiledHook", 0) == -1)
+		SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
 	endif
 End
 Function KMImageViewerBarHook(STRUCT WMWinHookStruct &s)
