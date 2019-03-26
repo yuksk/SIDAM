@@ -19,10 +19,28 @@ pause > nul
 echo ------------------------------------------------------
 git log origin/master --oneline --decorate -%status:~9,-1%
 
+:input
 echo ------------------------------------------------------
-echo Press any key to update SIDAM. (Press ctrl+c to quit.)
-pause > nul
-git merge origin master
+set /p input="Press 1 to update SIDAM, 2 to see a detailed log, 3 to quit: "
+if "%input%"=="1" (
+	git merge origin master
+	goto end
+) else if "%input%"=="2" (
+	git log origin/master --decorate -%status:~9,-1%
+	goto input
+) else if "%input%"=="3" (
+	goto confirm
+) else (
+	goto input
+)
+
+:confirm
+set /p input="Do you want to quit without updating? (y/n): "
+if "%input%"=="n" (
+	goto input
+) else if "%input%"=="N" (
+	goto input
+)
 
 :end
 cd %initfd%
