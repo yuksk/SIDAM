@@ -98,7 +98,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		KMRange#rightclickMenu(3), /Q, KMRange#rightclickDo(3)
 	End
 	
-	"Color Table.../F5",/Q, KMColor()
+	"Color Table.../F5",/Q, SIDAMColor()
 	help = {"Change the color table used to display the top image in the active graph."}
 	
 	SubMenu "Sync"

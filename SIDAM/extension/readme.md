@@ -12,7 +12,7 @@ Save this example with an arbitrary file name with an extension of .ipf (but it 
 Menu "SIDAM"
 	SubMenu "Extension"
 		SubMenu "Shortcuts"
-			"Set Autunm/1", /Q, KMColor(ctable="Autumn")
+			"Set Autunm/1", /Q, SIDAMColor(ctable="Autumn")
 		End
 	End
 End
