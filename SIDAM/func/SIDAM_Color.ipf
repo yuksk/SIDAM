@@ -137,6 +137,8 @@ Static Function defaultValues(STRUCT paramStruct &s)
 		case 2:
 			Wave s.minRGB = nanw
 			break
+		default:
+			Wave s.minRGB = zerow
 	endswitch
 
 	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "maxRGB"))
@@ -151,6 +153,8 @@ Static Function defaultValues(STRUCT paramStruct &s)
 		case 2:
 			Wave s.maxRGB = nanw
 			break
+		default:
+			Wave s.maxRGB = zerow
 	endswitch
 End
 

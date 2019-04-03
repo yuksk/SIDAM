@@ -575,7 +575,7 @@ Menu "KMLineProfileMenu", dynamic, contextualmenu
 	"Save...", KMLineProfile#outputPnl(WinName(0,1))
 	"-"
 	KMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
-	KMLineCommon#pnlRightClickMenu(8),/Q, KMColor(grfName=WinName(0,1)+"#image")
+	KMLineCommon#pnlRightClickMenu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
 End
 //-------------------------------------------------------------
 //	右クリックメニューの実行項目
