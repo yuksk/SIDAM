@@ -616,10 +616,10 @@ Static Function pnlRightclickDoPositions(String pnlName)
 			p2 = p1;	q2 = ny-1
 			break
 		case 6:	//	horizontal
-			p1 = 0;	p2 = nx-1;	q1 = DimSize(w,1)/2;	q2 = q1
+			p1 = 0;	p2 = nx-1;	q1 = Ceil(DimSize(w,1)/2)-1;	q2 = q1
 			break
 		case 7:	//	vertial
-			q1 = 0; 	q2 = ny-1;	p1 = DimSize(w,0)/2-1;	p2 = p1;
+			q1 = 0; 	q2 = ny-1;	p1 = Ceil(DimSize(w,0)/2)-1;	p2 = p1;
 			break
 		case 9:	//	exchange
 			Wave cw = KMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
