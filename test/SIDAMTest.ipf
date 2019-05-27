@@ -1,4 +1,4 @@
-﻿#pragma TextEncoding = "UTF-8"
+#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
 #include "unit-testing"
@@ -26,7 +26,7 @@ End
 
 Function SIDAMTest(String filename)
 	if (strlen(filename))
-		RunTest(filename+".ipf")	
+		RunTest(filename+".ipf")
 	else
 		RunTest("SIDAMTest_.+\\.ipf",enableRegExp=1)
 	endif

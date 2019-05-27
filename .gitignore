@@ -1,24 +1,24 @@
 # extension
-/SIDAM/extension/*
-!/SIDAM/extension/readme.md
+src/SIDAM/extension/*
+!src/SIDAM/extension/readme.md
 
 # ctab
-/SIDAM/ctab/*
-!/SIDAM/ctab/CET
-!/SIDAM/ctab/IDL
-!/SIDAM/ctab/Matplotlib
-!/SIDAM/ctab/Nistview
-!/SIDAM/ctab/SIDAM
-!/SIDAM/ctab/Wolfram
-!/SIDAM/ctab/ctab.default.ini
-!/SIDAM/ctab/readme.md
+src/SIDAM/ctab/*
+!src/SIDAM/ctab/CET
+!src/SIDAM/ctab/IDL
+!src/SIDAM/ctab/Matplotlib
+!src/SIDAM/ctab/Nistview
+!src/SIDAM/ctab/SIDAM
+!src/SIDAM/ctab/Wolfram
+!src/SIDAM/ctab/ctab.default.ini
+!src/SIDAM/ctab/readme.md
 
 # fileloader
-/SIDAM/fileloader/*
-!/SIDAM/fileloader/functions.default.ini
-!/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
-!/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
-!/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
-!/SIDAM/fileloader/Load\ RHK\ SM2.ipf
-!/SIDAM/fileloader/Load\ Topometrix.ipf
-!/SIDAM/fileloader/readme.md
+src/SIDAM/fileloader/*
+!src/SIDAM/fileloader/functions.default.ini
+!src/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
+!src/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
+!src/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
+!src/SIDAM/fileloader/Load\ RHK\ SM2.ipf
+!src/SIDAM/fileloader/Load\ Topometrix.ipf
+!src/SIDAM/fileloader/readme.md
