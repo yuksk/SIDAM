@@ -13,46 +13,39 @@ Menu "SIDAM", dynamic
 	SubMenu "Load Data..."
 		"Load Data...", /Q, SIDAMLoadData("", history=1)
 		help = {"Loads data from binary/text files into Igor waves."}
-		
+
 		"Load Data From a Folder...", /Q, SIDAMLoadData("", folder=1, history=1)
 		help = {"Loads all data in a folder."}
 	End
-	
+
 	Submenu "Display..."
 		KMPreview#menu("/F3"), /Q, KMPreviewPnl()
 		help = {"Display a preview panel"}
-		
+
 		SIDAMDisplay#menu(0,"/F3"), /Q, SIDAMDisplay#menuDo()
 		help = {"Display a wave(s)"}
-		
+
 		SIDAMDisplay#menu(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
 		help = {"Display a 2D wave as traces"}
-		
+
 		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
-	
+
 	"-"
-	
+
 	"Preference", /Q, SIDAMPrefsPnl()
-	
+
 	Submenu "Help"
 		"Command List", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_CMD)
 		help = {"Shows a list of KM commands"}
-		
+
 		"Cheet sheet of shortcuts", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_SHORTCUTS)
 	End
-	
+
 	Submenu "Extension"
 	End
-	
-	"-"
-	
-	Submenu "Nanonis tools"
-		"Make a log wave of 3ds files", /Q, KMNanonis3dsLog("",history=1)
-		KMLoadNanonisSXMNSP#menu(), /Q, KMNanonisConcatMultipass(GetDataFolderDFR(),history=1)
-	End	
-	
+
 	Submenu "Developer"
 		SIDAMShowProcedures#menu(), /Q, SIDAMshowProcedures()
 		"List of deprecated function", /Q, print SIDAMDeprecatedFunctions()
@@ -60,9 +53,9 @@ Menu "SIDAM", dynamic
 		"Kill Variables", /Q, SIDAMKillVariablesStrings(root:)
 		help = {"Kill \"V_*\" variables and \"S_*\" strings"}
 	End
-	
+
 	"-"
-	
+
 	//	Exit or Restart
 	SIDAMMenus#Exitmenu(), /Q, SIDAMMenus#Exit()
 End
@@ -78,9 +71,9 @@ End
 Static Function Exit()
 	GetLastUserMenuInfo
 	int isRestart = !CmpStr(S_value, "Restart SIDAM")
-	
+
 	sidamExit()
-	
+
 	if (isRestart)
 		sidam()
 	endif
@@ -99,10 +92,10 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		KMRange#rightclickMenu(2), /Q, KMRange#rightclickDo(2)
 		KMRange#rightclickMenu(3), /Q, KMRange#rightclickDo(3)
 	End
-	
+
 	"Color Table.../F5",/Q, SIDAMColor()
 	help = {"Change the color table used to display the top image in the active graph."}
-	
+
 	SubMenu "Sync"
 		//	Sync Layers
 		SIDAMMenus#menu("Sync Layers...",dim=3), /Q, KMSyncLayer#rightclickDo()
@@ -114,7 +107,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		KMSyncCursor#rightclickMenu(), /Q, KMSyncCursor#rightclickDo()
 		help = {"Synchronize cursor positions in graphs showing images"}
 	End
-	
+
 	SubMenu "Window"
 		SubMenu "Coordinates"
 			KMInfoBar#rightclickMenu(0), /Q,  KMInfoBar#rightclickDo(0)
@@ -131,29 +124,29 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		KMInfoBar#rightclickMenu(2), /Q, KMInfoBar#rightclickDo(2)
 		help = {"Show/Hide axes of the graph."}
 	End
-	
+
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
 		SIDAMSaveGraphics#rightclickMenu(), /Q, SIDAMSaveGraphics#rightclickDo()
 		SIDAMSaveMovie#rightclickMenu(), /Q, SIDAMSaveMovie#rightclickDo()
-		
+
 		"-"
-		
+
 		"\\M0Export Graphics (Transparent)", /Q, SIDAMExportGraphicsTransparent()
 	End
-	
+
 	"-"
-	
+
 	//	View spectra of LayerViewer
 	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#rightclickDo()
 	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#rightclickDo()
 	//	Line Profile
 	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#rightclickDo()
 	help = {"Make a line profile wave of the image in the active graph."}
-	
-	
+
+
 	"-"
-	
+
 	//	Subtraction
 	SIDAMMenus#menu("Subtract...")+"/F6", /Q, SIDAMSubtraction#menuDo()
 	help = {"Subtract n-th plane or line from a 2D wave or each layer of a 3D wave"}
@@ -171,28 +164,28 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		SIDAMMenus#menu("Fourier Symmetrization...", noComplex=1), /Q, KMFourierSym#rightclickDo()
 		help = {"Symmetrize a FFT image"}
 	End
-	
+
 	//	Correlation
 	SelectString(KMFFTCheckWaveMenu(), "", "(")+"Correlation...", /Q, KMCorrelation#rightclickDo()
 	help = {"Compute a correlation function of a source wave(s)."}
 	//	Work Function
 	SIDAMMenus#menu("Work Function...", dim=3), /Q,  KMWorkfunctionR()
 	help = {"Compute work function."}
-	
+
 	"-"
-	
+
 	"Position Recorder", /Q, KMPositionRecorder#rightclickDo()
-	
-	
+
+
 	"-"
-	
+
 	//	Extract Layers of LayerViewer
 	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
 	KMShowParameters#rightclickMenu(), /Q, KMShowParameters()
-	
+
 	"-"
-	
+
 	"Close Infobar", /Q, KMInfoBar(WinName(0,1))
 End
 //-------------------------------------------------------------
@@ -200,7 +193,7 @@ End
 //-------------------------------------------------------------
 Static Function/S menu(String str, [int noComplex, int dim])
 	noComplex = ParamIsDefault(noComplex) ? 0 : noComplex
-	
+
 	String grfName = WinName(0,1)
 	if (!strlen(grfName))
 		return "(" + str
@@ -209,17 +202,17 @@ Static Function/S menu(String str, [int noComplex, int dim])
 	if (!WaveExists(w))
 		return "(" + str
 	endif
-	
+
 	//	return empty for 2D waves
 	if (!ParamIsDefault(dim) && dim==3 && WaveDims(w)!=3)
 		return ""
 	endif
-	
+
 	//	gray out for complex waves
 	if (noComplex)
 		return SelectString((WaveType(w) & 0x01), "", "(") + str
 	endif
-	
+
 	return str
 End
 
@@ -231,13 +224,13 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 	//	Trace
 	"Offset and Color...", /Q, KMTrace#rightclickDo()
 	help = {"Set offset of traces in the top graph."}
-	
+
 	SubMenu "Sync"
 		//	Sync Axis Range
 		"Sync Axis Range...", /Q, KMSyncAxisRangeR()
 		help = {"Syncronize axis range"}
 	End
-	
+
 	SubMenu "Window"
 		SubMenu "Coordinates"
 			 KMInfoBar#rightclickMenu(0), /Q,  KMInfoBar#rightclickDo(0)
@@ -246,28 +239,28 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 			KMInfoBar#rightclickMenu(4), /Q,  KMInfoBar#rightclickDo(4)
 		End
 	End
-	
+
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
-		
+
 		"-"
-		
+
 		"\\M0Export Graphics (Transparent)", /Q, SIDAMExportGraphicsTransparent()
 	End
-	
+
 	"-"
-	
+
 	//	Work Function
 	"Work Function...", /Q,  KMWorkfunctionR()
 	help = {"Compute work function."}
-	
+
 	"-"
-	
+
 	//	"Data Parameters"
 	KMShowParameters#rightclickMenu(), /Q, KMShowParameters()
-	
+
 	"-"
-	
+
 	"Close Infobar", /Q, KMInfoBar(WinName(0,1))
 End
 
@@ -299,13 +292,13 @@ Function/S SIDAMAddCheckmark(Variable num, String menuStr)
 	elseif (num < 0)
 		return menuStr
 	endif
-	
+
 	String checked = "\\M0:!" + num2char(18)+":", escCode = "\\M0"
-	
+
 	//	add escCode before all items
 	menuStr = ReplaceString(";", menuStr, ";"+escCode)
 	menuStr = escCode + RemoveEnding(menuStr, escCode)
-	
+
 	//	replace escCode of num-item with the check mark
 	menuStr = AddListItem(checked, menuStr, ";", num)
 	return ReplaceString(":;"+escCode, menuStr, ":")
