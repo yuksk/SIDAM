@@ -5,6 +5,9 @@ src/SIDAM/extension/*
 # ctab
 src/SIDAM/ctab/*
 !src/SIDAM/ctab/CET
+!src/SIDAM/ctab/cmocean
+!src/SIDAM/ctab/Matplotlib
+!src/SIDAM/ctab/SIDAM
 !src/SIDAM/ctab/ctab.default.ini
 !src/SIDAM/ctab/readme.md
 

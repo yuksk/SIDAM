@@ -149,44 +149,12 @@ Static Function updateDF(String grfPnlList)
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
 	endif	
 	
-	updateDFMatplotlib()
-	
 	SetDataFolder dfrSav
 	
 	String winListStr = WinList("*",";","WIN:65")
 	if (strlen(winListStr))
 		updateDF(winListStr)
 	endif
-End
-
-Static Function updateDFMatplotlib()
-	int exist1 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib1")
-	int exist2 = DataFolderExists(SIDAM_DF_CTAB+"Matplotlib2")
-	
-	if (!exist1 && !exist2)
-		return 0
-	elseif (exist1 && !exist2)
-		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib1") Matplotlib
-		return 0
-	elseif (!exist1 && exist2)
-		RenameDataFolder $(SIDAM_DF_CTAB+"Matplotlib2") Matplotlib
-		return 0
-	endif
-	
-	//	The remaining case is both 1 and 2 exist
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder $SIDAM_DF_CTAB
-	
-	RenameDataFolder Matplotlib1 Matplotlib
-	SetDataFolder Matplotlib2
-	int i
-	for (i = CountObjectsDFR(:,4)-1; i >= 0; i--)
-		MoveDataFolder $GetIndexedObjNameDFR(:,4,i) ::Matplotlib
-	endfor
-	SetDataFolder ::
-	KillDataFolder Matplotlib2
-	
-	SetDataFolder dfrSav
 End
 
 Static Function updateDFUserData(String grfName)

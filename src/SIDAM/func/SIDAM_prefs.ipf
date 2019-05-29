@@ -26,6 +26,7 @@ Structure SIDAMPrefs
 	uint16		export[3]
 	double		last
 	uchar		precision
+	uchar		color
 
 	float		TopoGainFactor
 	float		TopoCorrFactor
@@ -87,6 +88,10 @@ Static Function putInitialValues(STRUCT SIDAMPrefs &p, int mode)
 	//	For precision of coordinates in the info bar
 	//	1: low (2), 2: height (4)
 	p.precision = 1
+
+	//	Options of the color panel
+	//	0: close, 1: open
+	p.color = 0
 
 	//	For Topometrix format, this is old
 	p.TopoGainFactor = 10		//	divider
