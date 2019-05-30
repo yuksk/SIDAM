@@ -1,18 +1,63 @@
 ﻿#pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3	
+#pragma rtGlobals=3
+#pragma ModuleName = SIDAMUtilDev
 
-//=====================================================================================================
-//	http://www.paraview.org/Wiki/Colormaps にあるxmlファイルをウエーブに読み込むための関数
-//=====================================================================================================
-Function xml2ibw()
+#ifndef SIDAMshowProc
+#pragma hide = 1
+#endif
+
+Static Function/S menu()
+	return SelectString(defined(SIDAMshowProc), "Show", "Hide")+" SIDAM Procedures"
+End
+
+//	Show or hide procedures of SIDAM in the procedure list (Window > Procedure Windows)
+Function SIDAMShowProcedures()
+	if (defined(SIDAMshowProc))
+		Execute/P/Q "SetIgorOption poundUndefine=SIDAMshowProc"
+	else
+		Execute/P/Q "SetIgorOption poundDefine=SIDAMshowProc"
+	endif
+	Execute/P "COMPILEPROCEDURES "
+End
+
+//	Kill all Variables starting from "V_" and strings starting from "S_" under dfr
+Function SIDAMKillVariablesStrings(DFREF dfr)
+	DFREF dfrSav = GetDataFolderDFR()
+	String listStr
+	int i, n
+
+	//	Recursively execute for datefolders
+	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
+		SIDAMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
+	endfor
+
+	SetDataFolder dfr
+
+	//	Variable
+	listStr = VariableList("V_*", ";", 4)
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
+		KillVariables $StringFromList(i, listStr)
+	endfor
+
+	//	String
+	listStr = StringList("S_*", ";")
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
+		KillStrings $StringFromList(i, listStr)
+	endfor
+
+	SetDataFolder dfrSav
+End
+
+//	Function to load xml files at http://www.paraview.org/Wiki/Colormaps into waves
+Function SIDAMxml2ibw()
 	Variable refNum
 	Open/R refNum
 	if (!refNum)
 		return 0
 	endif
-	
+
 	String buffer, name
-	
+
 	do
 		FReadLine refNum, buffer
 		if (!strlen(buffer))
@@ -28,14 +73,14 @@ Function xml2ibw()
 			endif
 		endif
 	while(1)
-	
+
 	Close refNum
 End
 
 Static Function/WAVE xml2wave(Variable refNum)
 	String buffer
 	int n
-	
+
 	Make/N=0/FREE xw, rw, gw, bw
 	do
 		FReadLine refNum, buffer
@@ -48,13 +93,13 @@ Static Function/WAVE xml2wave(Variable refNum)
 		gw[inf] = getValue("g", buffer)
 		bw[inf] = getValue("b", buffer)
 	while(1)
-	
+
 	Make/N=(numpnts(xw))/FREE rw2, gw2, bw2
 	Setscale/I x WaveMin(xw), WaveMax(xw), "", rw2, gw2, bw2
 	Interpolate2/T=1/Y=rw2/I=3 xw,rw
 	Interpolate2/T=1/Y=gw2/I=3 xw,gw
 	Interpolate2/T=1/Y=bw2/I=3 xw,bw
-	
+
 	Make/W/U/N=(numpnts(xw),3)/FREE rtnw
 	rtnw[][0] = round(rw2[p]*65535)
 	rtnw[][1] = round(gw2[p]*65535)
