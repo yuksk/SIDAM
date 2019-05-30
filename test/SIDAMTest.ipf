@@ -1,6 +1,10 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#ifndef SIDAMshowProc
+#pragma hide = 1
+#endif
+
 #include "unit-testing"
 #include ":SIDAMTest_Utilities_Bias"
 #include ":SIDAMTest_Utilities_Control"

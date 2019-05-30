@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMTest_Utilities_Control
 
+#ifndef SIDAMshowProc
+#pragma hide = 1
+#endif
+
 //	SIDAMUtilControl#getEventMod() has to be tested by calling SIDAMTest_Utilities_Control#Test_getEventMod_IGNORE()
 
 Static Function Test_getActionFunctionName()

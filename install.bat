@@ -12,18 +12,14 @@ if not exist "%IGOR8%" (
 
 rem Install SIDAM files if not yet installed.
 if not exist "%IGOR8%\Igor Procedures\SIDAM.ipf" (
-	powershell start-process script/link.bat -ArgumentList \"%DOCUMENT%\" -verb runas
+	powershell start-process script/_installSIDAM.bat -ArgumentList \"%DOCUMENT%\" -verb runas
 	exit /b
 ) else if "%1"=="/f" (
-	powershell start-process script/link.bat -ArgumentList \"%DOCUMENT%\" -verb runas
+	powershell start-process script/_installSIDAM.bat -ArgumentList \"%DOCUMENT%\" -verb runas
 	exit /b
-)
-
-rem Update SIDAM with Git for Windows if installed.
-where /q git
-if %errorlevel% equ 0 (
-	call script/update.bat
-	goto end
+) else if "%1"=="/test" (
+	powershell start-process script/_installTest.bat -ArgumentList \"%DOCUMENT%\" -verb runas
+	exit /b
 )
 
 rem Update SIDAM with Git in WSL if installed.
@@ -33,7 +29,14 @@ if %errorlevel% equ 0 (
 	for /f %%a in ('wsl bash -c "[ \$(which git) ] && echo 0 || echo 1"') do set WSLGIT=%%a
 )
 if %WSLGIT% equ 0 (
-	wsl script/update.sh
+	wsl script/_update.sh
+	goto end
+)
+
+rem Update SIDAM with Git for Windows if installed.
+where /q git
+if %errorlevel% equ 0 (
+	call script/_update.bat
 	goto end
 )
 

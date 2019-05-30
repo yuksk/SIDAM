@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMTest_Utilities_Bias
 
+#ifndef SIDAMshowProc
+#pragma hide = 1
+#endif
+
 Static Function TestSIDAMSetBias()
 	make/n=(2,2,3)/free w0
 	make/n=(2,2,2)/free w1
