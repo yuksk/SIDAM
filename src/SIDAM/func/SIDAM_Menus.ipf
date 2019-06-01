@@ -26,8 +26,11 @@ Menu "SIDAM", dynamic
 		help = {"Display a wave(s)"}
 
 		SIDAMDisplay#menu(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
-		help = {"Display a 2D wave as traces"}
+		help = {"Display a 2D wave as 1d-traces"}
 
+		SIDAMDisplay#menu(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+		help = {"Display a 2D wave as xy-traces"}
+		
 		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
