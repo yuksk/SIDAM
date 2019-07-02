@@ -41,6 +41,12 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+//	v8.3.4 -----------------------------------------------------------------------
+Function KMShowParameters()
+	deprecatedCaution("SIDAMShowParameters")
+	SIDAMShowParameters()
+End
+
 //	v8.1.12 ----------------------------------------------------------------------
 Function KMSubtraction(Wave/Z w, [Wave roi, int mode, int degree,	int direction, int index, int history, String result])
 	deprecatedCaution("SIDAMSubtraction")
@@ -48,7 +54,7 @@ Function KMSubtraction(Wave/Z w, [Wave roi, int mode, int degree,	int direction,
 End
 
 Function KMOpenHelpNote(String noteFileName, [String pnlName, String title])
-	deprecatedCaution("KMOpenHelpNote")
+	deprecatedCaution("SIDAMOpenHelpNote")
 	SIDAMOpenHelpNote(noteFileName,pnlName,title)
 End
 

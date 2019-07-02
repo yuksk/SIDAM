@@ -182,7 +182,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	//	Extract Layers of LayerViewer
 	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
-	KMShowParameters#rightclickMenu(), /Q, KMShowParameters()
+	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
 
 	"-"
 
@@ -257,7 +257,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 	"-"
 
 	//	"Data Parameters"
-	KMShowParameters#rightclickMenu(), /Q, KMShowParameters()
+	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
 
 	"-"
 
