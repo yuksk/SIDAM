@@ -12,7 +12,7 @@
 Static StrConstant PACKAGE = "SIDAM"
 Static StrConstant FILENAME = "SIDAM.bin"
 Static Constant ID = 0
-Static Constant VERSION = 16
+Static Constant VERSION = 17
 
 
 //******************************************************************************
@@ -22,12 +22,11 @@ Static Constant VERSION = 16
 Structure SIDAMPrefs
 	uint32		version
 	STRUCT		viewer		viewer
-	STRUCT		preview	preview
 	uchar		fourier[3]
 	uint16		export[3]
 	double		last
 	uchar		precision
-	
+
 	float		TopoGainFactor
 	float		TopoCorrFactor
 EndStructure
@@ -37,10 +36,6 @@ Static Structure viewer
 	uchar	height
 EndStructure
 
-Static Structure preview
-	STRUCT Rect size
-	uint16	column[4]
-EndStructure
 
 
 //******************************************************************************
@@ -49,22 +44,15 @@ EndStructure
 //******************************************************************************
 Function SIDAMLoadPrefs(STRUCT SIDAMPrefs &prefs)
 	LoadPackagePreferences/MIS=1 PACKAGE, FILENAME, ID, prefs
-	
+
 	//	If correctly loaded, nothing to do is left
 	if (!V_flag && V_bytesRead && prefs.version == VERSION)
 		return 0
 	endif
-	
-	//	Failed to load or preference file is not found
-	if (V_flag || !V_bytesRead)
-		putInitialValues(prefs, 1)
-		
-	//	Older version is found
-	elseif (prefs.version < VERSION)
-		updatePreference(prefs)
-		
-	endif
-	
+
+	putInitialValues(prefs, 1)
+	updatePreference(prefs)
+
 	SIDAMSavePrefs(prefs)
 End
 //-------------------------------------------------------------
@@ -73,43 +61,33 @@ End
 //	mode 1: put all
 //-------------------------------------------------------------
 Static Function putInitialValues(STRUCT SIDAMPrefs &p, int mode)
-	
+
 	//	Viewers
 	p.viewer.width = 0		//	auto
 	p.viewer.height = 1		//	same as width
-	
+
 	//	Export Graphics
 	p.export[0] = 1
 	p.export[1] = 1
-	
+
 	if (!mode)
 		return 0
 	endif
-	
+
 	p.version = VERSION
-	
-	//	For panel of Preview
-	p.preview.size.left = 0
-	p.preview.size.right = 600
-	p.preview.size.top = 0
-	p.preview.size.bottom = 500
-	p.preview.column[0] = 140		//	width of columns
-	p.preview.column[1] = 60
-	p.preview.column[2] = 65
-	p.preview.column[3] = 250
-	
+
 	//	For panel of Fourier transform
 	p.fourier[0] = 1		//	subtract, on
 	p.fourier[1] = 3		//	output, magnitude
 	p.fourier[2] = 21	//	window, none
-	
+
 	//	Date and time of last compile
 	p.last = DateTime
-	
+
 	//	For precision of coordinates in the info bar
 	//	1: low (2), 2: height (4)
 	p.precision = 1
-	
+
 	//	For Topometrix format, this is old
 	p.TopoGainFactor = 10		//	divider
 	p.TopoCorrFactor = 1.495	//	attenuation factor
@@ -136,10 +114,10 @@ End
 //******************************************************************************
 Function SIDAMPrefsPnl()
 	String pnlName = SIDAMNewPanel("KM Preferences",350,270)
-	
+
 	TabControl mTab pos={3,2}, size={347,230}, proc=KMTabControlProc, value=0, focusRing=0, win=$pnlName
 	TabControl mTab tabLabel(0)="Window", tabLabel(1)="Export Graphics", win=$pnlName
-	
+
 	//	tab 0
 	SetVariable sizeV title="width", pos={14,45}, size={104,18}, bodyWidth=70, userData(tab)="0", win=$pnlName
 	SetVariable sizeV limits={0,inf,0.1}, focusRing=0, proc=SIDAMPrefs#pnlSetVar, win=$pnlName
@@ -150,10 +128,10 @@ Function SIDAMPrefsPnl()
 	PopupMenu precisionP title="precision", pos={14,109}, size={101,19}, win=$pnlName
 	PopupMenu precisionP value=".00;.0000", bodyWidth=50, win=$pnlName
 	ModifyControlList "unitsP;heightP;precisionP" userData(tab)="0", focusRing=0, proc=SIDAMPrefs#pnlPopup, win=$pnlName
-	
+
 	TitleBox windowT title="Width 0 means \"Auto\"", pos={18,207}, win=$pnlName
 	TitleBox windowT frame=0,fColor=(30000,30000,30000), userData(tab)="0", win=$pnlName
-	
+
 	//	tab 1
 	Groupbox formatG title="Format", pos={13,26}, size={325,115}, userData(tab)="1", win=$pnlName
 	Variable isWindows = strsearch(StringByKey("OS", IgorInfo(3)),"Windows", 0) != -1
@@ -166,26 +144,26 @@ Function SIDAMPrefsPnl()
 	PopupMenu dpiP pos={213,110}, size={60,20}, bodyWidth=60, userData(tab)="1", focusRing=0, win=$pnlName
 	PopupMenu dpiP value= "72;75;96;100;120;150;200;300;400;500;600;750;800;1000;1200;1500;2000;2400;2500;3000;3500;3600;4000;4500;4800", win=$pnlName
 	ModifyControlList "format1P;format2P" bodyWidth=150, mode=1, userData(tab)="1", focusRing=0, win=$pnlName
-	
+
 	GroupBox transparentG title="Transparent background(s)", pos={13,150}, size={325,45}, userData(tab)="1", win=$pnlName
 	CheckBox graphC title="Graph", pos={24,171}, win=$pnlName
 	CheckBox windowC title="Window", pos={90,171}, win=$pnlName
 	CheckBox bothC title="Both", pos={166,171}, win=$pnlName
 	ModifyControlList "graphC;windowC;bothC" mode=1, userData(tab)="1", focusRing=0, proc=SIDAMPrefs#pnlCheckbox, win=$pnlName
-	
+
 	TitleBox exportT title="Format for exporting graphics with transparent background", pos={18,207}, win=$pnlName
 	TitleBox exportT frame=0,fColor=(30000,30000,30000), userData(tab)="1", win=$pnlName
-	
+
 	//	outside of tabs
 	Button doB title="Set Prefs", pos={10,240}, size={80,22}, win=$pnlName
 	Button revertB title="Revert to Defaults", pos={105,240}, size={120,22}, win=$pnlName
 	Button cancelB title="Cancel", pos={270,240}, size={70,22}, win=$pnlName
 	ModifyControlList "doB;revertB;cancelB" focusRing=0, proc=SIDAMPrefs#pnlButton, win=$pnlName
-	
+
 	STRUCT SIDAMPrefs prefs
 	SIDAMLoadPrefs(prefs)
 	setPresentValues(prefs, pnlName)
-	
+
 	KMTabControlInitialize(pnlName,"mTab")
 End
 
@@ -208,7 +186,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
 	endif
-	
+
 	strswitch (s.ctrlName)
 		case "unitsP":
 			Variable value = str2num(GetUserData(s.win, "sizeV", "value"))
@@ -236,7 +214,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
-	
+
 	ControlInfo/W=$s.win unitsP
 	strswitch (S_Value)
 		case "points":
@@ -255,11 +233,11 @@ Static Function pnlCheckbox(STRUCT WMCheckboxAction &s)
 	if (s.eventCode != 2)
 		return 1
 	endif
-	
+
 	CheckBox graphC value=0, win=$s.win
 	CheckBox windowC value=0, win=$s.win
 	CheckBox bothC value=0, win=$s.win
-	
+
 	CheckBox $s.ctrlName value=1, win=$s.win
 End
 
@@ -267,10 +245,10 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
 		return 0
 	endif
-	
+
 	STRUCT SIDAMPrefs prefs
 	SIDAMLoadPrefs(prefs)
-	
+
 	strswitch (s.ctrlName)
 		case "revertB":
 			putInitialValues(prefs, 0)
@@ -287,13 +265,13 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 End
 
 //-------------------------------------------------------------
-//	"Do" button 
+//	"Do" button
 //-------------------------------------------------------------
 Static Function pnlDo(STRUCT SIDAMPrefs &prefs, String pnlName)
 
 	Wave cw = KMGetCtrlValues(pnlName, "unitsP;sizeV;heightP;resolutionP;precisionP")
 	Wave cw2 = KMGetCtrlValues(pnlName, "graphC;windowC;bothC")
-		
+
 	//	width and height of viewer
 	switch (cw[0])
 		case 1:	//	point
@@ -307,20 +285,20 @@ Static Function pnlDo(STRUCT SIDAMPrefs &prefs, String pnlName)
 			break
 	endswitch
 	prefs.viewer.height = cw[2]
-	
+
 	//	export
 	prefs.export[0] = cw[3]
 	ControlInfo/W=$pnlName dpiP
 	prefs.export[1] = str2num(S_Value)
 	cw2 *= p
 	prefs.export[2] = sum(cw2)
-	
+
 	//	precision
 	if (prefs.precision != cw[4])
 		prefs.precision = cw[4]
 		SIDAMInfoBarSetPrecision(cw[4]==2)
 	endif
-		
+
 	SIDAMSavePrefs(prefs)
 End
 
@@ -337,46 +315,41 @@ End
 //	Backward compatibility
 //******************************************************************************
 Static Function updatePreference(STRUCT SIDAMPrefs &prefs)
-	switch (prefs.version)
-		case 15:
-			update15to16(prefs)
-			break
-		default:
-			putInitialValues(prefs, 1)
-	endswitch
+
+	STRUCT SIDAMPrefs16 prefs16
+	LoadPackagePreferences/MIS=1 PACKAGE, FILENAME, ID, prefs16
+	if (!V_flag && V_bytesRead && prefs16.version == 16)
+		prefs.version = VERSION
+		prefs.viewer.width = prefs16.viewer.width
+		prefs.viewer.height = prefs16.viewer.height
+		prefs.fourier[0] = prefs16.fourier[0]
+		prefs.fourier[1] = prefs16.fourier[1]
+		prefs.fourier[2] = prefs16.fourier[2]
+		prefs.export[0] = prefs16.export[0]
+		prefs.export[1] = prefs16.export[1]
+		prefs.export[2] = prefs16.export[2]
+		prefs.last = prefs16.last
+		prefs.precision = prefs16.precision
+		prefs.TopoGainFactor = prefs16.TopoGainFactor
+		prefs.TopoCorrFactor = prefs16.TopoCorrFactor
+	endif
 End
 
-Static Function update15to16(STRUCT SIDAMPrefs &p)
-	putInitialValues(p, 1)
-	
-	STRUCT SIDAMPrefs15 old
-	LoadPackagePreferences PACKAGE, FILENAME, ID, old
-	
-	p.viewer.width = old.viewer.width
-	p.viewer.height = old.viewer.height
-	p.export[0] = old.export[0]
-	p.export[1] = old.export[1]
-	p.preview.size.left = old.preview.size.left
-	p.preview.size.right = old.preview.size.right 
-	p.preview.size.top = old.preview.size.top
-	p.preview.size.bottom = old.preview.size.bottom
-	p.preview.column[0] = old.preview.column[0]
-	p.preview.column[1] = old.preview.column[1]
-	p.preview.column[2] = old.preview.column[2]
-	p.preview.column[3] = old.preview.column[3]
-	p.fourier[0] = old.fourier[0]
-	p.fourier[1] = old.fourier[1]
-	p.fourier[2] = old.fourier[2]
-End
-
-Static Structure SIDAMPrefs15
+Structure SIDAMPrefs16
 	uint32		version
 	STRUCT		viewer		viewer
-	STRUCT		preview	preview
+	STRUCT		preview16	preview
 	uchar		fourier[3]
 	uint16		export[3]
 	double		last
-	
+	uchar		precision
+
 	float		TopoGainFactor
 	float		TopoCorrFactor
 EndStructure
+
+Static Structure preview16
+	STRUCT Rect	size
+	uint16	Scolumn[4]
+EndStructure
+
