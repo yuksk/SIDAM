@@ -408,10 +408,13 @@ End
 Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUCT Point &ps)
 	STRUCT SIDAMAxisRange as
 	String listStr, itemName
-	Variable mousex, mousey, axmin, axmax, aymin, aymax, wxmin, wxmax, wymin, wymax
+	Variable mousex, mousey
+	Variable axis_x_max, axis_x_min, axis_y_max, axis_y_min
+	Variable wave_x_max, wave_x_min, wave_y_max, wave_y_min
+	Variable ox, dx, oy, dy
 	Variable isInRange	//	isInRange has to be variable (not int)
 	int swap = strsearch(WinRecreation(grfName,1), "swapXY", 4) != -1
-	int i, isImg
+	int i, isImg, nx, ny
 
 	//	Traces are handled only when there is no image.
 	listStr = ImageNameList(grfName,";")
@@ -426,10 +429,10 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 		SIDAMGetAxis(grfName,itemName,as)
 
 		//	When the axis is reversed, as.xmin > as.xmax and as.ymin > as.ymax
-		axmin = min(as.xmin, as.xmax)
-		axmax = max(as.xmin, as.xmax)
-		aymin = min(as.ymin, as.ymax)
-		aymax = max(as.ymin, as.ymax)
+		axis_x_min = min(as.xmin, as.xmax)
+		axis_x_max = max(as.xmin, as.xmax)
+		axis_y_min = min(as.ymin, as.ymax)
+		axis_y_max = max(as.ymin, as.ymax)
 
 		mousex = AxisValFromPixel(grfName, as.xaxis, (swap ? ps.v : ps.h))
 		mousey = AxisValFromPixel(grfName, as.yaxis, (swap ? ps.h : ps.v))
@@ -437,15 +440,25 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 		Wave/Z w = ImageNameToWaveRef(grfName,itemName)
 		isImg = WaveExists(w)
 
-		//	As for traces, the followings are chosen so that isInRange is always 1
-		wxmin = isImg ? DimOffset(w,0)-0.5*DimDelta(w,0) : as.xmin
-		wxmax = isImg ? DimOffset(w,0)+DimDelta(w,0)*(DimSize(w,0)-0.5) : as.xmax
-		wymin = isImg ? DimOffset(w,1)-0.5*DimDelta(w,1) : as.ymin
-		wymax = isImg ? DimOffset(w,1)+DimDelta(w,1)*(DimSize(w,1)-0.5) : as.ymax
+		//	When dx (dy) is negative, min and max are reversed
+		if (isImg)
+			ox = DimOffset(w,0)
+			oy = DimOffset(w,1)
+			dx = DimDelta(w,0)
+			dy = DimDelta(w,1)
+			nx = DimSize(w,0)
+			ny = DimSize(w,1)
+			wave_x_min = dx>0 ? ox-0.5*dx : ox+dx*(nx-0.5)
+			wave_x_max = dx>0 ? ox+dx*(nx-0.5) : ox-0.5*dx
+			wave_y_min = dy>0 ? oy-0.5*dy : oy+dy*(nx-0.5)
+			wave_y_max = dy>0 ? oy+dy*(nx-0.5) : oy-0.5*dy
+		endif
 
-		//	isInRange is always 1 for traces
-		isInRange = (mousex >= max(axmin, wxmin)) & (mousex <= min(axmax, wxmax)) & \
-			(mousey >= max(aymin, wymin)) & (mousey <= min(aymax, wymax))
+		isInRange = !isImg ? 1 : \
+			(mousex >= max(axis_x_min, wave_x_min)) \
+			& (mousex <= min(axis_x_max, wave_x_max)) \
+			& (mousey >= max(axis_y_min, wave_y_min)) \
+			& (mousey <= min(axis_y_max, wave_y_max))
 		if (isInRange)
 			ms.xaxis = as.xaxis
 			ms.yaxis = as.yaxis
@@ -461,7 +474,6 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 	endfor
 	return 0
 End
-
 
 //******************************************************************************
 //	KMGetCursor :	カーソル位置の座標を返す
