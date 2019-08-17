@@ -212,7 +212,7 @@ Static Function/S pnl(String fileName)
 	Button cancelB title="Cancel", pos={259,77}, win=$pnlName
 	ModifyControlList "doB;cancelB" size={70,22}, proc=SIDAMLoadData#pnlButton, focusRing=0, win=$pnlName
 	
-	KMCheckSetVarString(pnlName, "nameV", 0, maxlength=0)	//	maxlength=0 is to make the background red
+	SIDAMValidateSetVariableString(pnlName, "nameV", 0, maxlength=0)	//	maxlength=0 is to make the background red
 	
 	do
 		PauseForUser/C $pnlName
@@ -233,13 +233,13 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 		return 1
 	endif
 	
-	int exceedLength = KMCheckSetVarString(s.win, s.ctrlName, 0, minlength=1, maxlength=MAX_OBJ_NAME)
+	int exceedLength = SIDAMValidateSetVariableString(s.win, s.ctrlName, 0, minlength=1, maxlength=MAX_OBJ_NAME)
 	int alreadyExist = DataFolderExists("root:"+PossiblyQuoteName(s.sval))
 	
 	if (exceedLength || alreadyExist)
 		Button/Z doB disable=2, win=$s.win
 		//	The background does not become red somehow. Igor's bug?
-		KMCheckSetVarString(s.win, "nameV", 0, maxlength=0)	//	maxlength=0 is to make the background red
+		SIDAMValidateSetVariableString(s.win, "nameV", 0, maxlength=0)	//	maxlength=0 is to make the background red
 	else
 		Button/Z doB disable=0, win=$s.win
 	endif

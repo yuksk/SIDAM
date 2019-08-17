@@ -35,7 +35,15 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 					return 0
 				endif
 			endif
-			KMChangeAllControlsDisableState(s.win,0,2)
+			//	Disable all controls
+			int i
+			for (i = 0; i < ItemsInList(ControlNameList(s.win)); i++)
+				String ctrlName = StringFromList(i,ControlNameList(s.win))
+				ControlInfo/W=$s.win $ctrlName
+				if (!V_disable)
+					ModifyControl/Z $ctrlName, disable=2, win=$s.win
+				endif
+			endfor
 			FUNCREF KMDoButtonPrototype fn = $GetUserData(s.win,s.ctrlName,"fn")
 			fn(s.win)
 			// *** FALLTHROUGH ***
@@ -147,10 +155,10 @@ Static Function/WAVE getLayers(String pnlName)
 	
 	ControlInfo/W=$pnlName all_rC
 	if (V_Value)
-		Wave w = KMGetImageWaveRef(grfName)
+		Wave w = SIDAMImageWaveRef(grfName)
 		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1, initIndex}
 	else
-		Wave cw = KMGetCtrlValues(pnlName,"from_f_V;to_f_V")
+		Wave cw = SIDAMGetCtrlValues(pnlName,"from_f_V;to_f_V")
 		Make/W/U/FREE rtnw = {WaveMin(cw), WaveMax(cw), initIndex}
 	endif
 	

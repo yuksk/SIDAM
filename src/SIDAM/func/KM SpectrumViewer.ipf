@@ -26,7 +26,7 @@ Static Function pnl(String LVName)
 	endif
 	String pnlName = UniqueName("Graph",6,0)
 
-	Wave srcw =  KMGetImageWaveRef(LVName)
+	Wave srcw =  SIDAMImageWaveRef(LVName)
 	int isMLS = SIDAMisUnevenlySpacedBias(srcw)
 	if (isMLS)		//	Nanonis MLSモードでのデータの場合は、横軸用ウエーブを一時データフォルダ内に用意する
 		String dfTmp
@@ -81,7 +81,7 @@ Static Function isDisplayed(String LVName)
 		endif
 		trcName = StringFromList(0,TraceNameList(pnlName,";",1))
 		Wave tracew = TraceNameToWaveRef(pnlName,trcName)
-		Wave imgw = KMGetImageWaveRef(LVName)
+		Wave imgw = SIDAMImageWaveRef(LVName)
 		if (WaveRefsEqual(tracew,imgw))
 			DoWindow/F $pnlName
 			return 1
@@ -260,8 +260,8 @@ End
 //-------------------------------------------------------------
 Static Function pnlHookCsrMov(STRUCT WMWinHookStruct &ws)
 	//	カーソルAが表示されていない場合には何もしない
-	STRUCT KMCursorPos s
-	if (KMGetCursor("A", ws.winName, s))
+	STRUCT SIDAMCursorPos s
+	if (SIDAMGetCursor("A", ws.winName, s))
 		return 0
 	endif
 
@@ -319,7 +319,7 @@ Static Function pnlHookClick(STRUCT WMWinHookStruct &s)
 	for (i = 0; i < ItemsInList(specWinList); i++)
 		specWin = StringFromList(0,StringFromList(i,specWinList),"=")
 		trcList = TraceNameList(specWin,";",1)
-		Wave cw = KMGetCtrlValues(specWin,"pV;qV")
+		Wave cw = SIDAMGetCtrlValues(specWin,"pV;qV")
 
 		for (j = 0; j < ItemsInList(trcList); j++)
 			trcName = StringFromList(j,trcList)
@@ -408,11 +408,11 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 	//	カーソル位置を使用している場合、かつ、カーソル位置変化に伴う呼び出しでない場合
 	//	(SetVariableの値変化やスペクトル表示ウインドウでの矢印キー)には、カーソルを移動する
 	if (str2num(GetUserData(pnlName,"","live"))==1 && CmpStr(GetRTStackInfo(2), "pnlHookCsrMov"))
-		STRUCT KMCursorPos s ;	s.isImg = 1;	s.p = posp ;	s.q = posq
+		STRUCT SIDAMCursorPos s ;	s.isImg = 1;	s.p = posp ;	s.q = posq
 		String win, mouseWinList = GetUserData(pnlName,"","parent")
 		for (i = 0, n = ItemsInList(mouseWinList); i < n; i++)
 			win = StringFromList(i, mouseWinList)
-			KMSetCursor("A", win, 0, s)
+			SIDAMMoveCursor("A", win, 0, s)
 		endfor
 	endif
 End

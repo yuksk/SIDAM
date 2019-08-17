@@ -6,47 +6,63 @@
 #endif
 
 //******************************************************************************
-//	KMGetWindowInfo
-//		グラフに関する情報を得る
+///	SIDAMGetWindow
+///	@param grfName
+///		Name of a window.
+///	@param s
+///		Information about grfName is returned.
 //******************************************************************************
-Function KMGetWindowInfo(String grfName, STRUCT KMGetWindowInfoStruct &s)
-	String recStr = KMGetWindowRecStr(grfName)
+Structure SIDAMWindowInfo
+	float width
+	String widthStr
+	float height
+	String heightStr
+	float axThick
+	float expand
+	STRUCT RectF margin
+	String labelLeft
+	String labelBottom
+EndStructure
 
-	//	座標軸の太さ (座標軸が表示されているかどうかの判定に用いられる)
-	s.axThick = KMGetWindowValue(recStr, "axThick", 1)
+Function SIDAMGetWindow(String grfName, STRUCT SIDAMWindowInfo &s)
+	String recStr = getRecStr(grfName)
 
-	//	ウインドウの大きさ
+	s.axThick = getValueFromRecStr(recStr, "axThick", 1)
+
 	GetWindow $grfName psize
 	s.width = V_right - V_left
 	s.height = V_bottom - V_top
-	s.widthStr = KMGetWindowStr(recStr, "width", "0")
-	s.heightStr = KMGetWindowStr(recStr, "height", "0")
+	s.widthStr = getStrFromRecStr(recStr, "width", "0")
+	s.heightStr = getStrFromRecStr(recStr, "height", "0")
 
-	//	マージン
-	s.margin.left = KMGetWindowValue(recStr, "margin(left)",0)
-	s.margin.right = KMGetWindowValue(recStr, "margin(right)",0)
-	s.margin.top = KMGetWindowValue(recStr, "margin(top)",0)
-	s.margin.bottom = KMGetWindowValue(recStr, "margin(bottom)",0)
+	s.expand = abs(getValueFromRecStr(recStr, "expand", 1))
 
-	//	ラベル文字列
-	KMGetWindowLabel(recStr, s)
+	s.margin.left = getValueFromRecStr(recStr, "margin(left)",0)
+	s.margin.right = getValueFromRecStr(recStr, "margin(right)",0)
+	s.margin.top = getValueFromRecStr(recStr, "margin(top)",0)
+	s.margin.bottom = getValueFromRecStr(recStr, "margin(bottom)",0)
+
+	//	label
+	int n0 = strsearch(recStr, "Label/Z left", 0), n1
+	if (n0 == -1)
+		s.labelLeft = ""
+	else
+		n1 = strsearch(recStr, "\r", n0)
+		s.labelLeft = recStr[n0+14, n1-2]
+	endif
+
+	n0 = strsearch(recStr, "Label/Z bottom", 0)
+	if (n0 == -1)
+		s.labelBottom = ""
+	else
+		n1 = strsearch(recStr, "\r", n0)
+		s.labelBottom = recStr[n0+16, n1-2]
+	endif	
 End
 
-//	axThick　を　得るショートカット
-Function KMGetAxThick(String grfName)
-	String recStr = KMGetWindowRecStr(grfName)
-	return KMGetWindowValue(recStr, "axThick", 1)
-End
-
-//	expand　を　得るショートカット
-Function KMGetExpand(String grfName)
-	String recStr = KMGetWindowRecStr(grfName)
-	return abs(KMGetWindowValue(recStr, "expand", 1))
-End
-
-//	WinRecreationで返される文字列のうち、必要な部分を抜き出す
-//	grfNameがサブウインドウであるときに重要
-Static Function/S KMGetWindowRecStr(String grfName)
+//	Get the necessary part of the string returned by WinRecreation.
+//	Works also for a subwindow.
+Static Function/S getRecStr(String grfName)
 	int type = WinType(grfName)
 	if (type != 1)
 		return ""
@@ -57,8 +73,9 @@ Static Function/S KMGetWindowRecStr(String grfName)
 	int v0, v1
 
 	if (!isSubWindow)
-		//	grfName自身はsubwindowではなくても、subwindowを含むとそのrecreationマクロが含まれるようだ
-		//	その部分をカットするために次の2行を入れる
+		//	Even if grfName is not a subwindow, if it contains a subwindow, a recreation
+		//	macro for the subwindow is included. The following is necessary to remove
+		//	the recreation macro.
 		v0 = strsearch(recStr, "NewPanel",0)
 		v0 = (v0 == -1) ? strlen(recStr)-1 : v0
 		return recStr[0,v0]
@@ -73,8 +90,7 @@ Static Function/S KMGetWindowRecStr(String grfName)
 	return recStr[v0, v1-1]
 End
 
-//	一般の数値に関する指定を抜き出す
-Static Function KMGetWindowValue(String recStr, String key, Variable defaultValue)
+Static Function getValueFromRecStr(String recStr, String key, Variable defaultValue)
 	int n0 = strsearch(recStr, key, 0)
 	if (n0 == -1)
 		return defaultValue
@@ -82,11 +98,10 @@ Static Function KMGetWindowValue(String recStr, String key, Variable defaultValu
 	int n1 = strsearch(recStr, "\r", n0), n2 = strsearch(recStr, ",", n0)
 	n1 = (n1 == -1) ? inf : n1
 	n2 = (n2 == -1) ? inf : n2
-	return str2num(recStr[n0+strlen(key)+1, min(n1, n2)-1])	// +1 は = の分
+	return str2num(recStr[n0+strlen(key)+1, min(n1, n2)-1])	// +1 is for "="
 End
 
-//	一般の文字列に関する指定を抜き出す
-Static Function/S KMGetWindowStr(String recStr, String key, String defaultStr)
+Static Function/S getStrFromRecStr(String recStr, String key, String defaultStr)
 	int n0 = strsearch(recStr, key, 0)
 	if (n0 == -1)
 		return defaultStr
@@ -94,12 +109,12 @@ Static Function/S KMGetWindowStr(String recStr, String key, String defaultStr)
 
 	int n1, n2
 
-	if (!numtype(str2num(recStr[n0+strlen(key)+1])))	//	通常の数字なら
+	if (!numtype(str2num(recStr[n0+strlen(key)+1])))
 		n1 = strsearch(recStr, "\r", n0)
 		n2 = strsearch(recStr, ",", n0)
 		n1 = (n1 == -1) ? inf : n1
 		n2 = (n2 == -1) ? inf : n2
-		return recStr[n0+strlen(key)+1, min(n1, n2)-1]	// +1 は = の分
+		return recStr[n0+strlen(key)+1, min(n1, n2)-1]	// +1 is for "="
 	endif
 
 	n1 = strsearch(recStr, "{", n0)
@@ -115,50 +130,22 @@ Static Function/S KMGetWindowStr(String recStr, String key, String defaultStr)
 	endif
 End
 
-//	ラベルを抜き出す
-Static Function KMGetWindowLabel(String recStr, STRUCT KMGetWindowInfoStruct &s)
-
-	int n0, n1
-
-	n0 = strsearch(recStr, "Label/Z left", 0)
-	if (n0 == -1)
-		s.labelLeft = ""
-	else
-		n1 = strsearch(recStr, "\r", n0)
-		s.labelLeft = recStr[n0+14, n1-2]
-	endif
-
-	n0 = strsearch(recStr, "Label/Z bottom", 0)
-	if (n0 == -1)
-		s.labelBottom = ""
-	else
-		n1 = strsearch(recStr, "\r", n0)
-		s.labelBottom = recStr[n0+16, n1-2]
-	endif
-End
-
-Structure KMGetWindowInfoStruct
-	float width
-	String widthStr
-	float height
-	String heightStr
-	float axThick
-	STRUCT RectF margin
-	String labelLeft
-	String labelBottom
-EndStructure
-
 
 //******************************************************************************
-//	KMGetImageWaveRef
-//		grfNameの一番上に表示されているイメージウエーブの参照を返す
-//		imgNameが指定されているときには、ImageNameToWaveRefと同じ動作をする
-//		displayedが指定されているときには、表示されている状態(plane, imCmplxMode, 表示領域)に
-//		対応する2次元フリーウエーブを返す
+///	SIDAMImageWaveRef
+///	@param grfName
+///		Name of a window.
+///	@param imgName [optional]
+///		Name of an image. The default is the top image of grfName.
+///		If this is given, SIDAMImageWaveRef works as ImageNameToWaveRef 
+///	@param displayed
+///		0 or !0. Set !0 to return a 2D free wave corresponding to the displayed
+///		state (region, plane, imCmplxMode). 
+///	@return
+///		A wave displayed as the top image of grfName, or a free wave which is
+///		a part of a wave displayed as the top image of grfName
 //******************************************************************************
-Function/WAVE KMGetImageWaveRef(grfName, [imgName, displayed])
-	String grfName, imgName
-	Variable displayed
+Function/WAVE SIDAMImageWaveRef(String grfName, [String imgName, Variable displayed])
 
 	if (ParamIsDefault(imgName))
 		imgName = StringFromList(0, ImageNameList(grfName, ";"))
@@ -171,7 +158,7 @@ Function/WAVE KMGetImageWaveRef(grfName, [imgName, displayed])
 	Wave/Z w = ImageNameToWaveRef(grfName, imgName)
 	if (!WaveExists(w))
 		return $""
-	elseif (ParamIsDefault(displayed))
+	elseif (ParamIsDefault(displayed) || !displayed)
 		return w
 	endif
 
@@ -333,10 +320,17 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 	return 0
 End
 
+
 //******************************************************************************
-//	KMGetCursor :	カーソル位置の座標を返す
+///	SIDAMGetCursor 
+///	@param csrName
+///		Name of a cursor.
+///	@param grfName
+///		Name of a window.
+///	@param pos
+///		A new position where a cursor is moved.
 //******************************************************************************
-Structure KMCursorPos
+Structure SIDAMCursorPos
 	uchar	isImg
 	uint32	p
 	uint32	q
@@ -344,12 +338,11 @@ Structure KMCursorPos
 	double	y
 EndStructure
 
-Function KMGetCursor(csrName, grfName, pos)
-	String csrName, grfName
-	STRUCT KMCursorPos &pos
+Function SIDAMGetCursor(String csrName, String grfName,
+	STRUCT SIDAMCursorPos &pos)
 
 	String infoStr = CsrInfo($csrName, grfName)
-	if (!strlen(infoStr))
+	if (!strlen(infoStr))			//	the cursor is not shown
 		return 1
 	endif
 
@@ -357,7 +350,7 @@ Function KMGetCursor(csrName, grfName, pos)
 	Variable posx = NumberByKey("POINT", infoStr)
 	Variable posy = NumberByKey("YPOINT", infoStr)
 
-	pos.isImg = (strsearch(StringByKey("RECREATION",infoStr),"/I",0) != -1)		//	カーソルの対象がイメージであるかどうか
+	pos.isImg = (strsearch(StringByKey("RECREATION",infoStr),"/I",0) != -1)
 	if (pos.isImg)
 		Wave w = ImageNameToWaveRef(grfName, tName)
 	else
@@ -367,8 +360,8 @@ Function KMGetCursor(csrName, grfName, pos)
 	Variable ox = DimOffset(w,0), oy = DimOffset(w,1)
 	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
 	if (NumberByKey("ISFREE", infoStr))
-		//	カーソルがフリーの場合は、posxとposyは0-1の範囲で与えられる
-		//	これをまず(x,y)に直し、そこから[p,q]に直す
+		//	When the cursor position is "free", posx and posy are between 0 and 1.
+		//	Calculate (x,y) from these, then [p,q] from (x,y)
 		STRUCT SIDAMAxisRange axis
 		SIDAMGetAxis(grfName,tName,axis)
 		pos.x = axis.xmin + (axis.xmax - axis.xmin) * posx
@@ -376,9 +369,10 @@ Function KMGetCursor(csrName, grfName, pos)
 		pos.p = pos.isImg ? round((pos.x-ox)/dy) : NaN
 		pos.q = pos.isImg ? round((pos.y-oy)/dy) : NaN
 	else
-		//	カーソルがフリーでない場合には、posxとposyには[p,q]が与えられる
+		//	When the cursor position is not "free", posx and posy are p and q,
+		//	respectively
 		pos.p = posx
-		pos.q = posy		//	表示されているのが1次元ウエーブならNaNが入る
+		pos.q = posy		//	NaN if a 1D wave is displayed
 		pos.x = pos.isImg ? ox+dy*posx : leftx(w)+deltax(w)*posx
 		pos.y = pos.isImg ? oy+dy*posy : w[posx]
 	endif
@@ -387,16 +381,21 @@ Function KMGetCursor(csrName, grfName, pos)
 End
 
 //******************************************************************************
-//	KMSetCursor
-//		カーソル位置を指定位置へ移動する
+///	SIDAMMoveCursor 
+///	@param csrName
+///		Name of a cursor.
+///	@param grfName
+///		Name of a window.
+///	@param mode
+///		0 or 1. Set 0 to give a new position by p & q, 1 by x & y.
+///	@param pos
+///		A new position where a cursor is moved.
 //******************************************************************************
-Function KMSetCursor(csrName, grfName, mode, pos)
-	String csrName, grfName
-	int mode		//	0: p, q,	1: x, y
-	STRUCT KMCursorPos &pos
+Function SIDAMMoveCursor(String csrName, String grfName, int mode,
+	STRUCT SIDAMCursorPos &pos)
 
 	String infoStr = CsrInfo($csrName, grfName)
-	if (!strlen(infoStr))			//	該当するカーソルが表示されていない
+	if (!strlen(infoStr))			//	the cursor is not shown
 		return 0
 	endif
 	String tName = StringByKey("TNAME", infoStr)
@@ -425,6 +424,7 @@ Function KMSetCursor(csrName, grfName, mode, pos)
 		endif
 	endif
 End
+
 
 //******************************************************************************
 //	Get the range of displayed axes by giving an image or a trace

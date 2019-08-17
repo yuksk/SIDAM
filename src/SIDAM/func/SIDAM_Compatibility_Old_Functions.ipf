@@ -41,10 +41,128 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
-//	v8.3.4 -----------------------------------------------------------------------
+Function KMPreviewPnl()
+	deprecatedCaution("")
+	KMPreview#pnl()
+End
+
+Function KMGetSettings(Wave/Z w, int kind)
+	deprecatedCaution("SIDAMGetSettings")
+	SIDAMGetsettings(w, kind)
+End
+
+Function KMTabControlProc(STRUCT WMTabControlAction &s)
+	deprecatedCaution("SIDAMTabControlProc")
+	SIDAMTabControlProc(s)
+End
+
+Function KMTabControlInitialize(String pnlName, String tabName)
+	deprecatedCaution("SIDAMInitializeTab")
+	return SIDAMInitializeTab(pnlName, tabName)
+End
+
+Function KMCheckSetVarString(String pnlName,String ctrlName,int mode,[int minlength,int maxlength])
+	deprecatedCaution("SIDAMValidateSetVariableString")
+	minlength = ParamIsDefault(minlength) ? 1 : minlength
+	maxlength = ParamIsDefault(maxlength) ? MAX_OBJ_NAME : maxlength
+	return SIDAMValidateSetVariableString(pnlName,ctrlName,mode,minlength=minlength,maxlength=maxlength)
+End
+
+Function/WAVE KMGetCtrlValues(String win, String ctrlList)
+	deprecatedCaution("SIDAMGetCtrlValues")
+	return SIDAMGetCtrlValues(win, ctrlList)
+End
+
+Function/WAVE KMGetCtrlTexts(String win, String ctrlList)
+	deprecatedCaution("SIDAMGetCtrlTexts")
+	return SIDAMGetCtrlTexts(win, ctrlList)
+End
+
+Function KMClickCheckBox(String pnlName, String ctrlName)
+	deprecatedCaution("SIDAMClickCheckBox")
+	SIDAMClickCheckBox(pnlName, ctrlName)
+End
+
+Function KMPopupTo(STRUCT WMPopupAction &s, String paramStr)
+	deprecatedCaution("SIDAMPopupTo")
+	SIDAMPopupTo(s, paramStr)
+End
+
+Function KMGetWindowInfo(String grfName, STRUCT KMGetWindowInfoStruct &s)
+	deprecatedCaution("SIDAMGetWindow")
+	STRUCT SIDAMWindowInfo info
+	SIDAMGetWindow(grfName, info)
+	s.width = info.width;		s.widthStr = info.widthStr
+	s.height = info.height;	s.heightStr = info.heightStr
+	s.axThick = info.axThick
+	s.margin = info.margin
+	s.labelLeft = info.labelLeft
+	s.labelBottom = info.labelBottom
+End
+
+Function KMGetAxThick(String grfName)
+	deprecatedCaution("SIDAMImageWaveRef")
+	STRUCT SIDAMWindowInfo s
+	SIDAMGetWindow(grfName, s)
+	return s.axThick
+End
+
+Function KMGetExpand(String grfName)
+	deprecatedCaution("SIDAMImageWaveRef")
+	STRUCT SIDAMWindowInfo s
+	SIDAMGetWindow(grfName, s)
+	return s.expand
+End
+
+Structure KMGetWindowInfoStruct
+	float width
+	String widthStr
+	float height
+	String heightStr
+	float axThick
+	STRUCT RectF margin
+	String labelLeft
+	String labelBottom
+EndStructure
+
+Function/WAVE KMGetImageWaveRef(String grfName, [String imgName, Variable displayed])
+	deprecatedCaution("SIDAMImageWaveRef")
+	if (strlen(imgName))
+		return SIDAMImageWaveRef(grfName, imgName=imgName, displayed=displayed)
+	else
+		return SIDAMImageWaveRef(grfName, displayed=displayed)
+	endif
+End
+
+Function KMGetCursor(String csrName, String grfName, STRUCT KMCursorPos &pos)
+	deprecatedCaution("SIDAMGetCursor")
+	STRUCT SIDAMCursorPos s
+	SIDAMGetCursor(csrName, grfName, s)
+	pos.isImg = s.isImg
+	pos.p = s.p ;	pos.q = s.q
+	pos.x = s.x ;	pos.y = s.y
+End
+
+Function KMSetCursor(String csrName, String grfName, int mode, STRUCT KMCursorPos &pos)
+	deprecatedCaution("SIDAMMoveCursor")
+	STRUCT SIDAMCursorPos s
+	SIDAMMoveCursor(csrName, grfName, mode, s)
+	pos.isImg = s.isImg
+	pos.p = s.p ;	pos.q = s.q
+	pos.x = s.x ;	pos.y = s.y
+End
+
+Structure KMCursorPos
+	uchar	isImg
+	uint32	p
+	uint32	q
+	double	x
+	double	y
+EndStructure
+
 Function KMShowParameters()
 	deprecatedCaution("SIDAMShowParameters")
-	SIDAMShowParameters()
+	return SIDAMShowParameters()
 End
 
 //	v8.1.12 ----------------------------------------------------------------------
@@ -55,18 +173,18 @@ End
 
 Function KMOpenHelpNote(String noteFileName, [String pnlName, String title])
 	deprecatedCaution("SIDAMOpenHelpNote")
-	SIDAMOpenHelpNote(noteFileName,pnlName,title)
+	return SIDAMOpenHelpNote(noteFileName,pnlName,title)
 End
 
 //	v8.1.11 ----------------------------------------------------------------------
 Function/WAVE KMGetMarquee(int mode)
 	deprecatedCaution("SIDAMGetMarquee")
-	SIDAMGetMarquee(mode)
+	return SIDAMGetMarquee(mode)
 End
 
 Function KMExportGraphicsTransparent([String grfName, Variable size])
 	deprecatedCaution("SIDAMExportGraphicsTransparent")
-	SIDAMExportGraphicsTransparent(grfName=grfName,size=size)
+	return SIDAMExportGraphicsTransparent(grfName=grfName,size=size)
 End
 
 Function KMGetCursorState(String csrName, String grfName)
@@ -78,14 +196,6 @@ Function KMGetCursorState(String csrName, String grfName)
 	return rtn
 End
 
-Function/S KMWaveList(DFREF dfr, int dim, [int forFFT, int nx, int ny])
-	deprecatedCaution("")
-End
-
-Function/S KMWaveToTraceName(String pnlName, Wave w)
-	deprecatedCaution("")
-End
-
 Function/S KMWaveToString(Wave/Z w, [Variable noquot])
 	deprecatedCaution("SIDAMWaveToString")
 	return SIDAMWaveToString(w, noquote=noquot)
@@ -93,7 +203,7 @@ End
 
 Function KMSetBias(Wave w, Wave biasw)
 	deprecatedCaution("SIDAMSetBias")
-	SIDAMSetBias(w, biasw)
+	return SIDAMSetBias(w, biasw)
 End
 
 Function/WAVE KMGetBias(Wave w, int dim)
@@ -103,12 +213,12 @@ End
 
 Function KMCopyBias(Wave srcw, Wave destw)
 	deprecatedCaution("SIDAMCopyBias")
-	SIDAMCopyBias(srcw, destw)
+	return SIDAMCopyBias(srcw, destw)
 End
 
 Function KMisUnevenlySpacedBias(Wave w)
 	deprecatedCaution("SIDAMisUnevenlySpacedBias")
-	SIDAMisUnevenlySpacedBias(w)
+	return SIDAMisUnevenlySpacedBias(w)
 End
 
 Function KMScaleToIndex(Wave w, Variable value, int dim)
@@ -121,19 +231,19 @@ Function KMIndexToScale(Wave w, int index, int dim)
 	return SIDAMIndexToScale(w, index, dim)
 End
 
-Function KMEndEffect(Wave w, int endeffect)
+Function/WAVE KMEndEffect(Wave w, int endeffect)
 	deprecatedCaution("SIDAMEndEffect")
-	SIDAMEndEffect(w, endeffect)
+	return SIDAMEndEffect(w, endeffect)
 End
 
 Function KMClosePnl(STRUCT WMWinHookStruct &s)
 	deprecatedCaution("SIDAMWindowHookClose")
-	SIDAMWindowHookClose(s)
+	return SIDAMWindowHookClose(s)
 End
 
 Function KMonClosePnl(String pnlName, [String df])
 	deprecatedCaution("SIDAMKillDataFolder")
-	SIDAMKillDataFolder($GetUserData(pnlName, "", "dfTmp"))
+	return SIDAMKillDataFolder($GetUserData(pnlName, "", "dfTmp"))
 End
 
 Function KMRemoveAll(String grfName,[String df])
@@ -195,14 +305,6 @@ Function/WAVE KM_GetColorTableMinMax(String grfName, String imgName)
 	SIDAM_GetColorTableMinMax(grfName,imgName,zmin,zmax)
 	Make/D/FREE/N=2 rw = {zmin, zmax}
 	return rw
-End
-
-Function isFirstZAuto(String grfName, String imgName)
-	deprecatedCaution("")
-End
-
-Function isLastZAuto(String grfName, String imgName)
-	deprecatedCaution("")
 End
 
 //	v8.1.4 ----------------------------------------------------------------------

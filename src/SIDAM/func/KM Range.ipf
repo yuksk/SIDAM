@@ -333,7 +333,7 @@ Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variabl
 	SetDataFolder $dfTmp
 	
 	//	ヒストグラムウエーブ
-	Wave w = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
+	Wave w = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
 	KMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, bins=k_bins, result=ks_name, dfr=GetDataFolderDFR())
 	
 	SetDataFolder dfrSav
@@ -434,7 +434,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		
 		//	パネルで現在選択されているウエーブがグラフから削除された場合には、新たなウエーブを選択状態にしておく
 		ControlInfo/W=$pnlName imageP
-		Wave/Z w = KMGetImageWaveRef(s.winName, imgName=S_Value)
+		Wave/Z w = SIDAMImageWaveRef(s.winName, imgName=S_Value)
 		if (!WaveExists(w))		//	表示されていないときには、ウエーブへの参照は無効となる
 			PopupMenu imageP value=#"KMRange#imageListForImageP()", mode=1, win=$pnlName
 		endif
@@ -538,7 +538,7 @@ Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
 		ctrl = StringFromList(i,list)
 		ControlInfo/W=$s.winName $ctrl
 		if (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
-			KMClickCheckBox(s.winName, ctrl[0,strlen(ctrl)-2]+"C")
+			SIDAMClickCheckBox(s.winName, ctrl[0,strlen(ctrl)-2]+"C")
 		endif
 	endfor
 End
@@ -566,7 +566,7 @@ Static Function pnlHookCursor(STRUCT WMWinHookStruct &s)
 	SetVariable $setVarName value=_NUM:xvalue, win=$pnlName
 	
 	//	チェックボックスをクリックする -> updataZRangeが呼び出されてZ範囲が更新される
-	KMClickCheckBox(pnlName,checkBoxName)
+	SIDAMClickCheckBox(pnlName,checkBoxName)
 	
 	//	z範囲がヒストグラム表示範囲の外側になった場合には、ヒストグラムを更新する
 	if (xvalue < xmin || xvalue > xmax)
@@ -595,16 +595,16 @@ Static Function pnlSetvalue(STRUCT WMSetVariableAction &s)
 			Variable pv = str2num(GetUserData(s.win, s.ctrlName, "previous"))
 			if (numtype(pv) == 2)
 				SetVariable $s.ctrlName userData(previous)=num2str(s.dval), win=$s.win
-				KMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
+				SIDAMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
 				return 0
 			elseif (pv == s.dval)
-				KMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
+				SIDAMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
 				return 0
 			endif	
 			break
 			
 		default:
-			KMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
+			SIDAMClickCheckBox(s.win,(s.ctrlName)[0,strlen(s.ctrlName)-2]+"C")
 			return 0
 	endswitch
 	
@@ -700,12 +700,12 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	//	first ZのZモード
 	int m0 = findSelectedRadiobutton(s.win, "min")
 	//	first ZのZモードの設定値, autoの時は0
-	Wave minValuew = KMGetCtrlValues(s.win, "zminV;zminSigmaV;zminCutV")
+	Wave minValuew = SIDAMGetCtrlValues(s.win, "zminV;zminSigmaV;zminCutV")
 	Variable v0 = m0 ? minValuew[m0-1] : 0
 	//	last ZのZモード
 	int m1 = findSelectedRadiobutton(s.win, "max")
 	//	last ZのZモードの設定値, autoの時は0
-	Wave maxValuew = KMGetCtrlValues(s.win, "zmaxV;zmaxSigmaV;zmaxCutV")
+	Wave maxValuew = SIDAMGetCtrlValues(s.win, "zmaxV;zmaxSigmaV;zmaxCutV")
 	Variable v1 = m1 ? maxValuew[m1-1] : 0
 	
 	//	allCがチェックされている場合には、表示されているすべてのイメージについてZモード文字列を記録し、
@@ -823,7 +823,7 @@ Static Function updateHistogram(String pnlName, int mode)
 	String imgName = S_Value	
 	String grfName = GetUserData(pnlName, "", "grf")
 	DFREF dfrTmp = $GetUserData(pnlName, "", "dfTmp")
-	Wave w = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
+	Wave w = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
 	
 	Variable z0, z1, zmin, zmax
 	if ( mode == 0 )
@@ -847,7 +847,7 @@ End
 Static Function findSelectedRadiobutton(String pnlName, String minOrMax)
 	String str
 	Sprintf str, "z%sAutoC;z%sC;z%sSigmaC;z%sCutC", minOrMax, minOrMax, minOrMax, minOrMax
-	Wave cw = KMGetCtrlValues(pnlName, str)
+	Wave cw = SIDAMGetCtrlValues(pnlName, str)
 	cw *= p
 	return sum(cw)
 End
@@ -880,7 +880,7 @@ End
 Static Function/WAVE updateZRange_getValues(String grfName, String imgName, int m0, Variable v0, int m1, Variable v1)
 	
 	if (m0 >= 2 || m1 >= 2)		//	sigma or cut
-		Wave tw = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
+		Wave tw = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
 		if (m0 == 2 || m1 == 2)	//	sigma
 			WaveStats/Q tw
 			Variable avg = V_avg, sdev = V_sdev

@@ -61,7 +61,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 			s.errMsg += "the window list contains a window not found."
 			return 0
 		endif
-		Wave/Z w = KMGetImageWaveRef(grfName)
+		Wave/Z w = SIDAMImageWaveRef(grfName)
 		if (!WaveExists(w) || WaveDims(w)!=3)
 			s.errMsg += "the window list must contain only LayerViewer."
 			return 0

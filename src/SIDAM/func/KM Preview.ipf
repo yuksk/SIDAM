@@ -9,16 +9,10 @@
 Static StrConstant ks_columntitile = "wave;bias;current;comment"		//	ウエーブリストの項目タイトル
 Static StrConstant ks_popupStr = "Display;Plane Subtraction;Select All"	//	ウエーブリストの右クリックメニュー項目
 
-Static Function/S menu(String shortCutStr)
-	int isBrowserShown = strlen(GetBrowserSelection(-1))
-	int n = SIDAMnumberOfSelectedWaves()
-	return SelectString(!isBrowserShown || !n, "", "Preview"+shortCutStr)	
-End
-
 //******************************************************************************
 //	Main
 //******************************************************************************
-Function KMPreviewPnl()
+Static Function pnl()
 	
 	//	既にパネルが表示されていれば、それにフォーカスして終了
 	String pnlList = WinList("*",";","WIN:64")
@@ -198,7 +192,7 @@ Static Function updateLayers(
 	int direction	//	1:up, -1:down
 	)
 	
-	Wave/Z iw =  KMGetImageWaveRef(grfName)
+	Wave/Z iw =  SIDAMImageWaveRef(grfName)
 	if (WaveExists(iw) && WaveDims(iw) == 3)
 		KMLayerViewerDo(grfName, direction=direction)
 		//	0.5%表示　ウエーブ変更時に設定してあるが、サブウインドウのへフック関数を設定してもイベントを拾うことが
@@ -396,7 +390,7 @@ Static Function updateList(String pnlName)
 	int i, n
 	
 	//	ルート以下のウエーブをリストアップする
-	Wave cw = KMGetCtrlValues(pnlName+"#P1", "allC;oneC;twoC;threeC;")
+	Wave cw = SIDAMGetCtrlValues(pnlName+"#P1", "allC;oneC;twoC;threeC;")
 	cw *= p
 	String optStr = "UNSIGNED:0,TEXT:0,DF:0,WAVE:0"	//	UNSIGNEDを除くのは、カラーインデックスウエーブを除くため
 	if (sum(cw))
@@ -432,7 +426,7 @@ Static Function updateList(String pnlName)
 	if (n)
 		refw = grepw[p]
 		lw[][0] = NameOfWave(refw[p])
-		lw[][1,3] = KMGetSettings(refw[p], q)
+		lw[][1,3] = SIDAMGetSettings(refw[p], q)
 		sw[][][0] = 0
 		sw[][][1] = WaveDims(refw[p])
 		sw[][][2] = 0					//	0 の選択はデフォルト色を選択することになるようだ
@@ -607,142 +601,3 @@ Static Function updateImage(STRUCT WMListboxAction &s)
 	endif
 End
 
-//******************************************************************************
-//	KMGetSettings
-//		Settingフォルダの中から指定する値を取り出して返す
-//******************************************************************************
-Function/S KMGetSettings(Wave/Z w, int kind)
-	
-	if (!WaveExists(w))
-		return ""
-	endif
-	
-	DFREF dfr = GetWavesDataFolderDFR(w):$SIDAM_DF_SETTINGS
-	if (!DataFolderRefStatus(dfr))
-		return ""
-	endif
-	
-	switch (kind)
-		case 1:	//	bias
-			return KMGetSettingsBias(dfr)
-		case 2:	//	current
-			return KMGetSettingsCurrent(dfr)
-		case 3:	//	comment
-			return KMGetSettingsComment(dfr)
-		case 4:	//	angle
-			return KMGetSettingsAngle(dfr)
-	endswitch
-End
-
-Static Function/S KMGetSettingsBias(DFREF dfr)
-	
-	NVAR/Z/SDFR=dfr bias
-	if (NVAR_Exists(bias))
-		return num2str(bias)
-	endif
-	
-	//	Nanonis
-	NVAR/Z/SDFR=dfr 'bias (V)'
-	if (NVAR_Exists('bias (V)'))
-		return KMGetSettingsFormatStr('bias (V)') + "V"
-	endif
-	if (DataFolderRefStatus(dfr:Bias))
-		NVAR/Z/SDFR=dfr:Bias 'Bias (V)'
-		if (NVAR_Exists('Bias (V)'))
-			return KMGetSettingsFormatStr('Bias (V)') + "V"
-		endif
-	endif
-	
-	return ""
-End
-
-Static Function/S KMGetSettingsCurrent(DFREF dfr)
-	
-	NVAR/Z/SDFR=dfr current
-	if (NVAR_Exists(current))
-		return num2str(current)
-	endif
-	
-	//	Nanonis
-	if (DataFolderRefStatus(dfr:'Z-CONTROLLER'))
-		SVAR/Z/SDFR=dfr:'Z-CONTROLLER' Setpoint
-		if (SVAR_Exists(Setpoint))
-			return Setpoint
-		endif
-		NVAR/Z/SDFR=dfr:'Z-CONTROLLER' OverwrittenSetpoint = Setpoint
-		if (NVAR_Exists(OverwrittenSetpoint))
-			return KMGetSettingsFormatStr(OverwrittenSetpoint) + "A"
-		endif
-	elseif (DataFolderRefStatus(dfr:Current))
-		NVAR/Z/SDFR=dfr:Current 'Current (A)'
-		return KMGetSettingsFormatStr('Current (A)') + "A"
-	endif
-	
-	return ""
-End
-
-Static Function/S KMGetSettingsComment(DFREF dfr)
-	
-	SVAR/Z/SDFR=dfr text, comment
-	if (SVAR_Exists(text))
-		return text
-	elseif (SVAR_Exists(comment))	//	Nanonis
-		return comment
-	else
-		return ""
-	endif
-End
-
-Static Function/S KMGetSettingsAngle(DFREF dfr)
-	
-	NVAR/Z/SDFR=dfr angle		//	RHK SM2
-	if (NVAR_Exists(angle))
-		return num2str(angle)
-	endif
-	
-	//	以下、Nanonis対応
-	//	Nanonisでは時計回りを正として角度が記録されているので、正負を逆転して返す
-	SVAR/Z/SDFR=dfr grid = 'Grid settings'	//	Nanonis 3ds
-	if (SVAR_Exists(grid))
-		Variable a = str2num(StringFromList(4, grid))
-		return num2str(-a)
-	endif
-	
-	NVAR/Z/SDFR=dfr anglesxm = 'angle (deg)'	//	Nanonis sxm
-	if (NVAR_Exists(anglesxm))
-		return num2str(-anglesxm)
-	endif
-	
-	return ""
-End
-
-Static Function/S KMGetSettingsFormatStr(Variable var)
-	
-	String str	
-	switch (floor((log(abs(var))+1)/3))
-		case 1:
-			sprintf str, "%.2f k", var*1e-3
-			break
-		case 0:
-			sprintf str, "%.2f ", var
-			break
-		case -1:
-			sprintf str, "%.2f m", var*1e3
-			break
-		case -2:
-			sprintf str, "%.2f u", var*1e6
-			break
-		case -3:
-			sprintf str, "%.2f n", var*1e9
-			break
-		case -4:
-			sprintf str, "%.2f p", var*1e12
-			break
-		case -5:
-			sprintf str, "%.2f f", var*1e15
-			break
-		default:
-			str = num2str(var)
-	endswitch
-	return str
-End

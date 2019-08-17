@@ -239,18 +239,18 @@ End
 //-------------------------------------------------------------
 Static Function menuDo()
 	String grfName = WinName(0,4311,1)
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	if (WaveExists(w))
 		pnl(w, grfName)
 	endif
 End
 
 Static Function marqueeDo()
-	SIDAMSubtraction(KMGetImageWaveRef(WinName(0,1,1)),roi=SIDAMGetMarquee(0),history=1)
+	SIDAMSubtraction(SIDAMImageWaveRef(WinName(0,1,1)),roi=SIDAMGetMarquee(0),history=1)
 End
 
 Static Function/S marqueeMenu()
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1,1))
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1,1))
 	if (WaveExists(w) && WaveDims(w) == 2)
 		return "plane subtraction about this region"
 	else
@@ -346,8 +346,8 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 		case "doB":
 			Wave w = $GetUserData(s.win, "", "src")
-			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
-			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win,"modeP;resultV")
 			Variable direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
 			String result = SelectString(cvw[3], ctw[1], "")
 			KillWindow $s.win
@@ -396,7 +396,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 
 	strswitch (s.ctrlName)
 		case "resultV":
-			Variable disable = KMCheckSetVarString(s.win,s.ctrlName,0)*2
+			Variable disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0)*2
 			Button doB disable=disable, win=$s.win
 			PopupMenu toP disable=disable, win=$s.win
 			break
@@ -433,8 +433,8 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 
 		case "toP":
-			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
-			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win,"modeP;resultV")
 
 			STRUCT paramStruct ps
 			Wave ps.w = $GetUserData(s.win, "", "src")
@@ -461,7 +461,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 					break
 			endswitch
 
-			KMPopupTo(s, echoStr(ps))
+			SIDAMPopupTo(s, echoStr(ps))
 			break
 	endswitch
 End

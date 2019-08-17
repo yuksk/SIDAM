@@ -213,7 +213,7 @@ Static Function/S displayNumericWaveTraceXY(Wave w)
 	int mode = canBeDisplayedAsXYTrace(w)
 	if (mode == 1)
 		AppendToGraph/W=$grfName w[%q][] vs w[%p][]
-		Wave/Z iw = KMGetImageWaveRef(grfName)
+		Wave/Z iw = SIDAMImageWaveRef(grfName)
 		if (WaveExists(iw))
 			ModifyGraph/W=$grfName offset($NameOfWave(w))={DimOffset(iw,0),DimOffset(iw,1)}
 			ModifyGraph/W=$grfName muloffset($NameOfWave(w))={DimDelta(iw,0),DimDelta(iw,1)}

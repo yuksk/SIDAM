@@ -408,7 +408,7 @@ Static Function pnl(String grfName)
 		cindexWave2ctabWave()
 	endif
 
-	Wave cw = KMGetCtrlValues(pnlName,"op_revC;op_logC")
+	Wave cw = SIDAMGetCtrlValues(pnlName,"op_revC;op_logC")
 	pnlGroupComponents(pnlName, activegroup, rev=cw[0], log=cw[1],\
 		selected=SIDAM_ColorTableForImage(grfName,imgName))
 
@@ -747,7 +747,7 @@ Static Function pnlHookArrows(String pnlName, int keycode)
 	endswitch
 
 	cbName = "cb_"+num2istr(nextGroup)+"_"+num2istr(nextBox)
-	KMClickCheckBox(pnlName+"#P_"+num2istr(nextGroup), cbName)
+	SIDAMClickCheckBox(pnlName+"#P_"+num2istr(nextGroup), cbName)
 	selectGroup(pnlName, nextGroup)
 End
 
@@ -1022,7 +1022,7 @@ Static Function updateAllImaeges(STRUCT  WMCheckboxAction &s)
 	String grfName = GetUserData(s.win,"","grf")
 	String imgList = ImageNameList(grfName,";")
 	String ctable = findSelectedColortable(s.win)
-	Wave cw = KMGetCtrlValues(s.win,"op_revC;op_logC")
+	Wave cw = SIDAMGetCtrlValues(s.win,"op_revC;op_logC")
 
 	STRUCT paramStruct ps
 	getRGBFromPanel(s.win, ps)
@@ -1064,7 +1064,7 @@ End
 //	reflect the status of op_revC and op_logC.
 //-------------------------------------------------------------
 Static Function updateColorscalesInPnl(String pnlName)
-	Wave cw = KMGetCtrlValues(pnlName,"op_revC;op_logC")
+	Wave cw = SIDAMGetCtrlValues(pnlName,"op_revC;op_logC")
 	String subPnlList = ChildWindowList(pnlName)	//	P_0, P_1, ...
 	int i, n
 	for (i = 0, n = ItemsInList(subPnlList); i < n; i++)
@@ -1150,7 +1150,7 @@ End
 //-------------------------------------------------------------
 Static Function/S findSelectedColortable(String pnlName)
 	String cbList = ControlNameList(pnlName,";","cb_*")
-	Wave/Z cw = KMGetCtrlValues(pnlName, cbList)
+	Wave/Z cw = SIDAMGetCtrlValues(pnlName, cbList)
 	if (numpnts(cw) > 0)
 		WaveStats/Q/M=1 cw
 		if (V_max)
@@ -1233,7 +1233,7 @@ Static Function getRGBFromPanelHelper(String pnlName, STRUCT paramStruct &s, int
 		list = "op_lastUseC;op_lastClrC;op_lastTransC"
 	endif
 
-	Wave cw = KMGetCtrlValues(pnlName, list)
+	Wave cw = SIDAMGetCtrlValues(pnlName, list)
 	cw *= p
 	if (mode == 0)
 		s.min.mode = sum(cw)
@@ -1294,7 +1294,7 @@ Static Function findChangedParameters(String pnlName, STRUCT paramStruct &s,
 	//	Collect the parameters selected in the panel
 	s.imgList = ImageNameList(s.grfName,";")
 	s.ctable = findSelectedColortable(pnlName)
-	Wave cw = KMGetCtrlValues(pnlName, "op_revC;op_logC")
+	Wave cw = SIDAMGetCtrlValues(pnlName, "op_revC;op_logC")
 	s.rev = cw[0]
 	s.log = cw[1]
 	getRGBFromPanel(pnlName,s)

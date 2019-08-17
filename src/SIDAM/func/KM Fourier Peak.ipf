@@ -12,7 +12,7 @@
 Static Function marqueeDo(int mode)
 	//	ピーク位置取得
 	String grfName = WinName(0,1)
-	Wave iw = KMGetImageWaveRef(grfName)
+	Wave iw = SIDAMImageWaveRef(grfName)
 	try
 		Wave posw = KMFourierPeakGetPos(iw, mode, marquee=1)
 	catch
@@ -48,7 +48,7 @@ End
 //	マーキーメニュー文字列
 //-------------------------------------------------------------
 Static Function/S marqueeMenu(int mode)
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1))	
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))	
 	
 	//	ウエーブが存在しない、存在しても複素数ウエーブ
 	if (!WaveExists(w) || (WaveType(w) & 0x01))

@@ -357,20 +357,22 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			
 		case "reverseB":
 			KMTraceOrderUpsideDown(grfName)
-			Wave cvw = KMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
 			KMTraceOffsetSet(grfName,cvw[0],cvw[1],cvw[2])
 			DoUpdate/W=$grfName
 			break
 			
 		case "cancelB":
-			Wave cvw = KMGetCtrlInitValues(s.win,"xoffsetV;yoffsetV;fillC")
+			String listStr = "xoffsetV;yoffsetV;fillC"
+			Make/N=(ItemsInList(listStr))/FREE cvw = \
+				str2num(GetUserData(s.win,StringFromList(p,listStr),"init"))
 			KMTraceOffsetSet(grfName,cvw[0],cvw[1],cvw[2])
 			revertColor(s.win)
 			KillWindow $s.win
 			break
 			
 		case "doB":
-			Wave cvw = KMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
 			SetWindow $grfName, userData(KMTraceOffsetX)=num2str(cvw[0])
 			SetWindow $grfName, userData(KMTraceOffsetY)=num2str(cvw[1])
 			SetWindow $grfName, userData(KMTraceOffsetFill)=num2str(cvw[2])
@@ -389,7 +391,7 @@ Static Function pnlCheck(STRUCT WMCheckBoxAction &s)
 	String grfName = GetUserData(s.win, "", "grf")
 	strswitch (s.ctrlName)
 		case "fillC":
-			Wave cvw = KMGetCtrlValues(s.win, "xoffsetV;yoffsetV")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "xoffsetV;yoffsetV")
 			KMTraceOffsetSet(grfName,cvw[0], cvw[1], s.checked)
 			break
 			
@@ -427,11 +429,11 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	strswitch (s.ctrlName)
 		case "singleP":
 			CheckBox singleC value=0, win=$s.win	//	もともと選択されていた場合に備えて一旦0にする
-			KMClickCheckBox(s.win,"singleC")
+			SIDAMClickCheckBox(s.win,"singleC")
 			break
 		case "tableP":
 			CheckBox tableC value=0, win=$s.win	//	もともと選択されていた場合に備えて一旦0にする
-			KMClickCheckBox(s.win,"tableC")
+			SIDAMClickCheckBox(s.win,"tableC")
 			break
 	endswitch
 End
@@ -445,7 +447,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	endif
 	
 	String grfName = GetUserData(s.win, "", "grf")
-	Wave cvw = KMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
+	Wave cvw = SIDAMGetCtrlValues(s.win, "xoffsetV;yoffsetV;fillC")
 	KMTraceOffsetSet(grfName, cvw[0], cvw[1], cvw[2])
 	DoUpdate/W=grfName	//	これを入れないとKMTraceOffsetIncrementがKMTraceOffsetSet終了前に実行されてしまうようだ.
 	

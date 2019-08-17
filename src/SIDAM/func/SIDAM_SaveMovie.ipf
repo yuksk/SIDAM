@@ -10,7 +10,7 @@
 //	return the menu item for the right-click menu
 //-------------------------------------------------------------
 Static Function/S rightclickMenu()
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
 	endif
@@ -33,7 +33,7 @@ Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,320,270)
 	RenameWindow $grfName#$S_name, SaveMovie
 	String pnlName = grfName + "#SaveMovie"
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	
 	//	layer
 	GroupBox layerG title="Layer", pos={5,4}, size={310,50}, win=$pnlName
@@ -106,7 +106,7 @@ Static Function/S createCmdStr(String pnlName)
 
 	String cmdStr = "NewMovie"
 	
-	Wave cw = KMGetCtrlValues(pnlName,"overwriteC;rateV")
+	Wave cw = SIDAMGetCtrlValues(pnlName,"overwriteC;rateV")
 	cmdStr += SelectString(cw[0], "", "/O")
 	cmdStr += "/F="+num2istr(cw[1])
 	

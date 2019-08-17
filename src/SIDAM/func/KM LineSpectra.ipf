@@ -407,7 +407,7 @@ Static Function pnl(String LVName)
 		return 0
 	endif
 
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	int i
 
 	//	表示
@@ -855,7 +855,7 @@ End
 Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
 	if (s.eventCode == 2 || s.eventCode == 8)
 		//	結果文字列の長さを判定する
-		int chklen = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=MAX_OBJ_NAME-3)
+		int chklen = SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=MAX_OBJ_NAME-3)
 		Button doB disable=chklen*2, win=$s.win
 	endif
 End
@@ -866,7 +866,7 @@ Static Function outputPnlDo(String pnlName)
 	String parent = StringFromList(0,pnlName,"#")
 
 	Wave w = $GetUserData(parent,"","src")
-	Wave cvw = KMGetCtrlValues(parent,"p1V;q1V;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(parent,"p1V;q1V;p2V;q2V")
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 	int mode = str2num(GetUserData(parent,"","mode"))
 	ControlInfo/W=$pnlName positionC ;	int output = V_value

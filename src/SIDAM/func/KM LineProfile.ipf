@@ -278,7 +278,7 @@ Static Function pnl(String grfName, String imgName)
 	Make/N=(1,3)/O $PNL_C
 	Make/T/N=2/O $PNL_T = {"1","2"}
 
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	int i
 
 	//	表示
@@ -411,7 +411,7 @@ End
 //-------------------------------------------------------------
 Static Function pnlUpdateColor(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	if (WaveDims(KMGetImageWaveRef(grfName))==2)
+	if (WaveDims(SIDAMImageWaveRef(grfName))==2)
 		return 0
 	elseif (CmpStr(GetUserData(pnlName,"","highlight"),"1"))
 		return 0
@@ -664,9 +664,9 @@ Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
 
 	//	オリジナルウエーブ
 	String grfName = GetUserData(StringFromList(0, s.win, "#"),"","parent")
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	int maxlength = (WaveDims(w)==3) ? MAX_OBJ_NAME-3 : MAX_OBJ_NAME
-	int isProperLength = !KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=maxlength)
+	int isProperLength = !SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=maxlength)
 	Button doB disable=(!isProperLength)*2, win=$s.win
 End
 //-------------------------------------------------------------
@@ -679,7 +679,7 @@ Static Function outputPnlDo(String pnlName)
 	ControlInfo/W=$pnlName sdevC;			output += V_Value*2
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 
-	Wave cvw = KMGetCtrlValues(prtName,"p1V;q1V;p2V;q2V;widthV")
+	Wave cvw = SIDAMGetCtrlValues(prtName,"p1V;q1V;p2V;q2V;widthV")
 	Wave w = $GetUserData(prtName,"","src")
 
 	KMLineProfile(w,cvw[0],cvw[1],cvw[2],cvw[3],result=result,width=cvw[4],output=output,history=1)

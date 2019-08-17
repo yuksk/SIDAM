@@ -5,7 +5,7 @@
 #pragma hide = 1
 #endif
 
-#include "SIDAM_Prefs"						//	for SIDAMLoadPrefs, SIDAMSavePrefs
+#include "SIDAM_Preference"				//	for SIDAMLoadPrefs, SIDAMSavePrefs
 #include "SIDAM_Compatibility"			//	for SIDAMBackwardCompatibility
 
 //	AfterCompiledHook

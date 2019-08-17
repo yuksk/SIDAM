@@ -65,7 +65,7 @@ End
 Function KMLayerViewerDo(String grfName, [Wave/Z w, int index, int direction])
 	
 	if (ParamIsDefault(w))
-		Wave/Z w =  KMGetImageWaveRef(grfName)
+		Wave/Z w =  SIDAMImageWaveRef(grfName)
 	endif
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return NaN
@@ -92,7 +92,7 @@ End
 //******************************************************************************
 Static Function/S rightclickMenu(int menuitem)
 	
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return ""
 	endif
@@ -126,7 +126,7 @@ Static Function extractPnl(String LVName)
 		return 0
 	endif
 	
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	Variable plane = NumberByKey("plane", ImageInfo(LVName, NameOfWave(w), 0), "=")	//	現在の表示レイヤー
 	
 	//  パネル表示
@@ -193,7 +193,7 @@ Static Function extractPnlCheck(STRUCT WMCheckboxAction &s)
 	TitleBox resultT title=SelectString(WhichListItem(s.ctrlName,"thisC;fromC;"),"output name:","basename"), win=$s.win
 	
 	String parentWin = StringFromList(0, s.win, "#")
-	Wave w = KMGetImageWaveRef(parentWin)
+	Wave w = SIDAMImageWaveRef(parentWin)
 	int plane = NumberByKey("plane", ImageInfo(parentWin, NameOfWave(w), 0), "=")	//	現在の表示レイヤー
 	
 	String name = NameOfWave(w)+"_r"
@@ -220,7 +220,7 @@ Static Function extractPnlSetVar(STRUCT WMSetVariableAction &s)
 	strswitch (s.ctrlName)
 		case "from_w_V" :
 		case "to_w_V" :
-			KMClickCheckBox(s.win,"fromC")
+			SIDAMClickCheckBox(s.win,"fromC")
 			break
 		case "resultV" :
 			Button doB disable=CheckResultStrLength(s.win)*2, win=$s.win
@@ -240,11 +240,11 @@ Static Function CheckResultStrLength(String pnlName)
 	
 	ControlInfo/W=$pnlName fromC
 	if (V_Value)
-		Wave cvw = KMGetCtrlValues(pnlName, "from_w_V;to_w_V")
+		Wave cvw = SIDAMGetCtrlValues(pnlName, "from_w_V;to_w_V")
 		maxLength -= floor(log(WaveMax(cvw)))+1	//	from と to の大きな方の数字の桁数を引いている
 	endif
 	
-	return KMCheckSetVarString(pnlName,"resultV", 0, maxlength=maxLength)
+	return SIDAMValidateSetVariableString(pnlName,"resultV", 0, maxlength=maxLength)
 End
 //-------------------------------------------------------------
 //	doBの実行関数
@@ -252,7 +252,7 @@ End
 Static Function extractPnlSave(String pnlName)
 	
 	String LVName = StringFromList(0, pnlName, "#")
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	
 	ControlInfo/W=$pnlName resultV
 	String result = S_value
@@ -273,7 +273,7 @@ Static Function extractPnlSave(String pnlName)
 
 	else
 
-		Wave cw = KMGetCtrlValues(pnlName,"from_w_V;to_w_V")
+		Wave cw = SIDAMGetCtrlValues(pnlName,"from_w_V;to_w_V")
 		int digit = WaveMin(cw) ? floor(log(WaveMax(cw)))+1 : 1
 		String name
 		int i
@@ -296,7 +296,7 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	String grfName = SIDAMDisplay(extw, history=1)
 	
 	//	LayerViewerでのz表示範囲を適用する
-	Wave srcw = KMGetImageWaveRef(LVName)
+	Wave srcw = SIDAMImageWaveRef(LVName)
 	Variable zmin, zmax
 	SIDAM_GetColorTableMinMax(LVName, NameOfWave(srcw),zmin,zmax,allowNaN=1)
 	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax,history=1)

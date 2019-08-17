@@ -120,7 +120,7 @@ End
 Static Function pnlHookParentMouse(STRUCT WMWinHookStruct &s,	String pnlName)
 
 	STRUCT SIDAMMousePos ms
-	Wave cvw = KMGetCtrlValues(pnlName,"p1C;p2C")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1C;p2C")
 	int isp1Checked = cvw[0], isp2Checked = cvw[1]
 	int isBothFixed = !isp1Checked && !isp2Checked
 	int isGrid = str2num(GetUserData(pnlName,"","grid"))
@@ -348,7 +348,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 
 		case 49:	//	1
 		case 50:	//	2
-			KMClickCheckBox(s.winName,"p"+num2istr(s.keycode-48)+"C")
+			SIDAMClickCheckBox(s.winName,"p"+num2istr(s.keycode-48)+"C")
 			return 1
 
 		case 120:	//	x
@@ -398,10 +398,10 @@ Static Function keyArrows(STRUCT WMWinHookStruct &s)
 		endif
 	endfor
 
-	Wave cvw = KMGetCtrlValues(s.winName,"p1C;p1V;q1V;p2C;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(s.winName,"p1C;p1V;q1V;p2C;p2V;q2V")
 
 	//	Do nothing if neither 1 nor 2 is checked
-	if (!cvw[0] && !cvw[3])
+	if (!cvw[%p1C] && !cvw[%p2C])
 		return 0
 	endif
 
@@ -409,21 +409,29 @@ Static Function keyArrows(STRUCT WMWinHookStruct &s)
 	int isUp = s.keycode == 30, isDown = s.keycode == 31
 	int step = (s.eventMod & 2) ? 10 : 1	//	if the shift key is pressed, move 10 times faster
 	int direction = (isLeft || isDown) ? -1 : 1
-	Variable pinc = KMGetVarLimits(s.winName, "p1V",2) * step * direction
-	Variable qinc = KMGetVarLimits(s.winName, "q1V",2) * step * direction
+	int pinc = getIncrement(s.winName, "p1V") * step * direction 
+	int qinc = getIncrement(s.winName, "q1V") * step * direction 
 	Wave w = $GetUserData(s.winName,"","src")
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 
 	if (isLeft || isRight)
-		SetVariable p1V value=_NUM:limit(cvw[1]+pinc*cvw[0], 0, nx-1), win=$s.winName
-		SetVariable p2V value=_NUM:limit(cvw[4]+pinc*cvw[3], 0, nx-1), win=$s.winName
+		SetVariable p1V value=_NUM:limit(cvw[%p1V]+pinc*cvw[%p1C], 0, nx-1), win=$s.winName
+		SetVariable p2V value=_NUM:limit(cvw[%p2V]+pinc*cvw[%p2C], 0, nx-1), win=$s.winName
 	elseif (isUp || isDown)
-		SetVariable q1V value=_NUM:limit(cvw[2]+qinc*cvw[0], 0, ny-1), win=$s.winName
-		SetVariable q2V value=_NUM:limit(cvw[5]+qinc*cvw[3], 0, ny-1), win=$s.winName
+		SetVariable q1V value=_NUM:limit(cvw[%q1V]+qinc*cvw[%p1C], 0, ny-1), win=$s.winName
+		SetVariable q2V value=_NUM:limit(cvw[%q2V]+qinc*cvw[%p2C], 0, ny-1), win=$s.winName
 	endif
 
 	pnlSetDistanceAngle(s.winName)
 End
+
+Static Function getIncrement(String pnlName, String ctrlName)
+	ControlInfo/W=$pnlName $ctrlName
+	Variable num1 = strsearch(S_recreation,"limits={",0)+8
+	Variable num2 = strsearch(S_recreation,"}",num1)-1
+	return str2num(StringFromList(2,S_recreation[num1,num2],","))
+End
+
 //-------------------------------------------------------------
 //	Helper of pnlHookKeyboard, space
 //-------------------------------------------------------------
@@ -548,7 +556,7 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 	strswitch (s.ctrlName)
 		case "distanceV":
 		case "angleV":
-			Wave cvw = KMGetCtrlValues(s.win,"p1C;p1V;q1V;p2C;p2V;q2V;distanceV;angleV")
+			Wave cvw = SIDAMGetCtrlValues(s.win,"p1C;p1V;q1V;p2C;p2V;q2V;distanceV;angleV")
 			if (cvw[3])		//	p2Cがチェックされている場合
 				vx = limit(ox+dx*cvw[1]+cvw[6]*cos(cvw[7]*pi/180), ox, ox+dx*(nx-1))
 				vy = limit(oy+dy*cvw[2]+cvw[6]*sin(cvw[7]*pi/180), oy, oy+dy*(ny-1))
@@ -577,7 +585,7 @@ End
 //	p1V, q1V, p2V, q2V の値に応じて distanceV, angleV の値を設定する
 //-------------------------------------------------------------
 Static Function pnlSetDistanceAngle(String pnlName)
-	Wave cvw = KMGetCtrlValues(pnlName,"p1V;q1V;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1V;q1V;p2V;q2V")
 	Wave w = $GetUserData(pnlName,"","src")
 	Variable vx = (cvw[2]-cvw[0])*DimDelta(w,0), vy = (cvw[3]-cvw[1])*DimDelta(w,1)
 	SetVariable distanceV value=_NUM:sqrt(vx^2+vy^2), win=$pnlName
@@ -588,7 +596,7 @@ End
 //-------------------------------------------------------------
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
@@ -700,7 +708,7 @@ Static Function/S rightclickMenuTarget()
 
 	for (i = 0, n = ItemsInList(allList); i < n; i += 1)
 		win = StringFromList(i, allList)
-		Wave/Z imgw = KMGetImageWaveRef(win)
+		Wave/Z imgw = SIDAMImageWaveRef(win)
 		if (!WaveExists(imgw) || DimSize(srcw,0) != DimSize(imgw,0) || DimSize(srcw,1) != DimSize(imgw,1))
 			continue
 		elseif (WhichListItem(win, GetUserData(pnlName,"","parent")) != -1)
@@ -756,7 +764,7 @@ Static Function pnlRightclickDoPositions(String pnlName)
 			q1 = 0; 	q2 = ny-1;	p1 = Ceil(DimSize(w,0)/2)-1;	p2 = p1;
 			break
 		case 9:	//	exchange
-			Wave cw = KMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
+			Wave cw = SIDAMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
 			p1 = cw[2];	q1 = cw[3];	p2 = cw[0];	q2 = cw[1]
 			break
 	endswitch
@@ -784,7 +792,7 @@ Static Function pnlRightclickDoFree(String pnlName)
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 	String ctrlList = "p1V;q1V;p2V;q2V"
 	ModifyControlList ctrlList format=SelectString(grid,"%d","%.2f"), win=$pnlName
-	Wave cvw = KMGetCtrlValues(pnlName,ctrlList), w = $GetUserData(pnlName,"","src")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,ctrlList), w = $GetUserData(pnlName,"","src")
 	if (!grid)
 		SetVariable p1V value=_NUM:round(cvw[0]), win=$pnlName
 		SetVariable q1V value=_NUM:round(cvw[1]), win=$pnlName

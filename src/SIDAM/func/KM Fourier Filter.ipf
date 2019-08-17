@@ -296,7 +296,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)), WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
@@ -320,7 +320,7 @@ Static Function pnl(Wave w, String grfName)
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2), activeChildFrame=0
 	
 	//	パネル項目
-	TabControl mTab pos={1,1}, size={338,368}, proc=KMTabControlProc, win=$pnlName
+	TabControl mTab pos={1,1}, size={338,368}, proc=SIDAMTabControlProc, win=$pnlName
 	TabControl mTab tabLabel(0)="original", tabLabel(1)="filtered", tabLabel(2)="FFT", value=2, win=$pnlName
 	
 	TitleBox pqT pos={15,24}, frame=0, win=$pnlName
@@ -397,7 +397,7 @@ Static Function pnl(Wave w, String grfName)
 	SetWindow $pnlName#original hide=0
 	SetWindow $pnlName#filtered hide=0
 	SetActiveSubWindow $pnlName
-	KMTabControlInitialize(pnlName,"mTab")
+	SIDAMInitializeTab(pnlName,"mTab")
 End
 //-------------------------------------------------------------
 //	パネル初期設定
@@ -560,7 +560,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			ControlInfo/W=$s.win invertP ;	Variable invert = V_Value==2
 			ControlInfo/W=$s.win endP ;		Variable endeffect = V_Value-1
 			String paramStr = echoStr(srcw, paramw, result, invert, endeffect)
-			KMPopupTo(s, paramStr)
+			SIDAMPopupTo(s, paramStr)
 			break
 			
 		case "endP":
@@ -594,7 +594,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 		return 1
 	endif
 	
-	Variable disable = KMCheckSetVarString(s.win,s.ctrlName,0)
+	Variable disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
 	pnlUpdate(s.win, disable)
 End
 //-------------------------------------------------------------

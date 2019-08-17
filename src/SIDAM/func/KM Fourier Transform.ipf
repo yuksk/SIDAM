@@ -134,7 +134,7 @@ End
 	//	そこで、最後にメニューが開かれたときからウエーブに更新があったかどうかを確認し、あった場合にのみ KMFFTCheckWave を実行するようにする
 Function KMFFTCheckWaveMenu()
 	String grfName = WinName(0,1)
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	if (!WaveExists(w))
 		return 1
 	endif
@@ -178,7 +178,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 
@@ -493,7 +493,7 @@ Static Function pnl(Wave w, String grfName)
 	TabControl mTab tabLabel(0)="window intensity", tabLabel(1)="window profile", win=$pnlName
 	
 	Button doB title="Do It", pos={8,403}, size={60,20}, proc=KMFFT#pnlButton, win=$pnlName
-	Button doB disable=KMCheckSetVarString(pnlName,"resultV",0)*2, win=$pnlName
+	Button doB disable=SIDAMValidateSetVariableString(pnlName,"resultV",0)*2, win=$pnlName
 	CheckBox displayC title="display", pos={76,406}, value=1, win=$pnlName
 	PopupMenu toP title="To", pos={140,403}, size={50,20}, bodyWidth=50, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=KMFFT#pnlPopup, win=$pnlName
@@ -525,7 +525,7 @@ Static Function pnl(Wave w, String grfName)
 	SetActiveSubwindow $pnlName
 	
 	//  初期表示状態
-	KMClickPopupMenu(pnlName, "windowP", prefs.fourier[1], StringFromList(prefs.fourier[2]-1,WINFNLIST))
+	pnlSetWindowWave(pnlName, StringFromList(prefs.fourier[2]-1,WINFNLIST))
 	KMTabControlInitialize(pnlName,"mTab")
 End
 //-------------------------------------------------------------
@@ -559,11 +559,9 @@ End
 
 
 //******************************************************************************
-//	パネルコントロール
+//	Controls
 //******************************************************************************
-//-------------------------------------------------------------
-//	ボタン
-//-------------------------------------------------------------
+//	Button
 Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
 		return 0
@@ -581,21 +579,19 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		default:
 	endswitch
 End
-//-------------------------------------------------------------
-//	値設定
-//-------------------------------------------------------------
+
+//	SetVariable
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	//	Handle either enter key or end edit
 	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
-	int disable = KMCheckSetVarString(s.win,s.ctrlName,0)*2
+	int disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0)*2
 	Button doB disable=disable, win=$s.win
 	PopupMenu toP disable=disable, win=$s.win
 End
-//-------------------------------------------------------------
-//	ポップアップ
-//-------------------------------------------------------------
+
+//	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
@@ -603,27 +599,21 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	
 	strswitch (s.ctrlName)
 		case "windowP":
-			Wave w = imageWindowWave(256, 256, s.popStr)
-			Wave/SDFR=$GetUserData(s.win, "", "dfTmp") win1, win2
-			win1 = w[p][127]
-			win2 = w
+			pnlSetWindowWave(s.win, s.popStr)
 			break
 		case "toP":
-			Wave cvw = KMGetCtrlValues(s.win, "outputP;subtractC")
-			Wave/T ctw = KMGetCtrlTexts(s.win, "resultV;windowP")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "outputP;subtractC")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "resultV;windowP")
 			String paramStr = echoStr($GetUserData(s.win,"","src"), ctw[0], ctw[1], cvw[0], cvw[1])
-			KMPopupTo(s, paramStr)
+			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
 End
 
-//******************************************************************************
-//	Doボタンの実行関数
-//******************************************************************************
 Static Function pnlDo(String pnlName)
 	Wave w = $GetUserData(pnlName,"","src")
-	Wave cvw = KMGetCtrlValues(pnlName, "outputP;subtractC;displayC;windowP")
-	Wave/T ctw = KMGetCtrlTexts(pnlName, "resultV;windowP")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "outputP;subtractC;displayC;windowP")
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "resultV;windowP")
 	KillWindow $pnlName
 	
 	Wave/Z resw = KMFFT(w,result=ctw[0],win=ctw[1],out=cvw[0],subtract=cvw[1],history=1)
@@ -638,4 +628,11 @@ Static Function pnlDo(String pnlName)
 	prefs.fourier[1] = cvw[0]
 	prefs.fourier[2] = cvw[3]
 	SIDAMSavePrefs(prefs)
+End
+
+Static Function pnlSetWindowWave(String pnlName, String name)
+	Wave w = imageWindowWave(256, 256, name)
+	Wave/SDFR=$GetUserData(pnlName, "", "dfTmp") win1, win2
+	win1 = w[p][127]
+	win2 = w
 End

@@ -2,8 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMPrefs
 
-#include "SIDAM_Utilities_Panel"	//	For panel
-#include "KM Utilities_Control"	//	For panel
+#include "SIDAM_Utilities_Panel"		//	For panel
+#include "SIDAM_Utilities_Control"	//	For panel
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -36,7 +36,6 @@ Static Structure viewer
 	float	width
 	uchar	height
 EndStructure
-
 
 
 //******************************************************************************
@@ -118,9 +117,9 @@ End
 //	Display panel to set preference values
 //******************************************************************************
 Function SIDAMPrefsPnl()
-	String pnlName = SIDAMNewPanel("KM Preferences",350,270)
+	String pnlName = SIDAMNewPanel("SIDAM Preferences",350,270)
 
-	TabControl mTab pos={3,2}, size={347,230}, proc=KMTabControlProc, value=0, focusRing=0, win=$pnlName
+	TabControl mTab pos={3,2}, size={347,230}, proc=SIDAMTabControlProc, value=0, focusRing=0, win=$pnlName
 	TabControl mTab tabLabel(0)="Window", tabLabel(1)="Export Graphics", win=$pnlName
 
 	//	tab 0
@@ -169,7 +168,7 @@ Function SIDAMPrefsPnl()
 	SIDAMLoadPrefs(prefs)
 	setPresentValues(prefs, pnlName)
 
-	KMTabControlInitialize(pnlName,"mTab")
+	SIDAMInitializeTab(pnlName,"mTab")
 End
 
 Static Function setPresentValues(STRUCT SIDAMPrefs &p, String pnlName)
@@ -274,8 +273,8 @@ End
 //-------------------------------------------------------------
 Static Function pnlDo(STRUCT SIDAMPrefs &prefs, String pnlName)
 
-	Wave cw = KMGetCtrlValues(pnlName, "unitsP;sizeV;heightP;resolutionP;precisionP")
-	Wave cw2 = KMGetCtrlValues(pnlName, "graphC;windowC;bothC")
+	Wave cw = SIDAMGetCtrlValues(pnlName, "unitsP;sizeV;heightP;resolutionP;precisionP")
+	Wave cw2 = SIDAMGetCtrlValues(pnlName, "graphC;windowC;bothC")
 
 	//	width and height of viewer
 	switch (cw[0])

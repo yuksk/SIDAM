@@ -297,7 +297,7 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 
 	SetActiveSubWindow $StringFromList(0,grfName,"#")	//	パネルからの実行に備えて
 	
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	
 	//	anchorが空文字の時には、px=0, py=1 になる。つまり、LBが選ばれる。
 	int px = s.anchor[0]==82		//	L:0, R:1
@@ -338,9 +338,9 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	
 	//	表示領域の幅と高さ, 幅は表示文字列幅とスケールバーの長い方
 	v0 = FontSizeStringWidth(GetDefaultFont(grfName),\
-		fontsize*ScreenResolution/72,0,barStr)*KMGetExpand(grfName)	//	表示文字列の幅, pixel
+		fontsize*ScreenResolution/72,0,barStr)*getExpand(grfName)	//	表示文字列の幅, pixel
 	v1 = FontSizeHeight(GetDefaultFont(grfName),\
-		fontsize*ScreenResolution/72,0)*KMGetExpand(grfName)			//	表示文字列の高さ, pixel
+		fontsize*ScreenResolution/72,0)*getExpand(grfName)			//	表示文字列の高さ, pixel
 	GetWindow $grfName psizeDC
 	Variable boxWidth = max(v0/(V_right-V_left),nicewidth/L) + MARGIN*2
 	Variable boxHeight = v1/(V_bottom-V_top) + MARGIN*2 + OFFSET
@@ -380,6 +380,12 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	//	終了処理
 	SetDrawEnv/W=$grfName gstop
 	SetDrawLayer/W=$grfName UserFront
+End
+
+Static Function getExpand(String grfName)
+	STRUCT SIDAMWindowInfo s
+	SIDAMGetWindow(grfName, s)
+	return s.expand
 End
 
 //	スケールバーを消す
@@ -563,7 +569,7 @@ End
 
 //	パネルの内容からアンカー位置を返す
 Static Function/S getAnchorFromPnl(String pnlName)
-	Wave cw = KMGetCtrlValues(pnlName,"ltC;lbC;rtC;rbC")
+	Wave cw = SIDAMGetCtrlValues(pnlName,"ltC;lbC;rtC;rbC")
 	WaveStats/Q/M=1 cw
 	return StringFromList(V_maxloc,"LT;LB;RT;RB")
 End

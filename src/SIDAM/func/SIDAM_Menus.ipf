@@ -19,9 +19,6 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Display..."
-		KMPreview#menu("/F3"), /Q, KMPreviewPnl()
-		help = {"Display a preview panel"}
-
 		SIDAMDisplay#menu(0,"/F3"), /Q, SIDAMDisplay#menuDo()
 		help = {"Display a wave(s)"}
 
@@ -33,6 +30,11 @@ Menu "SIDAM", dynamic
 		
 		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
+		
+		"-"
+		
+		"Preview (deprecated)", /Q, KMPreviewPnl()
+		help = {"Display a preview panel"}		
 	End
 
 	"-"
@@ -52,7 +54,7 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Developer"
-		SIDAMUtilDev#menu(), /Q, SIDAMshowProcedures()
+		SIDAMUtilMisc#menu(), /Q, SIDAMshowProcedures()
 		"List of Deprecated Functions", /Q, print SIDAMDeprecatedFunctions()
 		help = {"Show a list of deprecated functions in the history area"}
 	End
@@ -203,7 +205,7 @@ Static Function/S menu(String str, [int noComplex, int dim])
 	if (!strlen(grfName))
 		return "(" + str
 	endif
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	if (!WaveExists(w))
 		return "(" + str
 	endif

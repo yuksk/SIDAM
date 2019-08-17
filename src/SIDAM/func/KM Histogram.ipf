@@ -182,7 +182,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)), WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
@@ -345,7 +345,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		String grfName = GetUserData(s.win,"","grf")
 		STRUCT paramStruct cs
 		Wave cs.w = $GetUserData(s.win, "", "src")
-		Wave cvw = KMGetCtrlValues(s.win, "modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC")
+		Wave cvw = SIDAMGetCtrlValues(s.win, "modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC")
 		Wave minmaxw = getInitMinMax(cs.w,grfName)
 		cs.mode = (cvw[0]==2 && cvw[5]) ? 1 : cvw[0] - 1	//	start and delta かつ　auto2C にチェックが入っている場合には start and end 扱いにする
 		cs.initialz = cvw[4] ? minmaxw[0] : cvw[1]
@@ -356,7 +356,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		cs.cmplxmode = NumberByKey("imCmplxMode",ImageInfo(grfName,"", 0),"=")
 		cs.dfr = GetWavesDataFolderDFR(cs.w)
 		ControlInfo/W=$s.win resultV ;	cs.result = S_Value
-		KMPopupTo(s, echoStr(cs))
+		SIDAMPopupTo(s, echoStr(cs))
 		break
 	endswitch
 End
@@ -373,20 +373,20 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	
 	strswitch (s.ctrlName)
 		case "resultV":
-			KMCheckSetVarString(s.win,s.ctrlName,0)
+			SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
 			break
 		case "z1V":
-			if (!KMCheckSetVarString(s.win,s.ctrlName,1))
+			if (!SIDAMValidateSetVariableString(s.win,s.ctrlName,1))
 				CheckBox auto1C value=0, win=$s.win
 			endif
 			break
 		case "z2V":
-			if (!KMCheckSetVarString(s.win,s.ctrlName,1))
+			if (!SIDAMValidateSetVariableString(s.win,s.ctrlName,1))
 				CheckBox auto2C value=0, win=$s.win
 			endif
 			break
 		case "binsV":
-			if (!KMCheckSetVarString(s.win,s.ctrlName,1))
+			if (!SIDAMValidateSetVariableString(s.win,s.ctrlName,1))
 				CheckBox autobinC value=0, win=$s.win
 			endif
 			break
@@ -444,7 +444,7 @@ Static Function pnlDo(String pnlName)
 	
 	String grfName = GetUserData(pnlName,"","grf")
 	Wave w = $GetUserData(pnlName,"","src")
-	Wave cvw = KMGetCtrlValues(pnlName, "modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC;displayC")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC;displayC")
 	ControlInfo/W=$pnlName resultV ;	String result = S_Value
 	
 	Wave minmaxw = getInitMinMax(w,grfName)
