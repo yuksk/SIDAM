@@ -341,6 +341,7 @@ Function/WAVE KMGetImageWaveRef(grfName, [imgName, displayed])
 	else
 		MatrixOP/FREE tw = w[][][plane]
 	endif
+	Redimension/N=(DimSize(w,0),DimSize(w,1)) tw	//	always treat as a 2D wave
 	CopyScales w tw
 
 	GetAxis/W=$grfName/Q $StringByKey("XAXIS", infoStr)
