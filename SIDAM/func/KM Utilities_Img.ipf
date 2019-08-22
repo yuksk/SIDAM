@@ -451,8 +451,8 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 			ny = DimSize(w,1)
 			wave_x_min = dx>0 ? ox-0.5*dx : ox+dx*(nx-0.5)
 			wave_x_max = dx>0 ? ox+dx*(nx-0.5) : ox-0.5*dx
-			wave_y_min = dy>0 ? oy-0.5*dy : oy+dy*(nx-0.5)
-			wave_y_max = dy>0 ? oy+dy*(nx-0.5) : oy-0.5*dy
+			wave_y_min = dy>0 ? oy-0.5*dy : oy+dy*(ny-0.5)
+			wave_y_max = dy>0 ? oy+dy*(ny-0.5) : oy-0.5*dy
 		endif
 
 		isInRange = !isImg ? 1 : \
