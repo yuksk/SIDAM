@@ -177,7 +177,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"-"
 
-	"Position Recorder", /Q, KMPositionRecorder#rightclickDo()
+	"Position Recorder", /Q, SIDAMPositionRecorder("")
 	//	Extract Layers of LayerViewer
 	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
