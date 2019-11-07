@@ -1,5 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
+#pragma ModuleName=SIDAMWorkfunction
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -28,27 +29,27 @@ Function/WAVE KMWorkfunction(w,[result,startp,endp,offset,history])
 						//	bit 1: 入力ウエーブが1Dの時に結果を履歴欄に出力する
 						//	省略時は2
 	String result
-	
+
 	STRUCT check s
 	Wave/Z s.w = w
 	s.result = SelectString(ParamIsDefault(result), result, NameOfWave(w))
 	s.startp = ParamIsDefault(startp) ? 0 : startp
 	s.endp = ParamIsDefault(endp) ? DimSize(w,WaveDims(w)-1)-1 : endp
 	s.offset = ParamIsDefault(offset) ? inf : offset
-	
+
 	//	各種チェック
 	if (KMWorkfunctionCheck(s))
 		print s.errMsg
 		return $""
 	endif
-	
+
 	//  履歴欄出力
 	if (ParamIsDefault(history))
 		history = 2
 	elseif (history&1)
 		print PRESTR_CMD + KMWorkfunctionEcho(s.w, s.result, s.startp, s.endp, s.offset)
 	endif
-	
+
 	//  実行関数
 	if (WaveDims(w) == 1)
 		return KMWorkfunction1D(w, s.startp, s.endp, s.offset, history)
@@ -62,9 +63,9 @@ End
 //-------------------------------------------------------------
 Static Function KMWorkfunctionCheck(s)
 	STRUCT check &s
-	
+
 	s.errMsg = PRESTR_CAUTION + "KMWorkfunction gave error: "
-	
+
 	if (!WaveExists(s.w))
 		s.errMsg += "wave not found."
 		return 1
@@ -72,7 +73,7 @@ Static Function KMWorkfunctionCheck(s)
 		s.errMsg += "dimension of the input wave must be 1 or 3."
 		return 1
 	endif
-	
+
 	//	結果ウエーブの名前について
 	int dim = WaveDims(s.w)
 	if (dim == 3)
@@ -81,23 +82,23 @@ Static Function KMWorkfunctionCheck(s)
 			return 1
 		endif
 	endif
-	
+
 	//	フィッティング範囲について
 	if (s.startp < 0 || s.startp > DimSize(s.w, dim-1) - 1)
 		s.errMsg += "startp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
 		return 1
 	endif
-	
+
 	if (s.endp < 0 || s.endp > DimSize(s.w, dim-1)-1)
 		s.errMsg += "endp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
 		return 1
 	endif
-	
+
 	if (abs(s.startp - s.endp) < 2)
 		s.errMsg += "you must have at least as many data point as fit parameters."
 		return 1
 	endif
-	
+
 	return 0
 End
 
@@ -126,14 +127,14 @@ Static Function/S KMWorkfunctionEcho(w, result, startp, endp, offset)
 	Wave w
 	String result
 	Variable startp, endp, offset
-	
+
 	String paramStr = GetWavesDataFolder(w,2)
 	paramStr += SelectString(stringmatch(result,NameOfWave(w)) || !strlen(result),",result=\""+result+"\"","")
 	paramStr += SelectString(startp,"",",startp="+num2str(startp))
 	paramStr += SelectString(endp==DimSize(w,WaveDims(w)-1)-1,",endp="+num2str(endp),"")
 	paramStr += SelectString(numtype(offset)==1,",offset="+num2str(offset),"")
 	Sprintf paramStr, "KMWorkfunction(%s)", paramStr
-	
+
 	return paramStr
 End
 
@@ -141,7 +142,7 @@ End
 //	KMWorkfunctionR: 		右クリック用
 //-------------------------------------------------------------
 Function KMWorkfunctionR()
-	KMWorkfunctionPnl(KMGetImageWaveRef(WinName(0,1)), grfName=WinName(0,1))
+	pnl()
 End
 
 
@@ -157,14 +158,14 @@ End
 Static Function/WAVE KMWorkfunction1D(w, startp, endp, offset,history)
 	Wave w
 	Variable startp, endp, offset, history
-	
+
 	Variable V_fitOptions=4
 	Variable V_FitError = 0
 	Variable V_FitQuitReason = 0
-	
+
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
-	
+
 	if (numtype(offset) == 1)		//	offset可変の場合
 		CurveFit/NTHR=0/Q/K={0}/W=0 exp_XOffset w[startp,endp]
 	else						//	offset固定の場合
@@ -172,7 +173,7 @@ Static Function/WAVE KMWorkfunction1D(w, startp, endp, offset,history)
 		CurveFit/NTHR=0/Q/K={0}/W=0/H="100" exp_XOffset w[startp,endp]
 	endif
 	Wave coefw = $"W_coef"
-	
+
 	if (V_FitError)
 		print PRESTR_CAUTION + "KMWorkfunction1D gave error: fitting error ("+num2str(V_FitQuitReason)+")"
 		return $""
@@ -192,7 +193,7 @@ Static Function/WAVE KMWorkfunction1D(w, startp, endp, offset,history)
 			printf "work function: %f [eV]\r", resw[0]
 		endif
 	endif
-	
+
 	SetDataFolder dfrSav
 	return resw
 End
@@ -204,19 +205,19 @@ Static Function/WAVE KMWorkfunction3D(w, result, startr, endr, offset)
 	Wave w
 	String result
 	Variable startr, endr, offset
-	
+
 	Variable nx = DimSize(w,0), ny = DimSize(w,1), i, j, n = 3
-	
+
 	//  実行
 	String pnlName = KMNewPanel("Work function", 320, 35, float=1)
 	TitleBox statusT title="fitting...", pos={140,8}, frame=0, anchor=MC, win=$pnlName
-	DoUpdate	
+	DoUpdate
 	Make/N=(nx,ny)/FREE/WAVE ww
 	MultiThread ww = KMWorkfunction3DFit(w, p, q, startr, endr, offset)
-	
+
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder GetWavesDataFolderDFR(w)
-	
+
 	//  結果ウエーブへ代入
 	TitleBox statusT title="constructing resultant waves...", win=$pnlName
 	DoUpdate
@@ -227,18 +228,18 @@ Static Function/WAVE KMWorkfunction3D(w, result, startr, endr, offset)
 	SetScale/P y DimOffset(w,1), DimDelta(w,1), WaveUnits(w,1), wfw, aw, chisqw
 	SetScale d 0, 0, "eV", wfw
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(w,0)), aw
-	
+
 	MultiThread aw[][] = KMWorkfunction3DWorker(ww, p, q, 1)
 	MultiThread wfw[][] =  k_convert/(KMWorkfunction3DWorker(ww, p, q, 2))^2
 	MultiThread chisqw[][] = KMWorkfunction3DWorker(ww, p, q, 3)
-	
+
 	if (numtype(offset) == 1)
 		Make/N=(nx,ny)/O $(result+ks_index_ioffset)/WAVE=offsetw
 		MultiThread offsetw[][] = KMWorkfunction3DWorker(ww, p, q, 0)
 		CopyScales aw, offsetw
 		n += 1
 	endif
-	
+
 	//	エラーがあればその情報を出力する
 	Make/N=(nx,ny)/FREE errw
 	MultiThread errw[][] = KMWorkfunction3DWorker(ww, p, q, 4)
@@ -251,10 +252,10 @@ Static Function/WAVE KMWorkfunction3D(w, result, startr, endr, offset)
 		MultiThread qw[][] = KMWorkfunction3DWorker(ww, p, q, 5)
 		n += 2
 	endif
-	
+
 	SetDataFolder dfrSav
 	KillWindow $pnlName
-	
+
 	Make/N=(n)/FREE/WAVE refw
 	refw[0] = {wfw, aw, chisqw}
 	if (n == 6)	//	オフセット可変、エラーあり
@@ -264,21 +265,21 @@ Static Function/WAVE KMWorkfunction3D(w, result, startr, endr, offset)
 	else			//	オフセット可変だけ(エラーなし)
 		refw[3] = {offsetw}
 	endif
-	
+
 	return refw
 End
 
 ThreadSafe Static Function/WAVE KMWorkfunction3DFit(srcw, pp, qq, startr, endr, offset)
 	Wave srcw
 	Variable pp, qq, startr, endr, offset
-	
+
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
-	
+
 	Make/N=6 resw
 	Make/N=(DimSize(srcw,2)) tw = srcw[pp][qq][p]
 	SetScale/P x DimOffset(srcw, 2), DimDelta(srcw, 2), "", tw
-	
+
  	Variable V_fitOptions=4, V_FitError = 0, V_FitQuitReason = 0
 	if (numtype(offset) == 1)	//	current offset 可変
 		CurveFit/N=1/NTHR=0/Q/W=0 exp_XOffset tw[startr,endr]
@@ -292,16 +293,16 @@ ThreadSafe Static Function/WAVE KMWorkfunction3DFit(srcw, pp, qq, startr, endr, 
 	resw[3] = V_chisq
 	resw[4] = V_FitError
 	resw[5] = V_FitQuitReason
-	
+
 	SetDataFolder dfrSav
-	
+
 	return resw
 End
 
 ThreadSafe Static Function KMWorkfunction3DWorker(ww, pp, qq, index)
 	Wave/WAVE ww
 	Variable pp, qq, index
-	
+
 	Wave tww = ww[pp][qq]
 	return tww[index]
 End
@@ -309,66 +310,65 @@ End
 
 //=====================================================================================================
 
+Static Constant PNLWIDTH = 350
+Static Constant PNLHEIGHT = 163
 
-//******************************************************************************
-//	KMWorkfunctionPnl
-//		パネル
-//******************************************************************************
-Static Function KMWorkfunctionPnl(w, [grfName])
-	Wave w
-	String grfName	//	右クリックから呼び出される時
-	
-	//  パネル表示
-	String pnlName = KMNewPanel("Work Function ("+NameOfWave(w)+")", 350, 163)
-	if (!ParamIsDefault(grfName))
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
+//	Panel
+Static Function pnl()
+	String grfName = WinName(0,1)
+
+	Wave/Z w = KMGetImageWaveRef(grfName)	//	for a 3D wave
+	if (!WaveExists(w))		//	for a 1D wave
+		Wave w = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif
-	
+
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=WorkFunction
+	String pnlName = StringFromList(0, grfName, "#") + "#WorkFunction"
+
 	SetWindow $pnlName hook(self)=KMClosePnl
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
-	Variable dim = WaveDims(w)
-	
-	//  コントロール項目
+	int dim = WaveDims(w)
+
 	SetVariable resultV title="basename:", pos={10,10}, size={332,16}, frame=1, bodyWidth=275, proc=KMWorkfunctionPnlSetVar, win=$pnlName
 	if (dim == 1)
 		SetVariable resultV disable=2, value=_STR:"", win=$pnlName
 	else
 		SetVariable resultV value=_STR:NameOfWave(w), win=$pnlName
 	endif
-	
-	GroupBox rangeG title="fitting range", pos={9,40}, size={160,75}, win=$pnlName
-	SetVariable startpV title="start:", pos={19,64}, size={85,15}, bodyWidth=55, proc=KMWorkfunctionPnlSetVar, win=$pnlName
-	SetVariable startpV value=_NUM:0, limits={0,DimSize(w,dim-1)-4,1}, disable=2, win=$pnlName
-	SetVariable endpV title="end:", pos={25,89}, size={79,15}, bodyWidth=55, proc=KMWorkfunctionPnlSetVar, win=$pnlName
-	SetVariable endpV value=_NUM:DimSize(w,dim-1)-1, limits={3,DimSize(w,dim-1)-1,1}, disable=2, win=$pnlName
-	SetVariable endpV userData(max)=num2str(DimSize(w,dim-1)-1), win=$pnlName	//	とり得る最大値
-	CheckBox startC title="auto", pos={115,65}, value=1, proc=KMWorkfunctionPnlCheckBox, win=$pnlName
-	CheckBox endC title="auto", pos={115,90}, value=1, proc=KMWorkfunctionPnlCheckBox, win=$pnlName
-	
-	GroupBox offsetG title="current offset", pos={182,40}, size={160,75}, win=$pnlName
-	CheckBox fitC title="fit", pos={192,65}, mode=1, value=1, proc=KMWorkfunctionPnlCheckBox, win=$pnlName
-	CheckBox fixC title="fixed (nA):", pos={192,90}, mode=1, value=0, proc=KMWorkfunctionPnlCheckBox, win=$pnlName
-	SetVariable offsetV title=" ", pos={269,89}, size={60,16}, proc=KMWorkfunctionPnlSetVar, win=$pnlName
-	SetVariable offsetV limits={-10,10,0.001}, value=_NUM:0, bodyWidth=60, win=$pnlName
-	
-	Button doB title="Do It", pos={7,130}, size={60,20}, proc=KMWorkfunctionPnlButton, win=$pnlName
-	CheckBox displayC title="display", pos={78,133}, value=1, disable=(dim==1)*2, win=$pnlName
-	PopupMenu toP title="To", pos={140,130}, size={50,20}, bodyWidth=50, win=$pnlName
-	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=KMWorkfunctionPnlPopup, win=$pnlName
-//	Button helpB title="Help", pos={213,130}, size={60,20}, proc=KMWorkfunctionPnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={283,130}, size={60,20}, proc=KMWorkfunctionPnlButton, win=$pnlName
 
+	GroupBox rangeG title="fitting range", pos={9,40}, size={160,75}, win=$pnlName
+	SetVariable startpV title="start:", pos={19,64}, size={85,15}, win=$pnlName
+	SetVariable startpV value=_NUM:0, limits={0,DimSize(w,dim-1)-4,1}, disable=2, win=$pnlName
+	SetVariable startpV userData(max)=num2str(DimSize(w,dim-1)-4), win=$pnlName
+	SetVariable endpV title="end:", pos={22,89}, size={82,18}, win=$pnlName
+	SetVariable endpV value=_NUM:DimSize(w,dim-1)-1, limits={3,DimSize(w,dim-1)-1,1}, disable=2, win=$pnlName
+	SetVariable endpV userData(max)=num2str(DimSize(w,dim-1)-1), win=$pnlName
+	CheckBox startC title="auto", pos={115,65}, value=1, win=$pnlName
+	CheckBox endC title="auto", pos={115,90}, value=1, win=$pnlName
+
+	GroupBox offsetG title="current offset", pos={182,40}, size={160,75}, win=$pnlName
+	CheckBox fitC title="fit", pos={192,65}, mode=1, value=1, win=$pnlName
+	CheckBox fixC title="fixed (nA):", pos={192,90}, mode=1, value=0, win=$pnlName
+	SetVariable offsetV title=" ", pos={269,89}, size={55,18}, win=$pnlName
+	SetVariable offsetV limits={-10,10,0.001}, value=_NUM:0, win=$pnlName
+
+	Button doB title="Do It", pos={8,130}, win=$pnlName
+	CheckBox displayC title="display", pos={83,133}, value=1, disable=(dim==1)*2, win=$pnlName
+	PopupMenu toP title="To", pos={150,131}, size={50,20}, bodyWidth=50, win=$pnlName
+	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMWorkfunction#pnlPopup, win=$pnlName
+	Button cancelB title="Cancel", pos={282,130}, win=$pnlName
+
+	ModifyControlList "startpV;endpV;offsetV" bodyWidth=55, proc=SIDAMWorkfunction#pnlSetVar, win=$pnlName
+	ModifyControlList "startC;endC;fitC;fixC" proc=SIDAMWorkfunction#pnlCheckBox, win=$pnlName
+	ModifyControlList "doB;cancelB" size={60,22}, proc=SIDAMWorkfunction#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
 
 //******************************************************************************
-//	パネルコントロール
+//	Controls
 //******************************************************************************
-//-------------------------------------------------------------
-//	KMWorkfunctionPnlPopup:	ポップアップ
-//-------------------------------------------------------------
-Function KMWorkfunctionPnlPopup(STRUCT WMPopupAction &s)
-	
+//	Popup
+Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode == 2)
 		Wave cvw = KMGetCtrlValues(s.win, "startpV;endpV;fitC;offsetV")
 		Variable offset = cvw[2] ? inf : cvw[3]
@@ -377,83 +377,82 @@ Function KMWorkfunctionPnlPopup(STRUCT WMPopupAction &s)
 		KMPopupTo(s, paramStr)
 	endif
 End
-//-------------------------------------------------------------
-//	KMWorkfunctionPnlSetVar:	値設定
-//-------------------------------------------------------------
-Function KMWorkfunctionPnlSetVar(STRUCT WMSetVariableAction &s)
-	
+
+//	SetVariable
+Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	if (s.eventCode == -1 || s.eventCode == 6)
 		return 1
 	endif
-	
+
 	strswitch (s.ctrlName)
-		case "resultV":	//	文字列の長さの判定と表示の変更
-			Variable disable = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=31-MaxSuffixLength())*2
+		case "resultV":
+			int disable = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=31-MaxSuffixLength())*2
 			Button doB disable=disable, win=$s.win
 			PopupMenu toP disable=disable, win=$s.win
 			break
-		case "startpV":	//	整数にして、endpVの選択可能範囲を変える
+
+		case "startpV":
 			SetVariable startpV value=_NUM:round(s.dval), win=$s.win
-			SetVariable endpV limits={round(s.dval)+3,str2num(GetUserData(s.win,"endpV","max")),1}, win=$s.win
+			SetVariable endpV limits={round(s.dval)+3,getMax(s.win,"endpV"),1}, win=$s.win
 			break
-		case "endpV":	//	整数にして、startpVの選択可能範囲を変える
+
+		case "endpV":
 			SetVariable startpV limits={0,round(s.dval)-3,1}, win=$s.win
 			SetVariable endpV value=_NUM:round(s.dval), win=$s.win
 			break
-		case "offsetV":	//	ラジオボタンの選択状況を変更する
+
+		case "offsetV":
 			CheckBox fitC value=0, win=$s.win
 			CheckBox fixC value=1, win=$s.win
 			break
-		default:
 	endswitch
 End
-//-------------------------------------------------------------
-//	KMWorkfunctionPnlCheckBox :		チェックボックス
-//-------------------------------------------------------------
-Function KMWorkfunctionPnlCheckBox(STRUCT WMCheckboxAction &s)
-	
+
+//	checkbox
+Static Function pnlCheckBox(STRUCT WMCheckboxAction &s)
 	if (s.eventCode != 2)
 		return 1
 	endif
-	
+
 	String dfTmp = GetUserData(s.win,"","dfTmp")
-	
+
 	strswitch (s.ctrlName)
 		case "startC":
 			SetVariable startpV disable=s.checked*2, win=$s.win
 			if (s.checked)
 				SetVariable startpV value=_NUM:0, win=$s.win
-				KMClickSetVariable(s.win,"startpV",1)
+				SetVariable endpV limits={3,getMax(s.win,"endpV"),1}, win=$s.win
 			endif
 			break
+
 		case "endC":
 			SetVariable endpV disable=s.checked*2, win=$s.win
 			if (s.checked)
-				SetVariable endpV value=_NUM:str2num(GetUserData(s.win,"endpV","max")), win=$s.win
-				KMClickSetVariable(s.win,"endpV",1)
+				SetVariable startpV limits={0,getMax(s.win,"startpV"),1}, win=$s.win
+				SetVariable endpV value=_NUM:getMax(s.win,"endpV"), win=$s.win
 			endif
 			break
+
 		case "fitC":
 			CheckBox fixC value=0, win=$s.win
 			break
+
 		case "fixC":
 			CheckBox fitC value=0, win=$s.win
 			break
-		default:
+
 	endswitch
 End
-//-------------------------------------------------------------
-//	KMWorkfunctionPnlButton :	ボタン
-//-------------------------------------------------------------
-Function KMWorkfunctionPnlButton(STRUCT WMButtonAction &s)
-	
+
+//	Button
+Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
 		return 0
 	endif
-	
+
 	strswitch (s.ctrlName)
 		case "doB":
-			KMWorkfunctionPnlButtonDo(s.win)
+			pnlButtonDo(s.win)
 			break
 		case "cancelB":
 			KillWindow $s.win
@@ -461,21 +460,22 @@ Function KMWorkfunctionPnlButton(STRUCT WMButtonAction &s)
 		default:
 	endswitch
 End
-//-------------------------------------------------------------
-//	KMWorkfunctionPnlButtonDo : 	Do It ボタンの実行関数
-//-------------------------------------------------------------
-Static Function KMWorkfunctionPnlButtonDo(String pnlName)
-	
+
+Static Function pnlButtonDo(String pnlName)
 	Wave w = $GetUserData(pnlName, "", "src")
 	Wave cvw = KMGetCtrlValues(pnlName, "startpV;endpV;fitC;offsetV;displayC")
 	Variable offset = cvw[2] ? inf : cvw[3]
 	ControlInfo/W=$pnlName resultV ;	String result = S_Value
-	
+
 	KillWindow $pnlName
-	
+
 	Wave/WAVE refw = KMWorkfunction(w,result=result,startp=cvw[0],endp=cvw[1],offset=offset,history=1+cvw[4]*2)
-	
+
 	if (cvw[4] && WaveDims(w) == 3)
 		SIDAMDisplay(refw, history=1)
 	endif
+End
+
+Static Function getMax(String pnlName, String ctrlName)
+	return str2num(GetUserData(pnlName,ctrlName,"max"))
 End
