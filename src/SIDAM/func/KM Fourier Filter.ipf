@@ -2,9 +2,9 @@
 #pragma rtGlobals=1
 #pragma ModuleName=KMFourierFilter
 
-#include "KM Fourier Transform"
 #include "KM InfoBar"
 #include "SIDAM_Display"
+#include "SIDAM_FFT"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
@@ -431,7 +431,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	SetDataFolder GetWavesDataFolderDFR(w)
 	String name = UniqueName("wave",1,0)
 	SetDataFolder $dfTmp
-	MoveWave KMFFT(ow,result=name,win="Welch",out=3,subtract=1), $FOURIERNAME
+	MoveWave SIDAMFFT(ow,result=name,win="Hanning",out=3,subtract=1), $FOURIERNAME
 	
 	//	表示リスト用ウエーブ
 	Make/N=(0,7)/T $KM_WAVE_LIST/WAVE=listw

@@ -3,6 +3,7 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_Display"
+#include "SIDAM_FFT"
 #include "SIDAM_LoadData"
 #include "SIDAM_Range"
 #include "SIDAM_Subtraction"
@@ -55,6 +56,12 @@ Static Function deprecatedCaution(String newName)
 	if (strlen(tw[0]))
 		printf "%s(called from \"%s\" in %s (line %s))\r", PRESTR_CAUTION, tw[0], tw[1], tw[2]
 	endif
+End
+
+Function KMFFT(Wave/Z w, [String result, String win, int out,
+	int subtract, int history])
+	deprecatedCaution("SIDAMFFT")
+	SIDAMFFT(w, result=result, win=win, out=out, subtract=subtract, history=history)
 End
 
 Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,

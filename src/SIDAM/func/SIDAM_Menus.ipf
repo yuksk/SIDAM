@@ -6,7 +6,6 @@
 #include "KM Fourier Filter"
 #include "KM Fourier Peak"
 #include "KM Fourier Symmetrization"
-#include "KM Fourier Transform"
 #include "KM Histogram"
 #include "KM InfoBar"
 #include "KM LayerViewer"
@@ -21,6 +20,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_Compatibility_Old_Functions"
 #include "SIDAM_Display"
+#include "SIDAM_FFT"
 #include "SIDAM_LayerAnnotation"
 #include "SIDAM_LoadData"
 #include "SIDAM_Position_Recorder"
@@ -195,7 +195,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	help = {"Compute the histogram of a source wave."}
 	SubMenu "Fourier"
 		//	Fourier Transform
-		SIDAMMenus#menu("Fourier Transform...", forfft=1)+"/F7", /Q, KMFFT#rightclickDo()
+		SIDAMMenus#menu("Fourier Transform...", forfft=1)+"/F7", /Q, SIDAMFFT#menuDo()
 		help = {"Compute a Fourier transform of a source wave."}
 		//	Fourier filter
 		SIDAMMenus#menu("Fourier Filter...", forfft=1), /Q, KMFourierFilter#rightclickDo()

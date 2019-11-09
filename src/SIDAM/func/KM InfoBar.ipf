@@ -2,9 +2,9 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMInfoBar
 
-#include "KM Fourier Transform"
 #include "KM LayerViewer"
 #include "SIDAM_Color"
+#include "SIDAM_FFT"
 #include "SIDAM_Range"
 #include "SIDAM_Subtraction"
 #include "SIDAM_Utilities_Bias"
@@ -609,7 +609,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				return 1
 			case 7:		//	F7
 				if (!SIDAMValidateWaveforFFT(w))
-					KMFFT#rightclickDo()
+					SIDAMFFT#menuDo()
 				endif
 				return 1
 		endswitch
