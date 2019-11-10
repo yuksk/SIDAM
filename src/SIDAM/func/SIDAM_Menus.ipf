@@ -37,9 +37,6 @@ Menu "SIDAM", dynamic
 	"Preference", /Q, SIDAMPrefsPnl()
 
 	Submenu "Help"
-		"Command List", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_CMD)
-		help = {"Shows a list of KM commands"}
-
 		"Cheet sheet of shortcuts", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_SHORTCUTS)
 		
 		"-"
