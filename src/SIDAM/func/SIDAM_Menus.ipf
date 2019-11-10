@@ -143,7 +143,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	"-"
 
 	//	View spectra of LayerViewer
-	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#rightclickDo()
+	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#menuDo()
 	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#rightclickDo()
 	//	Line Profile
 	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#rightclickDo()
