@@ -22,11 +22,10 @@ StrConstant SIDAM_DF_SETTINGS = "settings"
 //------------------------------------------------------------------------------
 //	Colors
 //------------------------------------------------------------------------------------------------
-//	for a window showing a wave contained in the temporary datafolder
-Constant SIDAM_CLR_LINE_R = 0,		SIDAM_CLR_LINE_G = 65280,		SIDAM_CLR_LINE_B = 0		//	data and axis
-Constant SIDAM_CLR_LINE2_R = 65280,	SIDAM_CLR_LINE2_G = 48896,	SIDAM_CLR_LINE2_B = 48896	//	for emphasis
+//	for windows
+Constant SIDAM_CLR_LINE_R = 0,		SIDAM_CLR_LINE_G = 32768,		SIDAM_CLR_LINE_B = 65535	//	data and axis
+Constant SIDAM_CLR_LINE2_R = 65535,	SIDAM_CLR_LINE2_G = 43690,	SIDAM_CLR_LINE2_B = 0		//	for emphasis
 Constant SIDAM_CLR_NOTE_R = 32768,	SIDAM_CLR_NOTE_G = 40704,		SIDAM_CLR_NOTE_B = 65280	//	note
-Constant SIDAM_CLR_BG_R = 0,			SIDAM_CLR_BG_G = 0,				SIDAM_CLR_BG_B = 0			//	background
 
 //	for characters of SetVariable, indicating input strings can be converted to numbers
 Constant SIDAM_CLR_EVAL_R = 0, 		SIDAM_CLR_EVAL_G = 15872,		 SIDAM_CLR_EVAL_B = 65280

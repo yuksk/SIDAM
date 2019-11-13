@@ -11,10 +11,10 @@ Static Constant CTRLHEIGHT2D = 70
 
 //=====================================================================================================
 //
-//	パネル表示について
+//	Panel controls
 //
 //-------------------------------------------------------------
-//	パネルコントロールを作成・配置する
+//	Create the panel controls
 //-------------------------------------------------------------
 Static Function pnlCtrls(String pnlName)
 
@@ -22,14 +22,14 @@ Static Function pnlCtrls(String pnlName)
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
 
-	//	2次元ウエーブのラインプロファイルを表示するときには次元切り替えがないので、2Dイメージ用のガイドを使う
+	//	Use a guide for a 2D image when line profiles of 2D waves are displayed
+	//	because waterfall plot is not used
 	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
 	DefineGuide/W=$pnlName KMFT={FT, height}
 
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)
 
-	//	コントロール項目の初期値
 	int pmin = max(s.pmin, 0), pmax = min(s.pmax, DimSize(w,0)-1)
 	int qmin = max(s.qmin, 0), qmax = min(s.qmax, DimSize(w,1)-1)
 	int p1 = round(pmin*0.75 + pmax*0.25), q1 = round(qmin*0.75 + qmax*0.25)
@@ -55,25 +55,37 @@ Static Function pnlCtrls(String pnlName)
 		SetVariable axlenV title="axlen:", pos={69,74}, size={90,18}, bodyWidth=55, win=$pnlName
 		SetVariable axlenV value=_NUM:0.5, limits={0.1,0.9,0.01}, proc=SIDAMLineCommon#pnlSetVarAxlen, win=$pnlName
 		CheckBox hiddenC title="hidden", pos={173,76}, value=0, proc=SIDAMLineCommon#pnlCheck, win=$pnlName
-
-		SetDrawLayer/W=$pnlName ProgBack
-		SetDrawEnv/W=$pnlName xcoord=rel, ycoord=abs, fillfgc=(58e3,58e3,58e3), linefgc=(58e3,58e3,58e3), linethick=1
-		DrawRect/W=$pnlName 0,CTRLHEIGHT2D*72/screenresolution,1,CTRLHEIGHT1D*72/screenresolution
+		drawCtrlBack(pnlName)
 	endif
 
 	SetWindow $pnlName activeChildFrame=0
 
 	changeIgorMenuMode(0)
 End
-//-------------------------------------------------------------
-//	表示するプロファイルの次元を変える
-//-------------------------------------------------------------
+
+//	Draw the gray background for the controls of waterfall
+Static Function drawCtrlBack(String pnlName)
+	SetDrawLayer/W=$pnlName ProgBack
+	SetDrawEnv/W=$pnlName gname=ctrlback, gstart
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=abs, fillfgc=(58e3,58e3,58e3), linefgc=(58e3,58e3,58e3), linethick=1
+	DrawRect/W=$pnlName 0,CTRLHEIGHT2D*72/screenresolution,1,CTRLHEIGHT1D*72/screenresolution
+	SetDrawEnv/W=$pnlName gstop
+	SetDrawLayer/W=$pnlName UserFront
+End
+
+//	Change line/image
 Static Function pnlChangeDim(String pnlName, int dim)
 	Wave w = $GetUserData(pnlName,"","src")
 	SetWindow $pnlName userData(dim)=num2istr(dim)
 
 	int hideLine = (WaveDims(w)==3 && dim==2) ? 1 : 0
 	Variable height = hideLine ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
+
+	if (hideLine)
+		DrawAction/L=ProgBack/W=$pnlName getgroup=ctrlback, delete
+	else
+		drawCtrlBack(pnlName)
+	endif
 
 	DefineGuide/W=$pnlName KMFT={FT, height}
 	SetWindow $pnlName#line hide=hideLine
@@ -83,9 +95,8 @@ Static Function pnlChangeDim(String pnlName, int dim)
 	SetVariable axlenV disable=hideLine, win=$pnlName
 	CheckBox hiddenC disable=hideLine, win=$pnlName
 End
-//-------------------------------------------------------------
-//	Igorメニューの切り替え
-//-------------------------------------------------------------
+
+//	Change the menu mode of Igor
 Static Function changeIgorMenuMode(int mode)
 	if (mode)
 		SetIgorMenuMode "File", "Save Graphics", EnableItem
@@ -666,7 +677,7 @@ Static Function/S rightclickMenuTarget()
 	if (!strlen(pnlName))
 		return ""
 	endif
-	
+
 	strswitch (GetUserData(pnlName,"","key"))
 		case "SIDAMLineSpectra":
 			Wave/Z srcw = $GetUserData(pnlName, "", "src")

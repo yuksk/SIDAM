@@ -45,14 +45,7 @@ Static Function pnl(String LVName)
 	ModifyGraph/W=$pnlName width=180*96/screenresolution, height=180*96/screenresolution, gfSize=10
 	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=12,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2
-	if (isMLS)
-		ModifyGraph/W=$pnlName rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-		ModifyGraph/W=$pnlName axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-		ModifyGraph/W=$pnlName tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-		ModifyGraph/W=$pnlName alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-		ModifyGraph/W=$pnlName gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-		ModifyGraph/W=$pnlName wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-	endif
+	ModifyGraph/W=$pnlName rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
 
 	//	コントロールバー
 	ControlBar 48

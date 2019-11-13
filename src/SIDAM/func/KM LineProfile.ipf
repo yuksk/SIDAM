@@ -349,11 +349,6 @@ Static Function pnlModifyGraph(String plotArea)
 	ModifyGraph/W=$plotArea margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
 	ModifyGraph/W=$plotArea rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-	ModifyGraph/W=$plotArea wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	Label/W=$plotArea bottom "Scaling Distance (\\u\M)"
 	Label/W=$plotArea left "\\u"
 
@@ -370,8 +365,10 @@ Static Function pnlModifyGraph(String plotArea)
 	int is3D = WaveDims($GetUserData(pnlName,"","src")) == 3
 	if (!CmpStr(StringFromList(1,plotArea,"#"),"line") && is3D)
 		ModifyWaterfall/W=$plotArea angle=90,axlen=0.5,hidden=0
-		ModifyGraph/W=$plotArea mode=0,useNegRGB=1,usePlusRGB=1,negRGB=(0,0,0),plusRGB=(0,0,0)
 		ModifyGraph/W=$plotArea noLabel(right)=2,axThick(right)=0
+		ModifyGraph/W=$plotArea mode=0,useNegRGB=1,usePlusRGB=1
+		GetWindow $plotArea, gbRGB
+		ModifyGraph/W=$plotArea negRGB=(V_Red,V_Green,V_Blue),plusRGB=(V_Red,V_Green,V_Blue)
 		//	highlightのデフォルト値は1
 		Wave/SDFR=$GetUserData(pnlName,"","dfTmp") clrw = $PNL_C
 		ModifyGraph/W=$plotArea zColor={clrw,*,*,directRGB,0}

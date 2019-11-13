@@ -502,18 +502,15 @@ Static Function pnlModifyGraph(String pnlName)
 	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
 	ModifyGraph/W=$pnlName rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-	ModifyGraph/W=$pnlName wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	Label/W=$pnlName bottom "\\u"
 	Label/W=$pnlName left "\\u"
 
 	if (!CmpStr(StringFromList(1,pnlName,"#"),"line"))
 		ModifyWaterfall/W=$pnlName angle=90,axlen=0.5,hidden=0
-		ModifyGraph/W=$pnlName mode=0,useNegRGB=1,usePlusRGB=1,negRGB=(0,0,0),plusRGB=(0,0,0)
 		ModifyGraph/W=$pnlName noLabel(right)=2,axThick(right)=0
+		ModifyGraph/W=$pnlName mode=0,useNegRGB=1,usePlusRGB=1
+		GetWindow $pnlName, gbRGB
+		ModifyGraph/W=$pnlName negRGB=(V_Red,V_Green,V_Blue),plusRGB=(V_Red,V_Green,V_Blue)
 	endif
 End
 //-------------------------------------------------------------

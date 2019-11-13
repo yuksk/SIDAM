@@ -1,4 +1,4 @@
-#pragma TextEncoding = "UTF-8"
+﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 #pragma ModuleName=KMRange
 
@@ -308,8 +308,6 @@ Static Function pnl(String grfName)
 	ModifyGraph/W=$subGrfName tick=2,btlen=5,mirror=1,lblMargin=2,prescaleExp(left)=2
 	ModifyGraph/W=$subGrfName mode($ks_name)=6
 	ModifyGraph/W=$subGrfName rgb($ks_name)=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$subGrfName axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B), tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B), alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$subGrfName gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B), wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	Label/W=$subGrfName bottom "z (\u\M)"
 	Label/W=$subGrfName left "Probability (\u#2%)"
 	SetActiveSubwindow ##
