@@ -69,7 +69,3 @@ End
 #endif
 
 
-//	For backward compatibility
-Function KMAfterCompiledHook()
-	SIDAMAfterCompiledHook()
-End

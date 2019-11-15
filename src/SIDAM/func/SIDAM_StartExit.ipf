@@ -8,7 +8,6 @@
 #include "SIDAM_Constants"
 #include "SIDAM_Utilities_misc"	//	for SIDAMPath
 #include "SIDAM_Hook"				//	for hook functions
-#include "SIDAM_Compatibility"	//	for SIDAMBackwardCompatibility
 
 //******************************************************************************
 //	Start SIDAM
@@ -19,10 +18,6 @@ Function SIDAMStart()
 	//	List ipf files to be included and write them into SIDAM_Procedures.ipf
 	makeProcFile()
 	Execute/P "INSERTINCLUDE \"" + SIDAM_FILE_INCLUDE + "\""
-
-	//	Update the old include ipf file
-	SIDAMBackwardCompatibility()
-
 	Execute/P "COMPILEPROCEDURES "
 
 	SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
