@@ -148,47 +148,7 @@ End
 
 Function KMWaveSelector(String title, String listStr, [String grfName])
 	deprecatedCaution("")
-
-	#if IgorVersion() < 8
-	int doButtonDisable = 0
-	if (!strlen(listStr))
-		listStr = "_none_"
-		doButtonDisable = 2
-	endif
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder NewFreeDataFolder()
-	Variable/G popNum = 0
-	String pnlName = KMNewPanel(title, 350, 74)
-	PopupMenu waveP title="Select a wave:", pos={9,11}, size={329,20}, bodyWidth=250, value=#("\""+listStr+"\""), mode=1, win=$pnlName
-	Button doB title="Do It", pos={13,44}, size={70,20}, disable=doButtonDisable, proc=KMWaveSelectorButton, win=$pnlName
-	Button cancelB title="Cancel", pos={266,44}, size={70,20}, proc=KMWaveSelectorButton, win=$pnlName
-	ModifyControlList ControlNameList(pnlName) focusRing=0, win=$pnlName
-	if (!ParamIsDefault(grfName))
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	endif
-	PauseForUser $pnlName
-	Variable rtn = popNum
-	SetDataFolder dfrSav
-	return rtn
-	#endif
 End
-
-#if IgorVersion() < 8
-Function KMWaveSelectorButton(STRUCT WMButtonAction &s)
-	if (s.eventCode != 2)
-		return 0
-	endif
-	strswitch (s.ctrlName)
-		case "doB":
-			NVAR/Z popNum
-			ControlInfo/W=$s.win waveP
-			popNum = V_Value
-		case "cancelB":
-			KillWindow $s.win
-			break
-	endswitch
-End
-#endif
 
 Function/WAVE KM_GetColorTableMinMax(String grfName, String imgName)
 	deprecatedCaution("SIDAM_GetColorTableMinMax")

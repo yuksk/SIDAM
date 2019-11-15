@@ -61,15 +61,9 @@ StrConstant KM_WAVE_COLOR = "KM_color"
 //------------------------------------------------------------------------------------------------
 //	Constants used in Igor Pro
 //------------------------------------------------------------------------------------------------
-#if (IgorVersion() >= 8.00)
-	Constant MAX_OBJ_NAME = 255
-	Constant MAX_WIN_PATH = 2000
-	Constant MAXCMDLEN = 2500
-#else
-	Constant MAX_OBJ_NAME = 31
-	Constant MAX_WIN_PATH = 259
-	Constant MAXCMDLEN = 1000
-#endif
+Constant MAX_OBJ_NAME = 255
+Constant MAX_WIN_PATH = 2000
+Constant MAXCMDLEN = 2500
 
 StrConstant PRESTR_CMD = "•"			//	prefix character for regular commands in the history window
 StrConstant PRESTR_CAUTION = "** "	//	prefix characters for cautions in the history window

@@ -45,15 +45,11 @@ Static Function pnl(String grfName)
 	
 	//	parameters
 	GroupBox formatG title="Parameters:", pos={5,60}, size={310,75}, win=$pnlName
-	#if (IgorVersion() >= 8.00)
-		int isWindows = strsearch(IgorInfo(2), "Windows", 0, 2) >= 0
-		String codecList = "mp4;"+SelectString(isWindows,"","wmv")
-		PopupMenu codecP title="Compression codec:", pos={16,81}, size={169,19}, bodywidth=60, win=$pnlName
-		PopupMenu codecP value=#("\""+codecList+"\""), win=$pnlName
-		SetVariable factorV title="factor:", pos={198,81}, size={98,18}, value=_NUM:200, bodyWidth=60, win=$pnlName
-	#else
-		CheckBox compressionC title="Change the compression settings", pos={16,83}, value=1, win=$pnlName
-	#endif
+	int isWindows = strsearch(IgorInfo(2), "Windows", 0, 2) >= 0
+	String codecList = "mp4;"+SelectString(isWindows,"","wmv")
+	PopupMenu codecP title="Compression codec:", pos={16,81}, size={169,19}, bodywidth=60, win=$pnlName
+	PopupMenu codecP value=#("\""+codecList+"\""), win=$pnlName
+	SetVariable factorV title="factor:", pos={198,81}, size={98,18}, value=_NUM:200, bodyWidth=60, win=$pnlName
 	SetVariable rateV title="Frames per second", pos={18,107}, size={151,15}, bodyWidth=50, value=_NUM:2, limits={1,60,1}, format="%d", win=$pnlName
 
 	//	file
@@ -80,12 +76,8 @@ Static Function saveMovie(String pnlName)
 	//	get name of file
 	ControlInfo/W=$pnlName filenameV
 	String fileName = S_Value, extStr
-	#if (IgorVersion() >= 8.00)
-		ControlInfo/W=$pnlName codecP
-		extStr = "."+S_value
-	#else
-		extStr = ".avi"
-	#endif
+	ControlInfo/W=$pnlName codecP
+	extStr = "."+S_value
 	fileName = RemoveEnding(fileName, extStr) + extStr
 		
 	//	Execute NewMovie with flags specified in the panel
@@ -118,17 +110,12 @@ Static Function/S createCmdStr(String pnlName)
 	cmdStr += SelectString(cw[0], "", "/O")
 	cmdStr += "/F="+num2istr(cw[1])
 	
-	#if (IgorVersion() >= 8.00)
-		ControlInfo/W=$pnlname codecP
-		cmdStr += "/CTYP=\""+StringFromList(V_Value-1,"mp4v;WMV3")+"\""
-		ControlInfo/W=$pnlName factorV
-		if (V_Value != 200)
-			cmdStr += "/CF="+num2str(V_Value)
-		endif
-	#else
-		ControlInfo/W=$pnlName compressionC
-		cmdStr += SelectString(V_Value, "", "/I")
-	#endif
+	ControlInfo/W=$pnlname codecP
+	cmdStr += "/CTYP=\""+StringFromList(V_Value-1,"mp4v;WMV3")+"\""
+	ControlInfo/W=$pnlName factorV
+	if (V_Value != 200)
+		cmdStr += "/CF="+num2str(V_Value)
+	endif
 	
 	//	get path
 	ControlInfo/W=$pnlName pathP
