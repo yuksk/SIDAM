@@ -409,7 +409,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KillWindow $s.win
 			break
 		case "helpB":
-			KMOpenHelpNote("histogram",pnlName=s.win,title="Histogram")
+			SIDAMOpenHelpNote("histogram",s.win,"Histogram")
 			break
 	endswitch
 	

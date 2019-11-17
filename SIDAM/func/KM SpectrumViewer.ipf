@@ -465,7 +465,7 @@ Menu "KMSpectrumViewerMenu", dynamic, contextualmenu
 	End
 	"Save", KMSpectrumViewer#saveSpectrum(WinName(0,1))
 	"-"
-	"Help", KMOpenHelpNote("spectrumviewer",pnlName=WinName(0,1),title="Spectrum Viewer")
+	"Help", SIDAMOpenHelpNote("spectrumviewer",WinName(0,1),"Spectrum Viewer")
 End
 //-------------------------------------------------------------
 //	複素数表示を変更する

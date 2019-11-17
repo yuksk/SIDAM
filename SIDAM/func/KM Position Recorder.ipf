@@ -148,7 +148,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 			
 		case "helpB":
-			KMOpenHelpNote("positionrecorder", pnlName=s.win, title="Position Recorder")
+			SIDAMOpenHelpNote("positionrecorder", s.win, "Position Recorder")
 			return 0
 			
 	endswitch

@@ -361,7 +361,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			endif
 			break
 		case "helpB":
-			KMOpenHelpNote("subtraction",pnlName=s.win,title="Subtraction")
+			SIDAMOpenHelpNote("subtraction",s.win,"Subtraction")
 			break
 		default:
 	endswitch

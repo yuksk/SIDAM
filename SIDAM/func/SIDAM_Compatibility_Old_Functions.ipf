@@ -25,6 +25,11 @@ Static Function deprecatedCaution(String newName)
 End
 
 //	v8.1.5 ----------------------------------------------------------------------
+Function KMOpenHelpNote(String noteFileName, [String pnlName, String title])
+	deprecatedCaution("KMOpenHelpNote")
+	SIDAMOpenHelpNote(noteFileName,pnlName,title)
+End
+
 Function/WAVE KMGetMarquee(int mode)
 	deprecatedCaution("SIDAMGetMarquee")
 	SIDAMGetMarquee(mode)

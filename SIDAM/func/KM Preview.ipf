@@ -240,7 +240,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			dipslayWaves(pnlName)
 			break
 		case "helpB":
-			KMOpenHelpNote("preview",pnlName=pnlName,title="Preview")
+			SIDAMOpenHelpNote("preview",pnlName,"Preview")
 			break
 		case "closeB":
 			KillWindow $pnlName

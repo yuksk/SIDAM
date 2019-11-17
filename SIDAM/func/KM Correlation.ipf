@@ -459,7 +459,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			pnlDo(s.win)
 			break
 		case "helpB":
-			KMOpenHelpNote("correlation",pnlName=s.win,title="Correlation")
+			SIDAMOpenHelpNote("correlation",s.win,"Correlation")
 			break
 		case "cancelB":
 			KillWindow $s.win

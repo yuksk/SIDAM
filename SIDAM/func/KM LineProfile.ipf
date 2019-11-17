@@ -689,7 +689,7 @@ Static Function outputPnlButton(STRUCT WMButtonAction &s)
 			KillWindow $(s.win)
 			break
 		case "HelpB":
-			KMOpenHelpNote("lineprofile",pnlName=StringFromList(0,s.win,"#"),title="Line Profile")
+			SIDAMOpenHelpNote("lineprofile",StringFromList(0,s.win,"#"),"Line Profile")
 			NoteBook $WinName(0,16) findText={"save:",7}
 			break
 		default:
