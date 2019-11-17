@@ -2,6 +2,16 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMInfoBar
 
+#include "KM Fourier Transform"
+#include "KM LayerViewer"
+#include "SIDAM_Color"
+#include "SIDAM_Range"
+#include "SIDAM_Subtraction"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

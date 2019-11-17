@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMWorkfunction
 
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

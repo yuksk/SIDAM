@@ -2,6 +2,13 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMColor
 
+#include "SIDAM_Preference"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_ImageInfo"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

@@ -1,6 +1,22 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#include "SIDAM_Color"
+#include "SIDAM_Display"
+#include "SIDAM_LoadData"
+#include "SIDAM_Range"
+#include "SIDAM_Subtraction"
+#include "SIDAM_ShowParameters"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_ImageInfo"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+#include "KM Preview"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

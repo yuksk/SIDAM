@@ -2,6 +2,40 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
+#include "KM Correlation"
+#include "KM Fourier Filter"
+#include "KM Fourier Peak"
+#include "KM Fourier Symmetrization"
+#include "KM Fourier Transform"
+#include "KM Histogram"
+#include "KM InfoBar"
+#include "KM LayerViewer"
+#include "KM LineProfile"
+#include "KM LineSpectra"
+#include "KM ScaleBar"
+#include "KM SyncAxisRange"
+#include "KM SyncCursor"
+#include "KM SyncLayer"
+#include "KM Trace"
+#include "KM Workfunction"
+#include "SIDAM_Color"
+#include "SIDAM_Compatibility_Old_Functions"
+#include "SIDAM_Display"
+#include "SIDAM_LayerAnnotation"
+#include "SIDAM_LoadData"
+#include "SIDAM_Position_Recorder"
+#include "SIDAM_Preference"
+#include "SIDAM_Range"
+#include "SIDAM_Subtraction"
+#include "SIDAM_SaveGraphics"
+#include "SIDAM_SaveMovie"
+#include "SIDAM_ShowParameters"
+#include "SIDAM_SpectrumViewer"
+#include "SIDAM_StartExit"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

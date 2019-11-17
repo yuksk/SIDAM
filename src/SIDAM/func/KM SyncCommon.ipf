@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName = KMSyncCommon
 
+#include "KM SyncCursor"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

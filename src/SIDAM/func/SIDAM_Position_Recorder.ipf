@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMPositionRecorder
 
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

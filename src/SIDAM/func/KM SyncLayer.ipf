@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName = KMSyncLayer
 
+#include "KM LayerViewer"
+#include "KM SyncCommon"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

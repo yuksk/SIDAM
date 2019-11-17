@@ -2,6 +2,9 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMFourierPeak
 
+#include "KM LayerViewer"
+#include "SIDAM_Utilities_Image"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

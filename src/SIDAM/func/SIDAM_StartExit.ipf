@@ -6,8 +6,7 @@
 #endif
 
 #include "SIDAM_Constants"
-#include "SIDAM_Utilities_misc"	//	for SIDAMPath
-#include "SIDAM_Hook"				//	for hook functions
+#include "SIDAM_Utilities_misc"
 
 //******************************************************************************
 //	Start SIDAM
@@ -38,7 +37,7 @@ Static Function makeProcFile()
 	endif
 
 	//	Make a list of ipf files
-	Wave/T w0 = fnList(SIDAM_FOLDER_FUNC)
+	Make/T/FREE w0 = {"SIDAM_Menus.ipf", "SIDAM_Constants.ipf", "SIDAM_Hook.ipf"}
 	Wave/T w1 = fnList(SIDAM_FOLDER_LOADER)
 	Wave/T w2 = fnList(SIDAM_FOLDER_EXT, recursive=1)
 	DFREF dfrSav = GetDataFolderDFR()

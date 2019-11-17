@@ -2,6 +2,16 @@
 #pragma rtGlobals=1
 #pragma ModuleName= KMFourierSym
 
+#include "KM Fourier Peak"
+#include "KM Fourier Transform"
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

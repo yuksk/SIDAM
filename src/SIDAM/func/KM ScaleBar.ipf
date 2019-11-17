@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMScaleBar
 
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

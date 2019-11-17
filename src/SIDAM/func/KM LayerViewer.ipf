@@ -2,6 +2,16 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMLayerViewer
 
+#include "KM InfoBar"
+#include "SIDAM_Color"
+#include "SIDAM_Display"
+#include "SIDAM_Preference"
+#include "SIDAM_Range"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_ImageInfo"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

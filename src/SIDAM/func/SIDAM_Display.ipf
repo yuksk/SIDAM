@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMDisplay
 
+#include "KM InfoBar"
+#include "KM LayerViewer"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

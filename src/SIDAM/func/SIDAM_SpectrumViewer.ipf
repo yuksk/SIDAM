@@ -2,6 +2,15 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSpectrumViewer
 
+#include "KM InfoBar"
+#include "KM LineCommon"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

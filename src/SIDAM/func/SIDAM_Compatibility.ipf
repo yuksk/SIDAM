@@ -1,5 +1,8 @@
 #pragma TextEncoding = "UTF-8"
-#pragma rtGlobals=3	
+#pragma rtGlobals=3
+
+#include "SIDAM_Range"
+#include "SIDAM_Hook"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -8,10 +11,10 @@
 Function SIDAMBackwardCompatibility()
 	//	Set the temporary folder to root:Packages:SIDAM
 	updateDF("")
-	
+
 	//	Rename KM*Hook to SIDAM*Hook
 	updateHookFunctions()
-	
+
 	//	Change the hook function of Range (KM -> SIDAM)
 	updateRangeHook()
 End
@@ -29,11 +32,11 @@ Static Function updateDF(String grfPnlList)
 		endfor
 		return 0
 	endif
-	
+
 	//	When grfPnlList is empty (this is how this function called
 	//	from SIDAMBackwardCompatibility), update the datafolders.
 	DFREF dfrSav = GetDataFolderDFR()
-	
+
 	if (DataFolderExists(OLD_DF1))
 		NewDataFolder/O/S root:Packages
 		MoveDataFolder $OLD_DF1 :
@@ -43,13 +46,13 @@ Static Function updateDF(String grfPnlList)
 		MoveDataFolder $OLD_DF2 :
 		RenameDataFolder '_SIDAM', SIDAM
 	endif
-	
+
 	if (DataFolderExists(SIDAM_DF_CTAB+"KM"))
 		RenameDataFolder $(SIDAM_DF_CTAB+"KM") SIDAM
-	endif	
-	
+	endif
+
 	SetDataFolder dfrSav
-	
+
 	String winListStr = WinList("*",";","WIN:65")
 	if (strlen(winListStr))
 		updateDF(winListStr)
@@ -90,18 +93,18 @@ Static Function updateHookFunctions()
 		SetIgorHook/K BeforeFileOpenHook = KMFileOpenHook
 		SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
 	endif
-	
+
 	SetIgorHook BeforeExperimentSaveHook
 	if (WhichListItem("ProcGlobal#KMBeforeExperimentSaveHook",S_info) >= 0)
 		SetIgorHook/K BeforeExperimentSaveHook = KMBeforeExperimentSaveHook
 		SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
 	endif
-	
+
 	SetIgorHook AfterCompiledHook
 	if (WhichListItem("ProcGlobal#KMAfterCompiledHook",S_info) >= 0)
 		SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
 		SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
-	endif	
+	endif
 End
 
 Static Function updateRangeHook()

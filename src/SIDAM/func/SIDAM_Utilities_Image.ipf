@@ -1,6 +1,9 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
 
+#include "SIDAM_Preference"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
