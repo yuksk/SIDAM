@@ -7,12 +7,12 @@
 #endif
 
 //  後ろにつけて結果ウエーブの名前とするための文字列
-StrConstant ks_index_iamp = "_a"
-StrConstant ks_index_ioffset = "_off"
-StrConstant ks_index_wf = "_wf"
-StrConstant ks_index_chisq = "_chisq"
-StrConstant ks_index_error = "_err"
-StrConstant ks_index_quit="_quit"
+Static StrConstant ks_index_iamp = "_a"
+Static StrConstant ks_index_ioffset = "_off"
+Static StrConstant ks_index_wf = "_wf"
+Static StrConstant ks_index_chisq = "_chisq"
+Static StrConstant ks_index_error = "_err"
+Static StrConstant ks_index_quit="_quit"
 
 Static Constant k_convert = 0.9525082672661202
 

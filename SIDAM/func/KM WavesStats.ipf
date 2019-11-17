@@ -7,10 +7,10 @@
 #endif
 
 //  後ろにつけて結果ウエーブの名前とするための文字列
-StrConstant ks_index_avg = "_avg"
-StrConstant ks_index_sdev = "_sdev"
-StrConstant ks_index_skew = "_skew"
-StrConstant ks_index_kurt = "_kurt"
+Static StrConstant ks_index_avg = "_avg"
+Static StrConstant ks_index_sdev = "_sdev"
+Static StrConstant ks_index_skew = "_skew"
+Static StrConstant ks_index_kurt = "_kurt"
 
 
 //******************************************************************************

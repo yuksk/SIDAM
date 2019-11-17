@@ -117,8 +117,8 @@ Static Function changeUnitStr(Wave w, int dim)
 	return 1
 End
 
-StrConstant OLD_DF1 = "root:'_KM'"
-StrConstant OLD_DF2 = "root:'_SIDAM'"
+Static StrConstant OLD_DF1 = "root:'_KM'"
+Static StrConstant OLD_DF2 = "root:'_SIDAM'"
 
 Static Function updateDF(String grfPnlList)
 	//	When grfPnlList is given, update the information recorded

@@ -6,6 +6,7 @@
 #endif
 
 Static StrConstant ks_dfguide = "pos"		// 	スキャン位置やSTS測定位置を示すウエーブを保存するサブデータフォルダの名前
+Static StrConstant ks_index_sdev = "_sdev"
 Static Constant k_lockindivider = 0.01		//	ロックイン用のデバイダの値
 
 //******************************************************************************
