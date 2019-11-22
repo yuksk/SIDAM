@@ -71,7 +71,7 @@ End
 //	チェック用関数
 //-------------------------------------------------------------
 Static Function isValidArguments(STRUCT paramStruct &s)
-	
+	int i, n
 	s.errMsg = PRESTR_CAUTION + "KMWavesStats gave error: "
 	
 	if (!WaveExists(s.w))
@@ -80,14 +80,20 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	elseif (WaveDims(s.w) != 1 && WaveDims(s.w) != 3)
 		s.errMsg += "the dimension of input wave must be 1 or 3."
 		return 0
-	elseif (WaveType(s.w,1) == 1)	//	数値ウエーブ
-		if (WaveDims(s.w) == 1 && ItemsInList(KMWaveList(GetWavesDataFolderDFR(s.w),1,nx=numpnts(s.w))) == 1)
+	elseif (WaveDims(s.w) == 1 && WaveType(s.w,1) == 1)	//	1D 数値ウエーブ
+		DFREF dfrSav = GetDataFolderDFR()
+		SetDataFolder GetWavesDataFolderDFR(s.w)
+		String optStr
+		sprintf optStr, "DIMS:1,MINROWS:%d,MAXROWS:%d", numpnts(s.w), numpnts(s.w)
+		n = ItemsInList(WaveList("*",";",optStr))
+		SetDataFolder dfrSav
+		if (n == 1)
 			s.errMsg += "number of waves in \""+GetWavesDataFolder(s.w,1)+"\" must be more than 1."
 			return 0
 		endif
 	elseif (WaveType(s.w,1) == 4)	//	参照ウエーブ
 		Wave/WAVE refw = s.w
-		int i, n = numpnts(refw[0])
+		n = numpnts(refw[0])
 		for (i = 0; i < numpnts(refw); i++)
 			Wave tw = refw[i]
 			if (WaveDims(tw) != 1)
@@ -156,7 +162,9 @@ Static Function/WAVE KMWavesStats1D(Wave w, String result, int stats)
 	switch (WaveType(w,1))
 		case 1:	//	数値ウエーブ
 			DFREF dfr = GetWavesDataFolderDFR(w)
-			String waveListStr = KMWaveList(dfr,1,nx=numpnts(w))
+			String optStr
+			sprintf optStr, "DIMS:1,MINROWS:%d,MAXROWS:%d", numpnts(w), numpnts(w)
+			String waveListStr = WaveList("*",";",optStr)
 			Make/N=(ItemsInList(waveListStr), 1, n)/FREE setw
 			for (i = 0; i < ItemsInList(waveListStr); i++)
 				Wave/SDFR=dfr candidatew = $StringFromList(i,waveListStr)
@@ -250,8 +258,8 @@ Static Function/WAVE KMWavesStats3D(Wave w, String result, int stats, int mode, 
 		Duplicate/O sw3 $(result+ks_index_kurt)/WAVE=statsw3
 		resw[3] = statsw3
 	endif
-	if (KMisUnevenlySpacedBias(w))	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報を保存する
-		Duplicate/O KMGetBias(w, 1) $(result+"_b")
+	if (SIDAMisUnevenlySpacedBias(w))	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報を保存する
+		Duplicate/O SIDAMGetBias(w, 1) $(result+"_b")
 	endif
 	
 	SetDataFolder dfrSav
@@ -281,11 +289,10 @@ Static Function pnl(Wave w)
 	String grfName = WinName(0,1)
 	
 	//  パネル表示
-	String pnlName = KMNewPanel("WavesStats ("+NameOfWave(w)+")", 350, 205)
+	String pnlName = SIDAMNewPanel("WavesStats ("+NameOfWave(w)+")", 350, 205)
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 	
-	//  フック関数・ユーザデータ
-	SetWindow $pnlName hook(self)=KMClosePnl
+	//  ユーザデータ
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	
 	//  コントロール項目

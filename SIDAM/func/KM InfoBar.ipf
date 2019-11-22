@@ -62,7 +62,7 @@ Function KMInfoBar(String grfName)
 	if (is3D)
 		int layer = KMLayerViewerDo(grfName)
 		SetVariable indexV title="index:", pos={3,5}, size={96,18}, value=_NUM:layer, format="%d", win=$grfName
-		SetVariable energyV title="value:", value=_NUM:KMIndexToScale(w,layer,2), win=$grfName
+		SetVariable energyV title="value:", value=_NUM:SIDAMIndexToScale(w,layer,2), win=$grfName
 		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, proc=KMInfoBar#pnlSetvalue2, win=$grfName
 		setenergyVLimits(grfName)
 		ControlUpdate/W=$grfName indexV	//	ここで更新しておくと KMDisplayCtrlBarAdjust で位置が正しく扱われる
@@ -127,7 +127,7 @@ Static Function closeInfoBar(String pnlName)
 	//	一時フォルダを使っていた古いバージョンに備えて
 	String dfTmp = GetUserData(pnlName,"","dfTmp")
 	if (strlen(dfTmp))
-		KMonClosePnl(pnlName, df=dfTmp)
+		SIDAMKillDataFolder($dfTmp)
 		SetWindow $pnlName userData(dfTmp)=""
 	endif
 	
@@ -256,10 +256,6 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 	int is3D = WaveExists(w) && WaveDims(w)==3
 	
 	switch (s.eventCode)
-	
-		case 2:	//	kill
-			KMonClosePnl(s.winName)
-			break
 			
 		case 3:	//	mousedown
 			GetWindow $s.winName, wsizeDC
@@ -295,7 +291,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				ControlInfo/W=$s.winname indexV
 				if (V_Value != plane)
 					SetVariable indexV value=_NUM:plane, win=$s.winName
-					SetVariable energyV value=_NUM:KMIndexToScale(w,plane,2), win=$s.winName
+					SetVariable energyV value=_NUM:SIDAMIndexToScale(w,plane,2), win=$s.winName
 				endif
 			endif
 			changeWindowTitle(str2num(GetUserData(s.winName,"","title")))
@@ -624,7 +620,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 			DoIgorMenu "Graph", "Modify Axis"
 			return 1
 		case 99:		//	c
-			KMExportGraphicsTransparent()
+			SIDAMExportGraphicsTransparent()
 			return 1
 		case 103:		//	g
 			DoIgorMenu "Graph", "Modify Graph"
@@ -782,12 +778,12 @@ Static Function pnlSetvalue2(STRUCT WMSetVariableAction &s)
 			index = round(s.dval)
 			break
 		case "energyV":
-			index = KMScaleToIndex(w, s.dval,2)
+			index = SIDAMScaleToIndex(w, s.dval,2)
 			break
 		default:
 	endswitch
 	SetVariable indexV value=_NUM:index, win=$s.win
-	SetVariable energyV value=_NUM:KMIndexToScale(w,index,2), win=$s.win
+	SetVariable energyV value=_NUM:SIDAMIndexToScale(w,index,2), win=$s.win
 	
 	ModifyImage/W=$s.win $NameOfWave(w) plane=index	//	表示レイヤーの更新
 End

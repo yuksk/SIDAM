@@ -152,7 +152,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),grfName=WinName(0,1))
+	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 
@@ -259,9 +259,7 @@ Static Function/WAVE KMCorrelation2D3D(w1,w2,result,subtract,normalize)
 	SetScale/P z DimOffset(s3dw,2), DimDelta(s3dw,2), WaveUnits(s3dw,2), resw
 	
 	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
-	if (KMisUnevenlySpacedBias(s3dw))
-		KMCopyBias(s3dw, resw)
-	endif
+	SIDAMCopyBias(s3dw, resw)
 	
 	return resw
 End
@@ -293,9 +291,7 @@ Static Function/WAVE KMCorrelation3D(w1,w2,result,subtract,normalize)
 	SetScale/P z DimOffset(w1,2), DimDelta(w1,2), WaveUnits(w1,2), resw
 	
 	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
-	if (KMisUnevenlySpacedBias(w1))
-		KMCopyBias(w1, resw)
-	endif
+	SIDAMCopyBias(w1, resw)
 	
 	return resw
 End
@@ -356,15 +352,12 @@ End
 //******************************************************************************
 //	パネル表示
 //******************************************************************************
-Static Function pnl(Wave w, [String grfName])
+Static Function pnl(Wave w, String grfName)
 	
 	//  パネル表示
-	String pnlName = KMNewPanel("Correlation", 350, 300)
-	if (!ParamIsDefault(grfName))	//	右クリックから呼び出される時
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	endif
+	String pnlName = SIDAMNewPanel("Correlation", 350, 300)
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 	
-	SetWindow $pnlName hook(self)=KMClosePnl
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	
 	//  コントロール項目
@@ -412,26 +405,39 @@ Static Function/S pnlWaveList(
 	)
 	
 	Wave w1 = $GetUserData(pnlName, "", "src")
-	
-	if (mode == 1)
-		DFREF dfr = GetWavesDataFolderDFR(w1)
-	else
-		DFREF dfr = GetDataFolderDFR()
+	int nx = DimSize(w1,0), ny = DimSize(w1,1), i
+	//  x方向のデータ点数は偶数でなければならない, 最低データ点数は4
+	if (mod(nx,2) || nx < 4 || ny < 4)
+		return ""
 	endif
 	
-	String rtnStr = KMWaveList(dfr, 6, forFFT=1, nx=DimSize(w1,0), ny=DimSize(w1,1))
-	int i
+	DFREF dfrSav = GetDataFolderDFR()
+	if (mode == 1)
+		SetDataFolder GetWavesDataFolderDFR(w1)
+	endif
 	
+	String optStr
+	sprintf optStr, "MINROWS:%d,MAXROWS:%d,MINCOLS:%d,MAXCOLS:%d,MAXCHUNKS:0", nx, nx, ny, ny
+	String rtnStr = WaveList("*",";",optStr)
+	
+	for (i = ItemsInList(rtnStr)-1; i >= 0; i--)
+		//  NaN や INF を含んではならない, WaveStats を使うより速い
+		if (numtype(sum($StringFromList(i,rtnStr))))
+			rtnStr = RemoveListItem(i,rtnStr)
+		endif
+	endfor	
+
 	//	w1 が 3D のとき、w2候補のうち3Dのものはz方向の点数の一致もチェックする
 	if (WaveDims(w1) == 3)
 		for (i = ItemsInList(rtnStr)-1; i >= 0; i--)
-			Wave/SDFR=dfr w2 = $StringFromList(i,rtnStr)
+			Wave w2 = $StringFromList(i,rtnStr)
 			if (WaveDims(w2) == 3 && DimSize(w1,2) != DimSize(w2,2))
-				rtnStr = RemoveFromList(StringFromList(i,rtnStr), rtnStr)
+				rtnStr = RemoveListItem(i,rtnStr)
 			endif
 		endfor
 	endif
 	
+	SetDataFolder dfrSav
 	return rtnStr
 End
 

@@ -27,7 +27,7 @@ Static Function pnl(String LVName)
 	pnlName = UniqueName("Graph",6,0)
 	
 	Wave srcw =  KMGetImageWaveRef(LVName)
-	Variable isMLS = KMisUnevenlySpacedBias(srcw)
+	Variable isMLS = SIDAMisUnevenlySpacedBias(srcw)
 	if (isMLS)		//	Nanonis MLSモードでのデータの場合は、横軸用ウエーブを一時データフォルダ内に用意する
 		String dfTmp
 		Wave xw = pnlInit(srcw, pnlName, dfTmp)
@@ -80,7 +80,7 @@ End
 //-------------------------------------------------------------
 Static Function/WAVE pnlInit(Wave srcw, String pnlName, String &dfTmp)
 	dfTmp = SIDAMNewDF(pnlName,"KMSpectrumViewerPnl")
-	Duplicate/O KMGetBias(srcw, 1) $(dfTmp+NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
+	Duplicate/O SIDAMGetBias(srcw, 1) $(dfTmp+NameOfWave(srcw)+"_b")/WAVE=tw	//	MLS対応横軸ウエーブ
 	return tw
 End
 //-------------------------------------------------------------
@@ -223,8 +223,7 @@ Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 		pnlResetRelation(StringFromList(i, mouseWinList), s.winName)
 	endfor
 	
-	//	一時データフォルダの削除(あれば)、ヘルプウインドウを閉じる(あれば)
-	KMonClosePnl(s.winName)
+	SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 End
 //-------------------------------------------------------------
 //	ウインドウの名前が変更された場合の動作
@@ -586,8 +585,8 @@ Static Function saveSpectrum(String pnlName)
 		
 		SetDataFolder GetWavesDataFolderDFR(srcw)
 		MatrixOP/O $result/WAVE=extw = beam(srcw, posp, posq)
-		if (KMisUnevenlySpacedBias(srcw))
-			Duplicate/O KMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")
+		if (SIDAMisUnevenlySpacedBias(srcw))
+			Duplicate/O SIDAMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")
 		else
 			SetScale/P x DimOffset(srcw,2), DimDelta(srcw,2), WaveUnits(srcw,2), extw
 		endif

@@ -134,9 +134,6 @@ Static Function extractPnl(String LVName)
 	RenameWindow $LVName#$S_name, ExtractLayers
 	String pnlName = LVName + "#ExtractLayers"
 	
-	//	フック関数・ユーザデータ
-	SetWindow $pnlName hook(self)=KMClosePnl
-	
 	//	layer
 	GroupBox layer0G title="Layer", pos={11,4}, size={268,70}, win=$pnlName
 	CheckBox thisC title="this ("+num2str(plane)+")", pos={23,26}, size={66,14}, value=1, mode=1, proc=KMLayerViewer#extractPnlCheck, win=$pnlName
@@ -299,8 +296,9 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	
 	//	LayerViewerでのz表示範囲を適用する
 	Wave srcw = KMGetImageWaveRef(LVName)
-	Wave rw = KM_GetColorTableMinMax(LVName, NameOfWave(srcw))
-	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=rw[0],zmax=rw[1],history=1)
+	Variable zmin, zmax
+	SIDAM_GetColorTableMinMax(LVName, NameOfWave(srcw),zmin,zmax,allowNaN=1)
+	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax,history=1)
 	
 	//	LayerViewerでのカラーテーブルを適用する
 	String ctab = WM_ColorTableForImage(LVName, NameOfWave(srcw))
@@ -398,7 +396,8 @@ Static Function KMLayerViewerPnlBackComp700(String pnlName)
 	endif
 	
 	//	イメージの更新前に情報を取得しておく
-	Wave rw = KM_GetColorTableMinMax(pnlName, NameOfWave(w))			//	z表示範囲
+	Variable zmin, zmax
+	SIDAM_GetColorTableMinMax(pnlName, NameOfWave(w), zmin, zmax)		//	z表示範囲
 	String ctab = WM_ColorTableForImage(pnlName,NameOfWave(w))			//	Igor標準カラーテーブル
 	Variable rev = WM_ColorTableReversed(pnlName,NameOfWave(w))			//	反転
 	Wave/Z cindexw = $WM_ImageColorIndexWave(pnlName,NameOfWave(w))	//	カラーインデックスウエーブ
@@ -424,7 +423,7 @@ Static Function KMLayerViewerPnlBackComp700(String pnlName)
 	//	z表示範囲とカラーテーブルをコピーする
 	if (!(WaveType(w) & 0x01) || !complex)
 		if (strlen(ctab))
-			ModifyImage/W=$pnlName $NameOfWave(w) ctab= {rw[0],rw[1],$ctab,rev}
+			ModifyImage/W=$pnlName $NameOfWave(w) ctab= {zmin,zmax,$ctab,rev}
 		else
 			DFREF dfrSrc = GetWavesDataFolderDFR(w)
 			Duplicate/O cindexw dfrSrc:$("c_"+NameOfWave(w))/WAVE=cindexw2
@@ -433,7 +432,7 @@ Static Function KMLayerViewerPnlBackComp700(String pnlName)
 	endif
 	
 	//	一時データフォルダの削除
-	KMonClosePnlKillDF(dfrTmp)
+	SIDAMKillDataFolder(dfrTmp)
 End
 
 //	rev. 127 - > rev. 231 への変更

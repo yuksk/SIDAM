@@ -1,6 +1,6 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3	
-#pragma ModuleName = SIDAMTest_Utilities_Img
+#pragma ModuleName = SIDAMTest_ImageInfo
 
 Static Function TestSIDAM_ColorTableForImage()
 	DFREF dfrSav = GetDataFolderDFR()
@@ -39,6 +39,42 @@ Static Function TestSIDAM_ColorTableForImage()
 	KillWindow $grfName
 	KillWaves $name
 	SetDataFolder dfrSav
+End
+
+Static Function TestSIDAM_GetColorTableMinMax()
+	String name = UniqueName("wave",1,0)
+	Make/N=(2,3) $name = {{1,2},{3,4},{5,6}}
+	NewImage $name
+	String grfName = S_name
+	Variable zmin, zmax
+	
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax)
+	CHECK_EQUAL_VAR(zmin,1)
+	CHECK_EQUAL_VAR(zmax,6)
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax,allowNaN=0)
+	CHECK_EQUAL_VAR(zmin,1)
+	CHECK_EQUAL_VAR(zmax,6)
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax,allowNaN=1)
+	CHECK_EQUAL_VAR(zmin,nan)
+	CHECK_EQUAL_VAR(zmax,nan)
+
+	ModifyImage/W=$grfName $name ctab={-1,1,Grays,0}
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax)
+	CHECK_EQUAL_VAR(zmin,-1)
+	CHECK_EQUAL_VAR(zmax,1)
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax,allowNaN=0)
+	CHECK_EQUAL_VAR(zmin,-1)
+	CHECK_EQUAL_VAR(zmax,1)
+	SIDAM_GetColorTableMinMax(grfName,name,zmin,zmax,allowNaN=1)
+	CHECK_EQUAL_VAR(zmin,-1)
+	CHECK_EQUAL_VAR(zmax,1)
+	
+	CHECK_EQUAL_VAR(SIDAM_GetColorTableMinMax(";",name,zmin,zmax),1)
+	CHECK_EQUAL_VAR(SIDAM_GetColorTableMinMax(grfName,";",zmin,zmax),1)
+	
+	//	teardown
+	KillWindow $grfName
+	KillWaves $name
 End
 
 Static Function TestSIDAM_ColorTableLog()

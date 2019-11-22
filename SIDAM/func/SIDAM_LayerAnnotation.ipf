@@ -234,7 +234,7 @@ Static Function updateLegend(String grfName, String imgName)
 		formatStr += "f" + SelectString(s.unit, "", " "+WaveUnits(w,2))
 	endif
 	String str
-	sprintf str, ReplaceString("$value$", s.legendStr, formatStr), s.digit, KMIndexToScale(w,layer,2)
+	sprintf str, ReplaceString("$value$", s.legendStr, formatStr), s.digit, SIDAMIndexToScale(w,layer,2)
 	
 	TextBox/C/N=$s.legendName/W=$grfName str
 

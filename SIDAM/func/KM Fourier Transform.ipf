@@ -178,7 +178,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),grfName=WinName(0,1))
+	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 
@@ -449,9 +449,7 @@ Static Function/WAVE KMFFT3D(Wave w, String winStr, int out, int subtract)
 	SetScale/P y -1/(DimDelta(w,1)*2), 1/(DimDelta(w,1)*ny), changeUnit(WaveUnits(w,1)), resw
 	SetScale/P z DimOffset(w,2), DimDelta(w,2), WaveUnits(w,2), resw
 	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
-	if (KMisUnevenlySpacedBias(w))
-		KMCopyBias(w, resw)
-	endif
+	SIDAMCopyBias(w, resw)
 	
 	return resw
 End
@@ -463,19 +461,17 @@ End
 //******************************************************************************
 //	パネル表示
 //******************************************************************************
-Static Function pnl(Wave w, [String grfName])
+Static Function pnl(Wave w, String grfName)
 	
 	//  パネル表示
-	String pnlName = KMNewPanel("Fourier Transforms ("+NameOfWave(w)+")",350,435)
-	if (!ParamIsDefault(grfName))	//	右クリックから呼び出される時
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	endif
+	String pnlName = SIDAMNewPanel("Fourier Transforms ("+NameOfWave(w)+")",350,435)
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 	
 	//	初期設定
 	String dfTmp = pnlInit(pnlName)
 	ControlInfo/W=$pnlName kwBackgroundColor
 	STRUCT RGBColor bc ;	bc.red = V_Red ;	bc.green = V_Green ;	bc.blue = V_Blue
-	SetWindow $pnlName hook(self)=KMClosePnl
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	SetWindow $pnlName userData(dfTmp)=dfTmp, activeChildFrame=0
 	

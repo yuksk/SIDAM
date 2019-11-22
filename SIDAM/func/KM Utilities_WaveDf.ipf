@@ -1,5 +1,6 @@
 #pragma TextEncoding="UTF-8"
-#pragma rtGlobals=1
+#pragma rtGlobals=3
+#pragma ModuleName = SIDAMUtilWaveDf
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -23,137 +24,84 @@ Function/S SIDAMNewDF(String grfName, String procName)
 End
 
 //******************************************************************************
-//	KMWaveList
-//		対象データフォルダ(df)にあるウエーブのリストを出力
-//		dimは次元を指定するためのフラッグ
-//		bit0: 1D, bit1: 2D, bit2: 3D
+///	Return a string converted from a wave
+///	@param w			A 1D text wave, a 1D/2D numeric wave
+///	@param noquote	Elements of a text wave are returned without quotation marks
 //******************************************************************************
-Function/S KMWaveList(DFREF dfr, int dim, [int forFFT, int nx, int ny])
-	if (!DataFolderRefStatus(dfr))
-		dfr = GetDataFolderDFR()
-	endif
-	
-	forFFT = ParamIsDefault(forFFT) ? 0 : forFFT
-	
-	String waveListStr = ""
-	int i, n
-	
-	for (i = 0, n = CountObjectsDFR(dfr,1); i < n; i++)
-		Wave/SDFR=dfr w = $GetIndexedObjNameDFR(dfr,1,i)
-		if (!((2^(WaveDims(w)-1)) & dim))	//	次元が合わなければ
-			continue
-		endif
-		if (forFFT)
-			if (mod(DimSize(w,0),2))		//  x方向のデータ点数は偶数でなければならない
-				continue
-			elseif (DimSize(w,0) < 4 || DimSize(w,1) < 4)	//  最低データ点数は4
-				continue
-			elseif (numtype(sum(w)))		//  NaN や INF を含んではならない, WaveStats を使うより速い
-				continue
-			endif
-		endif
-		if (!ParamIsDefault(nx) && DimSize(w,0) != nx)
-			continue
-		endif
-		if (!ParamIsDefault(ny) && DimSize(w,1) != ny)
-			continue
-		endif
-		waveListStr += NameOfWave(w)+";"
-	endfor
-	
-	return waveListStr
-End
-
-//******************************************************************************
-//	KMWaveToTraceName
-//		指定ウインドウにおける、指定ウエーブのトレース名を返す
-//		(trace と trace#1 の区別がつく)
-//		ウインドウが存在しない、ウエーブが存在しない、指定ウインドウにトレースが存在しない
-//		指定ウエーブが指定ウインドウに表示されていない、の場合には空文字列を返す
-//******************************************************************************
-Function/S KMWaveToTraceName(String pnlName, Wave w)
-	
-	if (!SIDAMWindowExists(pnlName) || !WaveExists(w))
-		return ""
-	endif
-	
-	String trcList = TraceNameList(pnlName,";",1)
-	if (!strlen(trcList))
-		return ""
-	endif
-	
-	int i
-	String ref
-	for (i = 0; i < ItemsInList(trcList); i++)
-		ref = GetWavesDataFolder(TraceNameToWaveRef(pnlName,StringFromList(i,trcList)),2)
-		if (stringmatch(ref,GetWavesDataFolder(w,2)))
-			return StringFromList(i,trcList)
-		endif
-	endfor
-End
-
-//******************************************************************************
-//	KMWaveToString
-//		ウエーブの内容を文字列として返す
-//******************************************************************************
-Function/S KMWaveToString(w, [noquot])
-	Wave/Z w
-	Variable noquot
-	
-	String str = "{"
-	int i, n
-	
+Function/S SIDAMWaveToString(Wave/Z w, [int noquote])
 	if (!WaveExists(w))
 		return ""
 	endif
-	
-	if (ParamIsDefault(noquot))
-		noquot = 0
+
+	int isNumeric = WaveType(w,1) == 1
+	int isText = WaveType(w,1) == 2
+	noquote = ParamIsDefault(noquote) ? 0 : noquote
+
+	if (isText && WaveDims(w)==1)
+		return join(w,noquote)
+
+	elseif (isNumeric && WaveDims(w)==1)
+		return join(num2text(w),1)
+
+	elseif (isNumeric && WaveDims(w)==2)
+		Make/T/N=(DimSize(w,1))/FREE txtw = join(num2text(col(w,p)),1)
+		return join(txtw,1)
+
+	else
+		return ""
 	endif
-	
-	//	入力ウエーブが数値ウエーブの場合は、1・2次元である場合だけ処理する
-	if (WaveType(w,1) == 1 && WaveDims(w) == 1)
-		for (i = 0, n = numpnts(w); i < n; i++)
-			str += num2str(w[i]) + ","
+End
+
+//	Join elements of a text wave and return as a string
+Static Function/S join(Wave/T tw, int noquote)
+	int i, n = numpnts(tw)
+	String str = ""
+
+	if (noquote)
+		for (i = 0; i < n; i++)
+			str += tw[i] + ","
 		endfor
-		return str[0, strlen(str)-2] + "}"
-	elseif (WaveType(w,1) == 1 && WaveDims(w) == 2)
-		for (i = 0, n = DimSize(w,1); i < n; i++)
-			Make/N=(DimSize(w,0))/FREE tw = w[p][i]
-			str += KMWaveToString(tw) + ","
+	else
+		for (i = 0; i < n; i++)
+			str += "\"" + tw[i] + "\","
 		endfor
-		return str[0, strlen(str)-2] + "}"
 	endif
-	
-	//	入力ウエーブがテキストウエーブの場合は、1次元である場合だけ処理する
-	if (WaveType(w,1) == 2 && WaveDims(w) == 1)
-		Wave/T txtw = w
-		if (noquot)
-			for (i = 0, n = numpnts(w); i < n; i++)
-				str += txtw[i] + ","
-			endfor
-		else
-			for (i = 0, n = numpnts(w); i < n; i++)
-				str += "\"" + txtw[i] + "\","
-			endfor
-		endif
-		return str[0, strlen(str)-2] + "}"
-	endif
-	
-	return ""
+	return "{" + str[0,strlen(str)-2] + "}"
+End
+
+//	Convert a 1D numeric wave to a 1D text wave
+Static Function/WAVE num2text(Wave w)
+	Make/T/N=(numpnts(w))/FREE txtw = num2str(w[p])
+	return txtw
+End
+
+//	Return a column of a numeric wave
+Static Function/WAVE col(Wave w, Variable index)
+	MatrixOP/FREE cw = col(w,index)
+	return cw
 End
 
 //******************************************************************************
-//	非等間隔のバイアス電圧に関する関数
+//	Functions for dealing with unevenly spaced biases
 //******************************************************************************
-//	バイアス電圧を記録する
-Function KMSetBias(Wave w, Wave biasw)
-	if (WaveDims(w) != 3)
+///	Set information of unevenly spaced biases
+///	@param w		A 3D wave
+///	@param biasw	A 1D numeric wave containing bias values
+///	@return		0: Successfully copied
+///					!0:	Error
+Function SIDAMSetBias(Wave/Z w, Wave/Z biasw)
+	if (!WaveExists(w) || !WaveExists(biasw))
 		return 1
+	elseif (WaveDims(w) != 3)
+		return 2
 	elseif (DimSize(w,2) != numpnts(biasw))
-		return 1
+		return 3
+	elseif (WaveType(biasw) & 0x01)	//	complx
+		return 4
+	elseif (WaveType(biasw,1) != 1)	//	not numeric
+		return 5
 	endif
-	
+
 	int i, n = numpnts(biasw)
 	for (i = 0; i < n; i++)
 		SetDimLabel 2, i, $num2str(biasw[i]), w
@@ -161,18 +109,24 @@ Function KMSetBias(Wave w, Wave biasw)
 	return 0
 End
 
-//	バイアス電圧を読んでウエーブとして返す
-//		dim が 1 の時は1次元ウエーブのX軸用
-//		dim が 2 の時は2次元ウエーブのX,Y軸用
-Function/WAVE KMGetBias(Wave w, int dim)
+///	Return a wave of unevenly spaced biases
+///	@param w		A 3D wave with unevenly spaced biases
+///	@param dim	1: The returned wave contains unevely spaced biases as they are.
+///						This is used as an x wave to display a trace.
+///					2: The returned wave contains average two neighboring layers.
+///						This is used as an x wave or a y wave to display an image.
+///	@return		a 1D wave, or a null wave for any error
+Function/WAVE SIDAMGetBias(Wave/Z w, int dim)
+	if (SIDAMisUnevenlySpacedBias(w) != 1 || dim < 1 || dim > 2)
+		return $""
+	endif
 	int nz = DimSize(w,2)
-	
+
 	Make/N=(nz)/FREE tw = str2num(GetDimLabel(w,2,p))
-	
 	if (dim == 1)
 		return tw
 	endif
-	
+
 	//	dim == 2
 	Make/N=(nz+1)/FREE biasw
 	biasw[1,nz-1] = (tw[p-1]+tw[p])/2
@@ -181,42 +135,74 @@ Function/WAVE KMGetBias(Wave w, int dim)
 	return biasw
 End
 
-//	バイアス電圧をコピーする
-Function KMCopyBias(Wave srcw, Wave destw)
+///	Copy information of unevevly spaced biases from one to another
+///	@param srcw	A 3D wave with unevenly spaced biases
+///	@param destw	A 3D wave to which the information is copied from srcw
+///	@return		0: Successfully copied
+///					1:	Error
+Function SIDAMCopyBias(Wave/Z srcw, Wave/Z destw)
+	if (SIDAMisUnevenlySpacedBias(srcw) != 1 || DimSize(srcw,2)!=DimSize(destw,2))
+		return 1
+	endif
 	int i, nz = DimSize(srcw,2)
 	for (i = 0; i < nz; i++)
 		SetDimLabel 2, i, $GetDimLabel(srcw, 2, i), destw
 	endfor
+	return 0
 End
 
-//	非等間隔バイアス電圧が設定されているかどうかを返す
-Function KMisUnevenlySpacedBias(Wave w)
-	return strlen(GetDimlabel(w,2,0)) > 0
+///	Return if a wave is a 3D wave with unevenly spaced biases
+///	@param w	A 3D wave
+///	@return 	0:	false
+///				1:	true
+///				-1:	error
+Function SIDAMisUnevenlySpacedBias(Wave/Z w)		//	tested
+	if (!WaveExists(w))
+		return -1
+	elseif (WaveDims(w) != 3)
+		return 0
+	endif
+	Make/N=(DimSize(w,2))/FREE tw = numtype(str2num(GetDimlabel(w,2,p)))
+	return WaveMax(tw) == 0	//	true if all labels are numeric
 End
 
 
-//******************************************************************************
-//	z値からインデックスを得る、非等間隔バイアス電圧対応
-//******************************************************************************
-Function KMScaleToIndex(Wave w, Variable value, int dim)
-	if (KMisUnevenlySpacedBias(w))		//	非等間隔バイアス電圧
-		//	一番近い値に対応するインデックスを探す
-		Make/N=(DimSize(w,dim))/FREE dw = abs(str2num(GetDimLabel(w,dim,p))-value), iw = p
+///	Extension of ScaleToIndex
+///	@param w		A wave
+///	@param value	A scaled index
+///	@param dim	A dimension number from 0 to 3
+Function SIDAMScaleToIndex(Wave/Z w, Variable value, int dim)
+	if (!WaveExists(w))
+		return nan
+	elseif (dim < 0 || dim > 3)
+		return nan
+	endif
+
+	if (dim == 2 && SIDAMisUnevenlySpacedBias(w))
+		//	search index corresponding to the nearest value
+		Make/N=(DimSize(w,2))/FREE dw = abs(str2num(GetDimLabel(w,2,p))-value), iw = p
 		Sort dw, iw
 		return iw[0]
 	else
-		return round((value-DimOffset(w,dim))/DimDelta(w,dim))
+		return ScaleToIndex(w,value,dim)
 	endif
 End
 
-//******************************************************************************
-//	インデックスからz値を得る、非等間隔バイアス電圧対応
-//******************************************************************************
-Function KMIndexToScale(Wave w, int index, int dim)
-	if (KMisUnevenlySpacedBias(w))		//	非等間隔バイアス電圧
+///	Extension of IndexToScale
+///	@param w		A wave
+///	@param index	An integer
+///	@param dim	A dimension number from 0 to 3
+Function SIDAMIndexToScale(Wave w, int index, int dim)
+	if (!WaveExists(w))
+		return nan
+	elseif (dim < 0 || dim > 3)
+		return nan
+	endif
+
+	if (dim == 2 && SIDAMisUnevenlySpacedBias(w))
 		return str2num(GetDimLabel(w,dim,index))
 	else
-		return DimOffset(w,dim) + DimDelta(w,dim)*index
+		return IndexToScale(w,index,dim)
 	endif
 End
 
@@ -230,16 +216,16 @@ End
 Function/WAVE KMEndEffect(w,endeffect)
 	Wave w
 	Variable endeffect		//	0: bounce, 1: wrap, 2: zero, 3: repeat
-	
+
 	switch (endeffect)
 		case 0:	//	bounce
 			Make/N=(DimSize(w,0), DimSize(w,1), DimSize(w,2))/FREE xw, yw, xyw
 			Reverse/P/DIM=0 w/D=xw				//	左右反転
 			Reverse/P/DIM=1 w/D=yw, xw/D=xyw	//	上下反転・上下左右反転
-			
+
 			Duplicate/FREE xyw ew0, ew2			//	左下・左上
 			Duplicate/FREE xw ew1				//	左中
-			
+
 			Concatenate/NP=0 {yw, xyw}, ew0		//	下
 			Concatenate/NP=0 {w, xw}, ew1			//	中
 			Concatenate/NP=0 {yw, xyw}, ew2		//	上
@@ -274,11 +260,11 @@ Function/WAVE KMEndEffect(w,endeffect)
 			Concatenate/NP=1 {ew1, ew2}, ew0	//	上中下合体
 			break
 	endswitch
-	
+
 	SetScale/P x DimOffset(w,0)-DimDelta(w,0)*DimSize(w,0), DimDelta(w,0), WaveUnits(w,0), ew0
 	SetScale/P y DimOffset(w,1)-DimDelta(w,1)*DimSize(w,1), DimDelta(w,1), WaveUnits(w,1), ew0
 	SetScale/P z DimOffset(w,2), DimDelta(w,2), WaveUnits(w,2), ew0
-	
+
 	return ew0
 End
 

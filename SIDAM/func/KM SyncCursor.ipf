@@ -158,7 +158,7 @@ Static Function pnl(String grfName)
 	String dfTmp = KMSyncCommon#pnlInit(pnlName, ks_key)
 	
 	//	フック関数
-	SetWindow $pnlName hook(self)=KMClosePnl
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	SetWindow $pnlName userData(dfTmp)=dfTmp
 	
 	//	各要素

@@ -2,15 +2,25 @@
 #pragma rtGlobals=3
 
 #include "unit-testing"
-#include ":SIDAMTest_Utilities_Img"
+#include ":SIDAMTest_ImageInfo"
 #include ":SIDAMTest_Utilities_Panel"
 
 Menu "SIDAM"
 	SubMenu "Developer"
-		"Execute Test", SIDAMTest()
+		SubMenu "Test"
+			"All Test", SIDAMTest("")
+			"-"
+			"ImageInfo", SIDAMTest("SIDAMTest_ImageInfo")
+			"Utilities_Panel", SIDAMTest("SIDAMTest_Utilities_Panel")
+		End
 	End
 End
 
-Function SIDAMTest()
-	RunTest("SIDAMTest_.+\\.ipf",enableRegExp=1)
+Function SIDAMTest(String filename)
+	if (strlen(filename))
+		RunTest(filename+".ipf")	
+	else
+		RunTest("SIDAMTest_.+\\.ipf",enableRegExp=1)
+	endif
 End
+

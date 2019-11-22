@@ -272,7 +272,6 @@ Static Function pnl(String grfName)
 	
 	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,207,panelHeight)/N=Traces
 	String pnlname = StringFromList(0, grfName, "#") + "#Traces"
-	SetWindow $pnlName hook(self)=KMClosePnl
 	SetWindow $pnlName userData(grf)=grfName
 	
 	Wave initw = initOffset(grfName)

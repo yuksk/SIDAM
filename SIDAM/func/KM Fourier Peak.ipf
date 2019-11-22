@@ -77,7 +77,7 @@ Function/WAVE KMFourierPeakGetPos(
 	//	マーキーによる範囲指定をするかどうか
 	marquee = ParamIsDefault(marquee) ? 0 : marquee
 	if (marquee)
-		Wave mw = KMGetMarquee(0)
+		Wave mw = SIDAMGetMarquee(0)
 		if (WaveDims(w)==3)
 			//	3Dウエーブの場合は表示されているレイヤーについてピーク位置を求める
 			Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]][KMLayerViewerDo(WinName(0,1))]/FREE w, tw
@@ -159,7 +159,7 @@ Static Function KMFourierPeakErase(
 	
 	String grfName = WinName(0,1)
 	Wave w = KMGetImageWaveRef(grfName)
-	Wave posw = KMGetMarquee(0)
+	Wave posw = SIDAMGetMarquee(0)
 	
 	//	3Dウエーブについては、表示されているレイヤーについて行う
 	if (WaveDims(w)==3)

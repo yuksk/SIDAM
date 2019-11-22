@@ -169,9 +169,9 @@ Static Function saveGraphics(String pnlName)
 		if (suffix == 1)			//	index only
 			sprintf cmd, "%s as \"%s"+digitStr+"%s\"", cmdStr, basename, i, extStr
 		elseif (suffix == 2)	//	value only
-			sprintf cmd, "%s as \"%s%g%s\"", cmdStr, basename, KMIndexToScale(w,i,2), extStr
+			sprintf cmd, "%s as \"%s%g%s\"", cmdStr, basename, SIDAMIndexToScale(w,i,2), extStr
 		else						//	index and value
-			sprintf cmd, "%s as \"%s"+digitStr+"_%g%s\"", cmdStr, basename, i, KMIndexToScale(w,i,2), extStr
+			sprintf cmd, "%s as \"%s"+digitStr+"_%g%s\"", cmdStr, basename, i, SIDAMIndexToScale(w,i,2), extStr
 		endif
 		ModifyImage/W=$parentWin $NameOfWave(w) plane=i
 		DoUpdate/W=$parentWin

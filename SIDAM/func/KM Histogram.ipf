@@ -73,8 +73,8 @@ Function/WAVE KMHistogram(
 	Duplicate/O resw tdfr:$s.result
 	
 	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
-	if (KMisUnevenlySpacedBias(s.w))
-		Duplicate/O KMGetBias(s.w, 2) tdfr:$(s.result+"_y")
+	if (SIDAMisUnevenlySpacedBias(s.w))
+		Duplicate/O SIDAMGetBias(s.w, 2) tdfr:$(s.result+"_y")
 	endif
 	
 	return tdfr:$s.result
@@ -182,7 +182,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)), grfName=WinName(0,1))
+	pnl(KMGetImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
@@ -285,20 +285,13 @@ End
 //******************************************************************************
 //	表示対象ウエーブを選択するためのパネル
 //******************************************************************************
-Static Function pnl(
-	Wave w,
-	[
-		String grfName	//	右クリックから呼び出される時
-	])
+Static Function pnl(Wave w, String grfName	)
 	
 	//  パネル表示
-	String pnlName = KMNewPanel("Histogram ("+NameOfWave(w)+")",350,200)
-	if (!ParamIsDefault(grfName))	//	右クリックから呼び出される時
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-		SetWindow $pnlName userData(grf)=grfName
-	endif
+	String pnlName = SIDAMNewPanel("Histogram ("+NameOfWave(w)+")",350,200)
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
+	SetWindow $pnlName userData(grf)=grfName
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
-	SetWindow $pnlName hook(self)=KMClosePnl
 	
 	//	パネル表示の初期値を得る
 	Wave minmaxw = getInitMinMax(w, GetUserData(pnlName,"","grf"))

@@ -103,8 +103,8 @@ Static Function/S KMFourierSymEcho(w, q1w, q2w, sym, shear, endeffect, result)
 	String result
 	
 	String paramStr = GetWavesDataFolder(w,2)
-	paramStr += "," + SelectString(WaveType(q1w,2)==2, GetWavesDataFolder(q1w,2), KMWaveToString(q1w, noquot=1))
-	paramStr += "," + SelectString(WaveType(q2w,2)==2, GetWavesDataFolder(q2w,2), KMWaveToString(q2w, noquot=1))
+	paramStr += "," + SelectString(WaveType(q1w,2)==2, GetWavesDataFolder(q1w,2), SIDAMWaveToString(q1w, noquote=1))
+	paramStr += "," + SelectString(WaveType(q2w,2)==2, GetWavesDataFolder(q2w,2), SIDAMWaveToString(q2w, noquote=1))
 	paramStr += "," + num2str(sym)
 	paramStr += SelectString(shear, "", ",shear=1")
 	paramStr += SelectString(endeffect==2, ",endeffect="+num2str(endeffect), "")
@@ -138,7 +138,7 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 	Variable m1 = mw[0], m2 = mw[1], m3 = mw[2]
 	
 	//	現状表示パネル
-	String pnlName = KMNewPanel("status", 320, 35, float=1)
+	String pnlName = SIDAMNewPanel("status", 320, 35, float=1)
 	TitleBox statusT pos={140,8}, frame=0, anchor=MC, win=$pnlName
 	DoUpdate/W=$pnlName
 	
@@ -287,13 +287,11 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 	
 	//	ウエーブノート
 	String noteStr
-	Sprintf noteStr, "%s\rm1:%.4f;m2:%.4e;m3:%.4f;q1w:%s;q2w:%s;sym:%d;shear:%d;endeffect:%d;", note(w), m1, m2, m3, KMWaveToString(q1w,noquot=1), KMWaveToString(q2w,noquot=1),sym,shear,endeffect
+	Sprintf noteStr, "%s\rm1:%.4f;m2:%.4e;m3:%.4f;q1w:%s;q2w:%s;sym:%d;shear:%d;endeffect:%d;", note(w), m1, m2, m3, SIDAMWaveToString(q1w,noquote=1), SIDAMWaveToString(q2w,noquote=1),sym,shear,endeffect
 	Note w0, noteStr
 	
 	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
-	if (KMisUnevenlySpacedBias(w))
-		KMCopyBias(w, w0)
-	endif
+	SIDAMCopyBias(w, w0)
 	
 	return w0
 End
@@ -394,7 +392,7 @@ End
 //	右クリックメニューから実行される関数
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),grfName=WinName(0,1))
+	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 //-------------------------------------------------------------
 //	マーキーメニュー実行用
@@ -439,9 +437,9 @@ End
 //******************************************************************************
 //	パネル表示
 //******************************************************************************
-Static Function pnl(Wave w,[String grfName])
+Static Function pnl(Wave w, String grfName)
 	//	パネル表示・初期設定
-	String pnlName = KMNewPanel("Symmetrize FFT ("+NameOfWave(w)+")", 355, 250)
+	String pnlName = SIdAMNewPanel("Symmetrize FFT ("+NameOfWave(w)+")", 355, 250)
 	SetWindow $pnlName hook(self)=KMFourierSym#pnlHook
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	Variable nx = DimSize(w,0), ny = DimSize(w,1)
@@ -480,12 +478,9 @@ Static Function pnl(Wave w,[String grfName])
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
-	//	右クリックからの実行の場合
-	if (!ParamIsDefault(grfName))
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-		SetWindow $pnlName userData(parent)=grfName
-		SetWindow $grfName hook(KMFourierSymPnl)=KMFourierSym#pnlHookParent, userData(KMFourierSymPnl)=pnlName
-	endif
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
+	SetWindow $pnlName userData(parent)=grfName
+	SetWindow $grfName hook(KMFourierSymPnl)=KMFourierSym#pnlHookParent, userData(KMFourierSymPnl)=pnlName
 End
 
 //******************************************************************************
@@ -495,7 +490,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
 			SetWindow $GetUserData(s.winName,"","parent") hook(KMFourierSymPnl)=$"", userData(KMFourierSymPnl)=""
-			KMonClosePnl(s.winName)
 			break
 		case 5:	//	mouseup
 			if (strlen(GetUserData(s.winName,"","parent")))
@@ -512,7 +506,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
 				SetWindow $GetUserData(s.winName,"","parent") hook(KMFourierSymPnl)=$"", userData(KMFourierSymPnl)=""
-				KMonClosePnl(s.winName)
 				KillWindow $s.winName
 			endif
 			break
