@@ -27,7 +27,7 @@
 ///	SIDAMColor
 ///	@param grfName [optional, default = WinName(0,1,1)]
 ///		Name of a window.
-///	@param imgList [optional, default = ImageNameList(grfName,";")]
+///	@param imgList [optional, default = ImageNameList(WinName(0,1,1),";")]
 ///		List of images.
 ///	@param ctable [optional]
 ///		Name of a color table or path to a color table wave.
@@ -72,14 +72,14 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int
 	s.rev = ParamIsDefault(rev) ? ds.rev : rev
 	s.log = ParamIsDefault(log) ? ds.log : log
 	if (ParamIsDefault(minRGB))
-		Wave s.minRGB = ds.minRGB
+		Wave s.min.w = ds.min.w
 	else
-		Wave s.minRGB = minRGB
+		Wave s.min.w = minRGB
 	endif
 	if (ParamIsDefault(maxRGB))
-		Wave s.maxRGB = ds.maxRGB
+		Wave s.max.w = ds.max.w
 	else
-		Wave s.maxRGB = maxRGB
+		Wave s.max.w = maxRGB
 	endif
 
 	if (validateInputs(s))
@@ -109,9 +109,15 @@ Static Structure paramStruct
 	String ctable
 	Variable rev
 	Variable log
-	Wave	minRGB
-	Wave 	maxRGB
+	STRUCT paramSubStruct min
+	STRUCT paramSubStruct max
 	String errMsg
+EndStructure
+
+Static Structure paramSubStruct
+	uchar mode
+	Wave w
+	STRUCT RGBColor clr
 EndStructure
 
 Static Function defaultValues(STRUCT paramStruct &s)
@@ -125,36 +131,38 @@ Static Function defaultValues(STRUCT paramStruct &s)
 
 	STRUCT RGBColor color
 	Make/N=1/FREE zerow = {0}, nanw = {NaN}
-	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "minRGB"))
+	s.min.mode = SIDAM_ImageColorRGBMode(s.grfName, imgName, "minRGB")
+	s.max.mode = SIDAM_ImageColorRGBMode(s.grfName, imgName, "maxRGB")
+	switch (s.min.mode)
 		case 0:
-			Wave s.minRGB = zerow
+			Wave s.min.w = zerow
 			break
 		case 1:
 			SIDAM_ImageColorRGBValues(s.grfName, imgName, "minRGB", color)
 			Make/N=3/FREE colorw = {color.red, color.green, color.blue}
-			Wave s.minRGB = colorw
+			Wave s.min.w = colorw
 			break
 		case 2:
-			Wave s.minRGB = nanw
+			Wave s.min.w = nanw
 			break
 		default:
-			Wave s.minRGB = zerow
+			Wave s.min.w = zerow
 	endswitch
 
-	switch (SIDAM_ImageColorRGBMode(s.grfName, imgName, "maxRGB"))
+	switch (s.max.mode)
 		case 0:
-			Wave s.maxRGB = zerow
+			Wave s.max.w = zerow
 			break
 		case 1:
 			SIDAM_ImageColorRGBValues(s.grfName, imgName, "maxRGB", color)
 			Make/N=3/FREE colorw = {color.red, color.green, color.blue}
-			Wave s.maxRGB = colorw
+			Wave s.max.w = colorw
 			break
 		case 2:
-			Wave s.maxRGB = nanw
+			Wave s.max.w = nanw
 			break
 		default:
-			Wave s.maxRGB = zerow
+			Wave s.max.w = zerow
 	endswitch
 End
 
@@ -204,15 +212,24 @@ Static Function validateInputs(STRUCT paramStruct &s)
 End
 
 Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
-	String paramStr = ""
-	paramStr += SelectString(CmpStr(s.grfName,base.grfName),"",",grfName=\""+s.grfName+"\"")
-	paramStr += SelectString(CmpStr(s.imgList,base.imgList),"",",imgList=\""+s.imgList+"\"")
-	paramStr += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
-	paramStr += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
-	paramStr += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
-	paramStr += SelectString(equalWaves(s.minRGB,base.minRGB,1),",minRGB="+SIDAMWaveToString(s.minRGB),"")
-	paramStr += SelectString(equalWaves(s.maxRGB,base.maxRGB,1),",maxRGB="+SIDAMWaveToString(s.maxRGB),"")
-	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, paramStr[1,inf]
+	String str0 = "", str1 = ""
+	str0 += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
+	str0 += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
+	str0 += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
+	if (WaveExists(s.min.w) && WaveExists(base.min.w))
+		str0 += SelectString(equalWaves(s.min.w,base.min.w,1),",minRGB="+SIDAMWaveToString(s.min.w),"")
+	endif
+	if (WaveExists(s.max.w) && WaveExists(base.max.w))
+		str0 += SelectString(equalWaves(s.max.w,base.max.w,1),",maxRGB="+SIDAMWaveToString(s.max.w),"")
+	endif
+	if (!strlen(str0))
+		return 0
+	endif
+
+	str1 += SelectString(CmpStr(s.grfName,base.grfName),"",",grfName=\""+s.grfName+"\"")
+	str1 += SelectString(CmpStr(s.imgList,base.imgList),"",",imgList=\""+s.imgList+"\"")
+	str1 += str0
+	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, str1[1,inf]
 End
 
 //	Apply color table to an image in the list
@@ -235,17 +252,25 @@ Static Function applyColorTable(STRUCT paramStruct &s, int i)
 		ModifyImage/W=$s.grfName $imgName ctab={zmin,zmax,$s.ctable,s.rev}, log=s.log
 	endif
 
-	if (numpnts(s.minRGB)==1)
-		ModifyImage/W=$s.grfName $imgName minRGB=s.minRGB[0]
-	elseif (numpnts(s.minRGB)==3)	//	(r,g,b)
-		ModifyImage/W=$s.grfName $imgName minRGB=(s.minRGB[0],s.minRGB[1],s.minRGB[2])
-	endif
+	switch (s.min.mode)
+		case 0:
+		case 2:
+			ModifyImage/W=$s.grfName $imgName minRGB=s.min.w[0]
+			break
+		case 1:
+			ModifyImage/W=$s.grfName $imgName minRGB=(s.min.w[0],s.min.w[1],s.min.w[2])
+			break
+	endswitch
 
-	if (numpnts(s.maxRGB)==1)
-		ModifyImage/W=$s.grfName $imgName maxRGB=s.maxRGB[0]
-	elseif (numpnts(s.maxRGB)==3)	//	(r,g,b)
-		ModifyImage/W=$s.grfName $imgName maxRGB=(s.maxRGB[0],s.maxRGB[1],s.maxRGB[2])
-	endif
+	switch (s.max.mode)
+		case 0:
+		case 2:
+			ModifyImage/W=$s.grfName $imgName maxRGB=s.max.w[0]
+			break
+		case 1:
+			ModifyImage/W=$s.grfName $imgName maxRGB=(s.max.w[0],s.max.w[1],s.max.w[2])
+			break
+	endswitch
 
 	return 0
 End
@@ -530,14 +555,14 @@ End
 //---------------------------------------------------------------------------
 //	Save the initial state when the panel is opened, to userData of the panel
 //---------------------------------------------------------------------------
-Static Structure initParam
+Static Structure paramStructLite
 	uchar rev
 	uchar log
-	STRUCT initParamSub min
-	STRUCT initParamSub max
+	STRUCT paramSubStructLite min
+	STRUCT paramSubStructLite max
 EndStructure
 
-Static Structure initParamSub
+Static Structure paramSubStructLite
 	uchar mode
 	STRUCT RGBColor clr
 EndStructure
@@ -547,7 +572,7 @@ Static Function saveInitialColor(String pnlName)
 	String imgList = ImageNameList(grfName,";")
 	String imgName, ctabName, str
 	String sepStr = num2char(31)
-	STRUCT initParam s
+	STRUCT paramStructLite s
 	int i, n
 
 	SetWindow $pnlName userData(imgList) = imgList
@@ -584,13 +609,13 @@ End
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
-			SetWindow $GetUserData(s.winName,"","grf") hook(SIDAMColorPnl)=$""
+			pnlHookClose(s.winName)
 			break
 
 		case 11:	//	keyboard
 			switch (s.keycode)
 				case 27:	//	esc
-					SetWindow $GetUserData(s.winName,"","grf") hook(SIDAMColorPnl)=$""
+					pnlHookClose(s.winName)
 					KillWindow $s.winName
 					break
 				case 28:	//	left
@@ -606,6 +631,13 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			pnlHookWheel(s)
 			break
 	endswitch
+End
+
+Static Function pnlHookClose(String pnlName)
+	SetWindow $GetUserData(pnlName,"","grf") hook(SIDAMColorPnl)=$""
+	if (!strlen(GetUserData(pnlName,"","norevert")))
+		revertImageColor(pnlName)
+	endif
 End
 
 Static Function pnlHookArrows(String pnlName, int keycode)
@@ -853,12 +885,15 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "cancelB":
 			revertImageColor(s.win)
-			//	*** FALLTHROUGH ***
+			break
 		case "doB":
-			KillWindow $(s.win)
+			SetWindow $s.win userData(norevert)="1"
+			printHistoryAfterPressingButton(s.win)
 			break
 		default:
+			return 0
 	endswitch
+	KillWindow $(s.win)
 
 	return 0
 End
@@ -920,8 +955,10 @@ Static Function updateAllImaeges(STRUCT  WMCheckboxAction &s)
 	String ctable = GetUserData(s.win,cbName,"ctabName")
 	Wave cw = KMGetCtrlValues(s.win,"op_revC;op_logC")
 
-	SIDAMColor(grfName=grfName,imgList=imgList,ctable=ctable,rev=cw[0],log=cw[1],\
-		minRGB=getRGBWave(s.win,"minRGB"),maxRGB=getRGBWave(s.win,"maxRGB"))
+	STRUCT paramStruct ps
+	getRGBFromPanel(s.win, ps)
+	SIDAMColor(grfName=grfName, imgList=imgList, ctable=ctable, rev=cw[0],\
+		log=cw[1], minRGB=ps.min.w, maxRGB=ps.max.w)
 End
 
 //--------------------------------------------------------------------
@@ -1029,94 +1066,184 @@ Static Function revertImageColor(String pnlName)
 	String imgList = ImageNameList(grfName,";")
 	String imgName, infoStr, ctab
 	String sepStr = num2char(31)
-	STRUCT initParam s
+	STRUCT paramStructLite init
 	int i, n
 
 	for (i = 0, n = ItemsInList(imgList); i < n; i++)
 		imgName = StringFromList(i,imgList)
 		infoStr = GetUserData(pnlName,"",imgName)
 		ctab = StringFromList(0,infoStr,sepStr)
-		StructGet/S s, StringFromList(1,infoStr,sepStr)
-
-		switch (s.min.mode)
-			case 0:
-				Make/FREE minRGB = {0}
-				break
-			case 1:
-				Make/FREE minRGB = {s.min.clr.red,s.min.clr.green,s.min.clr.blue}
-				break
-			case 2:
-				Make/FREE minRGB = {NaN}
-				break
-		endswitch
-		switch (s.max.mode)
-			case 0:
-				Make/FREE maxRGB = {0}
-				break
-			case 1:
-				Make/FREE maxRGB = {s.max.clr.red,s.max.clr.green,s.max.clr.blue}
-				break
-			case 2:
-				Make/FREE maxRGB = {NaN}
-				break
-		endswitch
-		SIDAMColor(grfName=grfName,imgList=imgName,ctable=ctab,rev=s.rev,log=s.log,\
-			minRGB=minRGB,maxRGB=maxRGB)
+		StructGet/S init, StringFromList(1,infoStr,sepStr)
+		Wave/WAVE ww = makeRGBWave(init)
+		SIDAMColor(grfName=grfName, imgList=imgName, ctable=ctab, rev=init.rev,\
+			log=init.log, minRGB=ww[0], maxRGB=ww[1])
 	endfor
 End
 
-//-------------------------------------------------------------
-//	Return wave of minRGB/maxRGB
-//-------------------------------------------------------------
-Static Function/WAVE getRGBWave(String pnlName, String mode)
-	String list
-	strswitch (mode)
-		case "minRGB":
-			list = "op_beforeUseC;op_beforeClrC;op_beforeTransC"
+Static Function/WAVE makeRGBWave(STRUCT paramStructLite &s)
+	switch (s.min.mode)
+		case 0:
+			Make/FREE minRGB = {0}
 			break
-		case "maxRGB":
-			list = "op_lastUseC;op_lastClrC;op_lastTransC"
+		case 1:
+			Make/FREE minRGB = {s.min.clr.red, s.min.clr.green, s.min.clr.blue}
 			break
-		default:
-			return $""
+		case 2:
+			Make/FREE minRGB = {NaN}
+			break
 	endswitch
+	switch (s.max.mode)
+		case 0:
+			Make/FREE maxRGB = {0}
+			break
+		case 1:
+			Make/FREE maxRGB = {s.max.clr.red, s.max.clr.green, s.max.clr.blue}
+			break
+		case 2:
+			Make/FREE maxRGB = {NaN}
+			break
+	endswitch
+	Make/N=2/WAVE/FREE ww = {minRGB, maxRGB}
+	return ww
+End
+
+Static Function getRGBFromPanel(String pnlName, STRUCT paramStruct &s)
+	getRGBFromPanelHelper(pnlName, s, 0)
+	getRGBFromPanelHelper(pnlName, s, 1)
+End
+
+Static Function getRGBFromPanelHelper(String pnlName, STRUCT paramStruct &s, int mode)
+	String list
+	if (mode == 0)
+		list = "op_beforeUseC;op_beforeClrC;op_beforeTransC"
+	else
+		list = "op_lastUseC;op_lastClrC;op_lastTransC"
+	endif
 
 	Wave cw = KMGetCtrlValues(pnlName, list)
 	cw *= p
+	if (mode == 0)
+		s.min.mode = sum(cw)
+	else
+		s.max.mode = sum(cw)
+	endif
+
 	switch (sum(cw))
 		case 0:
 			Make/FREE w={0}
-			return w
+			break
 		case 1:
-			ControlInfo/W=$pnlName $StringFromList(1,list)
+			ControlInfo/W=$pnlName $StringFromList(mode,"op_beforeClrP;op_lastClrP")
 			Make/FREE w={V_Red,V_Green,V_Blue}
-			return w
+			break
 		case 2:
 			Make/FREE w={NaN}
-			return w
+			break
 	endswitch
+
+	if (mode == 0)
+		Wave s.min.w = w
+	else
+		Wave s.max.w = w
+	endif
 End
 
-//-------------------------------------------------------------
-//	collect parameters from the panel controls
-//-------------------------------------------------------------
-Static Function collectParamsFromPanel(STRUCT WMButtonAction &s, STRUCT paramStruct &ps)
-	ps.grfName = GetUserData(s.win,"","grf")
+Static Function printHistoryAfterPressingButton(String pnlName)
 
-	Wave cw = KMGetCtrlValues(s.win, "allC;op_revC;op_logC")
-	if (cw[0])
-		ps.imgList = ImageNameList(ps.grfName,";")
-	else
-		ControlInfo/W=$s.win imageP
-		ps.imgList = S_Value
+	STRUCT paramStruct s
+	s.grfName = GetUserData(pnlName,"","grf")
+
+	STRUCT paramStruct base
+	base.grfName = s.grfName
+
+	ControlInfo/W=$pnlName allC
+	if (V_Value)
+		findChangedParameters(pnlName,s,base)
+		printHistory(s,base)
+		return 0
 	endif
 
-	ps.ctable = GetUserData(s.win,findSelectedCheckbox(s.win),"ctabName")
-	ps.rev = cw[1]
-	ps.log = cw[2]
-	Wave ps.minRGB = getRGBWave(s.win,"minRGB")
-	Wave ps.maxRGB = getRGBWave(s.win,"maxRGB")
+	String imgList = ImageNameList(s.grfName,";"), imgName
+	int i
+	for (i = 0; i < ItemsInList(imgList); i++)
+		imgName = StringFromList(i,imgList)
+		s.imgList = imgName
+		fetchPresentParameters(s)
+		base.imgList = ""	//	force to print imgName if there is a change
+		fetchInitParameters(GetUserData(pnlName,"",imgName), base)
+		printHistory(s,base)
+	endfor
 End
+
+Static Function findChangedParameters(String pnlName, STRUCT paramStruct &s,
+	STRUCT paramStruct &base)
+
+	//	Collect the parameters selected in the panel
+	s.imgList = ImageNameList(s.grfName,";")
+	s.ctable = GetUserData(pnlName,findSelectedCheckbox(pnlName),"ctabName")
+	Wave cw = KMGetCtrlValues(pnlName, "op_revC;op_logC")
+	s.rev = cw[0]
+	s.log = cw[1]
+	getRGBFromPanel(pnlName,s)
+
+	//	Search for initial values of all images. If a parameter is different
+	//	from one chosen in the panel, the parameter has to be shown as the
+	//	command parameter.
+	int i
+	String infoStr, ctable, sepStr = num2char(31)
+	STRUCT paramStructLite init
+
+	base.imgList = s.imgList
+	for (i = 0; i < ItemsInList(s.imgList); i++)
+		infoStr = GetUserData(pnlName,"",StringFromList(i,s.imgList))
+		ctable = StringFromList(0,infoStr,sepStr)
+		if (CmpStr(s.ctable, ctable))
+			base.ctable = ""
+		endif
+		StructGet/S init, StringFromList(1,infoStr,sepStr)
+		if (s.rev != init.rev)
+			base.rev = NaN
+		endif
+		if (s.log != init.log)
+			base.log = NaN
+		endif
+		Wave/WAVE ww = makeRGBWave(init)
+		if (!equalWaves(s.min.w,ww[0],1))
+			Wave base.min.w = $""
+		endif
+		if (!equalWaves(s.max.w,ww[1],1))
+			Wave base.max.w = $""
+		endif
+	endfor
+End
+
+Static Function fetchPresentParameters(STRUCT paramStruct &s)
+
+	String	imgName = s.imgList
+	s.ctable = SIDAM_ColorTableForImage(s.grfName,imgName)
+	s.rev = WM_ColorTableReversed(s.grfName,imgName)
+	s.log = SIDAM_ColorTableLog(s.grfName,imgName)
+	STRUCT paramStructLite present
+	present.min.mode = SIDAM_ImageColorRGBMode(s.grfName,imgName,"minRGB")
+	present.max.mode = SIDAM_ImageColorRGBMode(s.grfName,imgName,"maxRGB")
+	Wave/WAVE ww = makeRGBWave(present)
+	Wave s.min.w = ww[0], s.max.w = ww[1]
+End
+
+Static Function fetchInitParameters(String infoStr, STRUCT paramStruct &s)
+
+	String sepStr = num2char(31)
+	s.ctable = StringFromList(0,infoStr,sepStr)
+	STRUCT paramStructLite init
+	StructGet/S init, StringFromList(1,infoStr,sepStr)
+	s.rev = init.rev
+	s.log = init.log
+	s.min.mode = init.min.mode
+	s.max.mode = init.max.mode
+	Wave/WAVE ww = makeRGBWave(init)
+	Wave s.min.w = ww[0], s.max.w = ww[1]
+End
+
 
 //=====================================================================================================
 //	Functions to load and kill color table ibw files
