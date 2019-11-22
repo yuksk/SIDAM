@@ -1,5 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
+#pragma ModuleName=SIDAMUtilControl
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -385,22 +386,22 @@ Function KMClickButton(pnlName,ctrlName,eventCode)
 		return 2
 	endif
 	
-	String fnName = KMGetActionFunctionName(S_recreation)
+	String fnName = getActionFunctionName(S_recreation)
 	if (!strlen(fnName))
 		return 3
 	else
-		FUNCREF KMClickButtonPrototype fn = $fnName
+		FUNCREF SIDAMClickButtonPrototype fn = $fnName
 	endif
 	
 	STRUCT WMButtonAction s
 	s.ctrlName = ctrlName
 	s.win = pnlName
-	KMClickGetWinRect(pnlName, s.winRect)				//	winRect
-	KMClickGetCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
+	getWinRect(pnlName, s.winRect)				//	winRect
+	getCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
 	//s.mouseLoc.v =
 	//s.mouseLoc.h =
 	s.eventCode = eventCode
-	s.eventMod = KMClickGetEventMod()
+	s.eventMod = getEventMod()
 	s.userData = S_UserData
 	
 	fn(s)
@@ -426,22 +427,22 @@ Function KMClickCheckBox(String pnlName, String ctrlName)
 	
 	CheckBox $ctrlName value=newValue, win=$pnlName	//	変数が関係付けられている場合にはその変数もこれにより変化する
 	
-	String fnName = KMGetActionFunctionName(S_recreation)
+	String fnName = getActionFunctionName(S_recreation)
 	if (!strlen(fnName))
 		return 3
 	else
-		FUNCREF KMClickCheckBoxPrototype fn = $fnName
+		FUNCREF SIDAMClickCheckBoxPrototype fn = $fnName
 	endif
 	
 	STRUCT WMCheckboxAction s
 	s.ctrlName = ctrlName
 	s.win = pnlName
-	KMClickGetWinRect(pnlName, s.winRect)				//	winRect
-	KMClickGetCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
+	getWinRect(pnlName, s.winRect)				//	winRect
+	getCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
 	//s.mouseLoc.v =
 	//s.mouseLoc.h =
 	s.eventCode = 2
-	s.eventMod = KMClickGetEventMod()
+	s.eventMod = getEventMod()
 	s.userData = S_UserData
 	s.checked = newValue
 	
@@ -464,22 +465,22 @@ Function KMClickSetVariable(pnlName,ctrlName,eventCode)
 		return 2
 	endif
 	
-	String fnName = KMGetActionFunctionName(S_recreation)
+	String fnName = getActionFunctionName(S_recreation)
 	if (!strlen(fnName))
 		return 3
 	else
-		FUNCREF KMClickSetVariablePrototype fn = $fnName
+		FUNCREF SIDAMClickSetVariablePrototype fn = $fnName
 	endif
 	
 	STRUCT WMSetVariableAction s
 	s.ctrlName = ctrlName
 	s.win = pnlName
-	KMClickGetWinRect(pnlName, s.winRect)				//	winRect
-	KMClickGetCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
+	getWinRect(pnlName, s.winRect)				//	winRect
+	getCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
 	//s.mouseLoc.v =
 	//s.mouseLoc.h =
 	s.eventCode = eventCode
-	s.eventMod = KMClickGetEventMod()
+	s.eventMod = getEventMod()
 	s.userData = S_UserData
 	s.isStr = (numtype(V_Value) == 2)
 	s.dval = s.isStr ? NaN : V_Value
@@ -514,22 +515,22 @@ Function KMClickPopupMenu(pnlName, ctrlName, popNum, popStr)
 		return 2
 	endif
 	
-	String fnName = KMGetActionFunctionName(S_recreation)
+	String fnName = getActionFunctionName(S_recreation)
 	if (!strlen(fnName))
 		return 3
 	else
-		FUNCREF KMClickPopupMenuPrototype fn = $fnName
+		FUNCREF SIDAMClickPopupMenuPrototype fn = $fnName
 	endif
 	
 	STRUCT WMPopupAction s
 	s.ctrlName = ctrlName
 	s.win = pnlName
-	KMClickGetWinRect(pnlName, s.winRect)				//	winRect
-	KMClickGetCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
+	getWinRect(pnlName, s.winRect)				//	winRect
+	getCtrlRect(pnlName, ctrlName, s.ctrlRect)	//	ctrlRect
 	//s.mouseLoc.v =
 	//s.mouseLoc.h =
 	s.eventCode = 2
-	s.eventMod = KMClickGetEventMod()
+	s.eventMod = getEventMod()
 	s.userData = S_UserData
 	//s.blockReentry =
 	s.popNum = popNum
@@ -538,36 +539,34 @@ Function KMClickPopupMenu(pnlName, ctrlName, popNum, popStr)
 	fn(s)
 End
 //-------------------------------------------------------------
-//		プロトタイプ
+//	Prototypes of control procedure functions
 //-------------------------------------------------------------
-Function KMClickButtonPrototype(STRUCT WMButtonAction &s)
+Function SIDAMClickButtonPrototype(STRUCT WMButtonAction &s)
 End
-Function KMClickCheckBoxPrototype(STRUCT WMCheckboxAction &s)
+Function SIDAMClickCheckBoxPrototype(STRUCT WMCheckboxAction &s)
 End
-Function KMClickSetVariablePrototype(STRUCT WMSetVariableAction &s)
+Function SIDAMClickSetVariablePrototype(STRUCT WMSetVariableAction &s)
 End
-Function KMClickPopupMenuPrototype(STRUCT WMPopupAction &s)
+Function SIDAMClickPopupMenuPrototype(STRUCT WMPopupAction &s)
 End
 //-------------------------------------------------------------
-//	KMGetActionFunctionName
-//		コントロールに関連付けられている関数の名前を返す
+//	Return a name of procedure for a control
 //-------------------------------------------------------------
-Static Function/S KMGetActionFunctionName(String recreationStr)	
-	int num1 = strsearch(recreationStr,"proc=",0)
-	if (num1 == -1)
+Static Function/S getActionFunctionName(String recreationStr)	
+	int i0 = strsearch(recreationStr,"proc=",0)
+	if (i0 == -1)
 		return ""
 	endif
-	int num2 = strsearch(recreationStr,",",num1+5)-1
-	return recreationStr[num1+5,num2]
+	int i1 = strsearch(recreationStr,",",i0+5)
+	if (i1 == -1)
+		i1 = strsearch(recreationStr,"\r",i0+5)
+	endif
+	return recreationStr[i0+5,i1-1]
 End
 //-------------------------------------------------------------
-//	KMClickGetCtrlRect
-//		ウインドウの座標を代入する
+//	Put coordinates of a window
 //-------------------------------------------------------------
-Static Function KMClickGetWinRect(pnlName, winRect)
-	String pnlName
-	STRUCT Rect &winRect
-	
+Static Function getWinRect(String pnlName, STRUCT Rect &winRect)
 	GetWindow $pnlName wsizeDC
 	winRect.top = V_top
 	winRect.left = V_left
@@ -575,13 +574,9 @@ Static Function KMClickGetWinRect(pnlName, winRect)
 	winRect.right = V_right
 End
 //-------------------------------------------------------------
-//	KMClickGetCtrlRect
-//		コントロールの座標を代入する
+//	Put coordinates of a control to a structure
 //-------------------------------------------------------------
-Static Function KMClickGetCtrlRect(pnlName, ctrlName, ctrlRect)
-	String pnlName, ctrlName
-	STRUCT Rect &ctrlRect
-	
+Static Function getCtrlRect(String pnlName, String ctrlName, STRUCT Rect &ctrlRect)
 	ControlInfo/W=$pnlName $ctrlName
 	ctrlRect.top = V_top
 	ctrlRect.left = V_left
@@ -589,17 +584,17 @@ Static Function KMClickGetCtrlRect(pnlName, ctrlName, ctrlRect)
 	ctrlRect.right = V_left + V_Width
 End
 //-------------------------------------------------------------
-//	KMClickGetEventMod
-//		eventModを代入する
+//	Return eventMod
 //-------------------------------------------------------------
-Static Function KMClickGetEventMod()
+Static Function getEventMod()
 	int key = GetKeyState(1)
 	int isCtrlPressed = !!(key & 1)
 	int isAltPressed = !!(key & 2)
 	int isShiftPressed = !!(key & 4)
 	int eventMod = 0
-	eventMod += 1		//	クリック時に使われることが前提なのでこれで良い
+	eventMod += 1	//	This function is used when a control is clicked
 	eventMod += isShiftPressed*2 + isAltPressed*4 + isCtrlPressed*8
+	return eventMod
 End
 //-------------------------------------------------------------
 //	KMClickGetSetVariableString

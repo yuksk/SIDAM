@@ -2,7 +2,9 @@
 #pragma rtGlobals=3
 
 #include "unit-testing"
-#include ":SIDAMTest_ImageInfo"
+#include ":SIDAMTest_Utilities_Bias"
+#include ":SIDAMTest_Utilities_Control"
+#include ":SIDAMTest_Utilities_ImageInfo"
 #include ":SIDAMTest_Utilities_Panel"
 #include ":SIDAMTest_Utilities_WaveDf"
 
@@ -11,7 +13,9 @@ Menu "SIDAM"
 		SubMenu "Test"
 			"All Test", SIDAMTest("")
 			"-"
-			"ImageInfo", SIDAMTest("SIDAMTest_ImageInfo")
+			"Utilities_Bias", SIDAMTest("SIDAMTest_Utilities_Bias")
+			"Utilities_Control", SIDAMTest("SIDAMTest_Utilities_Control")
+			"Utilities_ImageInfo", SIDAMTest("SIDAMTest_Utilities_ImageInfo")
 			"Utilities_Panel", SIDAMTest("SIDAMTest_Utilities_Panel")
 			"Utilities_WaveDf", SIDAMTest("SIDAMTest_Utilities_WaveDf")
 		End
