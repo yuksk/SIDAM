@@ -197,7 +197,7 @@ Static Function updateLayers(
 		KMLayerViewerDo(grfName, direction=direction)
 		//	0.5%表示　ウエーブ変更時に設定してあるが、サブウインドウのへフック関数を設定してもイベントを拾うことが
 		//	できないので、レイヤー変更後に再び実行する
-		KMRange(grfName=grfName,zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)
+		SIDAMRange(grfName=grfName,zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)
 	endif
 End
 
@@ -376,7 +376,7 @@ Static Function doSubtraction(STRUCT WMListboxAction &s)
 	for (i = 0; i < DimSize(s.selWave,0); i += 1)
 		if (s.selWave[i][0][0])
 			SIDAMSubtraction(ref[i])
-			KMRange(grfName=s.win+"#G0#G0",zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)	//	0.5%表示
+			SIDAMRange(grfName=s.win+"#G0#G0",zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)	//	0.5%表示
 		endif
 	endfor
 End
@@ -597,7 +597,7 @@ Static Function updateImage(STRUCT WMListboxAction &s)
 	//	ウエーブが2D,3Dならば、0.5%表示をする
 	if (WaveDims(ref[s.row]) != 1)
 		DoUpdate/W=$grfName	//	これがないと次行がうまく動作しない
-		KMRange(grfName=grfName,zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)	//	0.5%表示
+		SIDAMRange(grfName=grfName,zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)	//	0.5%表示
 	endif
 End
 

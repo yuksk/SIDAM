@@ -41,6 +41,12 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,
+	int zminmode, int zmaxmode, int history])
+	deprecatedCaution("SIDAMRange")
+	SIDAMRange(grfName=grfName, imgList=imgList, zmin=zmin, zmax=zmax, zminmode=zminmode, zmaxmode=zmaxmode, history=history)
+End
+
 Function KMPreviewPnl()
 	deprecatedCaution("")
 	KMPreview#pnl()

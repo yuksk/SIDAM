@@ -92,10 +92,10 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	//	Range
 	SubMenu "Range"
 		help = {"Adjust of z range of images in the active graph."}
-		"Manual.../F4",/Q, KMRange()
+		"Manual.../F4",/Q, SIDAMRange()
 		"-"
-		KMRange#rightclickMenu(2), /Q, KMRange#rightclickDo(2)
-		KMRange#rightclickMenu(3), /Q, KMRange#rightclickDo(3)
+		SIDAMRange#menu(2), /Q, SIDAMRange#menuDo(2)
+		SIDAMRange#menu(3), /Q, SIDAMRange#menuDo(3)
 	End
 
 	"Color Table.../F5",/Q, SIDAMColor()

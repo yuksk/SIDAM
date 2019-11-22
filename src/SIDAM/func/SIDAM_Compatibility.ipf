@@ -32,6 +32,9 @@ Function SIDAMBackwardCompatibility()
 		Execute/P "INSERTINCLUDE \"" + SIDAM_FILE_INCLUDE + "\""
 		Execute/P "COMPILEPROCEDURES "
 	endif
+	
+	//	Change the hook function of Range (KM -> SIDAM)
+	updateRangeHook()
 End
 #endif
 
@@ -205,4 +208,21 @@ Static Function updateHookFunctions()
 	endif	
 End
 
+Static Function updateRangeHook()
+	String listStr = WinList("*",";","WIN:1"), grfName, str
+	int i
+	for (i = 0; i < ItemsInList(listStr); i++)
+		grfName = StringFromList(i,listStr)
+		GetWindow $grfName hook(KMRangePnl)
+		if (strlen(S_value))
+			SetWindow $grfName hook(KMRangePnl)=$""
+			SetWindow $grfName hook(SIDAMRange)=SIDAMRange#pnlHookParent
+		endif
+		str = GetUserData(grfName,"","KMRangeSettings")
+		if (strlen(str))
+			SetWIndow $grfName userData(SIDAMRangeSettings)=str
+			SetWindow $grfName userData(KMRangeSettings)=""
+		endif
+	endfor
+End
 #endif

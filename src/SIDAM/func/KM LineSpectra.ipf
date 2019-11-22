@@ -689,7 +689,7 @@ Menu "SIDAMLineSpectraMenu", dynamic, contextualmenu
 	End
 	"Save...", SIDAMLineSpectra#outputPnl(WinName(0,1))
 	"-"
-	SIDAMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
+	SIDAMLineCommon#pnlRightClickMenu(7),/Q, SIDAMRange(grfName=WinName(0,1)+"#image")
 	SIDAMLineCommon#pnlRightClickMenu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
 End
 //-------------------------------------------------------------

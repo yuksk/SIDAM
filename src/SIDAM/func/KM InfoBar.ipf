@@ -589,7 +589,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	if (isWindows && s.specialKeyCode && (is2D || is3D))
 		switch (s.specialKeyCode)
 			case 4:		//	F4
-				KMRange()
+				SIDAMRange()
 				return 1
 			case 5:		//	F5
 				SIDAMColor()

@@ -369,7 +369,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 	switch (s.specialKeyCode)
 		case 4:	//	F4
 			if (str2num(GetUserData(s.winName,"","dim"))==2)
-				KMRange(grfName=s.winName+"#image")
+				SIDAMRange(grfName=s.winName+"#image")
 				return 1
 			endif
 			return 0
@@ -455,7 +455,7 @@ Static Function keySpecial(STRUCT WMWinHookStruct &s)
 
 	switch (s.specialKeyCode)
 		case 4:	//	F4
-			KMRange(grfName=s.winName+"#image")
+			SIDAMRange(grfName=s.winName+"#image")
 			break
 		case 5:	//	F5
 			SIDAMColor(grfName=s.winName+"#image")
