@@ -179,7 +179,7 @@ Static Function pnlHookClose(String pnlName)
 	
 	SIDAMSavePrefs(p)
 	
-	KMonClosePnl(pnlName)
+	SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
 End
 //------------------------------------------------------------
 //	ウインドウサイズの更新

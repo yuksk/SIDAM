@@ -124,7 +124,7 @@ EndStructure
 Static Function/S echoStr(Wave srcw, Wave paramw, String result, int invert, int endeffect)
 	
 	String paramStr = GetWavesDataFolder(srcw,2)
-	paramStr += "," + SelectString(WaveType(paramw,2)==2, GetWavesDataFolder(paramw,2), KMWaveToString(paramw, noquot=1))
+	paramStr += "," + SelectString(WaveType(paramw,2)==2, GetWavesDataFolder(paramw,2), SIDAMWaveToString(paramw, noquote=1))
 	paramStr += SelectString(CmpStr(NameOfWave(srcw)+ks_index_filter,result), "", ",result=\""+result+"\"")
 	paramStr += SelectString(invert, "", ",invert="+num2str(invert))
 	paramStr += SelectString(endeffect==1, ",endeffect="+num2str(endeffect), "")
@@ -145,7 +145,7 @@ Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffe
 	if (endeffect == 1)		//	wrap
 		Wave tsrcw = srcw
 	else
-		Wave tsrcw = KMEndEffect(srcw,endeffect)
+		Wave tsrcw = SIDAMEndEffect(srcw,endeffect)
 	endif
 	
 	//	端処理に応じてパラメータウエーブの内容を修正
@@ -167,7 +167,7 @@ Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffe
 	if (dim == 2)
 		MatrixOP/FREE/C flt2Dw = fft(tsrcw,0)*maskw
 		IFFT/FREE flt2Dw
-		Note flt2Dw, KMWaveToString(paramw, noquot=1)
+		Note flt2Dw, SIDAMWaveToString(paramw, noquote=1)
 		CopyScales tsrcw, flt2Dw
 	else
 		Make/N=(nz)/FREE/WAVE ww
@@ -296,7 +296,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)), grfName=WinName(0,1))
+	pnl(KMGetImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
@@ -306,13 +306,12 @@ End
 //******************************************************************************
 //	パネル表示
 //******************************************************************************
-Static Function pnl(Wave w,[String grfName])
+Static Function pnl(Wave w, String grfName)
 	
 	//	パネル表示
-	String pnlName = KMNewPanel("Fourier filter ("+NameOfWave(w)+")", 680, 370, nofixed=1)	//	680=10+320+10+340, 370=40+320+10
-	if (!ParamIsDefault(grfName))	//	右クリックからの実行の場合
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	endif
+	String pnlName = SIDAMNewPanel("Fourier filter ("+NameOfWave(w)+")",\
+		680, 370, resizable=1)	//	680=10+320+10+340, 370=40+320+10
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 	
 	//	初期設定
 	String dfTmp = pnlInit(pnlName, w)
@@ -456,7 +455,7 @@ End
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
-			KMonClosePnl(s.winName)
+			SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 			break
 		case 4:	//	mousemoved
 			if (strlen(ImageNameList(s.winName,";")))		//	グラフを表示しているサブウインドウだけで有効
@@ -477,7 +476,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
-				KMonClosePnl(s.winName)
+				SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 				KillWindow $s.winName
 			endif
 			break
@@ -579,7 +578,7 @@ End
 //	スライダー
 //-------------------------------------------------------------
 Static Function pnlSlider(STRUCT WMSliderAction &s)
-	if (s.eventCode & 4)
+	if (s.eventCode == 4)
 		Wave/SDFR=$GetUserData(StringFromList(0,s.win,"#"),"","dfTmp") maskw = $MASKNAME
 		ImageStats/M=1/P=3 maskw
 		Variable v = V_max*s.curval

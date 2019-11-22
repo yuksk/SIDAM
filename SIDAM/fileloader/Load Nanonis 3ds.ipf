@@ -546,7 +546,7 @@ Static Function LoadNanonis3dsSetMLSBias(Wave specw, STRUCT Nanonis3ds &s)
 			//	do nothing
 	endswitch	
 	
-	KMSetBias(specw, ew)
+	SIDAMSetBias(specw, ew)
 End
 
 

@@ -52,7 +52,7 @@
 ///	@param kill [optional, default = 0]
 ///		0 or !0. Set !0 to kill all unused color table waves.
 ///	@return
-///		0 for normal exit, 1 for any error in input parameters
+///		0 for normal exit, !0 for any error in input parameters
 //******************************************************************************
 Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int log,
 	Wave minRGB, Wave maxRGB, int history, int kill])
@@ -95,12 +95,12 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int
 		printHistory(s,ds)
 	endif
 
-	int i, n
-	for (i = 0, n = ItemsInList(s.imgList); i < n; i++)
-		applyColorTable(s,i)
+	int i, n = ItemsInList(s.imgList), flag = 0
+	for (i = 0; i < n; i++)
+		flag += applyColorTable(s,i)
 	endfor
 
-	return 0
+	return flag
 End
 
 Static Structure paramStruct
@@ -219,9 +219,11 @@ End
 Static Function applyColorTable(STRUCT paramStruct &s, int i)
 
 	String imgName = StringFromList(i, s.imgList)
-	Wave rw = KM_GetColorTableMinMax(s.grfName, imgName)
-	Variable zmin = isFirstZAuto(s.grfName, imgName) ? NaN : rw[0]
-	Variable zmax = isLastZAuto(s.grfName, imgName) ? NaN : rw[1]
+	Variable zmin, zmax
+	Variable flag = SIDAM_GetColorTableMinMax(s.grfName, imgName, zmin, zmax, allowNaN=1)
+	if (GetRTError(1) || flag)
+		return 1
+	endif
 
 	if (numtype(zmin)==2 && numtype(zmax)==2)
 		ModifyImage/W=$s.grfName $imgName ctab={*,*,$s.ctable,s.rev}, log=s.log
@@ -245,6 +247,7 @@ Static Function applyColorTable(STRUCT paramStruct &s, int i)
 		ModifyImage/W=$s.grfName $imgName maxRGB=(s.maxRGB[0],s.maxRGB[1],s.maxRGB[2])
 	endif
 
+	return 0
 End
 
 
@@ -1262,23 +1265,8 @@ EndStructure
 //	Kill all unused waves under SIDAM_DF_CTAB
 //-----------------------------------------------------------------------
 Static Function killUnusedWaves()
-
-	if (!DataFolderExists(SIDAM_DF_CTAB))	//	nothing to do
-		return 0
-	endif
-
-	//	Kill all unused waves under SIDAM_DF_CTAB
-	int numOfDF = killUnusedWavesHelper($SIDAM_DF_CTAB)
-
-	//	If no wave is left under SIDAM_DF_CTAB, kill datafolders
-	if (numOfDF == 0)
-		int i
-		for (i = 0; i < ItemsInlist(SIDAM_DF_CTAB,":")-1; i++)
-			KillDataFolder/Z $ParseFilePath(1,SIDAM_DF_CTAB,":",1,i)
-			if (V_flag)
-				break
-			endif
-		endfor
+	int status = SIDAMKillDataFolder($SIDAM_DF_CTAB)
+	if (status != 3)
 		return 0
 	endif
 
@@ -1290,31 +1278,6 @@ Static Function killUnusedWaves()
 	else
 		Variable/G $(SIDAM_DF_CTAB+"needUpdate") = 1
 	endif
-End
-
-Static Function killUnusedWavesHelper(DFREF dfr)
-	int i, n
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder dfr
-
-	//	Kill all unused waves in the current datafolder
-	KillWaves/A/Z
-
-	//	Kill datafolders in the current datafolder, if possible.
-	//	DataFolders containing used waves are left.
-	for (i = CountObjectsDFR(dfr,4)-1; i >= 0; i--)
-		KillDataFolder/Z $GetIndexedObjNameDFR(dfr,4,i)
-	endfor
-
-	//	Call recursively this function for the remaining datafolder
-	for (i = 0, n = CountObjectsDFR(dfr,4); i < n; i++)
-		killUnusedWavesHelper($GetIndexedObjNameDFR(dfr,4,i))
-	endfor
-
-	n = CountObjectsDFR(dfr,4)
-	SetDataFolder dfrSav
-
-	return n
 End
 
 

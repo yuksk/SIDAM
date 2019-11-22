@@ -660,3 +660,33 @@ Static Function pnlRightclickDoFree(String pnlName)
 	endif
 	SetWindow $pnlName userData(grid)=num2istr(!grid)
 End
+
+//=====================================================================================================
+//
+//	その他
+//
+//******************************************************************************
+//		指定ウインドウにおける、指定ウエーブのトレース名を返す
+//		(trace と trace#1 の区別がつく)
+//		ウインドウが存在しない、ウエーブが存在しない、指定ウインドウにトレースが存在しない
+//		指定ウエーブが指定ウインドウに表示されていない、の場合には空文字列を返す
+//******************************************************************************
+Static Function/S WaveToTraceName(String pnlName, Wave w)
+	if (!SIDAMWindowExists(pnlName) || !WaveExists(w))
+		return ""
+	endif
+
+	String trcList = TraceNameList(pnlName,";",1)
+	if (!strlen(trcList))
+		return ""
+	endif
+
+	int i
+	String ref
+	for (i = 0; i < ItemsInList(trcList); i++)
+		ref = GetWavesDataFolder(TraceNameToWaveRef(pnlName,StringFromList(i,trcList)),2)
+		if (stringmatch(ref,GetWavesDataFolder(w,2)))
+			return StringFromList(i,trcList)
+		endif
+	endfor
+End

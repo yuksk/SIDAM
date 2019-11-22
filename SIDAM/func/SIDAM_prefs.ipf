@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMPrefs
 
-#include "KM Utilities_Panel"		//	For panel
+#include "SIDAM_Utilities_Panel"	//	For panel
 #include "KM Utilities_Control"	//	For panel
 
 #ifndef SIDAMshowProc
@@ -135,8 +135,7 @@ End
 //	Display panel to set preference values
 //******************************************************************************
 Function SIDAMPrefsPnl()
-	String pnlName = KMNewPanel("KM Preferences",350,270)
-	SetWindow $pnlName hook(self)=KMClosePnl
+	String pnlName = SIDAMNewPanel("KM Preferences",350,270)
 	
 	TabControl mTab pos={3,2}, size={347,230}, proc=KMTabControlProc, value=0, focusRing=0, win=$pnlName
 	TabControl mTab tabLabel(0)="Window", tabLabel(1)="Export Graphics", win=$pnlName

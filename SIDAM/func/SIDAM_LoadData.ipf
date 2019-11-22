@@ -199,7 +199,7 @@ Static Function/S pnl(String fileName)
 	String strName = UniqueName("newname", 4, 0)
 	String/G $strName
 	
-	String pnlName = KMNewPanel("Load Data...", 335, 105)
+	String pnlName = SIDAMNewPanel("Load Data...", 335, 105)
 	SetWindow $pnlName userData(strName)=strName
 	
 	SetDrawLayer ProgBack

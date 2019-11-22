@@ -237,9 +237,9 @@ End
 Static Function/WAVE outputLineProfileWaves(STRUCT paramStruct &s, Wave linew, Wave sdevw)
 	DFREF dfr = s.dfr
 	Duplicate/O linew dfr:$s.result/WAVE=rtnw
-	if (KMisUnevenlySpacedBias(s.w))
-		Duplicate/O KMGetBias(s.w,1) dfr:$(s.result+"_b")
-		Duplicate/O KMGetBias(s.w,2) dfr:$(s.result+"_y")
+	if (SIDAMisUnevenlySpacedBias(s.w))
+		Duplicate/O SIDAMGetBias(s.w,1) dfr:$(s.result+"_b")
+		Duplicate/O SIDAMGetBias(s.w,2) dfr:$(s.result+"_y")
 	endif
 	if (s.output & 2)
 		Duplicate/O $STDV_2D_NAME dfr:$STDV_2D_NAME
@@ -306,7 +306,7 @@ Static Function pnl(String grfName, String imgName)
 	//	ウォーターフォール表示領域
 	if (WaveDims(w)==2)
 		Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
-	elseif (KMisUnevenlySpacedBias(w))
+	elseif (SIDAMisUnevenlySpacedBias(w))
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {*, $PNL_B1}
 	else
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
@@ -317,7 +317,7 @@ Static Function pnl(String grfName, String imgName)
 	//	イメージ表示領域
 	if (WaveDims(w)==3)
 		Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
-		if (KMisUnevenlySpacedBias(w))
+		if (SIDAMisUnevenlySpacedBias(w))
 			AppendImage/W=$pnlName#image $PNL_W vs {*, $PNL_B2}
 		else
 			AppendImage/W=$pnlName#image $PNL_W
@@ -328,7 +328,7 @@ Static Function pnl(String grfName, String imgName)
 	
 	//	親グラフへの表示
 	AppendToGraph/W=$grfName $PROF_Y_NAME vs $PROF_X_NAME
-	String trcName = KMWaveToTraceName(grfName, $PROF_Y_NAME)
+	String trcName = KMLineCommon#WaveToTraceName(grfName, $PROF_Y_NAME)
 	ModifyGraph/W=$grfName mode($trcName)=4,textMarker($trcName)={$PNL_T,"default",0,0,1,0.00,0.00},msize($trcName)=5
 	
 	SetDataFolder dfrSav
@@ -458,7 +458,6 @@ Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	String grfName = GetUserData(s.winName,"","parent")
 	if (SIDAMWindowExists(grfName))
 		SetWindow $grfName hook(KMLineProfilePnl)=$"",userdata(KMLineProfilePnl)=""
-		KMRemoveAll(grfName,df=GetUserData(s.winName,"","dfTmp"))
 	endif
 	
 	//	Newwaterfall wave0 vs {*, wavez}
@@ -467,7 +466,7 @@ Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 	//	そこで、s.winName+#line を先に閉じてしまうことにする
 	KillWindow $(s.winName+"#line")	
 	
-	KMonClosePnl(s.winName,df=GetUserData(s.winName,"","dfTmp"))
+	SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 	KillWindow $s.winName
 End
 //-------------------------------------------------------------
@@ -521,7 +520,7 @@ Static Function pnlBackwardCompatibility(String pnlName)
 	
 	KillWindow $(pnlName+"#line")
 	int hide = str2num(GetUserData(pnlName,"","dim")) == 2
-	if (KMisUnevenlySpacedBias(srcw))
+	if (SIDAMisUnevenlySpacedBias(srcw))
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line/HIDE=(hide) $PNL_W vs {*, $PNL_B1}
 	else
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line/HIDE=(hide) $PNL_W

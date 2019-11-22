@@ -209,7 +209,7 @@ Static Function/WAVE KMWorkfunction3D(w, result, startr, endr, offset)
 	Variable nx = DimSize(w,0), ny = DimSize(w,1), i, j, n = 3
 
 	//  実行
-	String pnlName = KMNewPanel("Work function", 320, 35, float=1)
+	String pnlName = SIDAMNewPanel("Work function", 320, 35, float=1)
 	TitleBox statusT title="fitting...", pos={140,8}, frame=0, anchor=MC, win=$pnlName
 	DoUpdate
 	Make/N=(nx,ny)/FREE/WAVE ww

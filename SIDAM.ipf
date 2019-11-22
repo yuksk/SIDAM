@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma IgorVersion=7.08
+#pragma IgorVersion=8.03
 
 //******************************************************************************
 //	Start SIDAM

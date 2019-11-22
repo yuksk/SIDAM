@@ -185,9 +185,9 @@ Static Function/WAVE getLineSpectra(STRUCT paramStruct &s)
 	Note s.waves.resw, noteStr
 	Duplicate/O s.waves.resw $s.result/WAVE=rtnw
 	
-	if (KMisUnevenlySpacedBias(s.w))
-		Duplicate/O KMGetBias(s.w,1) $(s.result+"_b")
-		Duplicate/O KMGetBias(s.w,2) $(s.result+"_x")
+	if (SIDAMisUnevenlySpacedBias(s.w))
+		Duplicate/O SIDAMGetBias(s.w,1) $(s.result+"_b")
+		Duplicate/O SIDAMGetBias(s.w,2) $(s.result+"_x")
 	endif
 	
 	//	位置ウエーブの出力
@@ -444,7 +444,7 @@ Static Function pnl(String LVName)
 	pnlUpdateTextmarker(pnlName)		//	ラインプロファイルを取得したら親グラフ用のテキストマーカーウエーブも更新する
 	
 	//	ウォーターフォール表示領域
-	if (KMisUnevenlySpacedBias(w))
+	if (SIDAMisUnevenlySpacedBias(w))
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {$PNL_B1,*}
 	else
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
@@ -453,7 +453,7 @@ Static Function pnl(String LVName)
 	
 	//	イメージ表示領域
 	Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
-	if (KMisUnevenlySpacedBias(w))
+	if (SIDAMisUnevenlySpacedBias(w))
 		AppendImage/W=$pnlName#image $PNL_W vs {$PNL_B2, *}
 	else
 		AppendImage/W=$pnlName#image $PNL_W
@@ -474,7 +474,7 @@ Static Function pnlSetParent(String prtName, String chdName)
 	DFREF dfrTmp = $GetUserData(chdName,"","dfTmp")
 	
 	AppendToGraph/W=$prtName dfrTmp:$PNL_Y vs dfrTmp:$PNL_X
-	String trcName = KMWaveToTraceName(prtName, dfrTmp:$PNL_Y)
+	String trcName = KMLineCommon#WaveToTraceName(prtName, dfrTmp:$PNL_Y)
 	ModifyGraph/W=$prtName mode($trcName)=4,textMarker($trcName)={dfrTmp:$PNL_T,"default",0,0,1,0.00,0.00},msize($trcName)=5
 End
 //-------------------------------------------------------------
@@ -489,7 +489,7 @@ Static Function pnlResetParent(String prtName, String chdName)
 	endif
 	SetWindow $chdName userData(parent)=""
 	
-	KMRemoveAll(prtName,df=GetUserData(chdName,"","dfTmp"))
+	RemoveFromGraph/W=$prtName $PNL_Y
 End
 //-------------------------------------------------------------
 //	グラフ領域の表示詳細
@@ -529,10 +529,10 @@ Static Function pnlUpdateLineSpectra(String pnlName)
 	getLineSpectra(s)
 	
 	//	バイアス非等間隔の場合には、2次元表示用のウエーブしか得られないので、1次元表示用のものも取得しておく
-	if (KMisUnevenlySpacedBias(s.w))
+	if (SIDAMisUnevenlySpacedBias(s.w))
 		DFREF dfrSav = GetDataFolderDFR()
 		SetDataFolder s.dfr
-		Duplicate/O KMGetBias(s.w,1) $PNL_B1
+		Duplicate/O SIDAMGetBias(s.w,1) $PNL_B1
 		SetDataFolder dfrSav
 	endif
 End
@@ -614,7 +614,7 @@ Static Function pnlHookClose(STRUCT WMWinHookStruct &s)
 		pnlResetParent(prtName,s.winName)
 	endif
 	
-	KMonClosePnl(s.winName)
+	SIDAMKillDataFolder($GetUserData(s.winName,"","dfTmp"))
 	KillWindow $s.winName
 End
 
@@ -674,7 +674,7 @@ Static Function pnlBackwardCompatibility(String pnlName)
 	
 	KillWindow $(pnlName+"#line")
 	int hide = str2num(GetUserData(pnlName,"","dim")) == 2
-	if (KMisUnevenlySpacedBias(srcw))
+	if (SIDAMisUnevenlySpacedBias(srcw))
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line/HIDE=(hide) $PNL_W vs {$PNL_B1,*}
 	else
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line/HIDE=(hide) $PNL_W

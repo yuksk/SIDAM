@@ -137,7 +137,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		
 		"-"
 		
-		"\\M0Export Graphics (Transparent)", /Q, KMExportGraphicsTransparent()
+		"\\M0Export Graphics (Transparent)", /Q, SIDAMExportGraphicsTransparent()
 	End
 	
 	"-"
@@ -253,7 +253,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 		
 		"-"
 		
-		"\\M0Export Graphics (Transparent)", /Q, KMExportGraphicsTransparent()
+		"\\M0Export Graphics (Transparent)", /Q, SIDAMExportGraphicsTransparent()
 	End
 	
 	"-"

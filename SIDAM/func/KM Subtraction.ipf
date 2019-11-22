@@ -203,7 +203,7 @@ Static Function/S echoStr(
 	switch (mode)
 		case 0:
 			paramStr += SelectString(order==1, ",order="+num2str(order), "")
-			paramStr += SelectString(isWholeArea(w, roi),",roi="+KMWaveToString(roi),"")
+			paramStr += SelectString(isWholeArea(w, roi),",roi="+SIDAMWaveToString(roi),"")
 			break
 		case 1:
 			paramStr += SelectString(order, "", ",order="+num2str(order))
@@ -234,14 +234,14 @@ Static Function rightclickDo()
 	String grfName = WinName(0,4311,1)
 	Wave/Z w = KMGetImageWaveRef(grfName)
 	if (WaveExists(w))
-		pnl(w, grfName=grfName)
+		pnl(w, grfName)
 	endif
 End
 //-------------------------------------------------------------
 //	マーキーメニュー実行用
 //-------------------------------------------------------------
 Static Function marqueeDo()
-	KMSubtraction(KMGetImageWaveRef(WinName(0,1,1)),roi=KMGetMarquee(0),history=1)
+	KMSubtraction(KMGetImageWaveRef(WinName(0,1,1)),roi=SIDAMGetMarquee(0),history=1)
 End
 //-------------------------------------------------------------
 //	マーキーメニュー表示用
@@ -259,11 +259,10 @@ End
 //******************************************************************************
 //	パネル表示
 //******************************************************************************
-Static Function pnl(Wave w,[String grfName])
+Static Function pnl(Wave w, String grfName)
 	
 	//  パネル表示・初期設定
-	String pnlName = KMNewPanel("Subtraction ("+NameOfWave(w)+")", 360, 200)
-	SetWindow $pnlName hook(self)=KMClosePnl
+	String pnlName = SIDAMNewPanel("Subtraction ("+NameOfWave(w)+")", 360, 200)
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	int isComplex = (WaveType(w) & 0x01)
 	
@@ -314,10 +313,8 @@ Static Function pnl(Wave w,[String grfName])
 	
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
 	
-	if (!ParamIsDefault(grfName))	//	右クリックから呼び出される時
-		CheckBox displayC value=0, win=$pnlName
-		AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	endif
+	CheckBox displayC value=0, win=$pnlName
+	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 End
 //-------------------------------------------------------------
 //	ボタン

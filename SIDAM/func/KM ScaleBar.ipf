@@ -402,7 +402,6 @@ Static Function pnl(String grfName)
 	//  パネル表示
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,135,245)/N=Scalebar as "Scale bar"
 	String pnlName = grfName + "#Scalebar"
-	SetWindow $pnlName hook(self)=KMClosePnl
 	
 	String settingStr = GetUserData(grfName,"",NAME), anchor
 	Variable opacity

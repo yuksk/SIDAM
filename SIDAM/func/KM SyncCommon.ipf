@@ -202,7 +202,7 @@ Static Function/S pnlInit(String pnlName, String key)
 	
 	//	グラフをactivateしたら選択されるようにする
 	for (i = 0, n = ItemsInList(list); i < n; i += 1)
-		KMPanelSelectionSet(StringFromList(i, list), pnlName, "KMSyncCommon#grfActivate")
+		panelSelectionSet(StringFromList(i, list), pnlName, "KMSyncCommon#grfActivate")
 	endfor
 	
 	SetDataFolder dfrSav
@@ -372,4 +372,56 @@ Static Function pnlButtonDoSync(
 			fn0(checkedList, history=1)
 		endif
 	endif
+End
+
+
+//******************************************************************************
+//	panelSelectionSet
+//	panelSelectionReset
+//		grfName をクリック(mouseup)したら callback(grfName, pnlName) を呼び出すようにする関数と、
+//		それを解除する関数
+//		callback は pnlName に保存される
+//		grfName を閉じても callback を呼び出す発火点がなくなるだけであるが、
+//		pnlName を閉じた場合には、pnlNameのcallbackを呼び出すことになっているgrfNameから
+//		設定を削除する
+//******************************************************************************
+Static Function panelSelectionSet(String grfName, String pnlName, String callback)
+	SetWindow $grfName userData(KMPanelSelection) = pnlName
+	SetWindow $grfName hook(KMPanelSelection) = KMSyncCommon#panelSelectionHook
+	SetWindow $pnlName userData(KMPanelSelection) = callback
+	SetWindow $pnlName hook(KMPanelSelection) = KMSyncCommon#panelSelectionHook2
+End
+
+Static Function panelSelectionReset(String grfName)
+	SetWindow $grfName userData(KMPanelSelection)=""
+	SetWindow $grfName hook(KMPanelSelection)=$""
+End
+
+Static Function panelSelectionHook(STRUCT WMWinHookStruct &s)
+	if (s.eventCode == 5) 	//	mouseup
+		String pnlName = GetUserData(s.winName, "", "KMPanelSelection")
+		FUNCREF KMPanelSelectionProto fn = $GetUserData(pnlName, "", "KMPanelSelection")
+		fn(s.winName, pnlName)
+	endif
+	return 0
+End
+
+Static Function panelSelectionHook2(STRUCT WMWinHookStruct &s)
+	if (s.eventCode != 2 && s.eventCode != 17)	//	neither kill nor killvote
+		return 0
+	endif
+	
+	String grfName, list = WinList("*",";","WIN:1")
+	int i, n
+	
+	for (i = 0, n = ItemsInList(list); i < n; i++)
+		grfName = StringFromList(i,list)
+		if (!CmpStr(GetUserData(grfName,"","KMPanelSelection"), s.winName))
+			panelSelectionReset(grfName)
+		endif
+	endfor
+	return 0
+End
+
+Function KMPanelSelectionProto(String grfName, String pnlName)
 End

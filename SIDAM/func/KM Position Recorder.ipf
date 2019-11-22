@@ -99,7 +99,6 @@ End
 Static Function pnlHookClose(STRUCT WMWinHookStruct &s)	
 	String grfName = StringFromList(0, s.winName, "#")
 	SetWindow $grfName hook(positionrecorder)=$""
-	KMonClosePnl(s.winName)
 End
 
 //******************************************************************************

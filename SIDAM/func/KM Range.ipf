@@ -214,7 +214,7 @@ Static Function isAllImagesInMode(String grfName, int mode)	//	mode 2: sigma, 3,
 			return 0
 		endif
 		//	mode は 2 または 3　で呼ばれるので、以下は m0=m1=2 または m0=m1=3 の場合のみ
-		//	上記の m0, m1 に関するチェックをしないで以下を直接調べると、KM_GetColorTableMinMax が呼ばれて
+		//	上記の m0, m1 に関するチェックをしないで以下を直接調べると、SIDAM_GetColorTableMinMax が呼ばれて
 		//	複素数ウエーブの時に不要な速度低下をもたらすことに注意
 		v0 = getZmodeValue(grfName, imgName, "v0")
 		v1 = getZmodeValue(grfName, imgName, "v1")
@@ -243,14 +243,14 @@ Static Constant PNLWIDTH = 265
 Static Function pnl(String grfName)
 	
 	//	重複チェック
-	if (WhichListItem("Range",ChildWindowList(StringFromList(0, grfName, "#"))) != -1)
+	if (SIDAMWindowExists(grfName+"#Range"))
 		return 0
 	endif
 	
 	//	一番上のイメージの現在の表示範囲を取得
 	String imgName = StringFromList(0,ImageNameList(grfName,";"))
-	Wave rw = KM_GetColorTableMinMax(grfName,imgName)
-	Variable zmin = rw[0], zmax = rw[1]		
+	Variable zmin, zmax
+	SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
 	
 	String dfTmp = pnlInit(grfName, imgName, zmin, zmax)
 	
@@ -404,15 +404,16 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		int isPresentLastAuto   = isLastZAuto(s.winName, imgName)
 		int needFirstSet = isRecordedFirstAuto %^ isPresentFirstAuto	//	記録と現状が食い違っていたら真
 		int needLastSet  = isRecordedLastAuto  %^ isPresentLastAuto	//	記録と現状が食い違っていたら真
-		Wave rw = KM_GetColorTableMinMax(s.winName,imgName)
-		if (abs(rw[0]-z0) > 1e-13 || needFirstSet)
+		Variable zmin, zmax
+		SIDAM_GetColorTableMinMax(s.winName,imgName,zmin,zmax)
+		if (abs(zmin-z0) > 1e-13 || needFirstSet)
 			setZmodeValue(s.winName, imgName, "m0", !isPresentFirstAuto)
-			setZmodeValue(s.winName, imgName, "v0", rw[0])
+			setZmodeValue(s.winName, imgName, "v0", zmin)
 			needUpdatePnl = 1
 		endif	
-		if (abs(rw[1]-z1) > 1e-13 || needLastSet)
+		if (abs(zmax-z1) > 1e-13 || needLastSet)
 			setZmodeValue(s.winName, imgName, "m1", !isPresentLastAuto)
-			setZmodeValue(s.winName, imgName, "v1", rw[1])
+			setZmodeValue(s.winName, imgName, "v1", zmax)
 			needUpdatePnl = 1
 		endif
 		
@@ -523,51 +524,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	return 0
 End
 
-//	各レイヤーごとにZ範囲を設定するためのメニュー
-Menu "KMRangePnlMenu", dynamic, contextualmenu
-	KMRange#pnlrightClickMenu(), KMRange#pnlrightClickMenuDo()
-End
-
-Static Function/S pnlrightClickMenu()
-	int isCalledByRightclick = strsearch(GetRTStackInfo(3),"pnlHook,KM Range.ipf",0) != -1
-	if (!isCalledByRightclick)
-		return ""
-	endif
-	
-	String grfName = WinName(0,1)
-	Wave/Z zw = extractManualZvalues(grfName)
-	return SelectString(WaveExists(zw),"set manual Z wave","reset manual Z mode")
-End
-
-Static Function pnlrightClickMenuDo()
-	String grfName = WinName(0,1)
-	String imgList = ImageNameList(grfName,";")
-	Wave/Z zw = extractManualZvalues(grfName)
-	int mode
-	
-	//	各レイヤーごとにz範囲を設定するためのウエーブがある場合には、それを解除する
-	//	ない場合にはウエーブ選択パネルを出して、設定する
-	if (WaveExists(zw))
-		clearManualZvalues(grfName)
-		mode = 1
-	else
-		String listStr = KMWaveList(GetDataFolderDFR(),2,ny=4)
-		int num = KMWaveSelector("Select a wave", listStr)
-		if (num)
-			setManualZvalues(grfName, $StringFromList(num-1, listStr))
-			mode = -1
-		else
-			return 0
-		endif
-	endif
-	
-	setZmodeValue(grfName, imgList, "m0", mode)
-	setZmodeValue(grfName, imgList, "m1", mode)
-	updateZRange(grfName)
-	String pnlName = GetUserData(grfName, "", "KMRangePnl")	//	s.winName + "#Range"
-	updatePnlCheckBoxAndSetVar(pnlName)	
-End
-
 //-------------------------------------------------------------
 //	パネルが閉じられた場合の動作
 //-------------------------------------------------------------
@@ -583,7 +539,7 @@ Static Function pnlHookClose(String pnlName)
 		endif
 	endif
 		
-	KMonClosePnl(pnlName)
+	SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
 End
 
 //-------------------------------------------------------------
@@ -814,16 +770,17 @@ Static Function updatePnlCursorsPos(String pnlName)
 	
 	String grfName = GetUserData(pnlName, "", "grf")
 	String subGrfName = GetUserData(pnlName, "", "subGrfName")
+	Variable zmin, zmax
 	ControlInfo/W=$pnlName imageP
-	Wave rw = KM_GetColorTableMinMax(grfName, S_Value)
+	SIDAM_GetColorTableMinMax(grfName, S_Value, zmin, zmax)
 	
 	//	カーソルを更新する
 	//	カーソル位置更新後の循環動作防止は各カーソル更新前にその都度実行する必要がある
 	SetWindow $subGrfName userData(pauseHook)="1"	
-	Cursor/F/W=$subGrfName I $ks_name rw[0], 0
+	Cursor/F/W=$subGrfName I $ks_name zmin, 0
 	
 	SetWindow $subGrfName userData(pauseHook)="1"	
-	Cursor/F/W=$subGrfName J $ks_name rw[1], 0	
+	Cursor/F/W=$subGrfName J $ks_name zmax, 0	
 End
 
 //-------------------------------------------------------------
@@ -853,9 +810,10 @@ Static Function updatePnlCheckBoxAndSetVar(String pnlName)
 	CheckBox/Z $StringFromList(m1,"zmaxAutoC;zmaxC;zmaxSigmaC;zmaxCutC") value=1, win=$pnlName
 	
 	//	zminV と zmaxV には現在のZ範囲を代入する
-	Wave rw = KM_GetColorTableMinMax(grfName, imgName)
-	SetVariable/Z zminV value=_NUM:rw[0], limits={-inf,inf,10^(floor(log(abs(rw[0])))-1)}, win=$pnlName
-	SetVariable/Z zmaxV value=_NUM:rw[1], limits={-inf,inf,10^(floor(log(abs(rw[1])))-1)}, win=$pnlName
+	Variable zmin, zmax
+	SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
+	SetVariable/Z zminV value=_NUM:zmin,limits={-inf,inf,10^(floor(log(abs(zmin)))-1)}, win=$pnlName
+	SetVariable/Z zmaxV value=_NUM:zmax,limits={-inf,inf,10^(floor(log(abs(zmax)))-1)}, win=$pnlName
 	
 	//	sigma か cut が選択されている場合には、対応する値設定に値を設定する
 	if (m0 >= 2)
@@ -882,17 +840,17 @@ Static Function updateHistogram(String pnlName, int mode)
 	DFREF dfrTmp = $GetUserData(pnlName, "", "dfTmp")
 	Wave w = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
 	
-	Variable zmin, zmax
+	Variable z0, z1, zmin, zmax
 	if ( mode == 0 )
-		Wave rw = KM_GetColorTableMinMax(grfName, imgName)
-		zmin = rw[0] - (rw[1]-rw[0])*0.05
-		zmax = rw[1] + (rw[1]-rw[0])*0.05
+		SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
+		z0 = zmin - (zmax-zmin)*0.05
+		z1 = zmax + (zmax-zmin)*0.05
 	else
-		zmin = WaveMin(w)
-		zmax = WaveMax(w)
+		z0 = WaveMin(w)
+		z1 = WaveMax(w)
 	endif
 	
-	KMHistogram(w, startz=zmin, endz=zmax, bins=k_bins, result=ks_name, dfr=dfrTmp)
+	KMHistogram(w, startz=z0, endz=z1, bins=k_bins, result=ks_name, dfr=dfrTmp)
 	
 	DoUpdate/W=$pnlName
 End
@@ -923,13 +881,6 @@ Static Function updateZRange(String grfName)
 		
 		m0 = getZmodeValue(grfName, imgName, "m0") ;	v0 = getZmodeValue(grfName, imgName, "v0")
 		m1 = getZmodeValue(grfName, imgName, "m1") ;	v1 = getZmodeValue(grfName, imgName, "v1")	
-		
-		if (m0 == -1 || m1 == -1)
-			Wave/Z mw = extractManualZvalues(grfName)
-			int layer = KMLayerViewerDo(grfName)
-			m0 = mw[layer][%m0] ;	v0 = mw[layer][%v0]
-			m1 = mw[layer][%m1] ;	v1 = mw[layer][%v1]
-		endif
 		
 		Wave zw = updateZRange_getValues(grfName, imgName, m0, v0, m1, v1)
 		applyZRange(grfName, imgName, zw[0], zw[1])
@@ -966,7 +917,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName, int 
 			FindLevel/Q hw, v0/100
 			zmin = V_flag ? WaveMin(tw) : V_LevelX
 			break
-		default:	//	1 (fix) or -1 (manual)
+		default:	//	1 (fix)
 			zmin = v0
 	endswitch
 	
@@ -981,7 +932,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName, int 
 			FindLevel/Q hw, v1/100
 			zmax = V_flag ? WaveMax(tw) : V_LevelX
 			break
-		default:	//	1 (fix) or -1 (manual)
+		default:	//	1 (fix)
 			zmax = v1
 	endswitch
 	
@@ -1039,6 +990,7 @@ Static Function getZmodeValue(String grfName, String imgName, String key)
 		return num
 	endif
 	
+	Variable zmin, zmax
 	strswitch (key)
 		case "m0":
 			//	記録がない場合には、、Zモードを使ってはおらず、具体的な値かautoが設定されている
@@ -1050,13 +1002,13 @@ Static Function getZmodeValue(String grfName, String imgName, String key)
 			
 		case "v0":
 		case "z0":
-			Wave rw = KM_GetColorTableMinMax(grfName,imgName)
-			return rw[0]
+			SIDAM_GetColorTableMinMax(grfName,imgName,zmin,zmax)
+			return zmin
 			
 		case "v1":
 		case "z1":
-			Wave rw = KM_GetColorTableMinMax(grfName,imgName)
-			return rw[1]
+			SIDAM_GetColorTableMinMax(grfName,imgName,zmin,zmax)
+			return zmax
 			
 	endswitch
 End
@@ -1106,79 +1058,20 @@ Static Function isAllZmodeAutoOrFix(String grfName)
 	return 1
 End
 
-//	z範囲を各レイヤーごとに設定する場合の設定値をuserDataに書き込む
-//	書き込む値を持っているウエーブは2Dで、適切なDimLabelが設定されていなければならない
-Static Function setManualZvalues(String grfName, Wave zw)
-	
-	//	ウエーブに関するチェック
-	if (WaveDims(zw) != 2 || DimSize(zw,1) != 4 || DimSize(zw,0) > 128)
-		return 1
-	elseif (WaveType(zw) < 2)	//	0 (non-numeric) or 1 (complex)
-		return 1
-	else
-		String dimLabelStr = "m0;m1;v0;v1"
-		Make/N=4/FREE tw = FindDimLabel(zw,1,StringFromList(p,dimLabelStr))
-		if (WaveMin(tw) == -2)
-			return 1
-		endif
-	endif
-	
-	STRUCT zValues s
-	s.layers = DimSize(zw,0)
-	int i
-	for (i = 0; i < s.layers; i++)
-		s.m0[i] = zw[i][%m0]
-		s.v0[i] = zw[i][%v0]
-		s.m1[i] = zw[i][%m1]
-		s.v1[i] = zw[i][%v1]
-	endfor
-	
-	String str
-	StructPut/S s str
-	SetWindow $grfName userData($VALUEKEY)=str
-	
-	return 0
-End
 
-//	各レイヤーごとの設定値をuserDataから読み込んでウエーブとして返す
-Static Function/WAVE extractManualZvalues(String grfName)
-	
-	String str = GetUserData(grfName, "", VALUEKEY)
-	if (!strlen(str))
-		return $""
-	endif
-	
-	STRUCT zValues s
-	StructGet/S s str
-	
-	Make/D/N=(s.layers,4)/FREE vw
-	SetDimlabel 1, 0, m0, vw
-	SetDimlabel 1, 1, v0, vw
-	SetDimlabel 1, 2, m1, vw
-	SetDimlabel 1, 3, v1, vw
-	
-	int i
-	for (i = 0; i < s.layers; i++)
-		vw[i][%m0] = s.m0[i] 
-		vw[i][%v0] = s.v0[i]
-		vw[i][%m1] = s.m1[i]
-		vw[i][%v1] = s.v1[i]
-	endfor
-	
-	return vw
+//******************************************************************************
+//	表示されているイメージのZ範囲がautoであるかどうかを返す
+//******************************************************************************
+//	first Z
+Static Function isFirstZAuto(String grfName, String imgName)
+	String ctabInfo = WM_ImageColorTabInfo(grfName,imgName)
+	return strlen(ctabInfo) ? Stringmatch("*", StringFromList(0,ctabInfo,",")) : 0
 End
-
-Static Function clearManualZvalues(String grfName)
-	SetWindow $grfName userData($VALUEKEY)=""
+//	last Z
+Static Function isLastZAuto(String grfName, String imgName)
+	String ctabInfo = WM_ImageColorTabInfo(grfName,imgName)
+	return strlen(ctabInfo) ? Stringmatch("*", StringFromList(1,ctabInfo,",")) : 0
 End
-
-Static Structure zValues
-	char m0[128]		//	128は設定可能な最大レイヤー数
-	char m1[128]
-	double v0[128]
-	double v1[128]
-	uchar layers
-EndStructure
 
 
 //=====================================================================================================
@@ -1193,7 +1086,7 @@ Override Function KMRangePnlHook(STRUCT WMWinHookStruct &s)
 		SetWindow $grfName hook(KMRangePnl)=$"", userdata(KMRangePnl)=""
 	endif
 	KMKillWinGlobals(StringFromList(0, s.winName, "#")+"RangeGraph","Share_KMRangePnl")
-	KMonClosePnl(s.winName)
+	SIDAMKillDataFolder($GetUserData(s.winName,"","dfTmp"))
 	KillWindow/Z $s.winName
 	
 	pnl(grfName)

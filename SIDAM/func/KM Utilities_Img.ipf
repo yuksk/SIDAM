@@ -5,149 +5,6 @@
 #pragma hide = 1
 #endif
 
-#include <WMImageInfo>
-#include <Graph Utility Procs>		//	WMGetRECREATIONInfoByKey を使用するため
-											//	いずれにせよ WMImageInfo から呼び出されることにはなる
-
-//  Extension of WMImageInfo
-
-//******************************************************************************
-///Extension of WM_ColorTableForImage
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@return	Name of a color table or absolute path to a color table wave
-///				Empty When the image is not found
-//******************************************************************************
-Function/S SIDAM_ColorTableForImage(String grfName, String imgName)	//	tested
-	String str = WM_ColorTableForImage(grfName,imgName)
-	if (GetRTError(1) || !strlen(str))
-		return ""
-	elseif (WhichListItem(str,CTabList()) >= 0)	//	color table
-		return str
-	else
-		return GetWavesDataFolder($str,2)
-	endif
-End
-
-//******************************************************************************
-//  KM_GetColorTableMinMax
-//    WM_GetColorTableMinMaxの拡張
-//    インデックスウエーブが使用されている場合を含めて、カラーテーブルの最大値、最小値を持つフリーウエーブを返す
-//******************************************************************************
-Function/WAVE KM_GetColorTableMinMax(grfName,imgName)
-	String grfName,imgName
-
-	Variable zmin = NaN, zmax = NaN
-
-	if (strlen(WM_ImageColorTabInfo(grfName,imgName)))
-	  	WM_GetColorTableMinMax(grfName,imgName,zmin,zmax)
-	elseif (strlen(WM_ImageColorIndexWave(grfName,imgName)))
-		Wave cw = $WM_ImageColorIndexWave(grfName,imgName)
-		zmin = DimOffset(cw,0)
-		zmax = zmin + DimDelta(cw,0)*(DimSize(cw,0)-1)
-	endif
-
-	Make/D/FREE/N=2 rw = {zmin, zmax}
-	return rw
-End
-
-//******************************************************************************
-///Returns if a logarithmically-spaced color is set.
-///	(log version of WM_ColorTableReversed)
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@return	0: a linearly-spaced color
-///				1: a logarithmically-spaced color
-///				-1: any error
-//******************************************************************************
-Function SIDAM_ColorTableLog(String grfName, String imgName)	//	tested
-	String info = ImageInfo(grfName, imgName, 0)
-	if (GetRTError(1))
-		return -1
-	endif
-	return str2num(TrimString(WMGetRECREATIONInfoByKey("log",info)))
-End
-
-//******************************************************************************
-///	Returns mode of minRGB/maxRGB
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@param key		"minRGB" or "maxRGB"
-///	@return	0: use first/last color
-///				1: (r,g,b)
-///				2: transparent
-///				-1: any error
-//******************************************************************************
-Function SIDAM_ImageColorRGBMode(String grfName, String imgName, String key) //	tested
-	String info = ImageInfo(grfName, imgName, 0)
-	if (GetRTError(1))
-		return -1
-	endif
-	
-	if (CmpStr(key,"minRGB") && CmpStr(key,"maxRGB"))
-		return -1
-	endif
-	
-	String str = WMGetRECREATIONInfoByKey(key,info)
-	if (!CmpStr(str,"0"))	//	use first/last color
-		return 0
-	elseif (GrepString(str,"\([0-9]+,[0-9]+,[0-9]+\)"))	//	(r,g,b)
-		return 1
-	elseif (!CmpStr(LowerStr(str),"nan"))	//	transparent
-		return 2
-	else
-		return -1
-	endif
-End
-
-//******************************************************************************
-///	Returns values of minRGB/maxRGB
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@param key		"minRGB" or "maxRGB"
-///	@param[out] s	rgb color
-///	@return	0: no error
-///				!0: any error
-//******************************************************************************
-Function SIDAM_ImageColorRGBValues(String grfName, String imgName, String key,
-	STRUCT RGBColor &s) //	tested
-
-	String info = ImageInfo(grfName, imgName, 0)
-	if (GetRTError(1))
-		return 1
-	elseif (!strlen(info))
-		return 2
-	endif
-	
-	String str = WMGetRECREATIONInfoByKey(key,info)
-	if (!GrepString(str,"\([0-9]+,[0-9]+,[0-9]+\)"))
-		return 3
-	endif
-	
-	str = str[1,strlen(str)-2]
-	s.red = str2num(StringFromList(0,str,","))
-	s.green = str2num(StringFromList(1,str,","))
-	s.blue = str2num(StringFromList(2,str,","))
-
-	return 0
-End
-
-
-//******************************************************************************
-//	表示されているイメージのZ範囲がautoであるかどうかを返す
-//******************************************************************************
-//	first Z
-Function isFirstZAuto(String grfName, String imgName)
-	String ctabInfo = WM_ImageColorTabInfo(grfName,imgName)
-	return strlen(ctabInfo) ? Stringmatch("*", StringFromList(0,ctabInfo,",")) : 0
-End
-//	last Z
-Function isLastZAuto(String grfName, String imgName)
-	String ctabInfo = WM_ImageColorTabInfo(grfName,imgName)
-	return strlen(ctabInfo) ? Stringmatch("*", StringFromList(1,ctabInfo,",")) : 0
-End
-
-
 //******************************************************************************
 //	KMGetWindowInfo
 //		グラフに関する情報を得る
@@ -530,29 +387,6 @@ Function KMGetCursor(csrName, grfName, pos)
 End
 
 //******************************************************************************
-//	KMGetCursorState
-//		カーソルが表示されていてアクティブなら0, 非アクティブなら2, 表示されていないなら1 を返す
-//		bit 0: 表示されている(1)、いない(0)
-//		bit 1: アクティブである(1)、ない(0)
-//		bit 2: フリーである(1)、ない(0)
-//******************************************************************************
-Function KMGetCursorState(csrName, grfName)
-	String csrName, grfName
-
-	String infoStr = CsrInfo($csrName, grfName)
-	Variable rtn = 0
-
-	//	bit 0
-	rtn += strlen(infoStr) ? 2^0 : 0
-	//	bit 1
-	rtn += (strsearch(StringByKey("RECREATION", infoStr), "/A=0",0) != -1) ? 0 : 2^1
-	//	bit 2
-	rtn += NumberByKey("ISFREE", infoStr) * 2^2
-
-	return rtn
-End
-
-//******************************************************************************
 //	KMSetCursor
 //		カーソル位置を指定位置へ移動する
 //******************************************************************************
@@ -631,12 +465,10 @@ End
 
 
 //******************************************************************************
-//	KMGetMarquee
-//		マーキーの位置を、座標(mode=1)もしくはウエーブインデックス(mode=0)で返す
+//	Return the marquee position as a wave
+//	The values in the returned wave are indicies (mode=0) or scaling coordinates (mode=1)
 //******************************************************************************
-Function/WAVE KMGetMarquee(mode)
-	Variable mode
-
+Function/WAVE SIDAMGetMarquee(int mode)
 	String grfName = WinName(0,1)
 	String imgName = StringFromList(0,ImageNameList(grfName,";"))
 	Wave/Z w = ImageNameToWaveRef(grfName, imgName)
@@ -659,19 +491,16 @@ Function/WAVE KMGetMarquee(mode)
 End
 
 
-
 //******************************************************************************
-//	背景を透明にして画像をクリップボードにコピーする
+//	Copy the window to the clipboard with transparent background
 //******************************************************************************
-Function KMExportGraphicsTransparent([String grfName, Variable size])
-
-	if (ParamIsDefault(grfName))
-		grfName = WinName(0,1)
-	elseif (!SIDAMWindowExists(grfName))
+Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
+	grfName = SelectString(ParamIsDefault(grfName),grfName,WinName(0,1))
+	if (!SIDAMWindowExists(grfName))
 		return 0
 	endif
 
-	//	表示色を取得する
+	//	Get the background colors
 	STRUCT RGBColor wbRGB
 	GetWindow $grfName, wbRGB
 	wbRGB.red = V_Red ;	wbRGB.green = V_Green ;	wbRGB.blue = V_Blue
@@ -682,7 +511,7 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 	STRUCT SIDAMPrefs prefs
 	SIDAMLoadPrefs(prefs)
 
-	//	透明にするために一度背景を白にする
+	//	Make the background white to export it as transparent
 	if (prefs.export[2] != 0)		//	1 or 2, Window or Both
 		ModifyGraph/W=$grfName wbRGB=(65535,65535,65535)
 	endif
@@ -690,8 +519,9 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 		ModifyGraph/W=$grfName gbRGB=(65535,65535,65535)
 	endif
 
-	//	クリップボードにコピー
-	//	イメージが含まれていたらPNG, トレースだけなら EMF (Win) or Quartz PDF (Mac)
+	//	Copy the window to the clipboard
+	//	If an image is included in the window, copy as PNG
+	//	Otherwise (only traces), copy as EMF (Win) or Quartz PDF (Mac)
 	if (strlen(ImageNameList(grfName, ";")))
 		if (prefs.export[0] == 6)	//	Other DPI
 			if (ParamIsDefault(size))
@@ -711,7 +541,7 @@ Function KMExportGraphicsTransparent([String grfName, Variable size])
 		SavePICT/E=-2/WIN=$grfName as "Clipboard"
 	endif
 
-	//	白にした背景を元に戻す
+	//	Revert the background colors
 	ModifyGraph/W=$grfName wbRGB=(wbRGB.red, wbRGB.green, wbRGB.blue)
 	ModifyGraph/W=$grfName gbRGB=(gbRGB.red, gbRGB.green, gbRGB.blue)
 End
