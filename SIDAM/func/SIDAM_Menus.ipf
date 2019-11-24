@@ -153,7 +153,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	"-"
 	
 	//	Subtraction
-	SIDAMMenus#menu("Subtract...")+"/F6", /Q, KMSubtraction#rightclickDo()
+	SIDAMMenus#menu("Subtract...")+"/F6", /Q, SIDAMSubtraction#menuDo()
 	help = {"Subtract n-th plane or line from a 2D wave or each layer of a 3D wave"}
 	//	Histogram
 	SIDAMMenus#menu("Histogram..."),/Q, KMHistogram#rightclickDo()
@@ -277,7 +277,7 @@ End
 //	Definition of graph marquee menu
 //******************************************************************************
 Menu "GraphMarquee", dynamic
-	KMSubtraction#marqueeMenu(),/Q, KMSubtraction#marqueeDo()
+	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
 	KMFourierSym#marqueeMenu(),/Q, KMFourierSym#marqueeDo()
 	Submenu "Get peak"
 		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(0)

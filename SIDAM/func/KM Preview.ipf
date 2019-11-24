@@ -394,7 +394,7 @@ Static Function doSubtraction(STRUCT WMListboxAction &s)
 	Variable i
 	for (i = 0; i < DimSize(s.selWave,0); i += 1)
 		if (s.selWave[i][0][0])
-			KMSubtraction(ref[i])
+			SIDAMSubtraction(ref[i])
 			KMRange(grfName=s.win+"#G0#G0",zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)	//	0.5%表示
 		endif
 	endfor

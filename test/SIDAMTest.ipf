@@ -7,12 +7,14 @@
 #include ":SIDAMTest_Utilities_ImageInfo"
 #include ":SIDAMTest_Utilities_Panel"
 #include ":SIDAMTest_Utilities_WaveDf"
+#include ":SIDAMTest_Subtraction"
 
 Menu "SIDAM"
 	SubMenu "Developer"
 		SubMenu "Test"
 			"All Test", SIDAMTest("")
 			"-"
+			"Subtraction", SIDAMTest("SIDAMTest_Subtraction")
 			"Utilities_Bias", SIDAMTest("SIDAMTest_Utilities_Bias")
 			"Utilities_Control", SIDAMTest("SIDAMTest_Utilities_Control")
 			"Utilities_ImageInfo", SIDAMTest("SIDAMTest_Utilities_ImageInfo")
