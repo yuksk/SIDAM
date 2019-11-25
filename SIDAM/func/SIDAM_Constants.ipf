@@ -8,9 +8,9 @@
 //------------------------------------------------------------------------------------------------
 //	Version
 //------------------------------------------------------------------------------------------------
-Constant SIDAM_VERSION_MAJOR = 8		//	developed with Igor Pro 8, and does not mean Igor Pro 8 is required
-Constant SIDAM_VERSION_MINOR = 1
-Constant SIDAM_VERSION_PATCH = 12
+Constant SIDAM_VERSION_MAJOR = 8
+Constant SIDAM_VERSION_MINOR = 2
+Constant SIDAM_VERSION_PATCH = 0
 
 //------------------------------------------------------------------------------------------------
 //	Data Folder
