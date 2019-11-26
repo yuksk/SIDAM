@@ -139,30 +139,16 @@ EndStructure
 //		zmin, zmax に NaN が渡された場合は auto に対応する
 //******************************************************************************
 Static Function applyZRange(String grfName, String imgName, Variable zmin, Variable zmax)
-	
-	String cindexStr = WM_ImageColorIndexWave(grfName,imgName)
-	
-	if (strlen(cindexStr))	//  インデックスウエーブが使われている場合
-		
-		Wave tw = KMGetImageWaveRef(grfName, imgName=imgName, displayed=1)
-		zmin = (numtype(zmin) == 2) ? WaveMin(tw) : zmin
-		zmax = (numtype(zmax) == 2) ? WaveMin(tw) : zmax
-		SetScale/I x zmin, zmax, "", $cindexStr
-		
-	else		//  カラーテーブルが使われている場合
-	
-		String ctab = WM_ColorTableForImage(grfName, imgName)
-		Variable rev = WM_ColorTableReversed(grfName, imgName)
-		if (numtype(zmin)==2 && numtype(zmax)==2)
-			ModifyImage/W=$grfName $imgName ctab={*,*,$ctab,rev}
-		elseif (numtype(zmin)==2)
-			ModifyImage/W=$grfName $imgName ctab={*,zmax,$ctab,rev}
-		elseif (numtype(zmax)==2)
-			ModifyImage/W=$grfName $imgName ctab={zmin,*,$ctab,rev}
-		else
-			ModifyImage/W=$grfName $imgName ctab={zmin,zmax,$ctab,rev}
-		endif
-		
+	String ctab = SIDAM_ColorTableForImage(grfName, imgName)
+	Variable rev = WM_ColorTableReversed(grfName, imgName)
+	if (numtype(zmin)==2 && numtype(zmax)==2)
+		ModifyImage/W=$grfName $imgName ctab={*,*,$ctab,rev}
+	elseif (numtype(zmin)==2)
+		ModifyImage/W=$grfName $imgName ctab={*,zmax,$ctab,rev}
+	elseif (numtype(zmax)==2)
+		ModifyImage/W=$grfName $imgName ctab={zmin,*,$ctab,rev}
+	else
+		ModifyImage/W=$grfName $imgName ctab={zmin,zmax,$ctab,rev}
 	endif
 End
 

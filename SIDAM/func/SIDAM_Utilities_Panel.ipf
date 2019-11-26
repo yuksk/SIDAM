@@ -8,6 +8,8 @@
 #pragma hide = 1
 #endif
 
+#include "SIDAM_Utilities_WaveDf"	//	SIDAMKillDataFolder
+
 //******************************************************************************
 ///	Show a panel at the center of Igor window or screen
 ///	@param title		Title of the panel

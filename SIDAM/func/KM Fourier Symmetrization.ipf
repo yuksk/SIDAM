@@ -656,7 +656,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KillWindow $s.win
 			break
 		case "helpB":
-			KMOpenHelpNote("symmetrization",pnlName=s.win,title="Fourier Symmetrization")
+			SIDAMOpenHelpNote("symmetrization",s.win,"Fourier Symmetrization")
 			break
 	endswitch
 End

@@ -567,7 +567,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				SIDAMColor()
 				return 1
 			case 6:		//	F6
-				KMSubtraction#rightclickDo()
+				SIDAMSubtraction#menuDo()
 				return 1
 			case 7:		//	F7
 				if (!KMFFTCheckWaveMenu())

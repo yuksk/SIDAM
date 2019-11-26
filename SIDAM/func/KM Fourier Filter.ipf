@@ -639,7 +639,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 			
 		case "helpB":
-			KMOpenHelpNote("filter", pnlName=pnlName, title="Fourier Filter")
+			SIDAMOpenHelpNote("filter", pnlName, "Fourier Filter")
 			break
 		
 		case "closeB":

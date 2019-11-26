@@ -8,7 +8,7 @@
 
 //  ヒストグラムウエーブの名前が指定されていないときに、入力ウエーブの名前の後につけて
 //  ヒストグラムウエーブの名前とするための文字列
-StrConstant ks_index_histogram = "_h"
+Static StrConstant ks_index_histogram = "_h"
 
 //  デフォルトのbinの数
 Static Constant k_bins = 64
@@ -409,7 +409,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KillWindow $s.win
 			break
 		case "helpB":
-			KMOpenHelpNote("histogram",pnlName=s.win,title="Histogram")
+			SIDAMOpenHelpNote("histogram",s.win,"Histogram")
 			break
 	endswitch
 	

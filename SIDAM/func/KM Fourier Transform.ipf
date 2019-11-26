@@ -573,7 +573,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			pnlDo(s.win)
 			break
 		case "helpB":
-			KMOpenHelpNote("fourier",pnlName=s.win,title="Fourier Transforms")
+			SIDAMOpenHelpNote("fourier",s.win,"Fourier Transforms")
 			break
 		case "cancelB":
 			KillWindow $(s.win)
