@@ -416,36 +416,40 @@ Static Function updateList(String pnlName)
 		optStr += ",DIMS:"+num2str(sum(cw))
 	endif
 	Wave/WAVE allrefw = getWaveRefList(root:, "*", optStr)
+	if (!numpnts(allrefw))
+		return 0
+	endif
 	
 	//	query を適切に分割する
 	ControlInfo/W=$pnlName queryV
 	String query =  splitQueryStr(S_Value)
 	
 	//	grep によりウエーブを絞り込む
-	n = ItemsInList(query)
 	Make/N=(numpnts(allrefw))/FREE/WAVE grepw = allrefw[p]
-	for (i = 0; i < n; i++)
+	for (i = 0; i < ItemsInList(query); i++)
 		String regExp = StringFromList(i, query)
 		filterWaves(grepw, regExp)
 	endfor
+
 	n = numpnts(grepw)
-	
 	//	絞り込んだウエーブをリスト表示用ウエーブへ代入する
 	//	参照ウエーブ
 	WAVE/SDFR=dfrTmp/WAVE refw = ref
 	Redimension/N=(n) refw
-	refw = grepw[p]
 	//	リスト用・名前ウエーブ
 	Wave/SDFR=dfrTmp/T lw = $KM_WAVE_LIST
 	Redimension/N=(n,ItemsInList(ks_columntitile)) lw		//  -1 を使わないのは、nが0になることがあるため
-	lw[][0] = NameOfWave(refw[p])
-	lw[][1,3] = KMGetSettings(refw[p], q)
 	//	リスト用・色設定
 	Wave/SDFR=dfrTmp sw = $KM_WAVE_SELECTED
 	Redimension/N=(n,ItemsInList(ks_columntitile),3) sw	//  -1 を使わないのは、nが0になることがあるため
-	sw[][][0] = 0
-	sw[][][1] = WaveDims(refw[p])
-	sw[][][2] = 0					//	0 の選択はデフォルト色を選択することになるようだ
+	if (n)
+		refw = grepw[p]
+		lw[][0] = NameOfWave(refw[p])
+		lw[][1,3] = KMGetSettings(refw[p], q)
+		sw[][][0] = 0
+		sw[][][1] = WaveDims(refw[p])
+		sw[][][2] = 0					//	0 の選択はデフォルト色を選択することになるようだ
+	endif
 	
 	//	リストアップされたウエーブの個数の表示
 	TitleBox itemsT title=num2str(n)+SelectString(n>1, " wave",  " waves"), win=$pnlName
