@@ -66,9 +66,9 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	s.errMsg = PRESTR_CAUTION + "KMFilter gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.srcw)
-	if (strlen(msg))
-		s.errMsg += msg
+	int flag = SIDAMValidateWaveforFFT(s.srcw)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 		return 0
 	endif
 	

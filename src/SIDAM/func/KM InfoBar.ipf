@@ -608,7 +608,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				SIDAMSubtraction#menuDo()
 				return 1
 			case 7:		//	F7
-				if (!KMFFTCheckWaveMenu())
+				if (!SIDAMValidateWaveforFFT(w))
 					KMFFT#rightclickDo()
 				endif
 				return 1

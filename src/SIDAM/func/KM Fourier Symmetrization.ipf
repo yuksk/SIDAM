@@ -3,7 +3,6 @@
 #pragma ModuleName= KMFourierSym
 
 #include "KM Fourier Peak"
-#include "KM Fourier Transform"
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -65,13 +64,10 @@ Static Function KMFourierSymCheck(STRUCT paramStruct &s)
 
 	s.errMsg = PRESTR_CAUTION + "KMFourierSym gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.w)
-	if (strlen(msg))
-		s.errMsg += msg
-		return 1
-	elseif (WaveType(s.w) & 0x01)
-		s.errMsg += "the source wave must be real."
-		return 1
+	int flag = SIDAMValidateWaveforFFT(s.w)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
+		return 0
 	endif
 	
 	if (!WaveExists(s.q1w) || !WaveExists(s.q2w))

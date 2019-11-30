@@ -2,13 +2,13 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMCorrelation
 
-#include "KM Fourier Transform"
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -86,16 +86,16 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	s.errMsg = PRESTR_CAUTION +"KMCorrelation gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.w1)
-	if (strlen(msg))
-		s.errMsg += msg
+	int flag = SIDAMValidateWaveforFFT(s.w1)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 		return 0
 	endif
 	
 	if (!WaveRefsEqual(s.w1, s.w2))
-		msg = KMFFTCheckWaveMsg(s.w2)
-		if (strlen(msg))
-			s.errMsg += msg
+		flag = SIDAMValidateWaveforFFT(s.w2)
+		if (flag)
+			s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 			return 0
 		elseif (DimSize(s.w1,0) != DimSize(s.w2,0) || DimSize(s.w1,1) != DimSize(s.w2,1))
 			s.errMsg += "the input waves must have the same data points in x and y directions."

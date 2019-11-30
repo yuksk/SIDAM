@@ -51,10 +51,9 @@ Function/WAVE KMFFT(
 	s.out = ParamIsDefault(out) ? 3 : out
 	s.subtract = ParamIsDefault(subtract) ? 0 : subtract
 	s.result = SelectString(ParamIsDefault(result), result, NameOfWave(w)+SUFFIX)
-	
-	//	エラーチェック
-	if (!isValidArguments(s))
-		print s.errMsg
+
+	if (validate(s))
+		printf "%s%s gave error: %s\r", PRESTR_CAUTION, GetRTStackInfo(1), s.errMsg
 		return $""
 	endif
 	
@@ -76,90 +75,31 @@ Function/WAVE KMFFT(
 	return rtnw
 End
 
-//-------------------------------------------------------------
-//	チェック用関数
-//-------------------------------------------------------------
-Static Function isValidArguments(STRUCT paramStruct &s)
-	s.errMsg = PRESTR_CAUTION + "KMFFT gave error: "
+Static Function validate(STRUCT paramStruct &s)
 	
-	String msg = KMFFTCheckWaveMsg(s.w)
-	if (strlen(msg))
-		s.errMsg += msg
-		return 0
+	int flag = SIDAMValidateWaveforFFT(s.w)
+	if (flag)
+		s.errMsg = SIDAMValidateWaveforFFTMsg(flag)
+		return 1
 	endif
 	
-	if (s.out < 1 || s.out > 8)	//  出力形式
-		s.errMsg += "out must be an integer between 1 and 8."
-		return 0
-	elseif (WhichListItem(s.win,WINFNLIST) < 0)	//  窓関数の種類
-		s.errMsg += "such a window function is not found."
-		return 0
-	elseif (strlen(s.result) > MAX_OBJ_NAME)	//  結果ウエーブの名前
-		s.errMsg += "length of name for output wave will exceed the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
-		return 0
+	if (s.out < 1 || s.out > 8)
+		s.errMsg = "out must be an integer between 1 and 8."
+		return 1
+
+	elseif (WhichListItem(s.win,WINFNLIST) < 0)
+		s.errMsg = "such a window function is not found."
+		return 1
+
+	elseif (strlen(s.result) > MAX_OBJ_NAME)
+		s.errMsg = "length of name for output wave will exceed the limit ("
+		s.errMsg += num2istr(MAX_OBJ_NAME)+" characters)."
+		return 1
 	endif
 	
 	s.subtract = s.subtract ? 1 : 0
 	
-	return 1
-End
-//-------------------------------------------------------------
-//	KMFFTCheckWave
-//		FFTを使うためのウエーブチェック, エラーが見つかった場合は対応する
-//		メッセージを返す. 相関関数計算などFFTを使用する計算の前にもエラーチェックと
-//		して使われている. (そのため、Staticを指定していない)
-//-------------------------------------------------------------
-Static Function WaveTypeForFFT(Wave/Z w)
-	if (!WaveExists(w))
-		return 1
-	elseif (WaveDims(w) != 2 && WaveDims(w) != 3)
-		return 2
-	elseif (mod(DimSize(w,0),2))	//  x方向のデータ点数は偶数でなければならない
-		return 3
-	elseif (DimSize(w,0) < 4 || DimSize(w,1) < 4)	//  最低データ点数は4
-		return 4
-	elseif (WaveType(w,0) & 0x01)	//	複素数ウエーブなら
-		return 5
-	elseif (numtype(sum(w)))		//  NaN や INF を含んではならない, WaveStats を使うより速い
-		return 6
-	endif
-	
 	return 0
-End
-
-Function/S KMFFTCheckWaveMsg(Wave/Z w)
-	Make/T/FREE msg = {\
-		"",\
-		"wave not found.",\
-		"the dimension of input wave must be 2 or 3.",\
-		"the first dimension of input wave must be an even number.",\
-		"the minimum length of input wave is 4 points.",\
-		"the input wave must be real.",\
-		"the input wave must not contain NaNs or INFs."\
-	}
-	return msg[WaveTypeForFFT(w)]
-End
-	//	FFTに適したウエーブであるかチェックする場合
-	//	KMFFTCheckWave を実行すると WaveStatsを使うことになるので、大きなウエーブを扱う際にはメニューの反応速度低下の原因となる
-	//	そこで、最後にメニューが開かれたときからウエーブに更新があったかどうかを確認し、あった場合にのみ KMFFTCheckWave を実行するようにする
-Function KMFFTCheckWaveMenu()
-	String grfName = WinName(0,1)
-	Wave/Z w = SIDAMImageWaveRef(grfName)
-	if (!WaveExists(w))
-		return 1
-	endif
-	
-	Variable grfTime = str2num(GetUserData(grfName, "", "modtime"))
-	Variable wTime = NumberByKey("MODTIME", WaveInfo(w, 0))
-	Variable fftavailable = str2num(GetUserData(grfName, "", "fftavailable"))
-	//	最後にメニューを開いたときからウエーブに変更があった場合 or 記録がない場合
-	if (wTime > grfTime || numtype(grfTime) || numtype(fftavailable))
-		fftavailable = !WaveTypeForFFT(w)
-		SetWindow $grfName userData(modtime)=num2istr(wTime)				//	更新時間を更新
-		SetWindow $grfName userData(fftavailable)=num2istr(fftavailable)	//	表示情報を更新
-	endif
-	
-	return !fftavailable
 End
 
 Static Structure paramStruct

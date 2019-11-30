@@ -304,3 +304,49 @@ Function SIDAMnumberOfSelectedWaves()
 	while(strlen(GetBrowserSelection(++i)))
 	return n
 End
+
+//******************************************************************************
+//	return 0 if FFT is available for the input wave
+//******************************************************************************
+Function SIDAMValidateWaveforFFT(Wave/Z w)
+
+	if (!WaveExists(w))
+		return 1
+
+	elseif (WaveDims(w) != 2 && WaveDims(w) != 3)
+		return 2
+
+	// number in the x direction must be even
+	elseif (mod(DimSize(w,0),2))
+		return 3
+
+	//  minimun data points are 4
+	elseif (DimSize(w,0) < 4 || DimSize(w,1) < 4)
+		return 4
+
+	//	not complex, FFT itself is available also for complex, though
+	elseif (WaveType(w,0) & 0x01)
+		return 5
+
+	//	must not contain NaN or INF, faster than WaveStats
+	elseif (numtype(sum(w)))
+		return 6
+		
+	endif
+	
+	return 0
+End
+
+Function/S SIDAMValidateWaveforFFTMsg(int flag)
+
+	Make/T/FREE tw = {\
+		"",\
+		"wave not found.",\
+		"the dimension of input wave must be 2 or 3.",\
+		"the first dimension of input wave must be an even number.",\
+		"the minimum length of input wave is 4 points.",\
+		"the input wave must be real.",\
+		"the input wave must not contain NaNs or INFs."\
+	}
+	return tw[flag]
+End
