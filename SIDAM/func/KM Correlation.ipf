@@ -88,7 +88,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		msg = KMFFTCheckWaveMsg(s.w2)
 		if (strlen(msg))
 			s.errMsg += msg
-			return 1
+			return 0
 		elseif (DimSize(s.w1,0) != DimSize(s.w2,0) || DimSize(s.w1,1) != DimSize(s.w2,1))
 			s.errMsg += "the input waves must have the same data points in x and y directions."
 			return 0
