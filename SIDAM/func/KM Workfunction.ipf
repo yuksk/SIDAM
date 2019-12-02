@@ -325,7 +325,7 @@ Static Function pnl()
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=WorkFunction
 	String pnlName = StringFromList(0, grfName, "#") + "#WorkFunction"
 
-	SetWindow $pnlName hook(self)=KMClosePnl
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	int dim = WaveDims(w)
 

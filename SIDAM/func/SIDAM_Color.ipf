@@ -210,8 +210,8 @@ Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
 	paramStr += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
 	paramStr += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
 	paramStr += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
-	paramStr += SelectString(equalWaves(s.minRGB,base.minRGB,1),",minRGB="+KMWaveToString(s.minRGB),"")
-	paramStr += SelectString(equalWaves(s.maxRGB,base.maxRGB,1),",maxRGB="+KMWaveToString(s.maxRGB),"")
+	paramStr += SelectString(equalWaves(s.minRGB,base.minRGB,1),",minRGB="+SIDAMWaveToString(s.minRGB),"")
+	paramStr += SelectString(equalWaves(s.maxRGB,base.maxRGB,1),",maxRGB="+SIDAMWaveToString(s.maxRGB),"")
 	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, paramStr[1,inf]
 End
 
