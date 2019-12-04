@@ -79,11 +79,15 @@ End
 //	Window hook function to kill the temporary datafolder
 //******************************************************************************
 Function SIDAMWindowHookClose(STRUCT WMWinHookStruct &s)
-	if (s.eventCode != 11 && s.eventCode != 17)	//	keyboard, killVote
+	int isKillVote = s.eventCode == 17
+	int isEscPressed = (s.eventCode != 11) && (s.keycode == 27)
+
+	if (!isKillVote && !isEscPressed)
 		return 0
 	endif
+
 	SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
-	if (s.keycode == 27)	//	esc
+	if (isEscPressed)
 		KillWindow $s.winName
 	endif
 	return 0
