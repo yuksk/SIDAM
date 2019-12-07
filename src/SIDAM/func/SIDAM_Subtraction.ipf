@@ -93,13 +93,19 @@ Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave/Z roi, int mode, int degree,
 			break
 	endswitch
 
-	if (strlen(result))
-		DFREF dfr = GetWavesDataFolderDFR(w)
-		Duplicate/O resw dfr:$result
-		return dfr:$result
-	else
+	int isNormalWave = WaveType(w,2) == 1
+	if (!isNormalWave)
+		return resw
+	endif
+
+	int overwrite = strlen(s.result) == 0
+	if (overwrite)
 		w = resw
 		return w
+	else
+		DFREF dfr = GetWavesDataFolderDFR(w)
+		Duplicate/O resw dfr:$s.result
+		return dfr:$s.result
 	endif
 End
 

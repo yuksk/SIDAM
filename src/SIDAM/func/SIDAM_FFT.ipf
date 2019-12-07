@@ -69,11 +69,17 @@ Function/WAVE SIDAMFFT(Wave/Z w, [String result, String win, int out,
 	elseif (WaveDims(w) == 3)
 		Wave resw = FFT3D(w, s.win, s.out, s.subtract)
 	endif
-	DFREF dfr = GetWavesDataFolderDFR(w)
-	Duplicate/O resw dfr:$s.result/WAVE=rtnw
-	Note rtnw, StringFromList(s.out-1, OUTPUT) + ", " + s.win
 
-	return rtnw
+	Note resw, StringFromList(s.out-1, OUTPUT) + ", " + s.win
+
+	int isNormalWave = WaveType(w,2) == 1
+	if (isNormalWave)
+		DFREF dfr = GetWavesDataFolderDFR(w)
+		Duplicate/O resw dfr:$s.result
+		return dfr:$s.result
+	else
+		return resw
+	endif
 End
 
 Static Function validate(STRUCT paramStruct &s)
