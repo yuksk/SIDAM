@@ -1,7 +1,7 @@
 .git* export-ignore
 
-*.ipf diff=igorpro
-*.ipf whitespace=cr-at-eol
+*.ipf text eol=crlf
+*.sh  text eol=lf
 
 # mark files as binary
 *.ibw binary
