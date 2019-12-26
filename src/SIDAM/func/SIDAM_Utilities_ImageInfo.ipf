@@ -66,6 +66,74 @@ Function SIDAM_GetColorTableMinMax(String grfName, String imgName,
 	return 0
 End
 
+Override Function WM_GetColorTableMinMax(graphName, imageName, colorMin, colorMax)
+	String graphName, imageName
+	Variable &colorMin, &colorMax
+
+	colorMin= NaN
+	colorMax= NaN
+	
+	if( strlen(imageName) == 0 )
+		imageName= StringFromList(0,ImageNameList(graphName,";"))
+	endif
+	Wave/Z image= ImageNameToWaveRef(graphName,imageName)
+	String infoStr= ImageInfo(graphName, imageName, 0)
+	Variable colorMode= NumberByKey("COLORMODE",infoStr)
+	String ctabInfo= WM_ImageColorTabInfo(graphName, imageName)
+	if(  ((colorMode == 1) || (colorMode == 6)) && (strlen(ctabInfo) >0) && (WaveExists(image) == 1) )
+		String mnStr= StringFromList(0,ctabInfo,",")		// could be *
+		String mxStr= StringFromList(1,ctabInfo,",")		// could be *
+		colorMin= str2num(mnStr)					// NaN if mnStr is "*"
+		colorMax= str2num(mxStr)					// NaN if mxStr is "*"
+		if( (CmpStr(mnStr,"*") == 0) || (CmpStr(mxStr,"*") == 0) )
+			Variable ctabAutoscale= str2num(WMGetRECREATIONInfoByKey("ctabAutoscale",infoStr)) 
+			Variable onlyDisplayedXY= ctabAutoscale & 0x1
+			Variable onlyDisplayedPlane= (ctabAutoscale & 0x2) && (DimSize(image,2) > 0)
+			Variable displayedPlane= str2num(WMGetRECREATIONInfoByKey("plane",infoStr))
+			Variable wType= WaveType(image)
+			Variable isComplex=  wType & 0x01
+			if( onlyDisplayedPlane )
+				Duplicate/FREE/R=[][][displayedPlane] image, image3
+				Wave image = image3
+			endif
+			if( onlyDisplayedXY )
+				Variable xmin, xmax, ymin, ymax
+				WM_ImageDisplayedAxisRanges(graphName, imageName, xmin, xmax, ymin, ymax)
+				Duplicate/FREE/R=(xmin,xmax)(ymin,ymax) image, image4
+				Wave image = image4
+			endif
+			if (isComplex)
+				Variable cmplxMode= str2num(WMGetRECREATIONInfoByKey("imCmplxMode",infoStr))
+				switch (cmplxMode)
+					default:
+					case 0:	//	magnitude
+						MatrixOP/FREE image2= mag(image)
+						break
+					case 1:	//	real
+						MatrixOP/FREE image2= real(image)
+						break
+					case 2:	//	imaginary
+						MatrixOP/FREE image2= imag(image)
+						break
+					case 3:	//	phase
+						MatrixOP/FREE image2= phase(image)
+						break
+				endswitch
+				CopyScales/P image, image2 // 7.03: MatrixOp doesn't copy the scaling from the source wave.
+				WAVE image= image2
+			endif
+			if( CmpStr(mnStr,"*") == 0 )
+				colorMin= WaveMin(image)
+			endif
+			if( CmpStr(mxStr,"*") == 0 )
+				colorMax= WaveMax(image)
+			endif
+		endif
+	endif
+	return numtype(colorMin) == 0 && numtype(colorMax) == 0
+End
+
+
 //******************************************************************************
 ///Returns if a logarithmically-spaced color is set.
 ///	(log version of WM_ColorTableReversed)
