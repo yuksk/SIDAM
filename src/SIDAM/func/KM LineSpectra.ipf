@@ -649,7 +649,8 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1 || s.eventCode == 6)
+	//	Handle either enter key or end edit
+	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 
@@ -855,7 +856,7 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == 2)
+	if (s.eventCode == 2 || s.eventCode == 8)
 		//	結果文字列の長さを判定する
 		int chklen = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=MAX_OBJ_NAME-3)
 		Button doB disable=chklen*2, win=$s.win

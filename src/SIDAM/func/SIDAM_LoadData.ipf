@@ -228,7 +228,8 @@ End
 
 //	Controls
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1)
+	//	Handle either enter key or end edit
+	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 	

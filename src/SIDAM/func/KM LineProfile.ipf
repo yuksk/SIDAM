@@ -487,7 +487,8 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1 || s.eventCode == 6)
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
 
@@ -651,7 +652,8 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode != 2)
+	//	Handle either enter key or end edit
+	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 

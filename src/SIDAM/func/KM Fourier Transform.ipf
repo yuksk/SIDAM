@@ -585,7 +585,8 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode != 2)
+	//	Handle either enter key or end edit
+	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 	int disable = KMCheckSetVarString(s.win,s.ctrlName,0)*2

@@ -362,7 +362,7 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == 2)
+	if (s.eventCode == 2 || s.eventCode == 8)
 		pnlDisable(s.win)
 	endif
 End

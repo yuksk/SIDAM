@@ -588,8 +588,9 @@ End
 //-------------------------------------------------------------
 //	値設定
 //-------------------------------------------------------------
-Static Function pnlSetVar(STRUCT WMSetVariableAction &s)	
-	if (s.eventCode != 2)
+Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
+	//	Handle either enter key or end edit
+	if (s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 	
