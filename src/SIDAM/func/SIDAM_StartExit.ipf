@@ -15,16 +15,16 @@
 //******************************************************************************
 Function SIDAMStart()
 	printf "\r SIDAM %d.%d.%d\r", SIDAM_VERSION_MAJOR, SIDAM_VERSION_MINOR, SIDAM_VERSION_PATCH
-	
+
 	//	List ipf files to be included and write them into SIDAM_Procedures.ipf
 	makeProcFile()
 	Execute/P "INSERTINCLUDE \"" + SIDAM_FILE_INCLUDE + "\""
-	
+
 	//	Update the old include ipf file
 	SIDAMBackwardCompatibility()
-	
+
 	Execute/P "COMPILEPROCEDURES "
-	
+
 	SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
 	SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
 	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
@@ -49,9 +49,9 @@ Static Function makeProcFile()
 	SetDataFolder NewFreeDataFolder()
 	Concatenate/NP/T {w0, w1, w2}, lw
 	SetDataFolder dfrSav
-	
+
 	int i
-	
+
 	//	write the hide pragma
 	fprintf refNum,  "#ifndef SIDAMshowProc\r#pragma hide = 1\r#endif\r"
 	//	write #include ...
@@ -63,7 +63,7 @@ Static Function makeProcFile()
 	endif
 	//	write StrConstant SIDAM_CTABGROUPS
 	fprintf refNum, "StrConstant SIDAM_CTABGROUPS = \"%s\"\r", getCtabGroups()
-	
+
 	Close refNum
 	return 1
 End
@@ -72,7 +72,7 @@ End
 Static Function/WAVE fnList(String subFolder)
 	String pathName = UniqueName("tmpPath",12,0)
 	NewPath/O/Q/Z $pathName, SIDAMPath()+subFolder
-	
+
 	String listStr = IndexedFile($pathName,-1,".ipf") + IndexedFile($pathName,-1,".lnk")
 	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
 
@@ -83,7 +83,7 @@ Static Function/WAVE fnList(String subFolder)
 	endfor
 
 	KillPath $pathName
-	
+
 	return w
 End
 
@@ -118,13 +118,13 @@ End
 Static Function/S getCtabGroups()
 	Variable refNum
 	String pathStr = SIDAMPath()+SIDAM_FOLDER_COLOR+":"
-	
+
 	//	Open ctab.ini if exists. If not, open ctab.default.ini.
 	Open/R/Z refNum as (pathStr+SIDAM_FILE_COLORLIST)
 	if (V_flag)
 		Open/R refNum as (pathStr+SIDAM_FILE_COLORLIST_DEFAULT)
 	endif
-	
+
 	//	return a list of the first item of each line except for comment lines
 	String listStr = "", buffer
 	int i
@@ -140,7 +140,7 @@ Static Function/S getCtabGroups()
 		listStr += SelectString(strlen(buffer),"",StringFromList(0,buffer)+";")
 	while (strlen(buffer))
 	Close refNum
-	
+
 	return listStr
 End
 
