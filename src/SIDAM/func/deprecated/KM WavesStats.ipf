@@ -112,9 +112,8 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		endfor
 	endif
 	
-	Make/N=4/FREE suffixLenw = {strlen(ks_index_avg),strlen(ks_index_sdev),strlen(ks_index_skew),strlen(ks_index_kurt)}
-	if (strlen(s.result) + WaveMax(suffixLenw) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave exceeds the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (strlen(s.result) && CheckName(s.result, 1))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 	

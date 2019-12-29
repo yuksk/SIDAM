@@ -8,6 +8,7 @@
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -101,8 +102,8 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		return 0
 	endif
 	
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave exceeds the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 

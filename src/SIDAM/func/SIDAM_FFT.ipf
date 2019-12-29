@@ -98,9 +98,8 @@ Static Function validate(STRUCT paramStruct &s)
 		s.errMsg = "name of window function is not found."
 		return 1
 
-	elseif (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg = "length of name for output wave will exceed the limit ("
-		s.errMsg += num2istr(MAX_OBJ_NAME)+" characters)."
+	elseif (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 1
 	endif
 

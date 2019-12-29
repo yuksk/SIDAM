@@ -3,6 +3,7 @@
 #pragma ModuleName=SIDAMUtilControl
 
 #include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -117,7 +118,7 @@ End
 //******************************************************************************
 //	Varidate if a string of SetVariable satisfies a condition specified by
 //	the mode parameter.
-//	When mode=0, check the length of string.
+//	When mode=0, check if the string is valid as a name of wave
 //	When mode=1, check if eval is possible.
 //******************************************************************************
 Function SIDAMValidateSetVariableString(String pnlName, String ctrlName,
@@ -145,9 +146,12 @@ Function SIDAMValidateSetVariableString(String pnlName, String ctrlName,
 		return 0
 	endif
 
-	hasProblem = mode ? \
-		numtype(eval(str))!=0 : \
-		strlen(str) < minlength || strlen(str) > maxlength
+	if (mode)
+		hasProblem = numtype(eval(str))!=0
+	else
+		hasProblem = strlen(str) < minlength || strlen(str) > maxlength \
+			|| SIDAMCheckWaveName(str)
+	endif
 
 	if (hasProblem)
 		Variable clr_r = SIDAM_CLR_CAUTION_R, clr_g = SIDAM_CLR_CAUTION_G, clr_b = SIDAM_CLR_CAUTION_R

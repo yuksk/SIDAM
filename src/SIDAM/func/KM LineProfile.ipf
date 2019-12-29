@@ -108,6 +108,11 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		return 0
 	endif
 
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
+		return 0
+	endif
+
 	if (s.width < 0)
 		s.errMsg += "width must be positive."
 		return 0

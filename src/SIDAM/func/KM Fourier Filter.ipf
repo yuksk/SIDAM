@@ -91,11 +91,11 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		return 0
 	endif
 	
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave will exceed the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
-	
+
 	s.invert = s.invert ? 1 : 0
 	s.endeffect = limit(s.endeffect, 0, 3)
 	

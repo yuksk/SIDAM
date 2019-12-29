@@ -191,9 +191,8 @@ Static Function validate(STRUCT paramStruct &s)
 	endif
 
 	//	result
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg = "length of name for output wave will exceed the limit (" \
-			+ num2istr(MAX_OBJ_NAME) + " characters)."
+	if (strlen(s.result) && SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 1
 	endif
 

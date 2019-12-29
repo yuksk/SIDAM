@@ -6,6 +6,7 @@
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -80,15 +81,13 @@ Static Function KMWorkfunctionCheck(s)
 	endif
 
 	//	結果ウエーブの名前について
-	int dim = WaveDims(s.w)
-	if (dim == 3)
-		if (strlen(s.result)+MaxSuffixLength() > MAX_OBJ_NAME)
-			s.errMsg += "too long name."
-			return 1
-		endif
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
+		return 1
 	endif
 
 	//	フィッティング範囲について
+	int dim = WaveDims(s.w)
 	if (s.startp < 0 || s.startp > DimSize(s.w, dim-1) - 1)
 		s.errMsg += "startp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
 		return 1
