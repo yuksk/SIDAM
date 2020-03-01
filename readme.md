@@ -25,8 +25,6 @@ The following 3 steps:
 e.g. `C:\Users\yourname\Documents\WaveMetrics\Igor Pro 8 User Files`
 2. Clone SIDAM into the directory, and you will find `SIDAM` in the directory.
 3. Run `install.bat` in `SIDAM`, and symbolic links will be created in the Igor Pro folder.
-If SIDAM is already installed, add an option `/f` to `install.bat`.
-Otherwise, SIDAM files will be updated instead of creating the symbolick links.
 
 The commands for the above 3 steps are as follows.  
 ~~~Shell:cmd.exe
@@ -34,14 +32,14 @@ cmd.exe
 > cd /d yourfavoritepath
 > git clone -b master git@gitlab.com:ThnJYSZq/SIDAM.git
 > cd SIDAM
-> install.bat /f
+> install.bat
 ~~~
 ~~~Shell:WSL
 WSL
 $ cd yourfavoritepath
 $ git clone -b master git@gitlab.com:ThnJYSZq/SIDAM.git
 $ cd SIDAM
-$ cmd.exe /c install.bat /f
+$ cmd.exe /c install.bat
 ~~~
 
 ### Update
