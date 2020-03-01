@@ -111,7 +111,7 @@ Static Function pnlHookParentMouse(STRUCT WMWinHookStruct &s,	String pnlName)
 	STRUCT SIDAMMousePos ms
 	Wave cvw = KMGetCtrlValues(pnlName,"p1C;p2C")
 	int isp1Checked = cvw[0], isp2Checked = cvw[1]
-	int isBothFixed = !isp1Checked && !isp1Checked
+	int isBothFixed = !isp1Checked && !isp2Checked
 	int isGrid = str2num(GetUserData(pnlName,"","grid"))
 	int isShiftPressed = s.eventMod & 2
 	int isAltPressed = s.eventMod & 4
