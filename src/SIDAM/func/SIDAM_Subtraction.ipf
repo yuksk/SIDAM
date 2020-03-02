@@ -682,7 +682,7 @@ End
 Static Function/WAVE subtract_line_poly(Wave w, int order, int direction)
 
 	if (WaveDims(w)==3)
-		return subtract_line_3D(w, direction)
+		return subtract_line_3D(w, direction, order=order)
 	endif
 
 	Duplicate/FREE w, rtnw
@@ -871,15 +871,20 @@ ThreadSafe Static Function subtract_line_median_curvature_worker1(Wave w,
 End
 
 //	For 3D waves, apply the 2D code to each layer
-Static Function/WAVE subtract_line_3D(Wave w, int direction)
+Static Function/WAVE subtract_line_3D(Wave w, int direction, [int order])
 
 	String moduleName = StringByKey("MODULE",FunctionInfo("subtract_line_prototype"))
 	FUNCREF subtract_line_prototype fn = $(moduleName+"#"+GetRTStackInfo(2))
 	Duplicate/FREE w, rtnw
 	Variable i
+
 	for (i = 0; i < DimSize(w,2); i++)
 		MatrixOP/FREE slice = layer(w,i)
-		Wave tw = fn(slice,direction)
+		if (ParamIsDefault(order))
+			Wave tw = fn(slice,direction)
+		else
+			Wave tw = subtract_line_poly(slice, order, direction)
+		endif
 		rtnw[][][i] = tw[p][q]
 	endfor
 	return rtnw
