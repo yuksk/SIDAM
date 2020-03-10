@@ -186,20 +186,20 @@ Static Function removeImageTrace(DFREF dfr)	//	tested
 		removeImageTraceHelper(dfr, StringFromList(i,grfList))
 	endfor
 End
-		
+
 Static Function removeImageTraceHelper(DFREF dfr, String grfName)
-	int i, j, n	
+	int i, j, n
 	String imgList, imgName, trcList, trcName
-	
+
 	String chdList = ChildWindowList(grfName)
 	for (i = 0, n = ItemsInList(chdList); i < n; i++)
 		removeImageTraceHelper(dfr, grfName+"#"+StringFromList(i,chdList))
-	endfor	
-	
-	if (WinType(grfName) == 7)	//	panel
+	endfor
+
+	if (WinType(grfName) != 1)	//	not graph
 		return 0
 	endif
-	
+
 	for (i = 0, n = CountObjectsDFR(dfr,1); i < n; i++)
 		Wave/SDFR=dfr w = $GetIndexedObjNameDFR(dfr,1,i)
 		CheckDisplayed/W=$grfName w
