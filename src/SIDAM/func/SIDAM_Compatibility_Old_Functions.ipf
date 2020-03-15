@@ -386,30 +386,3 @@ Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 
 	return $""		//	全てのウエーブの範囲外にある場合は空文字列
 End
-
-//	v8.0.2 ----------------------------------------------------------------------
-Function/S KMSuffixStr(int num,[int digit])
-
-	deprecatedCaution("")
-	printf "%sUse \"%s%dd\" in the format string of printf.\r", PRESTR_CAUTION, "%0", digit
-
-	if (ParamIsDefault(digit))
-		digit = 3
-	endif
-
-	String rtnStr = num2str(num)
-	int digitOfNum = abs(num) ? floor(log(num))+1 : 1
-	int i
-
-	for (i = digitOfNum; i < digit; i++)
-		rtnStr = "0"+rtnStr
-	endfor
-
-	return rtnStr
-End
-
-Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
-	deprecatedCaution("")
-	ControlInfo/W=$s.winName $grpName
-	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
-End
