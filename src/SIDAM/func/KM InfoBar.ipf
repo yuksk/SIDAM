@@ -747,7 +747,8 @@ End
 //-------------------------------------------------------------
 Static Function pnlSetvalue1(STRUCT WMSetVariableAction &s)
 	
-	if (s.eventCode == -1 || s.eventCode == 6)
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
 	
@@ -765,7 +766,8 @@ End
 //-------------------------------------------------------------
 Static Function pnlSetvalue2(STRUCT WMSetVariableAction &s)
 	
-	if (s.eventCode == -1 || s.eventCode == 6)
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
 	

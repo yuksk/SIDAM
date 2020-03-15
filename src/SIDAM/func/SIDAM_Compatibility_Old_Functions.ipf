@@ -9,6 +9,23 @@
 //	deprecated functions, to be removed in future
 //******************************************************************************
 
+//	print a list of deprecated functions in the history window
+Function/S SIDAMDeprecatedFunctions()
+	String fnName, fnList = FunctionList("*", ";", "KIND:2")
+	String fileName, deprecatedList = ""
+	int i, n
+
+	for (i = 0, n = ItemsInList(fnList); i < n; i++)
+		fnName = StringFromList(i,fnList)
+		fileName = StringByKey("PROCWIN", FunctionInfo(fnName))
+		if (CmpStr(filename, "SIDAM_Compatibility_Old_Functions.ipf"))
+			continue
+		endif
+		deprecatedList += fnName+";"
+	endfor
+	return deprecatedList
+End
+
 //	print caution in the history window
 Static Function deprecatedCaution(String newName)
 	if (strlen(newName))
@@ -368,31 +385,4 @@ Static Function/WAVE KMGetMousePosWave(xvalue, yvalue, grfName)
 	endfor
 
 	return $""		//	全てのウエーブの範囲外にある場合は空文字列
-End
-
-//	v8.0.2 ----------------------------------------------------------------------
-Function/S KMSuffixStr(int num,[int digit])
-
-	deprecatedCaution("")
-	printf "%sUse \"%s%dd\" in the format string of printf.\r", PRESTR_CAUTION, "%0", digit
-
-	if (ParamIsDefault(digit))
-		digit = 3
-	endif
-
-	String rtnStr = num2str(num)
-	int digitOfNum = abs(num) ? floor(log(num))+1 : 1
-	int i
-
-	for (i = digitOfNum; i < digit; i++)
-		rtnStr = "0"+rtnStr
-	endfor
-
-	return rtnStr
-End
-
-Function KMCtrlClicked(STRUCT WMWinHookStruct &s, String grpName)
-	deprecatedCaution("")
-	ControlInfo/W=$s.winName $grpName
-	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
 End

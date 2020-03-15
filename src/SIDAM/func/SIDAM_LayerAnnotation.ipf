@@ -455,7 +455,8 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 End
 
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1)
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
 	

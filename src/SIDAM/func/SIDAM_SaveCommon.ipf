@@ -49,8 +49,9 @@ End
 //	Checkbox for all except formatC in SaveGraphics
 //-------------------------------------------------------------
 Static Function pnlCheck(STRUCT WMCheckboxAction &s)
-	if (s.eventCode != 2)
-		return 0
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
+		return 1
 	endif
 	
 	//	rgb_rC, cmyk_rC, and embedC, which are not used in SaveMovie,
@@ -78,7 +79,7 @@ End
 //	SetVariable
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1)
+	if (s.eventCode == -1 || s.eventCode == 6)
 		return 1
 	endif
 	

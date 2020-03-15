@@ -521,13 +521,23 @@ Static Function/WAVE ReadTopoSTSFile(GenHeader)
 		endfor
 		return refw
 	else							//	shiftが押されていなかったら平均する
-		Wave/WAVE resw = KMWavesStats(refw,stats=1)
-		Wave tw = resw[0]
-		Duplicate/O tw $GenHeader.filename
+		Duplicate/O avg(refw) $GenHeader.filename
 		return $GenHeader.filename
 	endif
 End
 
+Static Function/WAVE avg(Wave/WAVE refw)
+	Wave w0 = refw[0]
+	Make/N=(numpnts(w0),numpnts(refw))/FREE tw
+	int j
+	for (j = 0; j < DimSize(tw,1); j++)
+		Wave w = refw[j]
+		tw[][j] = w[p]
+	endfor
+	MatrixOP/FREE avgw = sumRows(tw)/numCols(tw)
+	Copyscales w, avgw
+	return avgw
+End
 
 //******************************************************************************
 //	PutTopoGenericHeader

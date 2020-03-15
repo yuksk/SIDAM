@@ -1,6 +1,5 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=1
-#pragma ModuleName=KMLoadNanonisSXMNSP
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -24,15 +23,6 @@ Function/WAVE LoadNanonisSxmNsp(String pathStr)
 	elseif (s.type == 1)
 		return NSPData(pathStr, s)
 	endif
-End
-
-//	multipass結合関数呼び出し用
-Static Function/S menu()
-	//	ConcatenateNanonisMultipass で用いているエラーチェックを流用すればより正確な条件判定が
-	//	可能ではあるが、メニューが重くなるのを避けるために簡単なチェックのみで済ませる。
-	//	(結合済みのウエーブがあるデータフォルダでもメニュー項目が選べてしまうことになるが、関数がエラーを出して停止する)
-	Wave/Z configw = $(":"+SIDAM_DF_SETTINGS+":'Multipass-Config'")
-	return SelectString(WaveExists(configw),"(","") + "Concatenate multipass waves"
 End
 
 //******************************************************************************
@@ -372,135 +362,4 @@ Static Function/S CleanupWaveName(String name, String suffix)
 	else
 		return str1 + str2
 	endif
-End
-
-
-//******************************************************************************
-//	multipass関係の便利関数
-//******************************************************************************
-//	分かれている像を1つのウエーブにまとめる
-Function KMNanonisConcatMultipass(DFREF dfr, [int history])
-	history = ParamIsDefault(history) ? 0 : history
-	
-	Wave/Z/T listw = init(dfr)
-	if (!WaveExists(listw))
-		return 1
-	endif
-	Wave/SDFR=dfr:$SIDAM_DF_SETTINGS configw = 'Multipass-Config'
-	
-	int i, j, isbwd
-	int numOfPasses = DimSize(configw,1)/2
-	String str0, str1
-	
-	for (i = 0; i < DimSize(listw,0); i++)
-		
-		//	結合する
-		Wave/SDFR=dfr w0 = $(listw[i][0]+num2istr(1)+listw[i][1])
-		for (j = 2; j <= numOfPasses; j++)
-			Wave/SDFR=dfr w = $(listw[i][0]+num2istr(j)+listw[i][1])
-			Concatenate/NP=2 {w}, w0
-			KillWaves w
-		endfor
-		
-		//	バイアス電圧の設定
-		isbwd = strsearch(listw[i][1], "_bwd", 0) >= 0
-		for (j = 0; j < numOfPasses; j++)
-			SetDimLabel 2, j, $num2str(configw[5][j*2+isbwd]*1e3), w0
-		endfor
-		
-		//	バイアス電圧順に入れ替える
-		reorder(w0)
-		
-		//	名前を変更する
-		str0 = listw[i][0]
-		str1 = listw[i][1]
-		Rename w0 $(str0[0,strlen(str0)-4]+str1[1,strlen(str1)-1])
-	endfor
-	
-	if (history)
-		printf ,"%sKMNanonisConcatMultipass(%s)\r", PRESTR_CMD, GetDataFolder(1,dfr)
-	endif
-	
-	return 0
-End
-
-Static Function/WAVE init(DFREF dfr)
-	String errStr = PRESTR_CAUTION+"KMNanonisConcatenateMultipass gave error: "
-	
-	if (DataFolderRefStatus(dfr) != 1)
-		print errStr+"invalid datafolder reference."
-		return $""
-	elseif (DataFolderRefStatus(dfr:$SIDAM_DF_SETTINGS) != 1)
-		print errStr+"the settings datafolder is not found."
-		return $""
-	endif
-	
-	Wave/Z/SDFR=dfr:$SIDAM_DF_SETTINGS configw = 'Multipass-Config'
-	if (!WaveExists(configw))
-		print errStr+"Multipass-Config is not found."
-		return $""
-	endif
-	
-	Wave/Z/T listw = constructNameList(dfr,configw)
-	if (!DimSize(listw,0))
-		print errStr+"No multipass wave is found."
-		return $""
-	endif
-	
-	return listw
-End
-
-Static Function/WAVE constructNameList(DFREF dfr, Wave configw)
-	int i, j, i0
-	String str
-	
-	int numOfPasses = DimSize(configw,1)/2
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder dfr
-	
-	//	2D, 実数, SP で名前に [P1] を含むもの
-	String P1List = WaveList("*[P1]*",";","DIMS:2;CMPLX:0;DP:0")
-	
-	//	P1List には以下のような文字列で構成されている
-	//	t180401001_[P1]_Current
-	//	t180401001_[P1]_Current_bwd
-	//	t180401001_[P1]_Z
-	//	t180401001_[P1]_Z_bwd
-	//	このとき、nameList[][0] には t180401001_[P
-	//	nameList[][1] には ]_Current, ]_Current_bwd, ]_Z, ]_bwd が入る
-	Make/N=(ItemsInList(P1List),2)/T/FREE nameList
-	for (i = 0; i < ItemsInList(P1List); i++)
-		str = StringFromList(i,P1List)
-		i0 = strsearch(str, "[P1]", strlen(str)-1, 1)
-		namelist[i][0] = str[0,i0+1]						//	t180401001_[P
-		namelist[i][1] = str[i0+3,strlen(str)-1]		//	]_Current
-		//	multipassの個数に対応するウエーブがすべてそろっていることを確認する
-		for (j = 1; j <= numOfPasses; j++)
-			str = nameList[i][0] + num2istr(j) + nameList[i][1]
-			if(!WaveExists($str))
-				SetDataFolder dfrSav
-				return $""
-			endif
-		endfor
-	endfor
-	
-	SetDataFolder dfrSav
-	return namelist
-End
-
-//	バイアス順に並べ替える
-Static Function reorder(Wave w)
-	int i, n = DimSize(w,2)
-	
-	Make/N=(n)/FREE indexw = p, biasw = str2num(GetDimLabel(w,2,p))
-	Sort, biasw, biasw, indexw
-	
-	Duplicate/FREE w resw
-	resw = w[p][q][indexw[r]]
-	
-	for (i = 0; i < n; i++)
-		SetDimLabel 2, i, $num2str(biasw[i]), resw
-	endfor
-	
-	Duplicate/O resw w
 End

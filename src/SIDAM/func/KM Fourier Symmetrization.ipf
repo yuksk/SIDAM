@@ -564,10 +564,12 @@ End
 //	値設定
 //-------------------------------------------------------------
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	if (s.eventCode == -1)
+
+	//	Handle either mouse up, enter key, or end edit
+	if (s.eventCode != 1 && s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
-	
+
 	Wave w = $GetUserData(s.win, "", "src")
 	strswitch (s.ctrlName)
 		case "outputV":

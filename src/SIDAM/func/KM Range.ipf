@@ -584,8 +584,9 @@ End
 //-------------------------------------------------------------
 Static Function pnlSetvalue(STRUCT WMSetVariableAction &s)
 	
-	if (s.eventCode == -1)
-		return 0
+	//	Handle either mouse up, enter key, or begin edit
+	if (!(s.eventCode == 1 || s.eventCode == 2 || s.eventCode == 7))
+		return 1
 	endif
 	
 	strswitch (s.ctrlName)

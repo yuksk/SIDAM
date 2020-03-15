@@ -519,6 +519,12 @@ End
 //	p1V, q1V, p2V, q2V の値に応じて distanceV, angleV の値を設定する
 //-------------------------------------------------------------
 Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
+
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
+		return 1
+	endif
+
 	DFREF dfrTmp = $GetUserData(s.win,"","dfTmp")
 	Wave w = $GetUserData(s.win,"","src")
 	int grid = str2num(GetUserData(s.win,"","grid"))
@@ -580,6 +586,10 @@ End
 //	Waterfall
 //-------------------------------------------------------------
 Static Function pnlSetVarAxlen(STRUCT WMSetVariableAction &s)
+	//	Handle either mouse up or enter key
+	if (s.eventCode != 1 && s.eventCode != 2)
+		return 1
+	endif
 	//	Newwaterfall wave0 vs {*, wavez}
 	//	NewWaterfall で wavez が有効になっている時(KMLineProfileで非等間隔バイアスウエーブを扱う時)には
 	//	表示ウエーブを削除しても wavez が表示されたままの扱いになってしまう (Igorのバグ?)

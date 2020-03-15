@@ -212,7 +212,8 @@ End
 //-------------------------------------------------------------
 Static Function extractPnlSetVar(STRUCT WMSetVariableAction &s)
 	
-	if (s.eventCode == -1)
+	//	Handle either mouse up, enter key, or end edit
+	if (s.eventCode != 1 && s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
 	
