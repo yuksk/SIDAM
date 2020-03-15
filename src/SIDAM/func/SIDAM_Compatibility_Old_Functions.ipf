@@ -9,6 +9,23 @@
 //	deprecated functions, to be removed in future
 //******************************************************************************
 
+//	print a list of deprecated functions in the history window
+Function/S SIDAMDeprecatedFunctions()
+	String fnName, fnList = FunctionList("*", ";", "KIND:2")
+	String fileName, deprecatedList = ""
+	int i, n
+
+	for (i = 0, n = ItemsInList(fnList); i < n; i++)
+		fnName = StringFromList(i,fnList)
+		fileName = StringByKey("PROCWIN", FunctionInfo(fnName))
+		if (CmpStr(filename, "SIDAM_Compatibility_Old_Functions.ipf"))
+			continue
+		endif
+		deprecatedList += fnName+";"
+	endfor
+	return deprecatedList
+End
+
 //	print caution in the history window
 Static Function deprecatedCaution(String newName)
 	if (strlen(newName))

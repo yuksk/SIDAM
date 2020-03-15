@@ -55,6 +55,8 @@ Menu "SIDAM", dynamic
 	
 	Submenu "Developer"
 		SIDAMShowProcedures#menu(), /Q, SIDAMshowProcedures()
+		"List of deprecated function", /Q, print SIDAMDeprecatedFunctions()
+		help = {"Show a list of deprecated functions in the history area"}
 		"Kill Variables", /Q, SIDAMKillVariablesStrings(root:)
 		help = {"Kill \"V_*\" variables and \"S_*\" strings"}
 	End
