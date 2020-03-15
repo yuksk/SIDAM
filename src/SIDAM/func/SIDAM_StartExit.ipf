@@ -43,8 +43,9 @@ Static Function makeProcFile()
 	endif
 
 	//	Make a list of ipf files
-	Wave/T w0 = fnList(SIDAM_FOLDER_FUNC), w1 = fnList(SIDAM_FOLDER_LOADER)
-	Wave/T w2 = fnList(SIDAM_FOLDER_EXT)
+	Wave/T w0 = fnList(SIDAM_FOLDER_FUNC)
+	Wave/T w1 = fnList(SIDAM_FOLDER_LOADER)
+	Wave/T w2 = fnList(SIDAM_FOLDER_EXT, recursive=1)
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
 	Concatenate/NP/T {w0, w1, w2}, lw
@@ -69,18 +70,22 @@ Static Function makeProcFile()
 End
 
 //	make a list of ipf files under subFolder
-Static Function/WAVE fnList(String subFolder)
+Static Function/WAVE fnList(String subFolder, [int recursive])
+	recursive = ParamIsDefault(recursive) ? 0 : recursive
+
 	String pathName = UniqueName("tmpPath",12,0)
 	NewPath/O/Q/Z $pathName, SIDAMPath()+subFolder
 
 	String listStr = IndexedFile($pathName,-1,".ipf") + IndexedFile($pathName,-1,".lnk")
 	Make/FREE/T/N=(ItemsInList(listStr)) w = RemoveEnding(StringFromList(p,listStr),".lnk")
 
-	String dirListStr = IndexedDir($pathName,-1,0)
-	int i, n = ItemsInList(dirListStr)
-	for (i = 0; i < n; i++)
-		Concatenate/T {fnList(subFolder+":"+StringFromList(i,dirListStr))}, w
-	endfor
+	if (recursive)
+		String dirListStr = IndexedDir($pathName,-1,0)
+		int i, n = ItemsInList(dirListStr)
+		for (i = 0; i < n; i++)
+			Concatenate/T {fnList(subFolder+":"+StringFromList(i,dirListStr),recursive=recursive)}, w
+		endfor
+	endif
 
 	KillPath $pathName
 
