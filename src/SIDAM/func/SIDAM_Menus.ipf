@@ -41,6 +41,11 @@ Menu "SIDAM", dynamic
 		help = {"Shows a list of KM commands"}
 
 		"Cheet sheet of shortcuts", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_SHORTCUTS)
+		
+		"-"
+		
+		"About SIDAM...", /Q, SIDAMAbout()
+		"Updates for SIDAM...", /Q, SIDAMCheckUpdate()
 	End
 
 	Submenu "Extension"
