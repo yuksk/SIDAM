@@ -500,7 +500,7 @@ Static Function/WAVE LoadRHKSM2Type1(sHeader)
 	
 	//	平均操作
 	if (!sHeader.mode&1)
-		Wave/WAVE statsw = KMWavesStats(refw, stats=3)
+		Wave/WAVE statsw = stats(refw, sHeader)
 		SetDataFolder dfrSav
 		Duplicate/O statsw[0] $sHeader.pageName/WAVE=avgw
 		Duplicate/O statsw[1] $(sHeader.pageName+ks_index_sdev)/WAVE=sdevw
@@ -509,6 +509,20 @@ Static Function/WAVE LoadRHKSM2Type1(sHeader)
 	endif
 	
 	return refw
+End
+
+Static Function/WAVE stats(Wave/WAVE refw, STRUCT SM2Header &sHeader)
+	Make/N=(sHeader.sInfo.x_size,sHeader.sInfo.y_size)/FREE tw
+	int j
+	for (j = 0; j < DimSize(tw,1); j++)
+		Wave w = refw[j]
+		tw[][j] = w[p]
+	endfor
+	MatrixOP/FREE avgw = sumRows(tw)/numCols(tw)
+	MatrixOP/FREE sdevw = sqrt(varCols(tw^t)^t)
+	Copyscales w, avgw, sdevw
+	Make/N=2/WAVE/FREE rtnw = {avgw, sdevw}
+	return rtnw
 End
 
 //******************************************************************************

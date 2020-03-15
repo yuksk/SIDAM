@@ -175,9 +175,6 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	//	Correlation
 	SelectString(KMFFTCheckWaveMenu(), "", "(")+"Correlation...", /Q, KMCorrelation#rightclickDo()
 	help = {"Compute a correlation function of a source wave(s)."}
-	//	Stats
-	SIDAMMenus#menu("Stats...", dim=3), /Q, KMWavesStats#rightclickDo()
-	help = {"Compute statistics of waves."}
 	//	Work Function
 	SIDAMMenus#menu("Work Function...", dim=3), /Q,  KMWorkfunctionR()
 	help = {"Compute work function."}
