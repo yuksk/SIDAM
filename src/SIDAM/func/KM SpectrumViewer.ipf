@@ -21,12 +21,10 @@ End
 Static Function pnl(String LVName)
 
 	//	既に表示されているパネルがあればそれをフォーカスして終了
-	String pnlName = StringFromList(0,GetUserData(LVName,"",KEY),"=")
-	if (SIDAMWindowExists(pnlName))
-		DoWindow/F $pnlName
+	if (isDisplayed(LVName))
 		return 0
 	endif
-	pnlName = UniqueName("Graph",6,0)
+	String pnlName = UniqueName("Graph",6,0)
 
 	Wave srcw =  KMGetImageWaveRef(LVName)
 	int isMLS = SIDAMisUnevenlySpacedBias(srcw)
@@ -77,6 +75,26 @@ Static Function pnl(String LVName)
 
 	DoUpdate/W=$pnlName
 	ModifyGraph/W=$pnlName width=0, height=0
+End
+
+Static Function isDisplayed(String LVName)
+	String listStr = GetUserData(LVName,"",KEY), pnlName, trcName
+	int i, n
+	
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
+		pnlName = StringFromList(0,StringFromList(i,listStr,";"),"=")
+		if (!SIDAMWindowExists(pnlName))
+			continue
+		endif
+		trcName = StringFromList(0,TraceNameList(pnlName,";",1))
+		Wave tracew = TraceNameToWaveRef(pnlName,trcName)
+		Wave imgw = KMGetImageWaveRef(LVName)
+		if (WaveRefsEqual(tracew,imgw))
+			DoWindow/F $pnlName
+			return 1
+		endif
+	endfor
+	return 0
 End
 //-------------------------------------------------------------
 //	パネル初期設定

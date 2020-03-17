@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8
 Constant SIDAM_VERSION_MINOR = 4
-Constant SIDAM_VERSION_PATCH = 0
+Constant SIDAM_VERSION_PATCH = 1
 
 //------------------------------------------------------------------------------------------------
 //	Data Folder
@@ -48,7 +48,6 @@ StrConstant SIDAM_FILE_COLORLIST_DEFAULT = "ctab.default.ini"
 StrConstant SIDAM_FILE_LOADERLIST = "functions.ini"
 StrConstant SIDAM_FILE_LOADERLIST_DEFAULT = "functions.default.ini"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
-StrConstant SIDAM_FILE_CMD = "cmd:cmdlist.html"
 StrConstant SIDAM_FILE_SHORTCUTS = "shortcuts.pdf"
 
 //------------------------------------------------------------------------------------------------
