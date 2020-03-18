@@ -20,34 +20,6 @@ Function SIDAMShowProcedures()
 	Execute/P "COMPILEPROCEDURES "
 End
 
-//	Kill all Variables starting from "V_" and strings starting from "S_" under dfr
-Function SIDAMKillVariablesStrings(DFREF dfr)
-	DFREF dfrSav = GetDataFolderDFR()
-	String listStr
-	int i, n
-
-	//	Recursively execute for datefolders
-	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
-		SIDAMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
-	endfor
-
-	SetDataFolder dfr
-
-	//	Variable
-	listStr = VariableList("V_*", ";", 4)
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillVariables $StringFromList(i, listStr)
-	endfor
-
-	//	String
-	listStr = StringList("S_*", ";")
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillStrings $StringFromList(i, listStr)
-	endfor
-
-	SetDataFolder dfrSav
-End
-
 //	Function to load xml files at http://www.paraview.org/Wiki/Colormaps into waves
 Function SIDAMxml2ibw()
 	Variable refNum

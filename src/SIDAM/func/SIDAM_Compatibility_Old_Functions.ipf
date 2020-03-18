@@ -242,11 +242,6 @@ Function/S KMDisplay([Wave/Z w, int traces, int history	])
 	SIDAMDisplay(w,traces=traces,history=history)
 End
 
-Function KMKillVariablesStrings(DFREF dfr)
-	deprecatedCaution("SIDAMKillVariablesStrings")
-	SIDAMKillVariablesStrings(dfr)
-End
-
 Function/S KMAddCheckmark(Variable num, String menuStr)
 	deprecatedCaution("SIDAMAddCheckmark")
 	SIDAMAddCheckmark(num, menuStr)
