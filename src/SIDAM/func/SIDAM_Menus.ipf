@@ -49,11 +49,9 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Developer"
-		SIDAMShowProcedures#menu(), /Q, SIDAMshowProcedures()
+		SIDAMUtilDev#menu(), /Q, SIDAMshowProcedures()
 		"List of Deprecated Functions", /Q, print SIDAMDeprecatedFunctions()
 		help = {"Show a list of deprecated functions in the history area"}
-		"Kill Variables", /Q, SIDAMKillVariablesStrings(root:)
-		help = {"Kill \"V_*\" variables and \"S_*\" strings"}
 	End
 
 	"-"
@@ -283,25 +281,3 @@ Menu "GraphMarquee", dynamic
 	End
 End
 
-
-//******************************************************************************
-//	Utilities
-//******************************************************************************
-//	Add the check mark to num-th item of menuStr and return it
-Function/S SIDAMAddCheckmark(Variable num, String menuStr)
-	if (numtype(num))
-		return ""
-	elseif (num < 0)
-		return menuStr
-	endif
-
-	String checked = "\\M0:!" + num2char(18)+":", escCode = "\\M0"
-
-	//	add escCode before all items
-	menuStr = ReplaceString(";", menuStr, ";"+escCode)
-	menuStr = escCode + RemoveEnding(menuStr, escCode)
-
-	//	replace escCode of num-item with the check mark
-	menuStr = AddListItem(checked, menuStr, ";", num)
-	return ReplaceString(":;"+escCode, menuStr, ":")
-End

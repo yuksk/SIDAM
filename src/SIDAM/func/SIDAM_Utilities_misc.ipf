@@ -14,40 +14,30 @@ Function/S SIDAMPath()
 	if(!V_Flag)
 		return S_path
 	endif
-	
+
 	GetFileFolderInfo/Q/Z (userpath+SIDAM_FOLDER_MAIN+".lnk")
 	if(V_isAliasShortcut)
 		return S_aliasPath
 	endif
-	
+
 	Abort "SIDAM folder is not found."
 End
 
+//	Add the check mark to num-th item of menuStr and return it
+Function/S SIDAMAddCheckmark(Variable num, String menuStr)
+	if (numtype(num))
+		return ""
+	elseif (num < 0)
+		return menuStr
+	endif
 
-//	Kill all Variables starting from "V_" and strings starting from "S_" under dfr
-Function SIDAMKillVariablesStrings(DFREF dfr)
-	DFREF dfrSav = GetDataFolderDFR()
-	String listStr
-	int i, n
-	
-	//	Recursively execute for datefolders
-	for (i = 0, n = CountObjectsDFR(dfr, 4); i < n; i++)
-		SIDAMKillVariablesStrings(dfr:$GetIndexedObjNameDFR(dfr,4,i))
-	endfor
-	
-	SetDataFolder dfr
-	
-	//	Variable
-	listStr = VariableList("V_*", ";", 4)
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillVariables $StringFromList(i, listStr)
-	endfor
-	
-	//	String
-	listStr = StringList("S_*", ";")
-	for (i = 0, n = ItemsInList(listStr); i < n; i++)
-		KillStrings $StringFromList(i, listStr)
-	endfor
-	
-	SetDataFolder dfrSav
+	String checked = "\\M0:!" + num2char(18)+":", escCode = "\\M0"
+
+	//	add escCode before all items
+	menuStr = ReplaceString(";", menuStr, ";"+escCode)
+	menuStr = escCode + RemoveEnding(menuStr, escCode)
+
+	//	replace escCode of num-item with the check mark
+	menuStr = AddListItem(checked, menuStr, ";", num)
+	return ReplaceString(":;"+escCode, menuStr, ":")
 End
