@@ -13,11 +13,11 @@ Static StrConstant STDV_1D_NAME = "W_LineProfileStdv"
 Static StrConstant PROF_2D_NAME = "M_ImageLineProfile"
 Static StrConstant STDV_2D_NAME = "M_LineProfileStdv"
 
-Static StrConstant PNL_W = "LineProfile"
-Static StrConstant PNL_C = "LineProfileC"
-Static StrConstant PNL_B1 = "LineProfile_b"
-Static StrConstant PNL_B2 = "LineProfile_y"
-Static StrConstant PNL_T = "LineProfileT"
+Static StrConstant PNL_W = "W_SIDAMLineProfile"
+Static StrConstant PNL_C = "W_SIDAMLineProfileC"
+Static StrConstant PNL_B1 = "W_SIDAMLineProfile_b"
+Static StrConstant PNL_B2 = "W_SIDAMLineProfile_y"
+Static StrConstant PNL_T = "W_SIDAMLineProfileT"
 
 Static StrConstant KEY = "SIDAMLineProfile"
 
