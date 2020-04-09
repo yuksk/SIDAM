@@ -31,10 +31,8 @@ Function KMPreviewPnl()
 	endfor
 	
 	String dfTmp = pnlInit()
-	STRUCT SIDAMPrefs p
-	SIDAMLoadPrefs(p)
-	
-	NewPanel/K=1/W=(p.preview.size.left, p.preview.size.top, p.preview.size.right, p.preview.size.bottom) as "Preview"
+
+	NewPanel/K=1/W=(0, 0, 600, 500) as "Preview"
 	String pnlName = S_name
 	
 	DefineGuide/W=$pnlName gh1={FT, 230}				//	プレビュー領域と変数リスト領域の上端位置
@@ -167,18 +165,6 @@ End
 //	パネルを閉じる前の処理
 //------------------------------------------------------------
 Static Function pnlHookClose(String pnlName)
-	
-	STRUCT SIDAMPrefs p
-	SIDAMLoadPrefs(p)
-	
-	GetWindow $pnlName wsizeDC
-	p.preview.size.left = V_left
-	p.preview.size.right = V_right
-	p.preview.size.top = V_top
-	p.preview.size.bottom = V_bottom
-	
-	SIDAMSavePrefs(p)
-	
 	SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
 End
 //------------------------------------------------------------

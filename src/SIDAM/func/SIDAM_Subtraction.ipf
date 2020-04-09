@@ -16,8 +16,8 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
 ///		A 2x2 wave specifying the corners of a rectanglar ROI
 ///	@param mode [optional, default = 0]
 ///		0: plane, 1: line, 2: layer, 3: phase, 4: exp, 5: log
-///	@param order [optional, default = 1 for mode=0, 0 for mode=1]
-///		The order of a subtracted plane/lines
+///	@param degree [optional, default = 1 for mode=0, 0 for mode=1]
+///		The degree of a subtracted plane/lines
 ///	@param direction [optional, default = 0]
 ///		The direction of subtraction for mode=1 (0: row, 1: column), or
 ///		scan for mode=4 and 5
@@ -33,13 +33,13 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
 ///	@return
 ///		A result wave
 //******************************************************************************
-Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave roi, int mode, int order,
+Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave roi, int mode, int degree,
 	int direction, int method, int index, int history, String result])
 
 	STRUCT paramStruct s
 	Wave/Z s.w = w
 	s.mode = ParamIsDefault(mode) ? 0 : mode
-	s.order = ParamIsDefault(order) ? !s.mode : order	//	1 for mode=0(plane)
+	s.degree = ParamIsDefault(degree) ? !s.mode : degree	//	1 for mode=0(plane)
 	s.direction = ParamIsDefault(direction) ? 0 : direction
 	s.method = ParamIsDefault(method) ? 0 : method
 	s.index = ParamIsDefault(index) ? 0 : index
@@ -63,22 +63,22 @@ Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave roi, int mode, int order,
 	//	each function returns a free wave
 	switch (mode)
 		case 0:
-			if (s.order < 2)
-				Wave resw = subtract_plane(s.w, s.roi, s.order)
+			if (s.degree < 2)
+				Wave resw = subtract_plane(s.w, s.roi, s.degree)
 			else
-				Wave resw = subtract_poly(s.w, s.roi, s.order)
+				Wave resw = subtract_poly(s.w, s.roi, s.degree)
 			endif
 			break
 		case 1:
-			if (s.order > 0 && !s.method)
-				Wave resw = subtract_line_poly(s.w, s.order, s.direction)
-			elseif (!s.order && !s.method)
+			if (s.degree > 0 && !s.method)
+				Wave resw = subtract_line_poly(s.w, s.degree, s.direction)
+			elseif (!s.degree && !s.method)
 				Wave resw = subtract_line_constant(s.w, s.direction)
-			elseif (!s.order && s.method==1)
+			elseif (!s.degree && s.method==1)
 				Wave resw = subtract_line_median_constant(s.w, s.direction)
-			elseif (s.order==1 && s.method==1)
+			elseif (s.degree==1 && s.method==1)
 				Wave resw = subtract_line_median_slope(s.w, s.direction)
-			elseif (s.order==2 && s.method==1)
+			elseif (s.degree==2 && s.method==1)
 				Wave resw = subtract_line_median_curvature(s.w, s.direction)
 			endif
 			break
@@ -89,7 +89,7 @@ Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave roi, int mode, int order,
 			Wave resw = subtract_phase(s.w, s.index)
 			break
 		case 4:
-			Wave resw = KMExpLogSubtraction(s.w, s.order, s.direction)
+			Wave resw = KMExpLogSubtraction(s.w, s.degree, s.direction)
 			break
 		case 5:
 			Wave resw = KMExpLogSubtraction(s.w, 2, s.direction)
@@ -150,8 +150,8 @@ Static Function validate(STRUCT paramStruct &s)
 		case 1:	//	line
 			if (isComplex)
 				s.errMsg = "mode 2 is available for a real wave."
-			elseif (s.order > 2)
-				s.errMsg = "order must be 0-2 for mode 1."
+			elseif (s.degree > 2)
+				s.errMsg = "degree must be 0-2 for mode 1."
 			elseif (s.direction != 0 && s.direction != 1)
 				s.errMsg = "direction must be 0 or 1 for mode 1."
 			elseif (s.method != 0 && s.method != 1)
@@ -178,8 +178,8 @@ Static Function validate(STRUCT paramStruct &s)
 		case 4:
 			if (!is2D || isComplex)
 				s.errMsg = "mode 4 is available for a real 2D wave."
-			elseif (s.order != 0 && s.order != 1)
-				s.errMsg = "order must be 0 or 1 for mode 4."
+			elseif (s.degree != 0 && s.degree != 1)
+				s.errMsg = "degree must be 0 or 1 for mode 4."
 			elseif (s.direction<0 || s.direction>7)
 				s.errMsg = "direction must be from 0 to 7 for mode 4"
 			endif
@@ -214,7 +214,7 @@ Static Structure paramStruct
 	Wave	roi
 	String	errMsg
 	uchar	mode
-	uchar	order
+	uchar	degree
 	uchar	direction
 	uchar	method
 	uint16	index
@@ -227,7 +227,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 	paramStr += SelectString(s.mode, "", ",mode="+num2istr(s.mode))
 	switch (s.mode)
 		case 0:
-			paramStr += SelectString(s.order==1, ",order="+num2istr(s.order), "")
+			paramStr += SelectString(s.degree==1, ",degree="+num2istr(s.degree), "")
 			if (!WaveExists(s.roi))
 				break
 			endif
@@ -238,7 +238,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 			break
 
 		case 1:
-			paramStr += SelectString(s.order, "", ",order="+num2istr(s.order))
+			paramStr += SelectString(s.degree, "", ",degree="+num2istr(s.degree))
 			paramStr += SelectString(s.direction, "", ",direction="+num2istr(s.direction))
 			paramStr += SelectString(s.method, "", ",method="+num2istr(s.method))
 			break
@@ -250,7 +250,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 
 		case 4:
 		case 5:
-			paramStr += SelectString(s.order, "", ",order="+num2istr(s.order))
+			paramStr += SelectString(s.degree, "", ",degree="+num2istr(s.degree))
 			paramStr += SelectString(s.direction, "", ",direction="+num2istr(s.direction))
 			break
 	endswitch
@@ -279,7 +279,7 @@ End
 Static Function/S marqueeMenu()
 	Wave/Z w = KMGetImageWaveRef(WinName(0,1,1))
 	if (WaveExists(w) && WaveDims(w) == 2)
-		return "1st-order plane subtraction about this region"
+		return "plane subtraction about this region"
 	else
 		return ""
 	endif
@@ -313,8 +313,8 @@ Static Function pnl(Wave w, String grfName)
 	else
 		PopupMenu modeP mode=1, value="Plane;Line;Layer", win=$pnlName
 	endif
-	PopupMenu orderP title="order:", pos={193,68}, size={94,20}, bodyWidth=60, win=$pnlName
-	PopupMenu orderP mode=2, value="0;1;2;3;4;5;6;7", disable=isComplex, win=$pnlName
+	PopupMenu degreeP title="degree:", pos={193,68}, size={94,20}, bodyWidth=60, win=$pnlName
+	PopupMenu degreeP mode=2, value="0;1;2;3;4;5;6;7", disable=isComplex, win=$pnlName
 	PopupMenu directionP title="direction:", pos={32,99}, size={128,20}, win=$pnlName
 	PopupMenu directionP bodyWidth=80, mode=1, value="\u21c4;\u21c5", disable=1, win=$pnlName
 	PopupMenu methodP title="method:", pos={180,99},size={137,19}, disable=1, win=$pnlName
@@ -352,7 +352,7 @@ Static Function pnl(Wave w, String grfName)
 	Button helpB title="?", pos={220,165}, size={20,20}, win=$pnlName
 	Button cancelB title="Cancel", pos={257,165}, size={60,20}, win=$pnlName
 
-	ModifyControlList "orderP;modeP;toP" proc=SIDAMSubtraction#pnlPopup, win=$pnlName
+	ModifyControlList "degreeP;modeP;toP" proc=SIDAMSubtraction#pnlPopup, win=$pnlName
 	ModifyControlList "doB;helpB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
@@ -375,7 +375,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 		case "doB":
 			Wave w = $GetUserData(s.win, "", "src")
-			Wave cvw = KMGetCtrlValues(s.win, "orderP;directionP;indexV;owC;displayC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
 			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
 			Variable direction = (cvw[6]-1) + (cvw[7]-1)*2 + (cvw[8]-1)*4
 			String result = SelectString(cvw[3], ctw[1], "")
@@ -388,18 +388,18 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 						Wave resw = SIDAMSubtraction(w, result=result, \
 							roi={{cvw[10],cvw[11]},{cvw[12],cvw[13]}}, history=1)
 					else
-						Wave resw = SIDAMSubtraction(w, order=cvw[0]-1, \
+						Wave resw = SIDAMSubtraction(w, degree=cvw[0]-1, \
 							result=result, history=1)
 					endif
 					break
 
 				case 1:
-					Wave resw = SIDAMSubtraction(w, mode=1, order=cvw[0]-1, \
+					Wave resw = SIDAMSubtraction(w, mode=1, degree=cvw[0]-1, \
 						direction=cvw[1]-1, method=cvw[14]-1, result=result, history=1)
 					break
 
 				case 4:
-					Wave resw = SIDAMSubtraction(w, mode=4, order=cvw[5]-1, \
+					Wave resw = SIDAMSubtraction(w, mode=4, degree=cvw[5]-1, \
 						direction=direction, result=result, history=1)
 					break
 
@@ -409,7 +409,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 					break
 
 				default:
-					Wave resw = SIDAMSubtraction(w, mode=mode, order=cvw[0]-1, \
+					Wave resw = SIDAMSubtraction(w, mode=mode, degree=cvw[0]-1, \
 						direction=cvw[1]-1, index=cvw[2], result=result, history=1)
 			endswitch
 
@@ -461,18 +461,18 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	strswitch (s.ctrlName)
 		case "modeP":
 			if (!CmpStr(s.popStr,"Plane"))
-				PopupMenu orderP mode=2, value="0;1;2;3;4;5;6;7", win=$s.win
+				PopupMenu degreeP mode=2, value="0;1;2;3;4;5;6;7", win=$s.win
 			elseif (!CmpStr(s.popStr,"Line"))
-				PopupMenu orderP mode=1, value="0;1;2", win=$s.win
+				PopupMenu degreeP mode=1, value="0;1;2", win=$s.win
 			endif
 			//	*** FALLTHROUGH ***
 
-		case "orderP":
+		case "degreeP":
 			pnlShowHideControls(s.win)
 			break
 
 		case "toP":
-			Wave cvw = KMGetCtrlValues(s.win, "orderP;directionP;indexV;owC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
 			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
 
 			STRUCT paramStruct ps
@@ -482,7 +482,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 
 			switch (ps.mode)
 				case 0:
-					ps.order = cvw[0]-1
+					ps.degree = cvw[0]-1
 					ps.direction = cvw[1]-1
 					if (cvw[8] == 1)
 						Make/B/U/FREE tw = {{cvw[9],cvw[10]},{cvw[11],cvw[12]}}
@@ -490,7 +490,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 					endif
 					break
 				case 1:
-					ps.order = cvw[0]-1
+					ps.degree = cvw[0]-1
 					ps.direction = cvw[1]-1
 					ps.method = cvw[13]-1
 					break
@@ -499,7 +499,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 					ps.index = cvw[2]
 					break
 				case 4:
-					ps.order = cvw[4]-1
+					ps.degree = cvw[4]-1
 					ps.direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
 					break
 				case 5:
@@ -541,10 +541,10 @@ Static Function pnlShowHideControls(String pnlName)
 
 	Wave w = $GetUserData(pnlName, "", "src")
 	int is2dReal = WaveDims(w)==2 && !(WaveType(w) & 0x01)
-	ControlInfo/W=$pnlName orderP
+	ControlInfo/W=$pnlName degreeP
 	ControlInfo/W=$pnlName roiC ;		int forRoiNum = forPlane && V_value
 
-	PopupMenu orderP disable=!(forPlane || forLine), win=$pnlName
+	PopupMenu degreeP disable=!(forPlane || forLine), win=$pnlName
 	PopupMenu directionP disable=!forLine, win=$pnlName
 	PopupMenu methodP disable=!forLine, win=$pnlName
 	ModifyControlList "indexV;valueT" disable=!forComplex, win=$pnlName
@@ -561,7 +561,7 @@ End
 //******************************************************************************
 //	plane, for real 2D/3D waves
 //******************************************************************************
-Static Function/WAVE subtract_plane(Wave w, Wave roi, int order)
+Static Function/WAVE subtract_plane(Wave w, Wave roi, int degree)
 
 	Variable nx = DimSize(w,0), ny = DimSize(w,1), i
 
@@ -570,7 +570,7 @@ Static Function/WAVE subtract_plane(Wave w, Wave roi, int order)
 		Duplicate/FREE w, rtn3dw
 		for (i = 0; i < DimSize(w,2); i++)
 			MatrixOP/FREE slice = layer(w,i)
-			Wave tw = subtract_plane(slice,roi,order)
+			Wave tw = subtract_plane(slice,roi,degree)
 			rtn3dw[][][i] = tw[p][q]
 		endfor
 		return rtn3dw
@@ -579,7 +579,7 @@ Static Function/WAVE subtract_plane(Wave w, Wave roi, int order)
 	//	For 2D waves
 	Duplicate/FREE/RMD=[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] w tw
 
-	if (order)
+	if (degree)
 		Wave cw = plane_coef(tw)
 		MatrixOP/FREE rtnw = w - (cw[0]*indexRows(w) + cw[1]*indexCols(w))
 		ImageStats/Q/M=0/G={roi[0][0],roi[0][1],roi[1][0],roi[1][1]} rtnw
@@ -616,8 +616,8 @@ Static Function/WAVE plane_coef(Wave w)
 	return rtnw
 End
 
-Static Function sum_poly_series(int n, int order)
-	switch (order)
+Static Function sum_poly_series(int n, int degree)
+	switch (degree)
 		case 0:
 			return n+1
 		case 1:
@@ -632,7 +632,7 @@ End
 //******************************************************************************
 //	poly, for real 2D/3D waves
 //******************************************************************************
-Static Function/WAVE subtract_poly(Wave w, Wave roi, int order)
+Static Function/WAVE subtract_poly(Wave w, Wave roi, int degree)
 
 	//	For 3D waves, apply the 2D code below to each layer
 	if (WaveDims(w)==3)
@@ -640,7 +640,7 @@ Static Function/WAVE subtract_poly(Wave w, Wave roi, int order)
 		Variable i
 		for (i = 0; i < DimSize(w,2); i++)
 			MatrixOP/FREE slice = layer(w,i)
-			Wave tw = subtract_poly(slice,roi,order)
+			Wave tw = subtract_poly(slice,roi,degree)
 			rtnw[][][i] = tw[p][q]
 		endfor
 		return rtnw
@@ -653,7 +653,7 @@ Static Function/WAVE subtract_poly(Wave w, Wave roi, int order)
 	Make/B/U/N=(DimSize(w,0),DimSize(w,1)) tw2=0
 	tw2[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] = 1
 
-	ImageRemoveBackground/R=tw2/P=(order) w
+	ImageRemoveBackground/R=tw2/P=(degree) w
 	Wave rtnw = M_RemovedBackground
 
 	SetDataFolder dfrSav
@@ -680,10 +680,10 @@ Static Function/WAVE subtract_line_constant(Wave w, int direction)
 	return rtnw
 End
 
-Static Function/WAVE subtract_line_poly(Wave w, int order, int direction)
+Static Function/WAVE subtract_line_poly(Wave w, int degree, int direction)
 
 	if (WaveDims(w)==3)
-		return subtract_line_3D(w, direction, order=order)
+		return subtract_line_3D(w, direction, degree=degree)
 	endif
 
 	Duplicate/FREE w, rtnw
@@ -692,11 +692,11 @@ Static Function/WAVE subtract_line_poly(Wave w, int order, int direction)
 		MatrixTranspose rtnw
 	endif
 
-	Make/D/N=(DimSize(rtnw,0),order+1)/FREE matrixA = p^q
+	Make/D/N=(DimSize(rtnw,0),degree+1)/FREE matrixA = p^q
 	Make/B/U/N=(DimSize(rtnw,1))/FREE dummy
-	if (order==1)
+	if (degree==1)
 		MultiThread dummy = subtract_line_poly_1(rtnw,p,matrixA)
-	elseif (order==2)
+	elseif (degree==2)
 		MultiThread dummy = subtract_line_poly_2(rtnw,p,matrixA)
 	endif
 
@@ -872,7 +872,7 @@ ThreadSafe Static Function subtract_line_median_curvature_worker1(Wave w,
 End
 
 //	For 3D waves, apply the 2D code to each layer
-Static Function/WAVE subtract_line_3D(Wave w, int direction, [int order])
+Static Function/WAVE subtract_line_3D(Wave w, int direction, [int degree])
 
 	String moduleName = StringByKey("MODULE",FunctionInfo("subtract_line_prototype"))
 	FUNCREF subtract_line_prototype fn = $(moduleName+"#"+GetRTStackInfo(2))
@@ -881,10 +881,10 @@ Static Function/WAVE subtract_line_3D(Wave w, int direction, [int order])
 
 	for (i = 0; i < DimSize(w,2); i++)
 		MatrixOP/FREE slice = layer(w,i)
-		if (ParamIsDefault(order))
+		if (ParamIsDefault(degree))
 			Wave tw = fn(slice,direction)
 		else
-			Wave tw = subtract_line_poly(slice, order, direction)
+			Wave tw = subtract_line_poly(slice, degree, direction)
 		endif
 		rtnw[][][i] = tw[p][q]
 	endfor
