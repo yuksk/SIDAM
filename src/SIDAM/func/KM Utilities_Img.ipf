@@ -242,7 +242,7 @@ Function SIDAMGetMousePos(
 	getWaveAndValues(s,grfName,ps)
 	if (!WaveExists(s.w))	//	the mouse cursor is not on any image
 		return 1
-	elseif (WaveExists(ImageNameToWaveRef(grfName,NameOfWave(s.w))))
+	elseif (WaveExists(ImageNameToWaveRef(grfName,PossiblyQuoteName(NameOfWave(s.w)))))
 		//	The following is for when s.w is a 2D/3D wave and is displayed as an image,
 		//	but even when s.w is 2D/3D, it can be displayed as a trace.
 		//	The above if state is to exclude the latter situation.
