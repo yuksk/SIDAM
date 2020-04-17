@@ -258,7 +258,7 @@ Function SIDAMGetMousePos(
 		s.y = grid ? (oy + dy * s.q) : ty
 		//	the present layer, 0 for 2D images
 		int layer = NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "=")
-		s.z = s.w(tx)(ty)[layer]
+		s.z = s.w(tx)(ty)[limit(layer,0,DimSize(s.w,2)-1)]
 	endif
 	return 0
 End
