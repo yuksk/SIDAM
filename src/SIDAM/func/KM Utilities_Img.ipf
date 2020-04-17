@@ -242,7 +242,7 @@ Function SIDAMGetMousePos(
 	getWaveAndValues(s,grfName,ps)
 	if (!WaveExists(s.w))	//	the mouse cursor is not on any image
 		return 1
-	elseif (WaveExists(ImageNameToWaveRef(grfName,NameOfWave(s.w))))
+	elseif (WaveExists(ImageNameToWaveRef(grfName,PossiblyQuoteName(NameOfWave(s.w)))))
 		//	The following is for when s.w is a 2D/3D wave and is displayed as an image,
 		//	but even when s.w is 2D/3D, it can be displayed as a trace.
 		//	The above if state is to exclude the latter situation.
@@ -258,7 +258,7 @@ Function SIDAMGetMousePos(
 		s.y = grid ? (oy + dy * s.q) : ty
 		//	the present layer, 0 for 2D images
 		int layer = NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "=")
-		s.z = s.w(tx)(ty)[layer]
+		s.z = s.w(tx)(ty)[limit(layer,0,DimSize(s.w,2)-1)]
 	endif
 	return 0
 End

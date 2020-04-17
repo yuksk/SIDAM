@@ -17,8 +17,8 @@ Function/S KMLayerViewerPnl(Wave w)
 	Display/K=1/HIDE=1 as NameOfWave(w)	//	表示中にチラチラするのを防ぐために、HIDE=1にしておく
 	String pnlName = S_name
 	AppendImage/W=$pnlName/G=1 w
-	ModifyImage/W=$pnlName $NameOfWave(w) ctabAutoscale=3
-	
+	ModifyImage/W=$pnlName $PossiblyQuoteName(NameOfWave(w)) ctabAutoscale=3
+
 	//  表示詳細
 	STRUCT SIDAMPrefs prefs
 	SIDAMLoadPrefs(prefs)
