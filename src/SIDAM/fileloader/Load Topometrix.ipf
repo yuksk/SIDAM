@@ -521,12 +521,12 @@ Static Function/WAVE ReadTopoSTSFile(GenHeader)
 		endfor
 		return refw
 	else							//	shiftが押されていなかったら平均する
-		Duplicate/O avg(refw) $GenHeader.filename
+		Duplicate/O calcAvg(refw) $GenHeader.filename
 		return $GenHeader.filename
 	endif
 End
 
-Static Function/WAVE avg(Wave/WAVE refw)
+Static Function/WAVE calcAvg(Wave/WAVE refw)
 	Wave w0 = refw[0]
 	Make/N=(numpnts(w0),numpnts(refw))/FREE tw
 	int j

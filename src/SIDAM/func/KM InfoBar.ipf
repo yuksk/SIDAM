@@ -26,16 +26,17 @@ Function KMInfoBar(String grfName)
 		grfName = WinName(0,1,1)
 	endif
 	
-	//	既に表示されていたら閉じる
-	if (!canInfoBarShown(grfName))
+	if (isAlreadyShown(grfName))
 		closeInfoBar(grfName)
 		return 1
 	endif
 	
 	//  フック関数・ユーザーデータ
 	SetWindow $grfName hook(self)=KMInfoBar#hook
-	SetWindow $grfName userData(mode)="0"		//	0: x,y;  1: r,theta,   2: r^-1,theta
-	SetWindow $grfName userData(title)="1"		//	0: name of graph, 1: name of wave, 2: setpoint, 3: displayed size
+	//	0: x,y;  1: r,theta,   2: r^-1,theta
+	SetWindow $grfName userData(mode)="0"
+	//	0: name of graph, 1: name of wave, 2: setpoint, 3: displayed size
+	SetWindow $grfName userData(title)="1"
 	
 	Wave/Z w = KMGetImageWaveRef(grfName)
 	int is1D = !WaveExists(w)
@@ -49,37 +50,48 @@ Function KMInfoBar(String grfName)
 	//	1, 2, 3次元共通部分
 	int ctrlHeight = is3D ? 48 : 25
 	ControlBar/W=$grfName ctrlHeight
-	
+
+	//	If the current datafolder is a free datafolder, TitleBox in
+	//	the following will give an error.
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder GetWavesDataFolderDFR(w)
+
 	if (is1D)
 		TitleBox xyT pos={4,ctrlHeight-18}, frame=0, win=$grfName
 	else
-		TitleBox pqT title=" ", frame=0, win=$grfName		//	空の文字列をタイトル指定するのは表示位置調整のため
+		//	To adjust the position, empty title must be given
+		TitleBox pqT title=" ", frame=0, win=$grfName
 		TitleBox xyT frame=0, win=$grfName
 		TitleBox zT frame=0, win=$grfName
 	endif
-	
-	//	3次元の場合
+
 	if (is3D)
 		int layer = KMLayerViewerDo(grfName)
-		SetVariable indexV title="index:", pos={3,5}, size={96,18}, value=_NUM:layer, format="%d", win=$grfName
+		SetVariable indexV title="index:", pos={3,5}, size={96,18}, win=$grfName
+		SetVariable indexV value=_NUM:layer, format="%d", win=$grfName
 		SetVariable energyV title="value:", value=_NUM:SIDAMIndexToScale(w,layer,2), win=$grfName
-		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, proc=KMInfoBar#pnlSetvalue2, win=$grfName
+		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, win=$grfName
+		ModifyControlList "indexV;energyV" proc=KMInfoBar#pnlSetvalue2, win=$grfName
 		setenergyVLimits(grfName)
-		ControlUpdate/W=$grfName indexV	//	ここで更新しておくと KMDisplayCtrlBarAdjust で位置が正しく扱われる
+		//	By updating here, the position is correctly dealt in KMDisplayCtrlBarAdjust
+		ControlUpdate/W=$grfName indexV
 	endif
-	
-	//	1次元の場合
+
 	if (is1D)
-		//	コントロールの幅を得るためには一度表示状態にして更新しなければならない
-		CheckBox showC title="show only trace #", disable=0, focusRing=0, proc=KMInfoBar#pnlCheck, win=$grfName
-		SetVariable traceV bodyWidth=40, value=_NUM:0, disable=0, focusRing=0, proc=KMInfoBar#pnlSetvalue1, win=$grfName
+		//	The controls must be displayed and updated at once to get their widths
+		CheckBox showC title="show only trace #", disable=0, win=$grfName
+		CheckBox showC proc=KMInfoBar#pnlCheck, focusRing=0, win=$grfName
+		SetVariable traceV bodyWidth=40, value=_NUM:0, disable=0, win=$grfName
+		SetVariable traceV focusRing=0, proc=KMInfoBar#pnlSetvalue1, win=$grfName
 		ControlUpdate/W=$grfName showC
 		ControlUpdate/W=$grfName traceV
-		adjustCtrlPos1D(grfName)	//	幅を使って位置調整を行う
+		adjustCtrlPos1D(grfName)
 		adjustCtrlDisable1D(grfName)
 	endif
 	
 	adjustCtrlPos(grfName)
+
+	SetDataFolder dfrSav
 End
 //-------------------------------------------------------------
 //	InfoBarを表示できる状態であれば 1 を返す
@@ -97,10 +109,14 @@ Static Function canInfoBarShown(String grfName)
 		return 0
 	endif
 	
-	//	コントロールバーが表示されていなければ 1
-	ControlInfo/W=$grfName kwControlBar
-	return V_Height ? 0 : 1
+	return !isAlreadyShown(grfName)
 End
+
+Static Function isAlreadyShown(String grfName)
+	ControlInfo/W=$grfName kwControlBar
+	return V_Height ? 1 : 0
+End
+
 //-------------------------------------------------------------
 //	LayerViewerのenergyVの値の範囲を設定する
 //-------------------------------------------------------------

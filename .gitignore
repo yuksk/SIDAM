@@ -1,6 +1,7 @@
 # extension
 src/SIDAM/extension/*
 !src/SIDAM/extension/readme.md
+!src/SIDAM/extension/experimental
 
 # ctab
 src/SIDAM/ctab/*
