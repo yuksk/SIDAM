@@ -12,8 +12,11 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
 ///	SIDAMSubtraction
 ///	@param w
 ///		A numeric wave, 2D or 3D
-///	@param roi [optional, default = {{0,0},{DimSize(w,0)-1,DimSize(w,1)-1}}
-///		A 2x2 wave specifying the corners of a rectanglar ROI
+///	@param roi [optional]
+///		A 2D wave that has the same number of rows and columns	as the image wave
+///		and specifies a region of interst. Set the pixels to be included in the
+///		calculation to 1. Alternatively, a 2x2 wave specifying the corners of a
+///		rectanglar ROI can be also used.
 ///	@param mode [optional, default = 0]
 ///		0: plane, 1: line, 2: layer, 3: phase, 4: exp, 5: log
 ///	@param degree [optional, default = 1 for mode=0, 0 for mode=1]
@@ -33,23 +36,18 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
 ///	@return
 ///		A result wave
 //******************************************************************************
-Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave roi, int mode, int degree,
+Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave/Z roi, int mode, int degree,
 	int direction, int method, int index, int history, String result])
 
 	STRUCT paramStruct s
 	Wave/Z s.w = w
+	Wave/Z s.roi = roi
 	s.mode = ParamIsDefault(mode) ? 0 : mode
 	s.degree = ParamIsDefault(degree) ? !s.mode : degree	//	1 for mode=0(plane)
 	s.direction = ParamIsDefault(direction) ? 0 : direction
 	s.method = ParamIsDefault(method) ? 0 : method
 	s.index = ParamIsDefault(index) ? 0 : index
 	s.result = SelectString(ParamIsDefault(result), result, "")
-	if (ParamIsDefault(roi))
-		Make/B/U/FREE tw = {{0,0},{DimSize(s.w,0)-1,DimSize(s.w,1)-1}}		//	whole area
-		Wave s.roi = tw
-	else
-		Wave/Z s.roi = roi
-	endif
 
 	if (validate(s))
 		printf "%s%s gave error: %s\r", PRESTR_CAUTION, GetRTStackInfo(1), s.errMsg
@@ -122,22 +120,26 @@ Static Function validate(STRUCT paramStruct &s)
 		return 1
 	endif
 
-	//	roi
-	if (!WaveExists(s.roi))
-		s.errMsg = "roi wave not found."
-		return 1
-	elseif (DimSize(s.roi,0) != 2 || DimSize(s.roi,1) != 2)
-		s.errMsg = "roi wave has wrong size"
-		return 1
-	elseif (s.roi[0][0] < 0 || s.roi[1][0] < 0 \
-			|| s.roi[0][1] >= DimSize(s.w,0) || s.roi[1][1] >= DimSize(s.w,1))
-		s.errMsg = "roi wave is out of range"
-		return 1
-	endif
-
 	int isComplex = WaveType(s.w) & 0x01
 	int is2D = WaveDims(s.w) == 2
 	int is3D = WaveDims(s.w) == 3
+	int nx = DimSize(s.w,0), ny = DimSize(s.w,1), nz = DimSize(s.w,2)
+
+	//	roi
+	if (WaveExists(s.roi))
+		int is2x2 = DimSize(s.roi,0)==2 && DimSize(s.roi,1)==2
+		int isSameSize = DimSize(s.roi,0)==nx && DimSize(s.roi,1)==ny
+		if (is2x2)
+			if (WaveMin(s.roi) < 0	|| s.roi[0][1] >= nx || s.roi[1][1] >= ny)
+				s.errMsg = "roi wave is out of range"
+				return 1
+			endif
+		elseif (!isSameSize)
+			s.errMsg = "roi wave must have the same number of rows and "\
+				+ "columns as the input wave"
+			return 1		
+		endif
+	endif
 
 	//	mode
 	switch (s.mode)
@@ -162,7 +164,7 @@ Static Function validate(STRUCT paramStruct &s)
 		case 2:	//	layer
 			if (!is3D)
 				s.errMsg = "mode 3 is available for a 3D wave"
-			elseif (s.index < 0 || s.index >= DimSize(s.w,2))
+			elseif (s.index < 0 || s.index >= nz)
 				s.errMsg = "index is out of range."
 			endif
 			break
@@ -170,7 +172,7 @@ Static Function validate(STRUCT paramStruct &s)
 		case 3:	//	phase
 			if (!is3D || !isComplex)
 				s.errMsg = "mode 3 is available for a complex 3D wave"
-			elseif (s.index < 0 || s.index >= DimSize(s.w,2))
+			elseif (s.index < 0 || s.index >= nz)
 				s.errMsg = "index is out of range."
 			endif
 			break
@@ -555,19 +557,18 @@ Static Function pnlShowHideControls(String pnlName)
 End
 
 
-//=====================================================================================================
+//==============================================================================
 //	Functions executing subtraction
-//=====================================================================================================
+//==============================================================================
 //******************************************************************************
 //	plane, for real 2D/3D waves
 //******************************************************************************
-Static Function/WAVE subtract_plane(Wave w, Wave roi, int degree)
-
-	Variable nx = DimSize(w,0), ny = DimSize(w,1), i
+Static Function/WAVE subtract_plane(Wave w, Wave/Z roi, int degree)
 
 	//	For 3D waves, apply the 2D code below to each layer
 	if (WaveDims(w)==3)
 		Duplicate/FREE w, rtn3dw
+		Variable i
 		for (i = 0; i < DimSize(w,2); i++)
 			MatrixOP/FREE slice = layer(w,i)
 			Wave tw = subtract_plane(slice,roi,degree)
@@ -577,34 +578,68 @@ Static Function/WAVE subtract_plane(Wave w, Wave roi, int degree)
 	endif
 
 	//	For 2D waves
-	Duplicate/FREE/RMD=[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] w tw
-
-	if (degree)
-		Wave cw = plane_coef(tw)
+	int is2x2 = WaveExists(roi) && DimSize(roi,0)==2 && DimSize(roi,1)==2
+	int isnxn = WaveExists(roi) && !(DimSize(roi,0)==2 && DimSize(roi,1)==2)
+	if (is2x2)
+		Duplicate/FREE/RMD=[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] w inputw
+	else
+		Wave inputw = w
+	endif
+	
+	if (degree==0)
+		if (isnxn)
+			MatrixOP/FREE tw = sum(inputw*roi)/sum(roi)
+			Variable avg = tw[0]
+			MatrixOP/FREE rtnw = w - avg
+		else
+			MatrixOP/FREE rtnw = w - mean(inputw)
+		endif
+		Copyscales w, rtnw
+		return rtnw
+	endif
+	
+	if (is2x2)
+		Wave cw = plane_coef(inputw)
 		MatrixOP/FREE rtnw = w - (cw[0]*indexRows(w) + cw[1]*indexCols(w))
 		ImageStats/Q/M=0/G={roi[0][0],roi[0][1],roi[1][0],roi[1][1]} rtnw
 		rtnw -= V_avg
 	else
-		MatrixOP/FREE rtnw = w - mean(tw)
+		Wave cw = plane_coef(inputw, roi=roi)
+		MatrixOP/FREE rtnw = w - (cw[0]*indexRows(w) + cw[1]*indexCols(w) + cw[2])
 	endif
-
 	Copyscales w, rtnw
 	return rtnw
 End
 
-Static Function/WAVE plane_coef(Wave w)
+Static Function/WAVE plane_coef(Wave w, [Wave/Z roi])
 
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
 
 	//  Equation to get the least-squares solution, Ax = b
 	Make/D/N=(3,3) A
-	A = sum_poly_series(DimSize(w,0)-1, (p==0)+(q==0)) \
-	  * sum_poly_series(DimSize(w,1)-1, (p==1)+(q==1))
+	if (!WaveExists(roi))
+		A = sum_poly_series(DimSize(w,0)-1, (p==0)+(q==0)) \
+		  * sum_poly_series(DimSize(w,1)-1, (p==1)+(q==1))
+	else
+		MatrixOP p1 = sum(roi * indexRows(w))
+		MatrixOP p2 = sum(magSqr(roi * indexRows(w)))
+		MatrixOP q1 = sum(roi * indexCols(w))
+		MatrixOP q2 = sum(magSqr(roi * indexCols(w)))
+		MatrixOP p1q1 = sum(roi * indexRows(w) * indexCols(w))
+		MatrixOP p0q0 = sum(roi)
+		A = {{p2,p1q1,p1},{p1q1,q2,q1},{p1,q1,p0q0}}
+	endif
 
-	MatrixOP b0 = sum(w * indexRows(w))
-	MatrixOP b1 = sum(w * indexCols(w))
-	MatrixOP b2 = sum(w)
+	if (!WaveExists(roi))
+		MatrixOP b0 = sum(w * indexRows(w))
+		MatrixOP b1 = sum(w * indexCols(w))
+		MatrixOP b2 = sum(w)
+	else
+		MatrixOP b0 = sum(w * indexRows(w) * roi)
+		MatrixOP b1 = sum(w * indexCols(w) * roi)
+		MatrixOP b2 = sum(w * roi)	
+	endif
 	Make/D b = {b0, b1, b2}
 
 	MatrixLLS A b

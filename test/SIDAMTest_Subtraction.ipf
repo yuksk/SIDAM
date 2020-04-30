@@ -11,27 +11,26 @@ Static Function Testsubtract_plane()
 	Make/D/FREE coefw = {0.01, 0.02, 0.035}
 	Make/D/N=(n,n-2)/FREE w0 = coefw[0]*p + coefw[1]*q + coefw[2]
 	Make/D/N=(n,n-2,2)/FREE w1 = (coefw[0]+r)*p + (coefw[1]+r)*q + coefw[2]+r
-	Make/D/FREE roi = {{0,0},{n-1,n-3}}
 	Setscale/P x -0.5, 0.1, "", w0, w1
 
 	//	2D, degree=0
-	Wave resultw = SIDAMSubtraction#subtract_plane(w0,roi,0)
+	Wave resultw = SIDAMSubtraction#subtract_plane(w0,$"",0)
 	WaveStats/Q/M=0 resultw
 	CHECK_SMALL_VAR(V_avg,tol=1e-14)
 
 	//	3D, degree=0
-	Wave resultw = SIDAMSubtraction#subtract_plane(w1,roi,0)
+	Wave resultw = SIDAMSubtraction#subtract_plane(w1,$"",0)
 	ImageStats/Q/P=1 resultw
 	CHECK_SMALL_VAR(V_avg,tol=1e-14)
 
 	//	2D, degree=1
-	Wave resultw = SIDAMSubtraction#subtract_plane(w0,roi,1)
+	Wave resultw = SIDAMSubtraction#subtract_plane(w0,$"",1)
 	CHECK_EQUAL_WAVES(resultw,w0,mode=WAVE_SCALING)
 	CHECK_SMALL_VAR(WaveMax(resultw),tol=2e-12)
 	CHECK_SMALL_VAR(WaveMin(resultw),tol=2e-12)
 
 	//	3D, degree=1
-	Wave resultw = SIDAMSubtraction#subtract_plane(w1,roi,1)
+	Wave resultw = SIDAMSubtraction#subtract_plane(w1,$"",1)
 	CHECK_EQUAL_WAVES(resultw,w1,mode=WAVE_SCALING)
 	CHECK_SMALL_VAR(WaveMax(resultw),tol=1e-11)
 	CHECK_SMALL_VAR(WaveMin(resultw),tol=1e-11)
@@ -41,29 +40,41 @@ Static Function Testsubtract_plane()
 	int p0 = round(n*0.2), p1 = round(n*0.4), q0 = p0, q1 = p1*2
 	w2[p0,p1][q0,q1] = coefw[0]*p + coefw[1]*q + coefw[2]
 	w3[p0,p1][q0,q1][] = (coefw[0]+r)*p + (coefw[1]+r)*q + coefw[2]+r
-	roi = {{p0,q0},{p1,q1}}
+	Make/D/FREE roi = {{p0,q0},{p1,q1}}
 
-	//	2D, roi, degree=0
+	//	2D, roi 2x2, degree=0
 	Wave resultw = SIDAMSubtraction#subtract_plane(w2,roi,0)
 	ImageStats/Q/M=0/G={p0,p1,q0,q1} resultw
 	CHECK_SMALL_VAR(V_avg,tol=1e-13)
 
-	//	3D, roi, degree=0
+	//	3D, roi 2x2, degree=0
 	Wave resultw = SIDAMSubtraction#subtract_plane(w3,roi,0)
 	ImageStats/Q/M=0/P=1/G={p0,p1,q0,q1} resultw
 	CHECK_SMALL_VAR(V_avg,tol=1e-13)
 
-	//	2D, roi, degree=1
+	//	2D, roi 2x2, degree=1
 	Wave resultw = SIDAMSubtraction#subtract_plane(w2,roi,1)
 	ImageStats/Q/M=0/G={p0,p1,q0,q1} resultw
 	CHECK_SMALL_VAR(V_max,tol=1e-13)
 	CHECK_SMALL_VAR(V_min,tol=1e-13)
 
-	//	3D, roi, degree=1
+	//	3D, roi 2x2, degree=1
 	Wave resultw = SIDAMSubtraction#subtract_plane(w3,roi,1)
 	ImageStats/Q/M=0/G={p0,p1,q0,q1} resultw
 	CHECK_SMALL_VAR(V_max,tol=1e-13)
 	CHECK_SMALL_VAR(V_min,tol=1e-13)
+
+	//	2D, roi 2x2, nxn, degree=0, 1	
+	Make/D/N=(n,n-2)/FREE roi2 = 0
+	roi2[p0,p1][q0,q1] = 1 
+
+	Wave resultw = SIDAMSubtraction#subtract_plane(w0,roi,0)
+	Wave resultw2 = SIDAMSubtraction#subtract_plane(w0,roi2,0)
+	CHECK_EQUAL_WAVES(resultw,resultw2,mode=WAVE_DATA,tol=1e-14)
+
+	Wave resultw = SIDAMSubtraction#subtract_plane(w0,roi,1)
+	Wave resultw2 = SIDAMSubtraction#subtract_plane(w0,roi2,1)
+	CHECK_EQUAL_WAVES(resultw,resultw2,mode=WAVE_DATA,tol=1e-14)
 End
 
 Static Function Testplane_coef()
