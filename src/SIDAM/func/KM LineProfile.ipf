@@ -17,6 +17,8 @@ Static StrConstant PNL_W = "W_SIDAMLineProfile"
 Static StrConstant PNL_C = "W_SIDAMLineProfileC"
 Static StrConstant PNL_B1 = "W_SIDAMLineProfile_b"
 Static StrConstant PNL_B2 = "W_SIDAMLineProfile_y"
+Static StrConstant PNL_X = "W_SIDAMLineProfileX"
+Static StrConstant PNL_Y = "W_SIDAMLineProfileY"
 Static StrConstant PNL_T = "W_SIDAMLineProfileT"
 
 Static StrConstant KEY = "SIDAMLineProfile"
@@ -114,10 +116,12 @@ Static Structure paramStruct
 	double	p1
 	double	p2
 	double	q1
-	double q2
+	double	q2
 	double	width
 	uchar	output
 	String	result
+	String	resultx
+	String	resulty
 	DFREF dfr
 EndStructure
 
@@ -211,8 +215,10 @@ Static Function/WAVE getLineProfile(STRUCT paramStruct &s)
 		Wave posxw = $PROF_X_NAME, posyw = $PROF_Y_NAME
 		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), posxw
 		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,1)), posyw
-		Duplicate/O posxw dfr:$PROF_X_NAME
-		Duplicate/O posyw dfr:$PROF_Y_NAME
+		int isXdefined = strlen(s.resultx) > 0
+		int isYdefined = strlen(s.resulty) > 0
+		Duplicate/O posxw dfr:$SelectString(isXdefined, PROF_X_NAME, s.resultx)
+		Duplicate/O posyw dfr:$SelectString(isYdefined, PROF_Y_NAME, s.resulty)
 	endif
 
 	SetDataFolder dfrSav
@@ -329,9 +335,9 @@ Static Function pnl(String grfName, String imgName)
 	SetActiveSubWindow $pnlName
 
 	//	親グラフへの表示
-	AppendToGraph/W=$grfName $PROF_Y_NAME vs $PROF_X_NAME
-	ModifyGraph/W=$grfName mode($PROF_Y_NAME)=4,msize($PROF_Y_NAME)=5
-	ModifyGraph/W=$grfName textMarker($PROF_Y_NAME)={$PNL_T,"default",0,0,1,0,0}
+	AppendToGraph/W=$grfName $PNL_Y vs $PNL_X
+	ModifyGraph/W=$grfName mode($PNL_Y)=4,msize($PNL_Y)=5
+	ModifyGraph/W=$grfName textMarker($PNL_Y)={$PNL_T,"default",0,0,1,0,0}
 
 	SetDataFolder dfrSav
 End
@@ -384,6 +390,8 @@ Static Function pnlUpdateLineProfile(String pnlName)
 	ControlInfo/W=$pnlName widthV ;	s.width = V_Value
 	s.output = 5
 	s.result = PNL_W
+	s.resultx = PNL_X
+	s.resulty = PNL_Y
 	s.dfr = $GetUserData(pnlName,"","dfTmp")
 	getLineProfile(s)
 End
@@ -396,7 +404,7 @@ Static Function pnlUpdateTextmarker(String pnlName)
 	Wave/T/SDFR=dfrTmp tw = $PNL_T
 
 	tw[inf] = ""
-	Redimension/N=(numpnts(dfrTmp:$PROF_X_NAME)) tw
+	Redimension/N=(numpnts(dfrTmp:$PNL_X)) tw
 	//	最初に呼び出されるときには1を代入するために!V_Flagを使う
 	ControlInfo/W=$pnlName p1C;	tw[0] = SelectString(V_Value|!V_Flag,"","1")
 	ControlInfo/W=$pnlName p2C;	tw[inf] = SelectString(V_Value|!V_Flag,"","2")
