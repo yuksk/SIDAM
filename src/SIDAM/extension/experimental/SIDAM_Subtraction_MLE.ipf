@@ -46,7 +46,7 @@ Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.9973
 ///			Make/N=(DimSize(wave0,0),DimSize(wave0,1),2) responsibility = 0
 ///			responsibility[0,75][210,255][0] = 1
 ///			responsibility[60,185][95,185][1] = 1
-///			SIDAMSubtraction_GM(wave0,responsibility)
+///			SIDAMSubtraction_MLE(wave0,responsibility)
 //******************************************************************************
 Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	[int degree, Wave roi, int method, int maxiterations, Variable tol])
