@@ -216,39 +216,51 @@ Function LoadNanonisCommonGetHeader(pathStr)
 	return V_filePos	//	ヘッダのサイズ
 End
 
-//----------------------------------------------------------------------
-//	データの値を物理値に変換する
-//----------------------------------------------------------------------
-Function LoadNanonisCommonConversion(w, [driveamp, modulated])
-	Wave w
-	Variable driveamp
-	String modulated
-	
-	if (GrepString(NameOfWave(w),"LI([RXY]|phi)"))	//	Lock-in signal
-		if (numtype(driveamp) == 2)			//	ロックインに関するヘッダが読み込まれていない
+//------------------------------------------------------------------------------
+//	Convert raw values to physical or easy-to-read values
+//------------------------------------------------------------------------------
+Function LoadNanonisCommonConversion(Wave w, [Variable driveamp, 
+	String modulated])
+
+	int isLockin = GrepString(NameOfWave(w),"_LI([RXY]|phi|_Demod)_")
+	int isBias = GrepString(NameOfWave(w), "_Bias")
+	SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
+	int isFFTspectrum = !CmpStr(Experiment, "Spectrum")
+
+	if (isLockin)
+		int noLockInHeader = numtype(driveamp) == 2
+		int isBiasModulated = !CmpStr(modulated,"Bias (V)")
+		int isZModulated = !CmpStr(modulated,"Z (m)")
+
+		if (noLockInHeader)	
 			SetScale d WaveMin(w), WaveMax(w), "A", w
-			print "CAUTION: Information about lock-in settings is missing. Conversion to nS is NOT done."
-		elseif (!CmpStr(modulated,"Bias (V)"))	//	バイアス電圧を変調した場合
+			print "CAUTION: Information about lock-in settings is missing. "\
+				+ "Conversion to nS is NOT done."
+
+		elseif (isBiasModulated)
 			FastOP w = (1e9/driveamp) * w 	//	A -> nS
 			SetScale d WaveMin(w), WaveMax(w), "nS", w
-		elseif (!CmpStr(modulated,"Z (m)"))	//	Zを変調した場合
+
+		elseif (isZModulated)
 			FastOP w = (1/driveamp) * w
 			SetScale d WaveMin(w), WaveMax(w), "A/m", w
+
 		else
 			FastOP w = (1/driveamp) * w
+
 		endif
-	elseif (GrepString(NameOfWave(w), "Bias"))	//	Bias
+
+	elseif (isBias)
 		FastOP w = (1e3) * w		//	V -> mV
 		SetScale d WaveMin(w), WaveMax(w), "mV", w
+
+	elseif (isFFTspectrum)
+		FastOP w = (1e15) * w		//	A -> fA
+		SetScale d WaveMin(w), WaveMax(w), "fA/sqrt(Hz)", w
+
 	else
-		SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
-		if (!CmpStr(Experiment, "Spectrum"))	//	FFT spectrum
-			FastOP w = (1e15) * w		//	A -> fA
-			SetScale d WaveMin(w), WaveMax(w), "fA/sqrt(Hz)", w
-		else
-			FastOP w = (1e9) * w		//	A -> nA
-			SetScale d WaveMin(w), WaveMax(w), "nA", w
-		endif
+		FastOP w = (1e9) * w		//	A -> nA
+		SetScale d WaveMin(w), WaveMax(w), "nA", w
 	endif
 End
 
