@@ -5,21 +5,21 @@
 #pragma hide = 1
 #endif
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Version
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8
 Constant SIDAM_VERSION_MINOR = 6
 Constant SIDAM_VERSION_PATCH = 1
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Data Folder
-//------------------------------------------------------------------------------------------------
-StrConstant SIDAM_DF = "root:Packages:SIDAM"			//	the temporary datafolder
+//------------------------------------------------------------------------------
+StrConstant SIDAM_DF = "root:Packages:SIDAM"
 StrConstant SIDAM_DF_CTAB = "root:Packages:SIDAM:ctable:"
-StrConstant SIDAM_DF_SETTINGS = "settings"				//	header information is stored in this datafolder
+StrConstant SIDAM_DF_SETTINGS = "settings"	
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Colors
 //------------------------------------------------------------------------------------------------
 //	for a window showing a wave contained in the temporary datafolder
@@ -34,9 +34,9 @@ Constant SIDAM_CLR_EVAL_R = 0, 		SIDAM_CLR_EVAL_G = 15872,		 SIDAM_CLR_EVAL_B = 
 //	for background of SetVariable, indicating something necesary to be modifed
 Constant SIDAM_CLR_CAUTION_R = 65280, SIDAM_CLR_CAUTION_G = 32768, SIDAM_CLR_CAUTION_B = 32768
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Folders and files
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StrConstant SIDAM_FOLDER_MAIN = "SIDAM"
 StrConstant SIDAM_FOLDER_FUNC = "func"
 StrConstant SIDAM_FOLDER_COLOR = "ctab"
@@ -50,16 +50,16 @@ StrConstant SIDAM_FILE_LOADERLIST_DEFAULT = "functions.default.ini"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
 StrConstant SIDAM_FILE_SHORTCUTS = "shortcuts.pdf"
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Temporary waves
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StrConstant KM_WAVE_LIST = "KM_list"
 StrConstant KM_WAVE_SELECTED = "KM_selected"
 StrConstant KM_WAVE_COLOR = "KM_color"
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	Constants used in Igor Pro
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Constant MAX_OBJ_NAME = 255
 Constant MAX_WIN_PATH = 2000
 Constant MAXCMDLEN = 2500
@@ -70,13 +70,18 @@ StrConstant PRESTR_CAUTION = "** "	//	prefix characters for cautions in the hist
 StrConstant MENU_COMPLEX1D = "real and imaginary;real only;imaginary only;magnitude;phase (radians)"
 StrConstant MENU_COMPLEX2D = "Magnitude;Real only;Imaginary only;Phase in radians"
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//	URL
+//------------------------------------------------------------------------------
+StrConstant SIDAM_URL_FEED = "https://gitlab.com/ThnJYSZq/SIDAM/-/tags?feed_token=eWufChs5v3WpTvcoe_YS&format=atom"
+
+//------------------------------------------------------------------------------
 //	Text encoding
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	for nanonis, this prorbaby depends on OS
 StrConstant TEXTENCODING_NANONIS = "ShiftJIS"
 
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	For backward compatibility
-//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StrConstant KM_FILE_INCLUDE = "All KM Procedures"

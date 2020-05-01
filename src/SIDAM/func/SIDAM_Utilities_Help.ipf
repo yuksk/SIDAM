@@ -79,8 +79,7 @@ End
 //	Check new version
 //******************************************************************************
 Function SIDAMCheckUpdate()
-	String url = "https://gitlab.com/ThnJYSZq/SIDAM/tags?feed_token=TRsrprEAzVg68xpvVMyu&format=atom"
-	PutScrapText FetchURL(url)
+	PutScrapText FetchURL(SIDAM_URL_FEED)
 	
 	Make/T/N=1/FREE txtw
 	Grep/E="<title>v" "Clipboard" as txtw
