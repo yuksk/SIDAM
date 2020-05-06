@@ -13,6 +13,8 @@ Static Constant DEFAULT_TOLERANCE = 1e-7
 Static Constant METHOD_KMEANS = 1
 Static Constant METHOD_GAUSSIAN_MIXTURE = 2
 Static Constant METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE = 3
+Static Constant METHOD_CAUCHY_MIXTURE = 4
+Static Constant METHOD_CAUCHY_MIXTURE_COMMON_SCALE = 5
 
 Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.99
 
@@ -32,9 +34,13 @@ Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.99
 ///		An unsigned 8-bit 2D wave that has the same number of rows and columns
 ///		as the image wave and specifies a region of interst. Set the pixels to
 ///		be included in the calculation to 1.
-///	@param method [optional, default = 3]
-///		Clustering method. 1 for K-means clustering, 2 for Gaussian mixture,
-///		3 for Gaussian mixture with a common variance.
+///	@param method [optional, default = 1]
+///		1: Gauss distributions with zero variance
+///			(Least-squares fit & K-means clustering)
+///		2: Gauss distributions
+///		3: Gauss distributions with a common variance
+///		4: Cauchy distributions
+///		5: Cauchy distributions with a common scale parameter
 ///	@param maxiterations [optional, default = 64]
 ///		The maximum number of iterations.
 ///	@param tol [optional, default = 1e-7]
@@ -52,8 +58,7 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	[int degree, Wave roi, int method, int maxiterations, Variable tol])
 
 	degree = ParamIsDefault(degree) ? DEFAULT_DEGREE : limit(degree, 1, inf)
-	method = ParamIsDefault(method) ? METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE \
-		: method
+	method = ParamIsDefault(method) ? METHOD_KMEANS : method
 	maxiterations = ParamIsDefault(maxiterations) ? DEFAULT_MAXITERATIONS : \
 		limit(maxiterations, 1, inf)
 	tol = ParamIsDefault(tol) ? DEFAULT_TOLERANCE : tol
@@ -70,6 +75,10 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	Wave w_subtracted = subtract_plane(w, responsibility, vecphi, avg,\
 		initial_guess=1)
 	Variable objective = calc_objective(w_subtracted, avg, responsibility)
+	if (method == METHOD_CAUCHY_MIXTURE || \
+		method == METHOD_CAUCHY_MIXTURE_COMMON_SCALE)
+		Duplicate/FREE responsibility responsibility_tilde
+	endif
 
 #ifdef DEBUG_SIDAMSubtraction_MLE
 	STRUCT debug_structure s
@@ -80,16 +89,43 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	for (i = 1; i <= maxiterations; i++)
 
 		//	E-step
-		Wave avg = calc_avg(w_subtracted, responsibility)
-		if (method == METHOD_GAUSSIAN_MIXTURE || \
-				method ==METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE)
-			Wave var = calc_variance(w, responsibility, avg, method)
-			Wave mixing_coef = calc_mixing_coef(responsibility)
-		endif
+		switch (method)
+			case METHOD_KMEANS:
+				Wave avg = calc_avg(w_subtracted, responsibility)
+				break
+			case METHOD_GAUSSIAN_MIXTURE:
+			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
+				Wave avg = calc_avg(w_subtracted, responsibility)
+				Wave var = calc_variance(w, responsibility, avg, method)
+				Wave mixing_coef = calc_mixing_coef(responsibility)
+				break
+			case METHOD_CAUCHY_MIXTURE:
+			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
+				Wave avg = calc_avg(w_subtracted, responsibility_tilde)
+				Wave scale = calc_scale(w, responsibility, \
+					responsibility_tilde, method)
+				Wave mixing_coef = calc_mixing_coef(responsibility)
+				break
+		endswitch
 
 		//	M-step
-		renew_responsibility(responsibility, w_subtracted, avg, var, \
-			mixing_coef, roi)
+		switch (method)
+			case METHOD_KMEANS:
+				renew_responsibility(responsibility, w_subtracted, avg, roi)
+				break
+			case METHOD_GAUSSIAN_MIXTURE:
+			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
+				renew_responsibility(responsibility, w_subtracted, avg, roi, \
+					var=var, mixing_coef=mixing_coef)
+				break
+			case METHOD_CAUCHY_MIXTURE:
+			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
+				renew_responsibility(responsibility, w_subtracted, avg, roi, \
+					scale=scale, tilde=responsibility_tilde, \
+					mixing_coef=mixing_coef)
+				break
+		endswitch
+
 		Variable objective_new = calc_objective(w_subtracted, avg, \
 			responsibility)
 
@@ -103,7 +139,19 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 		endif
 
 		objective = objective_new
-		Wave w_subtracted = subtract_plane(w, responsibility, vecphi, avg)
+		switch (method)
+			case METHOD_KMEANS:
+			case METHOD_GAUSSIAN_MIXTURE:
+			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
+				Wave w_subtracted = subtract_plane(w, responsibility, vecphi, avg)
+				break
+			case METHOD_CAUCHY_MIXTURE:
+			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
+				Duplicate/FREE responsibility_tilde, tw
+				MultiThread tw = scale[r] ? tw/scale[r] : 0
+				Wave w_subtracted = subtract_plane(w, tw, vecphi, avg)
+				break
+		endswitch
 	endfor
 
 	if (!isConverged)
@@ -111,7 +159,7 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	endif
 
 #ifdef DEBUG_SIDAMSubtraction_MLE
-	Wave/Z s.avg = avg, s.var = var
+	Wave/Z s.avg = avg, s.var = var, s.scale = scale
 	debug_save_outputs(s, w, isConverged, i)
 #endif
 
@@ -194,6 +242,8 @@ Static Function validate(Wave w, Wave responsibility, Wave/Z roi,
 		case METHOD_KMEANS:
 		case METHOD_GAUSSIAN_MIXTURE:
 		case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
+		case METHOD_CAUCHY_MIXTURE:
+		case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
 			break
 		default:
 			print errMsg + "unknown method"
@@ -274,7 +324,7 @@ Static Function/WAVE calc_variance(Wave w, Wave responsibility, Wave avg,
 	int method)
 
 	Make/D/N=(DimSize(responsibility,2))/FREE var
-	
+
 	if (method == METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE)
 		MultiThread var = calc_variance_helper_common_variance(\
 			w, responsibility, avg, p)
@@ -312,6 +362,31 @@ ThreadSafe Static Function calc_variance_helper(Wave w, Wave responsibility,
 	MatrixOP/FREE tw1 = sum(magSqr(w-avg[k]) * responsibility[][][k])
 
 	return tw1[0] / tw0[0]
+End
+
+
+Static Function/WAVE calc_scale(Wave w, Wave responsibility,
+	Wave responsibility_tilde, int method)
+
+	//	sum with respect to n
+	//	Note the sum of MatrixOP applies on a layer by layer basis
+	MatrixOP/FREE numerator = sum(responsibility)
+	MatrixOP/FREE denominator = sum(responsibility_tilde) * 2 * pi
+
+	if (method == METHOD_CAUCHY_MIXTURE)
+		MatrixOP/FREE scale = numerator / denominator
+		Redimension/N=(numpnts(scale)) scale
+		scale = numtype(denominator[p]) ? 0 : scale[p]
+		return scale
+
+	elseif (method == METHOD_CAUCHY_MIXTURE_COMMON_SCALE)
+		//	sum with respect to k
+		Variable n = sum(numerator), d = sum(denominator)
+		Make/D/N=(DimSize(responsibility,2))/FREE scale2 = n/d
+		return scale2
+
+	endif
+
 End
 
 
@@ -415,14 +490,20 @@ End
 
 
 Static Function renew_responsibility(Wave responsibility, Wave w, Wave avg,
-	Wave/Z var, Wave/Z mixing_coef, Wave/Z roi)
+	WAVE/Z roi, [Wave var, Wave scale, Wave tilde, Wave mixing_coef])
 
 	Make/B/N=(DimSize(responsibility,0),DimSize(responsibility,1))/FREE dummy
 
-	if (WaveExists(var))
+	if (!ParamIsDefault(var))
 		MultiThread dummy = renew_responsibility_helper_gaussian_mixture(\
 			responsibility, w, avg, var, mixing_coef, p, q)
-	
+
+	elseif (!ParamIsDefault(scale))
+		MultiThread dummy = renew_responsibility_helper_cauchy_mixture(\
+			responsibility, w, avg, scale, mixing_coef, p, q)
+		MultiThread tilde = responsibility * scale[r] / \
+			(magSqr(cmplx(w[p][q]-avg[r],scale[r])) * pi)
+
 	else
 		MultiThread dummy = renew_responsibility_helper_kmeans(\
 			responsibility, w, avg, p, q)
@@ -437,6 +518,17 @@ ThreadSafe Static Function renew_responsibility_helper_gaussian_mixture(
 
 	Variable h = w[pp][qq]
 	MatrixOP/FREE numerator = mixing_coef / sqrt(2*pi*var) * exp(-magSqr(avg-h)/(2*var))
+	responsibility[pp][qq][] = numerator[r]/sum(numerator)
+
+	return 0
+End
+
+ThreadSafe Static Function renew_responsibility_helper_cauchy_mixture(
+	Wave responsibility, Wave w, Wave avg, Wave scalew, Wave mixing_coef,
+	int pp, int qq)
+
+	Variable h = w[pp][qq]
+	MatrixOP/FREE numerator = mixing_coef * scalew / (magSqr(cmplx(avg-h,scalew)) * pi)
 	responsibility[pp][qq][] = numerator[r]/sum(numerator)
 
 	return 0
@@ -479,6 +571,7 @@ Static Structure debug_structure
 	Wave objective
 	Wave avg
 	Wave var
+	Wave scale
 	Variable trn
 	uint64 maxiterations
 EndStructure
@@ -523,6 +616,9 @@ Static Function debug_save_outputs(STRUCT debug_structure &s,
 	Duplicate/O s.avg, $(basename+"avg")
 	if (WaveExists(s.var))
 		Duplicate/O s.var, $(basename+"var")
+	endif
+	if (WaveExists(s.scale))
+		Duplicate/O s.scale, $(basename+"scale")
 	endif
 
 	Duplicate/O debug_make_map(w, s.responsibilities), $(basename+\
