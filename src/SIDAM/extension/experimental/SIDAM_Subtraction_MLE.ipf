@@ -258,10 +258,15 @@ End
 
 ThreadSafe Static Function calc_avg_helper(Wave w, Wave responsibility, int k)
 
-	//	sum with respect to n
-	MatrixOP/FREE tw = sum(w * responsibility[][][k]) / sum(responsibility[][][k])
+	MatrixOP/FREE tw0 = sum(responsibility[][][k])
+	if (tw0[0] == 0)
+		return 0
+	endif
 
-	return tw[0]
+	//	sum with respect to n
+	MatrixOP/FREE tw1 = sum(w * responsibility[][][k])
+
+	return tw1[0] / tw0[0]
 End
 
 
@@ -298,10 +303,15 @@ End
 ThreadSafe Static Function calc_variance_helper(Wave w, Wave responsibility,
 	Wave avg, int k)
 
-	//	sum with respect to n
-	MatrixOP/FREE tw = sum(magSqr(w-avg[k]) * responsibility[][][k]) / sum(responsibility[][][k])
+	MatrixOP/FREE tw0 = sum(responsibility[][][k])
+	if (tw0[0] == 0)
+		return 0
+	endif
 
-	return tw[0]
+	//	sum with respect to n
+	MatrixOP/FREE tw1 = sum(magSqr(w-avg[k]) * responsibility[][][k])
+
+	return tw1[0] / tw0[0]
 End
 
 
