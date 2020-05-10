@@ -137,7 +137,7 @@ Static Function validate(STRUCT paramStruct &s)
 		elseif (!isSameSize)
 			s.errMsg = "roi wave must have the same number of rows and "\
 				+ "columns as the input wave"
-			return 1		
+			return 1
 		endif
 	endif
 
@@ -585,7 +585,7 @@ Static Function/WAVE subtract_plane(Wave w, Wave/Z roi, int degree)
 	else
 		Wave inputw = w
 	endif
-	
+
 	if (degree==0)
 		if (isnxn)
 			MatrixOP/FREE tw = sum(inputw*roi)/sum(roi)
@@ -597,7 +597,7 @@ Static Function/WAVE subtract_plane(Wave w, Wave/Z roi, int degree)
 		Copyscales w, rtnw
 		return rtnw
 	endif
-	
+
 	if (is2x2)
 		Wave cw = plane_coef(inputw)
 		MatrixOP/FREE rtnw = w - (cw[0]*indexRows(w) + cw[1]*indexCols(w))
@@ -638,7 +638,7 @@ Static Function/WAVE plane_coef(Wave w, [Wave/Z roi])
 	else
 		MatrixOP b0 = sum(w * indexRows(w) * roi)
 		MatrixOP b1 = sum(w * indexCols(w) * roi)
-		MatrixOP b2 = sum(w * roi)	
+		MatrixOP b2 = sum(w * roi)
 	endif
 	Make/D b = {b0, b1, b2}
 
@@ -667,7 +667,7 @@ End
 //******************************************************************************
 //	poly, for real 2D/3D waves
 //******************************************************************************
-Static Function/WAVE subtract_poly(Wave w, Wave roi, int degree)
+Static Function/WAVE subtract_poly(Wave w, Wave/Z roi, int degree)
 
 	//	For 3D waves, apply the 2D code below to each layer
 	if (WaveDims(w)==3)
@@ -682,13 +682,22 @@ Static Function/WAVE subtract_poly(Wave w, Wave roi, int degree)
 	endif
 
 	//	For 2D waves
+	int is2x2 = WaveExists(roi) && DimSize(roi,0)==2 && DimSize(roi,1)==2
+	int isnxn = WaveExists(roi) && !(DimSize(roi,0)==2 && DimSize(roi,1)==2)
+
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
 
-	Make/B/U/N=(DimSize(w,0),DimSize(w,1)) tw2=0
-	tw2[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] = 1
-
-	ImageRemoveBackground/R=tw2/P=(degree) w
+	if (is2x2)
+		Make/B/U/N=(DimSize(w,0),DimSize(w,1)) rw = 0
+		rw[roi[0][0],roi[0][1]][roi[1][0],roi[1][1]] = 1
+		ImageRemoveBackground/R=rw/P=(degree) w
+	elseif (isnxn)
+		ImageRemoveBackground/R=roi/P=(degree) w
+	else
+		Make/B/U/N=(DimSize(w,0),DimSize(w,1)) rw = 1
+		ImageRemoveBackground/R=rw/P=(degree) w
+	endif
 	Wave rtnw = M_RemovedBackground
 
 	SetDataFolder dfrSav
