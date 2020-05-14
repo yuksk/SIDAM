@@ -103,7 +103,7 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 			case DISTRIB_CAUCHY:
 			case DISTRIB_CAUCHY_COMMON_SCALE:
 				Wave center = calc_center(w_subtracted, responsibility_tilde)
-				Wave scale = calc_scale(w, responsibility, \
+				Wave scale = calc_scale(responsibility, \
 					responsibility_tilde, distrib)
 				Wave mixing_coef = calc_mixing_coef(responsibility)
 				break
@@ -366,7 +366,7 @@ ThreadSafe Static Function calc_variance_helper(Wave w, Wave responsibility,
 End
 
 
-Static Function/WAVE calc_scale(Wave w, Wave responsibility,
+Static Function/WAVE calc_scale(Wave responsibility,
 	Wave responsibility_tilde, int distrib)
 
 	//	sum with respect to n
