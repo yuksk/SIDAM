@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8
 Constant SIDAM_VERSION_MINOR = 7
-Constant SIDAM_VERSION_PATCH = 0
+0onstant SIDAM_VERSION_PATCH = 1
 
 //------------------------------------------------------------------------------
 //	Data Folder

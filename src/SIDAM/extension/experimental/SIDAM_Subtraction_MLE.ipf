@@ -10,11 +10,11 @@ Static Constant DEFAULT_DEGREE = 1
 Static Constant DEFAULT_MAXITERATIONS = 64
 Static Constant DEFAULT_TOLERANCE = 1e-7
 
-Static Constant METHOD_KMEANS = 1
-Static Constant METHOD_GAUSSIAN_MIXTURE = 2
-Static Constant METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE = 3
-Static Constant METHOD_CAUCHY_MIXTURE = 4
-Static Constant METHOD_CAUCHY_MIXTURE_COMMON_SCALE = 5
+Static Constant DISTRIB_GAUSS_ZERO_VARIANCE = 1
+Static Constant DISTRIB_GAUSS = 2
+Static Constant DISTRIB_GAUSS_COMMON_VARIANCE = 3
+Static Constant DISTRIB_CAUCHY = 4
+Static Constant DISTRIB_CAUCHY_COMMON_SCALE = 5
 
 Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.99
 
@@ -34,7 +34,7 @@ Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.99
 ///		An unsigned 8-bit 2D wave that has the same number of rows and columns
 ///		as the image wave and specifies a region of interst. Set the pixels to
 ///		be included in the calculation to 1.
-///	@param method [optional, default = 1]
+///	@param distrib [optional, default = 1]
 ///		1: Gauss distributions with zero variance
 ///			(Least-squares fit & K-means clustering)
 ///		2: Gauss distributions
@@ -55,15 +55,15 @@ Static Constant DEFAULT_DEBUG_THRESHOLD_MAP = 0.99
 ///			SIDAMSubtraction_MLE(wave0,responsibility)
 //******************************************************************************
 Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
-	[int degree, Wave roi, int method, int maxiterations, Variable tol])
+	[int degree, Wave roi, int distrib, int maxiterations, Variable tol])
 
 	degree = ParamIsDefault(degree) ? DEFAULT_DEGREE : limit(degree, 1, inf)
-	method = ParamIsDefault(method) ? METHOD_KMEANS : method
+	distrib = ParamIsDefault(distrib) ? DISTRIB_GAUSS_ZERO_VARIANCE : distrib
 	maxiterations = ParamIsDefault(maxiterations) ? DEFAULT_MAXITERATIONS : \
 		limit(maxiterations, 1, inf)
 	tol = ParamIsDefault(tol) ? DEFAULT_TOLERANCE : tol
 
-	if (validate(w, responsibility, roi, method))
+	if (validate(w, responsibility, roi, distrib))
 		return $""
 	endif
 
@@ -71,12 +71,12 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 
 	//	initial step
 	Wave vecphi = calc_vecphi(w, degree)
-	Wave avg = calc_avg(w, responsibility)
-	Wave w_subtracted = subtract_plane(w, responsibility, vecphi, avg,\
+	Wave center = calc_center(w, responsibility)
+	Wave w_subtracted = subtract_plane(w, responsibility, vecphi, center,\
 		initial_guess=1)
-	Variable objective = calc_objective(w_subtracted, avg, responsibility)
-	if (method == METHOD_CAUCHY_MIXTURE || \
-		method == METHOD_CAUCHY_MIXTURE_COMMON_SCALE)
+	Variable objective = calc_objective(w_subtracted, center, responsibility)
+	if (distrib == DISTRIB_CAUCHY || \
+		distrib == DISTRIB_CAUCHY_COMMON_SCALE)
 		Duplicate/FREE responsibility responsibility_tilde
 	endif
 
@@ -89,44 +89,45 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	for (i = 1; i <= maxiterations; i++)
 
 		//	E-step
-		switch (method)
-			case METHOD_KMEANS:
-				Wave avg = calc_avg(w_subtracted, responsibility)
+		switch (distrib)
+			case DISTRIB_GAUSS_ZERO_VARIANCE:
+				Wave center = calc_center(w_subtracted, responsibility)
 				break
-			case METHOD_GAUSSIAN_MIXTURE:
-			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
-				Wave avg = calc_avg(w_subtracted, responsibility)
-				Wave var = calc_variance(w, responsibility, avg, method)
+			case DISTRIB_GAUSS:
+			case DISTRIB_GAUSS_COMMON_VARIANCE:
+				Wave center = calc_center(w_subtracted, responsibility)
+				Wave var = calc_variance(w_subtracted, responsibility, center, \
+					distrib)
 				Wave mixing_coef = calc_mixing_coef(responsibility)
 				break
-			case METHOD_CAUCHY_MIXTURE:
-			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
-				Wave avg = calc_avg(w_subtracted, responsibility_tilde)
+			case DISTRIB_CAUCHY:
+			case DISTRIB_CAUCHY_COMMON_SCALE:
+				Wave center = calc_center(w_subtracted, responsibility_tilde)
 				Wave scale = calc_scale(w, responsibility, \
-					responsibility_tilde, method)
+					responsibility_tilde, distrib)
 				Wave mixing_coef = calc_mixing_coef(responsibility)
 				break
 		endswitch
 
 		//	M-step
-		switch (method)
-			case METHOD_KMEANS:
-				renew_responsibility(responsibility, w_subtracted, avg, roi)
+		switch (distrib)
+			case DISTRIB_GAUSS_ZERO_VARIANCE:
+				renew_responsibility(responsibility, w_subtracted, center, roi)
 				break
-			case METHOD_GAUSSIAN_MIXTURE:
-			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
-				renew_responsibility(responsibility, w_subtracted, avg, roi, \
+			case DISTRIB_GAUSS:
+			case DISTRIB_GAUSS_COMMON_VARIANCE:
+				renew_responsibility(responsibility, w_subtracted, center, roi, \
 					var=var, mixing_coef=mixing_coef)
 				break
-			case METHOD_CAUCHY_MIXTURE:
-			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
-				renew_responsibility(responsibility, w_subtracted, avg, roi, \
+			case DISTRIB_CAUCHY:
+			case DISTRIB_CAUCHY_COMMON_SCALE:
+				renew_responsibility(responsibility, w_subtracted, center, roi, \
 					scale=scale, tilde=responsibility_tilde, \
 					mixing_coef=mixing_coef)
 				break
 		endswitch
 
-		Variable objective_new = calc_objective(w_subtracted, avg, \
+		Variable objective_new = calc_objective(w_subtracted, center, \
 			responsibility)
 
 #ifdef DEBUG_SIDAMSubtraction_MLE
@@ -139,17 +140,17 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 		endif
 
 		objective = objective_new
-		switch (method)
-			case METHOD_KMEANS:
-			case METHOD_GAUSSIAN_MIXTURE:
-			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
-				Wave w_subtracted = subtract_plane(w, responsibility, vecphi, avg)
+		switch (distrib)
+			case DISTRIB_GAUSS_ZERO_VARIANCE:
+			case DISTRIB_GAUSS:
+			case DISTRIB_GAUSS_COMMON_VARIANCE:
+				Wave w_subtracted = subtract_plane(w, responsibility, vecphi, center)
 				break
-			case METHOD_CAUCHY_MIXTURE:
-			case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
+			case DISTRIB_CAUCHY:
+			case DISTRIB_CAUCHY_COMMON_SCALE:
 				Duplicate/FREE responsibility_tilde, tw
 				MultiThread tw = scale[r] ? tw/scale[r] : 0
-				Wave w_subtracted = subtract_plane(w, tw, vecphi, avg)
+				Wave w_subtracted = subtract_plane(w, tw, vecphi, center)
 				break
 		endswitch
 	endfor
@@ -159,7 +160,7 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 	endif
 
 #ifdef DEBUG_SIDAMSubtraction_MLE
-	Wave/Z s.avg = avg, s.var = var, s.scale = scale
+	Wave/Z s.center = center, s.var = var, s.scale = scale
 	debug_save_outputs(s, w, isConverged, i)
 #endif
 
@@ -171,7 +172,7 @@ End
 
 
 Static Function validate(Wave w, Wave responsibility, Wave/Z roi,
-	int method)
+	int distrib)
 
 	String errMsg = PRESTR_CAUTION + GetRTStackInfo(2) + \
 		" gave an error: "
@@ -237,16 +238,16 @@ Static Function validate(Wave w, Wave responsibility, Wave/Z roi,
 		return 1
 	endif
 
-	//	For the method
-	switch (method)
-		case METHOD_KMEANS:
-		case METHOD_GAUSSIAN_MIXTURE:
-		case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
-		case METHOD_CAUCHY_MIXTURE:
-		case METHOD_CAUCHY_MIXTURE_COMMON_SCALE:
+	//	For the distrib
+	switch (distrib)
+		case DISTRIB_GAUSS_ZERO_VARIANCE:
+		case DISTRIB_GAUSS:
+		case DISTRIB_GAUSS_COMMON_VARIANCE:
+		case DISTRIB_CAUCHY:
+		case DISTRIB_CAUCHY_COMMON_SCALE:
 			break
 		default:
-			print errMsg + "unknown method"
+			print errMsg + "unknown distribution"
 			return 1
 	endswitch
 
@@ -298,15 +299,15 @@ Static Function/WAVE calc_vecphi(Wave w, int degree)
 End
 
 
-Static Function/WAVE calc_avg(Wave w, Wave responsibility)
+Static Function/WAVE calc_center(Wave w, Wave responsibility)
 
-	Make/D/N=(DimSize(responsibility,2))/FREE avg
-	MultiThread avg = calc_avg_helper(w, responsibility, p)
+	Make/D/N=(DimSize(responsibility,2))/FREE center
+	MultiThread center = calc_center_helper(w, responsibility, p)
 
-	return avg
+	return center
 End
 
-ThreadSafe Static Function calc_avg_helper(Wave w, Wave responsibility, int k)
+ThreadSafe Static Function calc_center_helper(Wave w, Wave responsibility, int k)
 
 	MatrixOP/FREE tw0 = sum(responsibility[][][k])
 	if (tw0[0] == 0)
@@ -320,21 +321,21 @@ ThreadSafe Static Function calc_avg_helper(Wave w, Wave responsibility, int k)
 End
 
 
-Static Function/WAVE calc_variance(Wave w, Wave responsibility, Wave avg,
-	int method)
+Static Function/WAVE calc_variance(Wave w, Wave responsibility, Wave center,
+	int distrib)
 
 	Make/D/N=(DimSize(responsibility,2))/FREE var
 
-	if (method == METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE)
+	if (distrib == DISTRIB_GAUSS_COMMON_VARIANCE)
 		MultiThread var = calc_variance_helper_common_variance(\
-			w, responsibility, avg, p)
+			w, responsibility, center, p)
 		//	sum with respect to k (var)
 		//	sum with respect to both k and n (responsibility)
 		Variable a = sum(var) / sum(responsibility)
 		var = a
 
-	elseif (method == METHOD_GAUSSIAN_MIXTURE)
-		MultiThread var = calc_variance_helper(w, responsibility, avg, p)
+	elseif (distrib == DISTRIB_GAUSS)
+		MultiThread var = calc_variance_helper(w, responsibility, center, p)
 
 	endif
 
@@ -342,16 +343,16 @@ Static Function/WAVE calc_variance(Wave w, Wave responsibility, Wave avg,
 End
 
 ThreadSafe Static Function calc_variance_helper_common_variance(Wave w,
-	Wave responsibility, Wave avg, int k)
+	Wave responsibility, Wave center, int k)
 
 	//	sum with respect to n
-	MatrixOP/FREE tw = sum(responsibility[][][k] * magSqr(w-avg[k]))
+	MatrixOP/FREE tw = sum(responsibility[][][k] * magSqr(w-center[k]))
 
 	return tw[0]
 End
 
 ThreadSafe Static Function calc_variance_helper(Wave w, Wave responsibility,
-	Wave avg, int k)
+	Wave center, int k)
 
 	MatrixOP/FREE tw0 = sum(responsibility[][][k])
 	if (tw0[0] == 0)
@@ -359,27 +360,27 @@ ThreadSafe Static Function calc_variance_helper(Wave w, Wave responsibility,
 	endif
 
 	//	sum with respect to n
-	MatrixOP/FREE tw1 = sum(magSqr(w-avg[k]) * responsibility[][][k])
+	MatrixOP/FREE tw1 = sum(magSqr(w-center[k]) * responsibility[][][k])
 
 	return tw1[0] / tw0[0]
 End
 
 
 Static Function/WAVE calc_scale(Wave w, Wave responsibility,
-	Wave responsibility_tilde, int method)
+	Wave responsibility_tilde, int distrib)
 
 	//	sum with respect to n
 	//	Note the sum of MatrixOP applies on a layer by layer basis
 	MatrixOP/FREE numerator = sum(responsibility)
 	MatrixOP/FREE denominator = sum(responsibility_tilde) * 2 * pi
 
-	if (method == METHOD_CAUCHY_MIXTURE)
+	if (distrib == DISTRIB_CAUCHY)
 		MatrixOP/FREE scale = numerator / denominator
 		Redimension/N=(numpnts(scale)) scale
 		scale = numtype(denominator[p]) ? 0 : scale[p]
 		return scale
 
-	elseif (method == METHOD_CAUCHY_MIXTURE_COMMON_SCALE)
+	elseif (distrib == DISTRIB_CAUCHY_COMMON_SCALE)
 		//	sum with respect to k
 		Variable n = sum(numerator), d = sum(denominator)
 		Make/D/N=(DimSize(responsibility,2))/FREE scale2 = n/d
@@ -403,12 +404,12 @@ End
 
 
 Static Function/WAVE subtract_plane(Wave w, Wave responsibility,
-	Wave vecphi, Wave avg, [int initial_guess])
+	Wave vecphi, Wave center, [int initial_guess])
 
 	if (ParamIsDefault(initial_guess))
-		Wave coef = calc_coef(w, responsibility, vecphi, avg)
+		Wave coef = calc_coef(w, responsibility, vecphi, center)
 	else
-		Wave coef = calc_coef_initial_guess(w, responsibility, vecphi, avg)
+		Wave coef = calc_coef_initial_guess(w, responsibility, vecphi, center)
 	endif
 
 	Duplicate/FREE w, rtnw
@@ -422,7 +423,7 @@ End
 
 //	Calculate coefficients of subtraction
 Static Function/WAVE calc_coef(Wave w, Wave responsibility,
-	Wave vecphi, Wave avg)
+	Wave vecphi, Wave center)
 
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
@@ -431,7 +432,7 @@ Static Function/WAVE calc_coef(Wave w, Wave responsibility,
 	Make/D/N=(d,d) A
 	Make/D/N=(d) b
 	MultiThread A = calc_coef_matA(responsibility, vecphi, p, q)
-	MultiThread b = calc_coef_vecb(w, responsibility, vecphi, avg, p)
+	MultiThread b = calc_coef_vecb(w, responsibility, vecphi, center, p)
 
 	MatrixLLS A b
 	Wave coef = M_B
@@ -444,14 +445,14 @@ End
 
 //	Return a weighted average of coefficients as an initial guess
 Static Function/WAVE calc_coef_initial_guess(Wave w, Wave responsibility,
-	Wave vecphi, Wave avg)
+	Wave vecphi, Wave center)
 
 	Make/D/N=(DimSize(vecphi,2),DimSize(responsibility,2))/FREE coefs
 
 	int i
 	for (i = 0; i < DimSize(responsibility,2); i++)
 		Duplicate/FREE/R=[][][i] responsibility, tw0
-		Duplicate/FREE/R=[i] avg, tw1
+		Duplicate/FREE/R=[i] center, tw1
 		Wave coef = calc_coef(w, tw0, vecphi, tw1)
 		coefs[][i] = coef[p]*sum(tw0)/sum(responsibility)
 	endfor
@@ -470,74 +471,74 @@ ThreadSafe Static Function calc_coef_matA(Wave responsibility,
 End
 
 ThreadSafe Static Function calc_coef_vecb(Wave w, Wave responsibility,
-	Wave vecphi, Wave avg, int pp)
+	Wave vecphi, Wave center, int pp)
 
 	Make/D/N=(DimSize(responsibility,2))/FREE tw
 	tw = calc_coef_vecb_helper(w, responsibility, vecphi, \
-		avg, pp, p)
+		center, pp, p)
 
 	return sum(tw) //	sum with respect to k
 End
 
 ThreadSafe Static Function calc_coef_vecb_helper(Wave w, Wave responsibility,
-	Wave vecphi, Wave avg, int pp, int k)
+	Wave vecphi, Wave center, int pp, int k)
 
 	//	sum with respect to n
-	MatrixOP/FREE tw = sum(responsibility[][][k] * (w-avg[k]) * vecphi[][][pp])
+	MatrixOP/FREE tw = sum(responsibility[][][k] * (w-center[k]) * vecphi[][][pp])
 
 	return tw[0]
 End
 
 
-Static Function renew_responsibility(Wave responsibility, Wave w, Wave avg,
+Static Function renew_responsibility(Wave responsibility, Wave w, Wave center,
 	WAVE/Z roi, [Wave var, Wave scale, Wave tilde, Wave mixing_coef])
 
 	Make/B/N=(DimSize(responsibility,0),DimSize(responsibility,1))/FREE dummy
 
 	if (!ParamIsDefault(var))
 		MultiThread dummy = renew_responsibility_helper_gaussian_mixture(\
-			responsibility, w, avg, var, mixing_coef, p, q)
+			responsibility, w, center, var, mixing_coef, p, q)
 
 	elseif (!ParamIsDefault(scale))
 		MultiThread dummy = renew_responsibility_helper_cauchy_mixture(\
-			responsibility, w, avg, scale, mixing_coef, p, q)
+			responsibility, w, center, scale, mixing_coef, p, q)
 		MultiThread tilde = responsibility * scale[r] / \
-			(magSqr(cmplx(w[p][q]-avg[r],scale[r])) * pi)
+			(magSqr(cmplx(w[p][q]-center[r],scale[r])) * pi)
 
 	else
 		MultiThread dummy = renew_responsibility_helper_kmeans(\
-			responsibility, w, avg, p, q)
+			responsibility, w, center, p, q)
 	endif
 
 	assign_roi(responsibility, roi)
 End
 
 ThreadSafe Static Function renew_responsibility_helper_gaussian_mixture(
-	Wave responsibility, Wave w, Wave avg, Wave var, Wave mixing_coef,
+	Wave responsibility, Wave w, Wave center, Wave var, Wave mixing_coef,
 	int pp, int qq)
 
 	Variable h = w[pp][qq]
-	MatrixOP/FREE numerator = mixing_coef / sqrt(2*pi*var) * exp(-magSqr(avg-h)/(2*var))
+	MatrixOP/FREE numerator = mixing_coef / sqrt(2*pi*var) * exp(-magSqr(center-h)/(2*var))
 	responsibility[pp][qq][] = numerator[r]/sum(numerator)
 
 	return 0
 End
 
 ThreadSafe Static Function renew_responsibility_helper_cauchy_mixture(
-	Wave responsibility, Wave w, Wave avg, Wave scalew, Wave mixing_coef,
+	Wave responsibility, Wave w, Wave center, Wave scalew, Wave mixing_coef,
 	int pp, int qq)
 
 	Variable h = w[pp][qq]
-	MatrixOP/FREE numerator = mixing_coef * scalew / (magSqr(cmplx(avg-h,scalew)) * pi)
+	MatrixOP/FREE numerator = mixing_coef * scalew / (magSqr(cmplx(center-h,scalew)) * pi)
 	responsibility[pp][qq][] = numerator[r]/sum(numerator)
 
 	return 0
 End
 
 ThreadSafe Static Function renew_responsibility_helper_kmeans(
-	Wave responsibility, Wave w, Wave avg, int pp, int qq)
+	Wave responsibility, Wave w, Wave center, int pp, int qq)
 
-	Make/D/N=(numpnts(avg))/FREE distance = (w[pp][qq]-avg[p])^2
+	Make/D/N=(numpnts(center))/FREE distance = (w[pp][qq]-center[p])^2
 	WaveStats/Q/M=0 distance
 	responsibility[pp][qq][] = r==V_minloc
 
@@ -545,18 +546,18 @@ ThreadSafe Static Function renew_responsibility_helper_kmeans(
 End
 
 
-Static Function calc_objective(Wave w, Wave avg, Wave responsibility)
+Static Function calc_objective(Wave w, Wave center, Wave responsibility)
 
-	Make/D/N=(numpnts(avg))/FREE tw
-	MultiThread tw = calc_objective_helper(w, avg, responsibility, p)
+	Make/D/N=(numpnts(center))/FREE tw
+	MultiThread tw = calc_objective_helper(w, center, responsibility, p)
 
 	return sum(tw)
 End
 
-ThreadSafe Static Function calc_objective_helper(Wave w, Wave avg,
+ThreadSafe Static Function calc_objective_helper(Wave w, Wave center,
 	Wave responsibility, Variable cls)
 
-	MatrixOP/FREE tw = sum(magSqr(w-avg[cls]) * responsibility[][][cls])
+	MatrixOP/FREE tw = sum(magSqr(w-center[cls]) * responsibility[][][cls])
 
 	return tw[0]
 End
@@ -569,7 +570,7 @@ End
 Static Structure debug_structure
 	Wave responsibilities
 	Wave objective
-	Wave avg
+	Wave center
 	Wave var
 	Wave scale
 	Variable trn
@@ -613,7 +614,7 @@ Static Function debug_save_outputs(STRUCT debug_structure &s,
 	String basename = StrVarOrDefault("DEBUG_BASENAME", NameOfWave(w)) +\
 		"_MLE_debug_"
 	Duplicate/O s.objective, $(basename+"objective")
-	Duplicate/O s.avg, $(basename+"avg")
+	Duplicate/O s.center, $(basename+"center")
 	if (WaveExists(s.var))
 		Duplicate/O s.var, $(basename+"var")
 	endif
