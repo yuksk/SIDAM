@@ -96,7 +96,8 @@ Function/WAVE SIDAMSubtraction_MLE(Wave w, Wave responsibility,
 			case METHOD_GAUSSIAN_MIXTURE:
 			case METHOD_GAUSSIAN_MIXTURE_COMMON_VARIANCE:
 				Wave avg = calc_avg(w_subtracted, responsibility)
-				Wave var = calc_variance(w, responsibility, avg, method)
+				Wave var = calc_variance(w_subtracted, responsibility, avg, \
+					method)
 				Wave mixing_coef = calc_mixing_coef(responsibility)
 				break
 			case METHOD_CAUCHY_MIXTURE:
