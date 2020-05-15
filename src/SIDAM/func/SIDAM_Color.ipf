@@ -8,21 +8,6 @@
 
 #include <WMImageInfo>
 
-//	References of the color tables
-//
-//	Wolfram
-//	http://reference.wolfram.com/language/guide/ColorSchemes.ja.html
-//
-//	Matplotlib
-//	http://matplotlib.org/examples/color/colormaps_reference.html
-//
-//	IDL
-//	https://www.harrisgeospatial.com/docs/loadingdefaultcolortables.html
-//	http://www.paraview.org/Wiki/Colormaps
-//
-//	CET Perceptually Uniform Colour Maps
-//	http://peterkovesi.com/projects/colourmaps/
-
 //******************************************************************************
 ///	SIDAMColor
 ///	@param grfName [optional, default = WinName(0,1,1)]
@@ -292,7 +277,7 @@ Static Constant ctabWidth = 90
 Static Constant ctabMargin = 2
 
 //	Number of color tables in a column
-Static Constant ctabsInColumn = 38
+Static Constant ctabsInColumn = 31
 
 //	Width of a single column
 Static Constant columnWidth = 270
