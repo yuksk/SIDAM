@@ -10,44 +10,39 @@
 //	マーキーメニュー実行用
 //-------------------------------------------------------------
 Static Function marqueeDo(int mode)
-	if (mode <= 1)
-		//	ピーク位置取得
-		String grfName = WinName(0,1)
-		Wave iw = KMGetImageWaveRef(grfName)
-		try
-			Wave posw = KMFourierPeakGetPos(iw, mode, marquee=1)
-		catch
-			DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
-			return 0
-		endtry
-		
-		//	結果の出力　（ウエーブ）
-		DFREF dfrSav = GetDataFolderDFR()
-		SetDataFolder GetWavesDataFolderDFR(iw)
-		String name = Uniquename("peakPos",1,0)
-		Duplicate posw $name
-		SetDataFolder dfrSav
-		
-		//	結果の出力　（ウエーブ & アラート）
-		Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw={-posw[%xwidthneg], posw[%xwidthpos], nan, 0, 0}
-		Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw={0,0,nan,-posw[%ywidthneg], posw[%ywidthpos]}
-		Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw2
-		Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw2
-		xw2 = xw*cos(posw[%angle]) - yw*sin(posw[%angle]) + posw[%xcenter]
-		yw2 = xw*sin(posw[%angle]) + yw*cos(posw[%angle]) + posw[%ycenter]
-		AppendToGraph/W=$grfName yw2 vs xw2
-		ModifyGraph/W=$grfName mode($NameOfWave(yw2))=0, mrkThick($NameOfWave(yw2))=1, rgb($NameOfWave(yw2))=(65535,0,52428)
-		String msg0, msg1
-		sprintf msg0, "Output wave: %s\rPosition: (%g, %g)\r", GetWavesDataFolder(iw,1)+name, posw[%xcenter], posw[%ycenter]
-		sprintf msg1, "x width: (%g, %g)\ry width: (%g, %g)\rangle: %g degree", posw[%xwidthneg], posw[%xwidthpos], posw[%ywidthneg], posw[%ywidthpos], posw[%angle]/pi*180
-		DoUpdate/W=$grfName
-		DoAlert 0, msg0+msg1
-		RemoveFromGraph/W=$grfName $NameOfWave(yw2)
-		KillWaves xw, yw, xw2, yw2
-		
-	else
-		KMFourierPeakErase(mode-2)
-	endif
+	//	ピーク位置取得
+	String grfName = WinName(0,1)
+	Wave iw = KMGetImageWaveRef(grfName)
+	try
+		Wave posw = KMFourierPeakGetPos(iw, mode, marquee=1)
+	catch
+		DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
+		return 0
+	endtry
+	
+	//	結果の出力　（ウエーブ）
+	DFREF dfrSav = GetDataFolderDFR()
+	SetDataFolder GetWavesDataFolderDFR(iw)
+	String name = Uniquename("peakPos",1,0)
+	Duplicate posw $name
+	SetDataFolder dfrSav
+	
+	//	結果の出力　（ウエーブ & アラート）
+	Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw={-posw[%xwidthneg], posw[%xwidthpos], nan, 0, 0}
+	Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw={0,0,nan,-posw[%ywidthneg], posw[%ywidthpos]}
+	Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw2
+	Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw2
+	xw2 = xw*cos(posw[%angle]) - yw*sin(posw[%angle]) + posw[%xcenter]
+	yw2 = xw*sin(posw[%angle]) + yw*cos(posw[%angle]) + posw[%ycenter]
+	AppendToGraph/W=$grfName yw2 vs xw2
+	ModifyGraph/W=$grfName mode($NameOfWave(yw2))=0, mrkThick($NameOfWave(yw2))=1, rgb($NameOfWave(yw2))=(65535,0,52428)
+	String msg0, msg1
+	sprintf msg0, "Output wave: %s\rPosition: (%g, %g)\r", GetWavesDataFolder(iw,1)+name, posw[%xcenter], posw[%ycenter]
+	sprintf msg1, "x width: (%g, %g)\ry width: (%g, %g)\rangle: %g degree", posw[%xwidthneg], posw[%xwidthpos], posw[%ywidthneg], posw[%ywidthpos], posw[%angle]/pi*180
+	DoUpdate/W=$grfName
+	DoAlert 0, msg0+msg1
+	RemoveFromGraph/W=$grfName $NameOfWave(yw2)
+	KillWaves xw, yw, xw2, yw2
 End
 //-------------------------------------------------------------
 //	マーキーメニュー文字列
@@ -150,90 +145,6 @@ Static Function/WAVE KMFourierPeakGetPosDoFit(int fitfn, Wave initcoef, Wave ang
 	return coef
 End
 
-//******************************************************************************
-//	フィッティングによりピーク位置・幅を求め、それを差し引く
-//******************************************************************************
-Static Function KMFourierPeakErase(
-	int fitfn	//	フィッティング関数 0: asymGauss2D, 1: asymLor2D
-	)
-	
-	String grfName = WinName(0,1)
-	Wave w = KMGetImageWaveRef(grfName)
-	Wave posw = SIDAMGetMarquee(0)
-	
-	//	3Dウエーブについては、表示されているレイヤーについて行う
-	if (WaveDims(w)==3)
-		int layer = KMLayerViewerDo(grfName)
-		Duplicate/R=[][][layer]/FREE w, inputw, savw
-		Redimension/N=(-1,-1) inputw, savw
-	else
-		Duplicate/FREE w, inputw, savw
-	endif
-	
-	try
-		KMFourierPeakErase_worker(inputw,posw,fitfn)
-	catch
-		DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
-		return 0
-	endtry
-	
-	//	反対側のピークも消す
-	posw = DimSize(w,p)-posw[p][q]-2*!p
-	try
-		KMFourierPeakErase_worker(inputw,posw,fitfn)
-	catch
-		DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
-		return 0
-	endtry
-	
-	//	結果表示
-	if (WaveDims(w)==3)
-		w[][][layer] = inputw[p][q]
-	else
-		w = inputw
-	endif
-	DoUpdate/W=$grfName
-	
-	DoAlert 1, "OK?"
-	if (V_flag != 1)		//	yesでなければ元に戻す
-		if (WaveDims(w)==3)
-			w[][][layer] = savw[p][q]
-		else
-			w = savw
-		endif
-	endif
-End
-
-Static Function KMFourierPeakErase_worker(Wave w, Wave mw, int fitfn)
-	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder NewFreeDataFolder()
-	
-	int nx = DimSize(w,0), ny = DimSize(w,1)
-	int p0 = limit(min(mw[0][0],mw[0][1]),0,nx-1), p1 = limit(max(mw[0][0],mw[0][1]),0,nx-1)
-	int q0 = limit(min(mw[1][0],mw[1][1]),0,ny-1), q1 = limit(max(mw[1][0],mw[1][1]),0,ny-1)
-	
-	Duplicate/R=[p0,p1][q0,q1] w, tw
-	
-	try
-		Wave coef = KMFourierPeakGetPos(tw, fitfn)
-	catch
-		SetDataFolder dfrSav
-		AbortOnValue 1, V_AbortCode
-	endtry
-	
-	//	フィッティング結果を差し引く
-	coef[0] = 0
-	switch (fitfn)
-		case 0:	//	asymmetric gauss2D
-			w[p0,p1][q0,q1] -= asymGauss2D(coef,x,y)
-			break
-		case 1:	//	asymmetric lorentz2D
-			w[p0,p1][q0,q1] -= asymLor2D(coef,x,y)
-			break
-	endswitch
-	
-	SetDataFolder dfrSav
-End
 
 //--------------------------------------------------------------------------------
 //	フィッティング関数

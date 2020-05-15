@@ -282,9 +282,5 @@ Menu "GraphMarquee", dynamic
 		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(0)
 		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(1)
 	End
-	Submenu "Erase peak"
-		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(2)
-		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(3)
-	End
 End
 

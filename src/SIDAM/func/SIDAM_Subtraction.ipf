@@ -6,7 +6,7 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
+Static StrConstant MODE = "Plane;Line;Layer;Phase;"
 
 //******************************************************************************
 ///	SIDAMSubtraction
@@ -18,12 +18,11 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;Exp;Log;"
 ///		calculation to 1. Alternatively, a 2x2 wave specifying the corners of a
 ///		rectanglar ROI can be also used.
 ///	@param mode [optional, default = 0]
-///		0: plane, 1: line, 2: layer, 3: phase, 4: exp, 5: log
+///		0: plane, 1: line, 2: layer, 3: phase
 ///	@param degree [optional, default = 1 for mode=0, 0 for mode=1]
 ///		The degree of a subtracted plane/lines
 ///	@param direction [optional, default = 0]
-///		The direction of subtraction for mode=1 (0: row, 1: column), or
-///		scan for mode=4 and 5
+///		The direction of subtraction for mode=1 (0: row, 1: column)
 ///	@param method [optional, default = 0]
 ///		0 or 1. Set 1 to subtract the median from each line instaed of
 ///		the average for mode=1 (line).
@@ -85,12 +84,6 @@ Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave/Z roi, int mode, int degree,
 			break
 		case 3:
 			Wave resw = subtract_phase(s.w, s.index)
-			break
-		case 4:
-			Wave resw = KMExpLogSubtraction(s.w, s.degree, s.direction)
-			break
-		case 5:
-			Wave resw = KMExpLogSubtraction(s.w, 2, s.direction)
 			break
 	endswitch
 
@@ -177,24 +170,8 @@ Static Function validate(STRUCT paramStruct &s)
 			endif
 			break
 
-		case 4:
-			if (!is2D || isComplex)
-				s.errMsg = "mode 4 is available for a real 2D wave."
-			elseif (s.degree != 0 && s.degree != 1)
-				s.errMsg = "degree must be 0 or 1 for mode 4."
-			elseif (s.direction<0 || s.direction>7)
-				s.errMsg = "direction must be from 0 to 7 for mode 4"
-			endif
-			break
-
-		case 5:
-			if (!is2D || isComplex)
-				s.errMsg = "mode 5 is available for a real 2D wave."
-			endif
-			break
-
 		default:
-			s.errMsg = "mode must be an integer between 0 and 5."
+			s.errMsg = "mode must be an integer between 0 and 3."
 
 	endswitch
 	if (strlen(s.errMsg))
@@ -248,12 +225,6 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 		case 2:
 		case 3:
 			paramStr += SelectString(s.index, "", ",index="+num2istr(s.index))
-			break
-
-		case 4:
-		case 5:
-			paramStr += SelectString(s.degree, "", ",degree="+num2istr(s.degree))
-			paramStr += SelectString(s.direction, "", ",direction="+num2istr(s.direction))
 			break
 	endswitch
 
@@ -311,7 +282,7 @@ Static Function pnl(Wave w, String grfName)
 	if (isComplex)
 		PopupMenu modeP mode=1, value="Layer;Phase", win=$pnlName
 	elseif (is2D)
-		PopupMenu modeP mode=1, value="Plane;Line;Exp;Log", win=$pnlName
+		PopupMenu modeP mode=1, value="Plane;Line;", win=$pnlName
 	else
 		PopupMenu modeP mode=1, value="Plane;Line;Layer", win=$pnlName
 	endif
@@ -338,8 +309,6 @@ Static Function pnl(Wave w, String grfName)
 	TitleBox valueT title=titleStr, pos={211,97}, win=$pnlName
 	TitleBox valueT frame=0, disable=!isComplex, win=$pnlName
 
-	PopupMenu expP title="exp:", pos={57,99}, size={103,20}, bodyWidth=80, win=$pnlName
-	PopupMenu expP mode=2, value="single;double", disable=1, win=$pnlName
 	PopupMenu scanP title="slow scan:", pos={174,68}, size={113,20}, win=$pnlName
 	PopupMenu scanP mode=2, value="\u21c4;\u21c5", disable=1, bodyWidth=60, win=$pnlName
 	PopupMenu xscanP title="x scan:", pos={188,99}, size={99,20}, mode=1, win=$pnlName
@@ -377,18 +346,18 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 		case "doB":
 			Wave w = $GetUserData(s.win, "", "src")
-			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
 			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
-			Variable direction = (cvw[6]-1) + (cvw[7]-1)*2 + (cvw[8]-1)*4
+			Variable direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
 			String result = SelectString(cvw[3], ctw[1], "")
 			KillWindow $s.win
 
 			Variable mode = WhichListItem(ctw[0],MODE)
 			switch (mode)
 				case 0:
-					if ((cvw[0] == 2) && (cvw[9] == 1))
+					if ((cvw[0] == 2) && (cvw[8] == 1))
 						Wave resw = SIDAMSubtraction(w, result=result, \
-							roi={{cvw[10],cvw[11]},{cvw[12],cvw[13]}}, history=1)
+							roi={{cvw[9],cvw[10]},{cvw[11],cvw[12]}}, history=1)
 					else
 						Wave resw = SIDAMSubtraction(w, degree=cvw[0]-1, \
 							result=result, history=1)
@@ -397,17 +366,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 				case 1:
 					Wave resw = SIDAMSubtraction(w, mode=1, degree=cvw[0]-1, \
-						direction=cvw[1]-1, method=cvw[14]-1, result=result, history=1)
-					break
-
-				case 4:
-					Wave resw = SIDAMSubtraction(w, mode=4, degree=cvw[5]-1, \
-						direction=direction, result=result, history=1)
-					break
-
-				case 5:
-					Wave resw = SIDAMSubtraction(w, mode=5, direction=direction, \
-						result=result, history=1)
+						direction=cvw[1]-1, method=cvw[13]-1, result=result, history=1)
 					break
 
 				default:
@@ -474,7 +433,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 
 		case "toP":
-			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;expP;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
+			Wave cvw = KMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
 			Wave/T ctw = KMGetCtrlTexts(s.win,"modeP;resultV")
 
 			STRUCT paramStruct ps
@@ -486,26 +445,19 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 				case 0:
 					ps.degree = cvw[0]-1
 					ps.direction = cvw[1]-1
-					if (cvw[8] == 1)
-						Make/B/U/FREE tw = {{cvw[9],cvw[10]},{cvw[11],cvw[12]}}
+					if (cvw[7] == 1)
+						Make/B/U/FREE tw = {{cvw[8],cvw[9]},{cvw[10],cvw[11]}}
 						Wave ps.roi = tw
 					endif
 					break
 				case 1:
 					ps.degree = cvw[0]-1
 					ps.direction = cvw[1]-1
-					ps.method = cvw[13]-1
+					ps.method = cvw[12]-1
 					break
 				case 2:
 				case 3:
 					ps.index = cvw[2]
-					break
-				case 4:
-					ps.degree = cvw[4]-1
-					ps.direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
-					break
-				case 5:
-					ps.direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
 					break
 			endswitch
 
@@ -537,8 +489,6 @@ Static Function pnlShowHideControls(String pnlName)
 	ControlInfo/W=$pnlName modeP ;	String modeStr = S_Value
 	int forPlane = !CmpStr(modeStr, "Plane")
 	int forLine = !CmpStr(modeStr, "Line")
-	int forExp = !CmpStr(modeStr, "Exp")
-	int forLog = !CmpStr(modeStr, "Log")
 	int forComplex = (!CmpStr(modeStr, "Layer") || !CmpStr(modeStr, "Phase"))
 
 	Wave w = $GetUserData(pnlName, "", "src")
@@ -552,8 +502,6 @@ Static Function pnlShowHideControls(String pnlName)
 	ModifyControlList "indexV;valueT" disable=!forComplex, win=$pnlName
 	CheckBox roiC disable=!forPlane, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" disable=!forRoiNum, win=$pnlName
-	PopupMenu expP disable=!forExp, win=$pnlName
-	ModifyControlList "scanP;xscanP;yscanP" disable=!(forExp || forLog), win=$pnlName
 End
 
 
