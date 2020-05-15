@@ -10,14 +10,14 @@
 //------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8
 Constant SIDAM_VERSION_MINOR = 7
-0onstant SIDAM_VERSION_PATCH = 1
+Constant SIDAM_VERSION_PATCH = 2
 
 //------------------------------------------------------------------------------
 //	Data Folder
 //------------------------------------------------------------------------------
 StrConstant SIDAM_DF = "root:Packages:SIDAM"
 StrConstant SIDAM_DF_CTAB = "root:Packages:SIDAM:ctable:"
-StrConstant SIDAM_DF_SETTINGS = "settings"	
+StrConstant SIDAM_DF_SETTINGS = "settings"
 
 //------------------------------------------------------------------------------
 //	Colors
