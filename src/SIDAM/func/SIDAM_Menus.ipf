@@ -175,14 +175,16 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	"-"
 
 	"Position Recorder", /Q, KMPositionRecorder#rightclickDo()
-
-
-	"-"
-
 	//	Extract Layers of LayerViewer
 	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
 	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
+
+
+	"-"
+
+	SubMenu "Extension"
+	End
 
 	"-"
 
@@ -258,6 +260,11 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	//	"Data Parameters"
 	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
+
+	"-"
+
+	SubMenu "Extension"
+	End
 
 	"-"
 
