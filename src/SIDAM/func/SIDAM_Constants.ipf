@@ -9,7 +9,7 @@
 //	Version
 //------------------------------------------------------------------------------
 Constant SIDAM_VERSION_MAJOR = 8
-Constant SIDAM_VERSION_MINOR = 9
+Constant SIDAM_VERSION_MINOR = 10
 Constant SIDAM_VERSION_PATCH = 0
 
 //------------------------------------------------------------------------------
