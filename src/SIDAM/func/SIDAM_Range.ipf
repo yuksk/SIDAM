@@ -979,7 +979,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			zmin = NaN
 			break
 		case 2:	//	sigma
-			zmin = avg + sdev * v0
+			zmin = numtype(avg) || numtype(sdev) ? WaveMin(tw) : avg + sdev * v0
 			break
 		case 3:	//	cut
 			FindLevel/Q hw, v0/100
@@ -994,7 +994,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			zmax = NaN
 			break
 		case 2:	//	sigma
-			zmax = avg + sdev * v1
+			zmax = numtype(avg) || numtype(sdev) ? WaveMax(tw) : avg + sdev * v1
 			break
 		case 3:	//	cut
 			FindLevel/Q hw, v1/100
