@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMUtilHelp
 
+#include "SIDAM_Utilities_Panel"
 #include "SIDAM_Utilities_misc"
 
 #ifndef SIDAMshowProc

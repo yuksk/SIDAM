@@ -2,6 +2,12 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMSaveGraphics
 
+#include "KM LayerViewer"
+#include "SIDAM_SaveCommon"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -19,7 +25,7 @@ Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embe
 Static Function/S rightclickMenu()
 	int isWindows = stringmatch(IgorInfo(2),"Windows")
 	
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
 	endif
@@ -43,7 +49,7 @@ Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,390,390)
 	RenameWindow $grfName#$S_name, SaveGraphics
 	String pnlName = grfName + "#SaveGraphics"
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	
 	//	layer
 	GroupBox layerG title="Layer", pos={5,4}, size={380,50}, win=$pnlName
@@ -144,7 +150,7 @@ End
 //******************************************************************************
 Static Function saveGraphics(String pnlName)
 	String parentWin = StringFromList(0, pnlName, "#")
-	Wave w = KMGetImageWaveRef(parentWin)
+	Wave w = SIDAMImageWaveRef(parentWin)
 	
 	//	collect information from the panel
 	String cmdExtStr = createCmdExtStr(pnlName)
@@ -198,7 +204,7 @@ Static Function/S createCmdExtStr(String pnlName)
 	
 	//	format
 	String ctrlList = ControlNameList(pnlName,";","format_*_rC")
-	Wave cw = KMGetCtrlValues(pnlName, ctrlList)
+	Wave cw = SIDAMGetCtrlValues(pnlName, ctrlList)
 	cw *= p
 	String selectedCheckbox = StringFromList(sum(cw),ctrlList)
 	cmdStr += "/E=" + GetUserData(pnlName,selectedCheckbox,"value")

@@ -2,6 +2,15 @@
 #pragma rtGlobals=1
 #pragma ModuleName= KMFourierSym
 
+#include "KM Fourier Peak"
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -55,13 +64,10 @@ Static Function KMFourierSymCheck(STRUCT paramStruct &s)
 
 	s.errMsg = PRESTR_CAUTION + "KMFourierSym gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.w)
-	if (strlen(msg))
-		s.errMsg += msg
-		return 1
-	elseif (WaveType(s.w) & 0x01)
-		s.errMsg += "the source wave must be real."
-		return 1
+	int flag = SIDAMValidateWaveforFFT(s.w)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
+		return 0
 	endif
 	
 	if (!WaveExists(s.q1w) || !WaveExists(s.q2w))
@@ -74,8 +80,8 @@ Static Function KMFourierSymCheck(STRUCT paramStruct &s)
 		return 1
 	endif
 	
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave will exceed the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 1
 	endif
 	
@@ -392,7 +398,7 @@ End
 //	右クリックメニューから実行される関数
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 //-------------------------------------------------------------
 //	マーキーメニュー実行用
@@ -404,7 +410,7 @@ Static Function marqueeDo()
 	
 	//	ピーク位置を求める
 	String grfName = WinName(0,1)
-	Wave iw = KMGetImageWaveRef(grfName)
+	Wave iw = SIDAMImageWaveRef(grfName)
 	Wave posw = KMFourierPeakGetPos(iw, 1, marquee=1)	//	asymmetric Lorentz2D	
 
 	//	求めた位置をパネルコントロールへ渡す
@@ -573,7 +579,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	Wave w = $GetUserData(s.win, "", "src")
 	strswitch (s.ctrlName)
 		case "outputV":
-			KMCheckSetVarString(s.win,s.ctrlName,0)
+			SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
 			break
 		case "p1V":
 		case "q1V":
@@ -581,7 +587,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 		case "q2V":
 		case "a1V":
 		case "a2V":
-			KMCheckSetVarString(s.win,s.ctrlName,1)
+			SIDAMValidateSetVariableString(s.win,s.ctrlName,1)
 			if (stringmatch(s.ctrlName, "a1V"))
 				ControlInfo/W=$s.win symP
 				if (V_Value != 1)	//	2mm以外
@@ -623,10 +629,10 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		case "toP":
 			//	パネルの内容からコマンド文字列を構成する
 			Wave w = $GetUserData(s.win,"","src")
-			Wave cvw = KMGetCtrlValues(s.win, "symP;shearP;endeffectP")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "symP;shearP;endeffectP")
 			ControlInfo/W=$s.win outputV
-			String paramStr = KMFourierSymEcho(w, KMGetCtrlTexts(s.win, "p1V;q1V;a1V"), KMGetCtrlTexts(s.win, "p2V;q2V;a2V"), cvw[0], cvw[1]-1, cvw[2]-1, S_Value)
-			KMPopupTo(s, paramStr)
+			String paramStr = KMFourierSymEcho(w, SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V"), SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V"), cvw[0], cvw[1]-1, cvw[2]-1, S_Value)
+			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
 End
@@ -641,11 +647,11 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	strswitch (s.ctrlName)
 		case "doB":
 			Wave w = $GetUserData(s.win,"","src")
-			Wave cvw = KMGetCtrlValues(s.win, "symP;shearP;endeffectP;displayC")
-			Wave q1w = KMGetCtrlValues(s.win, "p1V;q1V;a1V")
-			Wave q2w = KMGetCtrlValues(s.win, "p2V;q2V;a2V")
-			Wave/T q1tw = KMGetCtrlTexts(s.win, "p1V;q1V;a1V")
-			Wave/T q2tw = KMGetCtrlTexts(s.win, "p2V;q2V;a2V")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "symP;shearP;endeffectP;displayC")
+			Wave q1w = SIDAMGetCtrlValues(s.win, "p1V;q1V;a1V")
+			Wave q2w = SIDAMGetCtrlValues(s.win, "p2V;q2V;a2V")
+			Wave/T q1tw = SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V")
+			Wave/T q2tw = SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V")
 			ControlInfo/W=$s.win outputV ;	String result = S_Value
 			KillWindow $s.win
 			print PRESTR_CMD + KMFourierSymEcho(w, q1tw, q2tw, cvw[0], cvw[1]-1, cvw[2]-1, result)

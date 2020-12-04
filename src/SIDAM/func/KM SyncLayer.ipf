@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName = KMSyncLayer
 
+#include "KM LayerViewer"
+#include "KM SyncCommon"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -61,7 +66,7 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 			s.errMsg += "the window list contains a window not found."
 			return 0
 		endif
-		Wave/Z w = KMGetImageWaveRef(grfName)
+		Wave/Z w = SIDAMImageWaveRef(grfName)
 		if (!WaveExists(w) || WaveDims(w)!=3)
 			s.errMsg += "the window list must contain only LayerViewer."
 			return 0

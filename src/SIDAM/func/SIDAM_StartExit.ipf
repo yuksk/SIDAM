@@ -6,9 +6,7 @@
 #endif
 
 #include "SIDAM_Constants"
-#include "SIDAM_Utilities_misc"	//	for SIDAMPath
-#include "SIDAM_Hook"				//	for hook functions
-#include "SIDAM_Compatibility"	//	for SIDAMBackwardCompatibility
+#include "SIDAM_Utilities_misc"
 
 //******************************************************************************
 //	Start SIDAM
@@ -19,10 +17,6 @@ Function SIDAMStart()
 	//	List ipf files to be included and write them into SIDAM_Procedures.ipf
 	makeProcFile()
 	Execute/P "INSERTINCLUDE \"" + SIDAM_FILE_INCLUDE + "\""
-
-	//	Update the old include ipf file
-	SIDAMBackwardCompatibility()
-
 	Execute/P "COMPILEPROCEDURES "
 
 	SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
@@ -43,7 +37,7 @@ Static Function makeProcFile()
 	endif
 
 	//	Make a list of ipf files
-	Wave/T w0 = fnList(SIDAM_FOLDER_FUNC)
+	Make/T/FREE w0 = {"SIDAM_Menus.ipf", "SIDAM_Constants.ipf", "SIDAM_Hook.ipf"}
 	Wave/T w1 = fnList(SIDAM_FOLDER_LOADER)
 	Wave/T w2 = fnList(SIDAM_FOLDER_EXT, recursive=1)
 	DFREF dfrSav = GetDataFolderDFR()
@@ -59,9 +53,6 @@ Static Function makeProcFile()
 	for(i = 0; i < numpnts(lw); i++)
 		fprintf refNum, "#include \"%s\"\r", RemoveEnding(lw[i],".ipf")
 	endfor
-	if (existipf("","SIDAMTest.ipf") && existipf("","unit-testing.ipf"))
-		fprintf refNum, "#include \"SIDAMTest\"\r"
-	endif
 	//	write StrConstant SIDAM_CTABGROUPS
 	fprintf refNum, "StrConstant SIDAM_CTABGROUPS = \"%s\"\r", getCtabGroups()
 
@@ -90,31 +81,6 @@ Static Function/WAVE fnList(String subFolder, [int recursive])
 	KillPath $pathName
 
 	return w
-End
-
-//	return 1 if an ipf file exists under the User Procedures folder
-Static Function existipf(String pathStr, String filename)
-	if (!strlen(pathStr))
-		pathStr = SpecialDirPath("Igor Pro User Files", 0, 0, 0) + "User Procedures:"
-	endif
-
-	String pathName = UniqueName("path",12,0)
-	NewPath/Q $pathName, pathStr
-
-	if (WhichListItem(filename, IndexedFile($pathName,-1,".ipf")) >= 0)
-		return 1
-	endif
-
-	int i, n
-	String dirList = IndexedDir($pathName,-1,1)
-	for (i = 0, n = ItemsInList(dirList); i < n; i++)
-		if (existipf(StringFromList(i,dirList),filename))
-			return 1
-		endif
-	endfor
-
-	KillPath $pathName
-	return 0
 End
 
 //-----------------------------------------------------------------------

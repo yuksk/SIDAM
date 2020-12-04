@@ -2,6 +2,16 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMInfoBar
 
+#include "KM LayerViewer"
+#include "SIDAM_Color"
+#include "SIDAM_FFT"
+#include "SIDAM_Range"
+#include "SIDAM_Subtraction"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -38,7 +48,7 @@ Function KMInfoBar(String grfName)
 	//	0: name of graph, 1: name of wave, 2: setpoint, 3: displayed size
 	SetWindow $grfName userData(title)="1"
 	
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	int is1D = !WaveExists(w)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
@@ -122,7 +132,7 @@ End
 //-------------------------------------------------------------
 Static Function setenergyVLimits(String pnlName)
 	
-	Wave srcw = KMGetImageWaveRef(pnlName)
+	Wave srcw = SIDAMImageWaveRef(pnlName)
 	Variable oz = DimOffset(srcw,2), nz = DimSize(srcw,2), dz = DimDelta(srcw,2)
 	
 	SetVariable indexV limits={0,nz-1,1}, win=$pnlName
@@ -139,17 +149,23 @@ End
 //	バーを閉じる
 //-------------------------------------------------------------
 Static Function closeInfoBar(String pnlName)
-	
+
 	//	一時フォルダを使っていた古いバージョンに備えて
 	String dfTmp = GetUserData(pnlName,"","dfTmp")
 	if (strlen(dfTmp))
 		SIDAMKillDataFolder($dfTmp)
 		SetWindow $pnlName userData(dfTmp)=""
 	endif
-	
+
 	SetWindow $pnlName hook(self)=$""
 	SetWindow $pnlName userData(mode)=""
-	KMKillControls(pnlName)
+
+	String listStr = ControlNameList(pnlName)
+	int i, n
+	for (i = 0, n = ItemsInList(listStr); i < n; i++)
+		KillControl/W=$pnlName $StringFromList(i,listStr)
+	endfor
+	ControlBar/W=$pnlName 0
 End
 
 //******************************************************************************
@@ -176,8 +192,8 @@ Static Function/S rightclickMenu(int menuitem)
 			mode = str2num(GetUserData(grfName,"","mode"))
 			String menuStr = SIDAMAddCheckmark(mode, COORDINATESMENU)
 			
-			Wave/Z w = KMGetImageWaveRef(grfName)
-			if (!WaveExists(w) || numtype(str2num(KMGetSettings(w,4))))		//	ウエーブが存在しない(1D)、または角度が得られない場合
+			Wave/Z w = SIDAMImageWaveRef(grfName)
+			if (!WaveExists(w) || numtype(str2num(SIDAMGetSettings(w,4))))		//	ウエーブが存在しない(1D)、または角度が得られない場合
 				menuStr = RemoveListItem(3, menuStr)
 			endif
 			
@@ -195,7 +211,7 @@ Static Function/S rightclickMenu(int menuitem)
 			return SIDAMAddCheckmark(mode, TITLEMENU)
 		
 		case 2:	//	軸表示切替
-			return SelectString(KMGetAxThick(grfName),"Show","Hide") + " Axis"
+			return SelectString(getAxThick(grfName),"Show","Hide") + " Axis"
 			
 		case 3:	//	複素数表示切替 (2D/3D)
 			if (isContainedComplexWave(grfName,2))
@@ -214,6 +230,12 @@ Static Function/S rightclickMenu(int menuitem)
 			endif
 			
 	endswitch
+End
+
+Static Function getAxThick(String grfName)
+	STRUCT SIDAMWindowInfo s
+	SIDAMGetWindow(grfName, s)
+	return s.axThick
 End
 
 Static Function isContainedComplexWave(String grfName, int dim)
@@ -266,7 +288,7 @@ End
 //	フック関数
 //-------------------------------------------------------------
 Static Function hook(STRUCT WMWinHookStruct &s)
-	Wave/Z w = KMGetImageWaveRef(s.winName)
+	Wave/Z w = SIDAMImageWaveRef(s.winName)
 	int is1D = !WaveExists(w) && strlen(TraceNameList(s.winName,";",1))
 	int is2D = WaveExists(w) && WaveDims(w)==2 
 	int is3D = WaveExists(w) && WaveDims(w)==3
@@ -437,7 +459,7 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 			Sprintf xys, "(1/r,t) = "+pStr2, 1/sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
 		case "3":		//	x', y', angle is degree
-			Variable angle = str2num(KMGetSettings(ms.w,4)) / 180 * pi
+			Variable angle = str2num(SIDAMGetSettings(ms.w,4)) / 180 * pi
 			if (numtype(angle))
 				xys = "(x',y') = (-,-)"
 			else
@@ -569,7 +591,7 @@ End
 //-------------------------------------------------------------
 Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	
-	Wave/Z w = KMGetImageWaveRef(s.winName)
+	Wave/Z w = SIDAMImageWaveRef(s.winName)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
 	int isWindows = strsearch(IgorInfo(2), "Windows", 0, 2) >= 0
@@ -577,7 +599,7 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	if (isWindows && s.specialKeyCode && (is2D || is3D))
 		switch (s.specialKeyCode)
 			case 4:		//	F4
-				KMRange()
+				SIDAMRange()
 				return 1
 			case 5:		//	F5
 				SIDAMColor()
@@ -586,8 +608,8 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 				SIDAMSubtraction#menuDo()
 				return 1
 			case 7:		//	F7
-				if (!KMFFTCheckWaveMenu())
-					KMFFT#rightclickDo()
+				if (!SIDAMValidateWaveforFFT(w))
+					SIDAMFFT#menuDo()
 				endif
 				return 1
 		endswitch
@@ -664,8 +686,8 @@ Static Function changeCoordinateSetting(int mode)
 	
 	//	キーボードショートカットから呼ばれた場合に備えて、modeが大きすぎるときには0へ戻す
 	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
-	Wave/Z w = KMGetImageWaveRef(grfName)
-	if (!WaveExists(w) || numtype(str2num(KMGetSettings(w,4))))	//	1Dウエーブもしくは角度が得られない場合
+	Wave/Z w = SIDAMImageWaveRef(grfName)
+	if (!WaveExists(w) || numtype(str2num(SIDAMGetSettings(w,4))))	//	1Dウエーブもしくは角度が得られない場合
 		maxMode -= 1
 	endif
 	if (mode > maxMode)
@@ -692,7 +714,7 @@ End
 Static Function changeWindowTitle(int mode)
 	
 	String grfName = WinName(0,1), titleStr
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	if (!WaveExists(w))	//	例えば1次元ウエーブ
 		return 0
 	elseif (numtype(mode) == 2)
@@ -707,7 +729,7 @@ Static Function changeWindowTitle(int mode)
 			titleStr = NameOfWave(w)
 			break
 		case 2:
-			titleStr = KMGetSettings(w,1) + ", " + KMGetSettings(w,2)
+			titleStr = SIDAMGetSettings(w,1) + ", " + SIDAMGetSettings(w,2)
 			break
 		case 3:
 			String xaxis = StringByKey("XAXIS",ImageInfo(grfName,"",0))
@@ -732,7 +754,7 @@ End
 //	軸表示の切り替え
 //-------------------------------------------------------------
 Static Function toggleAxis(String grfName)
-	if (KMGetAxThick(grfName))
+	if (getAxThick(grfName))
 		ModifyGraph/W=$grfName margin=1, noLabel=2, axThick=0
 	else
 		ModifyGraph/W=$grfName margin(left)=44, margin(bottom)=36, margin(top)=8, margin(right)=8
@@ -787,7 +809,7 @@ Static Function pnlSetvalue2(STRUCT WMSetVariableAction &s)
 		return 1
 	endif
 	
-	Wave w = KMGetImageWaveRef(s.win)
+	Wave w = SIDAMImageWaveRef(s.win)
 	int index
 	
 	//	evergyV の値が変更された場合でも、対応するインデックスを探し、それを元に evergyV に値を代入する
@@ -833,65 +855,4 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 		//	トレース名表示の削除
 		TextBox/W=$s.win/K/N=$GetUserData(s.win,s.ctrlName,"textName")
 	endif
-End
-
-//******************************************************************************
-//	後方互換確保
-//******************************************************************************
-Function KMDisplayCtrlBarHook2(STRUCT WMWinHookStruct &s)
-	//	コントロール関数を変更する
-	String ctrlList = ControlNameList(s.winName)
-	
-	if (WhichListItem("indexV",ctrlList) != -1)	//	3D
-		SetVariable indexV proc=KMInfoBar#pnlSetvalue2, win=$s.winName
-		SetVariable energyV proc=KMInfoBar#pnlSetvalue2, win=$s.winName
-	endif
-	
-	if (WhichListItem("showC",ctrlList) != -1)		//	1D
-		CheckBox showC proc=KMInfoBar#pnlCheck, win=$s.winName
-		SetVariable traceV proc=KMInfoBar#pnlSetvalue1, win=$s.winName
-	endif
-	
-	//	新しいフック関数を設定する
-	SetWindow $s.winName hook(self)=KMInfoBar#hook
-End
-Function KMDisplayCtrlBarHook(STRUCT WMWinHookStruct &s)	//	rev. 901 -> 903
-	
-	//	閉じるボタンを削除する
-	KillControl/W=$s.winName closeB
-	
-	//	コントロール類の位置調整
-	Wave/Z w = KMGetImageWaveRef(s.winName)
-	int traceOnly = !WaveExists(w)
-	if (traceOnly)
-		adjustCtrlPos1D(s.winName)
-		adjustCtrlDisable1D(s.winName)
-	endif
-	adjustCtrlPos(s.winName)
-	
-	//	新しいフック関数を設定する
-	SetWindow $s.winName hook(self)=KMDisplayCtrlBarHook2
-	
-	//	rev. 900で導入されたフック関数を設定する
-	SetIgorHook AfterCompiledHook
-	if (strsearch(S_info, "ProcGlobal#SIDAMAfterCompiledHook", 0) == -1)
-		SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
-	endif
-End
-Function KMImageViewerBarHook(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(self)=KMDisplayCtrlBarHook
-End
-Function KMImageViewer2DHook(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(self)=KMDisplayCtrlBarHook
-End
-Function KMDisplayBarHook(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(self)=KMDisplayCtrlBarHook
-End
-Function KMDisplayBarSetVar(STRUCT WMSetVariableAction &s)
-	SetVariable $s.ctrlName proc=KMInfoBar#pnlSetvalue1, win=$s.win
-	pnlSetvalue1(s)
-End
-Function KMDisplayBarCheck(STRUCT WMCheckboxAction &s)
-	Checkbox $s.ctrlName proc=KMInfoBar#pnlCheck, win=$s.win
-	pnlCheck(s)
 End

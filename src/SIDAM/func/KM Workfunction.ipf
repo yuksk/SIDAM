@@ -2,6 +2,12 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMWorkfunction
 
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -75,15 +81,13 @@ Static Function KMWorkfunctionCheck(s)
 	endif
 
 	//	結果ウエーブの名前について
-	int dim = WaveDims(s.w)
-	if (dim == 3)
-		if (strlen(s.result)+MaxSuffixLength() > MAX_OBJ_NAME)
-			s.errMsg += "too long name."
-			return 1
-		endif
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
+		return 1
 	endif
 
 	//	フィッティング範囲について
+	int dim = WaveDims(s.w)
 	if (s.startp < 0 || s.startp > DimSize(s.w, dim-1) - 1)
 		s.errMsg += "startp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
 		return 1
@@ -317,7 +321,7 @@ Static Constant PNLHEIGHT = 163
 Static Function pnl()
 	String grfName = WinName(0,1)
 
-	Wave/Z w = KMGetImageWaveRef(grfName)	//	for a 3D wave
+	Wave/Z w = SIDAMImageWaveRef(grfName)	//	for a 3D wave
 	if (!WaveExists(w))		//	for a 1D wave
 		Wave w = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif
@@ -370,11 +374,11 @@ End
 //	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode == 2)
-		Wave cvw = KMGetCtrlValues(s.win, "startpV;endpV;fitC;offsetV")
+		Wave cvw = SIDAMGetCtrlValues(s.win, "startpV;endpV;fitC;offsetV")
 		Variable offset = cvw[2] ? inf : cvw[3]
 		ControlInfo/W=$s.win resultV
 		String paramStr = KMWorkfunctionEcho($GetUserData(s.win, "", "src"), S_Value, cvw[0], cvw[1], offset)
-		KMPopupTo(s, paramStr)
+		SIDAMPopupTo(s, paramStr)
 	endif
 End
 
@@ -387,7 +391,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 
 	strswitch (s.ctrlName)
 		case "resultV":
-			int disable = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=31-MaxSuffixLength())*2
+			int disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=31-MaxSuffixLength())*2
 			Button doB disable=disable, win=$s.win
 			PopupMenu toP disable=disable, win=$s.win
 			break
@@ -464,7 +468,7 @@ End
 
 Static Function pnlButtonDo(String pnlName)
 	Wave w = $GetUserData(pnlName, "", "src")
-	Wave cvw = KMGetCtrlValues(pnlName, "startpV;endpV;fitC;offsetV;displayC")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "startpV;endpV;fitC;offsetV;displayC")
 	Variable offset = cvw[2] ? inf : cvw[3]
 	ControlInfo/W=$pnlName resultV ;	String result = S_Value
 

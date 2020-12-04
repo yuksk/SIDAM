@@ -2,6 +2,17 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLineProfile
 
+#include "KM LayerViewer"
+#include "KM LineCommon"
+#include "SIDAM_Color"
+#include "SIDAM_Range"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -94,6 +105,11 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 
 	if (numtype(s.p1) || numtype(s.q1) || numtype(s.p2) || numtype(s.q2))
 		s.errMsg += "coordinate must be a normal number."
+		return 0
+	endif
+
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 
@@ -278,7 +294,7 @@ Static Function pnl(String grfName, String imgName)
 	Make/N=(1,3)/O $PNL_C
 	Make/T/N=2/O $PNL_T = {"1","2"}
 
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	int i
 
 	//	表示
@@ -349,11 +365,6 @@ Static Function pnlModifyGraph(String plotArea)
 	ModifyGraph/W=$plotArea margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
 	ModifyGraph/W=$plotArea rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$plotArea gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-	ModifyGraph/W=$plotArea wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	Label/W=$plotArea bottom "Scaling Distance (\\u\M)"
 	Label/W=$plotArea left "\\u"
 
@@ -370,8 +381,10 @@ Static Function pnlModifyGraph(String plotArea)
 	int is3D = WaveDims($GetUserData(pnlName,"","src")) == 3
 	if (!CmpStr(StringFromList(1,plotArea,"#"),"line") && is3D)
 		ModifyWaterfall/W=$plotArea angle=90,axlen=0.5,hidden=0
-		ModifyGraph/W=$plotArea mode=0,useNegRGB=1,usePlusRGB=1,negRGB=(0,0,0),plusRGB=(0,0,0)
 		ModifyGraph/W=$plotArea noLabel(right)=2,axThick(right)=0
+		ModifyGraph/W=$plotArea mode=0,useNegRGB=1,usePlusRGB=1
+		GetWindow $plotArea, gbRGB
+		ModifyGraph/W=$plotArea negRGB=(V_Red,V_Green,V_Blue),plusRGB=(V_Red,V_Green,V_Blue)
 		//	highlightのデフォルト値は1
 		Wave/SDFR=$GetUserData(pnlName,"","dfTmp") clrw = $PNL_C
 		ModifyGraph/W=$plotArea zColor={clrw,*,*,directRGB,0}
@@ -414,7 +427,7 @@ End
 //-------------------------------------------------------------
 Static Function pnlUpdateColor(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	if (WaveDims(KMGetImageWaveRef(grfName))==2)
+	if (WaveDims(SIDAMImageWaveRef(grfName))==2)
 		return 0
 	elseif (CmpStr(GetUserData(pnlName,"","highlight"),"1"))
 		return 0
@@ -532,7 +545,7 @@ Menu "SIDAMLineProfileMenu", dynamic, contextualmenu
 	End
 	"Save...", SIDAMLineProfile#outputPnl(WinName(0,1))
 	"-"
-	SIDAMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
+	SIDAMLineCommon#pnlRightClickMenu(7),/Q, SIDAMRange(grfName=WinName(0,1)+"#image")
 	SIDAMLineCommon#pnlRightClickMenu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
 End
 //-------------------------------------------------------------
@@ -667,9 +680,9 @@ Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
 
 	//	オリジナルウエーブ
 	String grfName = GetUserData(StringFromList(0, s.win, "#"),"","parent")
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	int maxlength = (WaveDims(w)==3) ? MAX_OBJ_NAME-3 : MAX_OBJ_NAME
-	int isProperLength = !KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=maxlength)
+	int isProperLength = !SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=maxlength)
 	Button doB disable=(!isProperLength)*2, win=$s.win
 End
 //-------------------------------------------------------------
@@ -682,7 +695,7 @@ Static Function outputPnlDo(String pnlName)
 	ControlInfo/W=$pnlName sdevC;			output += V_Value*2
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 
-	Wave cvw = KMGetCtrlValues(prtName,"p1V;q1V;p2V;q2V;widthV")
+	Wave cvw = SIDAMGetCtrlValues(prtName,"p1V;q1V;p2V;q2V;widthV")
 	Wave w = $GetUserData(prtName,"","src")
 
 	KMLineProfile(w,cvw[0],cvw[1],cvw[2],cvw[3],result=result,width=cvw[4],output=output,history=1)

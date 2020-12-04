@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMSyncCursor
 
+#include "KM SyncCommon"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -109,15 +113,15 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				break
 			endif
 			
-			STRUCT KMCursorPos pos
-			KMGetCursor(s.cursorName, s.winName, pos)
+			STRUCT SIDAMCursorPos pos
+			SIDAMGetCursor(s.cursorName, s.winName, pos)
 			String win, syncWinList = KMSyncCommon#getSyncList(s.winName, ks_key)
 			int mode = NumberByKey("mode",GetUserData(s.winName,"",ks_key),":",",")	//	0: p, q,	1: x, y
 			int i, n = ItemsInList(syncWinList)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i, syncWinList)
 				KMSyncCommon#setBlock(win, ks_key)	//	循環動作を防ぐため
-				KMSetCursor(s.cursorName, win, mode, pos)
+				SIDAMMoveCursor(s.cursorName, win, mode, pos)
 				DoUpdate/W=$win
 			endfor
 			break

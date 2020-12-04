@@ -1,16 +1,13 @@
 # extension
 src/SIDAM/extension/*
 !src/SIDAM/extension/readme.md
-!src/SIDAM/extension/experimental
 
 # ctab
 src/SIDAM/ctab/*
 !src/SIDAM/ctab/CET
-!src/SIDAM/ctab/IDL
+!src/SIDAM/ctab/cmocean
 !src/SIDAM/ctab/Matplotlib
-!src/SIDAM/ctab/Nistview
 !src/SIDAM/ctab/SIDAM
-!src/SIDAM/ctab/Wolfram
 !src/SIDAM/ctab/ctab.default.ini
 !src/SIDAM/ctab/readme.md
 

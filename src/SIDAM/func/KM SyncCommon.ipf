@@ -2,6 +2,11 @@
 #pragma rtGlobals=3
 #pragma ModuleName = KMSyncCommon
 
+#include "KM SyncCursor"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -219,9 +224,9 @@ Static Function/S pnlList(String grfName, String key)
 	
 	//	synclayerの場合には、層数が異なる場合にはリストから削除する
 	if (!CmpStr(key, "sync"))
-		Wave srcw =  KMGetImageWaveRef(grfName)
+		Wave srcw =  SIDAMImageWaveRef(grfName)
 		for (i = ItemsInList(listStr)-1; i >= 0; i--)
-			Wave/Z w = KMGetImageWaveRef(StringFromList(i, listStr))
+			Wave/Z w = SIDAMImageWaveRef(StringFromList(i, listStr))
 			if (WaveDims(w) != 3 || DimSize(srcw,2) != DimSize(w,2))
 				listStr = RemoveListItem(i, listStr)
 			endif

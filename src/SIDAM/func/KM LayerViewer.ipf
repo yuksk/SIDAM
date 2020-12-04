@@ -2,6 +2,16 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMLayerViewer
 
+#include "KM InfoBar"
+#include "SIDAM_Color"
+#include "SIDAM_Display"
+#include "SIDAM_Preference"
+#include "SIDAM_Range"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_ImageInfo"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -65,7 +75,7 @@ End
 Function KMLayerViewerDo(String grfName, [Wave/Z w, int index, int direction])
 	
 	if (ParamIsDefault(w))
-		Wave/Z w =  KMGetImageWaveRef(grfName)
+		Wave/Z w =  SIDAMImageWaveRef(grfName)
 	endif
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return NaN
@@ -92,7 +102,7 @@ End
 //******************************************************************************
 Static Function/S rightclickMenu(int menuitem)
 	
-	Wave/Z w = KMGetImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return ""
 	endif
@@ -126,7 +136,7 @@ Static Function extractPnl(String LVName)
 		return 0
 	endif
 	
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	Variable plane = NumberByKey("plane", ImageInfo(LVName, NameOfWave(w), 0), "=")	//	現在の表示レイヤー
 	
 	//  パネル表示
@@ -193,7 +203,7 @@ Static Function extractPnlCheck(STRUCT WMCheckboxAction &s)
 	TitleBox resultT title=SelectString(WhichListItem(s.ctrlName,"thisC;fromC;"),"output name:","basename"), win=$s.win
 	
 	String parentWin = StringFromList(0, s.win, "#")
-	Wave w = KMGetImageWaveRef(parentWin)
+	Wave w = SIDAMImageWaveRef(parentWin)
 	int plane = NumberByKey("plane", ImageInfo(parentWin, NameOfWave(w), 0), "=")	//	現在の表示レイヤー
 	
 	String name = NameOfWave(w)+"_r"
@@ -220,7 +230,7 @@ Static Function extractPnlSetVar(STRUCT WMSetVariableAction &s)
 	strswitch (s.ctrlName)
 		case "from_w_V" :
 		case "to_w_V" :
-			KMClickCheckBox(s.win,"fromC")
+			SIDAMClickCheckBox(s.win,"fromC")
 			break
 		case "resultV" :
 			Button doB disable=CheckResultStrLength(s.win)*2, win=$s.win
@@ -240,11 +250,11 @@ Static Function CheckResultStrLength(String pnlName)
 	
 	ControlInfo/W=$pnlName fromC
 	if (V_Value)
-		Wave cvw = KMGetCtrlValues(pnlName, "from_w_V;to_w_V")
+		Wave cvw = SIDAMGetCtrlValues(pnlName, "from_w_V;to_w_V")
 		maxLength -= floor(log(WaveMax(cvw)))+1	//	from と to の大きな方の数字の桁数を引いている
 	endif
 	
-	return KMCheckSetVarString(pnlName,"resultV", 0, maxlength=maxLength)
+	return SIDAMValidateSetVariableString(pnlName,"resultV", 0, maxlength=maxLength)
 End
 //-------------------------------------------------------------
 //	doBの実行関数
@@ -252,7 +262,7 @@ End
 Static Function extractPnlSave(String pnlName)
 	
 	String LVName = StringFromList(0, pnlName, "#")
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	
 	ControlInfo/W=$pnlName resultV
 	String result = S_value
@@ -273,7 +283,7 @@ Static Function extractPnlSave(String pnlName)
 
 	else
 
-		Wave cw = KMGetCtrlValues(pnlName,"from_w_V;to_w_V")
+		Wave cw = SIDAMGetCtrlValues(pnlName,"from_w_V;to_w_V")
 		int digit = WaveMin(cw) ? floor(log(WaveMax(cw)))+1 : 1
 		String name
 		int i
@@ -296,10 +306,10 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	String grfName = SIDAMDisplay(extw, history=1)
 	
 	//	LayerViewerでのz表示範囲を適用する
-	Wave srcw = KMGetImageWaveRef(LVName)
+	Wave srcw = SIDAMImageWaveRef(LVName)
 	Variable zmin, zmax
 	SIDAM_GetColorTableMinMax(LVName, NameOfWave(srcw),zmin,zmax,allowNaN=1)
-	KMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax,history=1)
+	SIDAMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax,history=1)
 	
 	//	LayerViewerでのカラーテーブルを適用する
 	String ctab = WM_ColorTableForImage(LVName, NameOfWave(srcw))
@@ -345,118 +355,3 @@ Static Function/WAVE makeRGBWave(String grfName, String imgName, String key)
 	return rgbw
 End
 
-//=====================================================================================================
-
-//-------------------------------------------------------------
-//	古いバージョンからの変更点を反映させる
-//	SyncLayerの動作を問題なく行うために、この関数が呼ばれたら全てのウインドウに
-//	ついて変更点を反映させるようにする
-//-------------------------------------------------------------
-Function KMLayerViewerPnlHook(STRUCT WMWinHookStruct &s)	//	古い(名前の)フック関数は後方互換性確保に用いる
-	String listStr = WinList("*",";","WIN:1")
-	Variable i, n = ItemsInList(listStr)
-	
-	for (i = 0; i < n; i += 1)
-		String grfName = StringFromList(i, listStr)
-		//	rev. 671まではsrcWaveを使用していた
-		Wave/Z w = $GetUserData(grfName,"","srcWave")
-		if (WaveExists(w) && WaveDims(w)==3)
-			KMLayerViewerPnlBackComp231(grfName)	//	rev. 127 - > rev. 231 への変更
-			KMLayerViewerPnlBackComp700(grfName)	//	rev. 231 -> rev. 700 への変更
-			printf "%s was updated.\r", grfName
-		endif
-	endfor
-End
-
-//	rev. 231 -> rev. 700 への変更
-Static Function KMLayerViewerPnlBackComp700(String pnlName)
-	
-	Wave w = $GetUserData(pnlName,"","srcWave")
-	DFREF dfrTmp = $GetUserData(pnlName, "", "dfTmp")
-	
-	//	フック関数の交換
-	SetWindow $pnlName hook(self)=KMDisplayCtrlBarHook
-	
-	//	userDataの削除
-	SetWindow $pnlName userData(this)=""
-	SetWindow $pnlName userData(srcWave)=""
-	SetWindow $pnlName userData(dfTmp)=""
-	
-	//	index, valueの処理
-	NVAR/SDFR=dfrTmp index, value
-	SetVariable layerindexV rename=indexV, value=_NUM:index, proc=KMDisplayCtrlBarSetVar2, win=$pnlName
-	SetVariable layerenergyV rename=energyV, value=_NUM:value, proc=KMDisplayCtrlBarSetVar2, win=$pnlName
-	
-	//	AutoAnnotationの処理
-	NVAR/SDFR=dfrTmp legendOn
-	if (legendOn)
-		SVAR/SDFR=dfrTmp legendStr ;		SetWindow $pnlName userData(AAstr)=legendStr
-		NVAR/SDFR=dfrTmp legendDigit ;	SetWindow $pnlName userData(AAdigit)=num2str(legendDigit)
-		SetWindow $pnlName userData(AAname)="KMLegendText"
-		SetWindow $pnlName hook(AA)=KMLayerViewer#aaHook
-	endif
-	
-	//	イメージの更新前に情報を取得しておく
-	Variable zmin, zmax
-	SIDAM_GetColorTableMinMax(pnlName, NameOfWave(w), zmin, zmax)		//	z表示範囲
-	String ctab = WM_ColorTableForImage(pnlName,NameOfWave(w))			//	Igor標準カラーテーブル
-	Variable rev = WM_ColorTableReversed(pnlName,NameOfWave(w))			//	反転
-	Wave/Z cindexw = $WM_ImageColorIndexWave(pnlName,NameOfWave(w))	//	カラーインデックスウエーブ
-	
-	//	イメージの更新
-	AppendImage/W=$pnlName w
-	RemoveImage/W=$pnlName $NameOfWave(w)		//	古いほうが削除されて、新しいほうが残る
-	ModifyImage/W=$pnlName $NameOfWave(w), plane=index
-	
-	//	complexの処理、イメージを更新してから実行する必要がある
-	NVAR/SDFR=dfrTmp complex
-	if (WaveType(w) & 0x01)
-		KillControl/W=$pnlName cmplxP
-		DoWindow/T $pnlName NameOfWave(w)
-		if (complex == 1)			//	phase
-			ModifyImage/W=$pnlName $NameOfWave(w) imCmplxMode=3
-		elseif (complex >= 2)	//	real, imaginary
-			ModifyImage/W=$pnlName $NameOfWave(w) imCmplxMode=complex-1
-		endif
-		DoUpdate/W=$pnlName
-	endif
-	
-	//	z表示範囲とカラーテーブルをコピーする
-	if (!(WaveType(w) & 0x01) || !complex)
-		if (strlen(ctab))
-			ModifyImage/W=$pnlName $NameOfWave(w) ctab= {zmin,zmax,$ctab,rev}
-		else
-			DFREF dfrSrc = GetWavesDataFolderDFR(w)
-			Duplicate/O cindexw dfrSrc:$("c_"+NameOfWave(w))/WAVE=cindexw2
-			ModifyImage/W=$pnlName $NameOfWave(w) cindex=cindexw2
-		endif
-	endif
-	
-	//	一時データフォルダの削除
-	SIDAMKillDataFolder(dfrTmp)
-End
-
-//	rev. 127 - > rev. 231 への変更
-Static Function KMLayerViewerPnlBackComp231(String pnlName)
-	ControlInfo/W=$pnlName pointB
-	if (V_Flag)
-		KillControl/W=$pnlName pointB
-		KillControl/W=$pnlName lineB
-		KillControl/W=$pnlName extractB
-		KillControl/W=$pnlName optionB
-	endif
-End
-
-//-------------------------------------------------------------
-//	rev. 1073より前で使われていたフック関数
-//-------------------------------------------------------------
-Function KMLayerViewerAAHook(STRUCT WMWinHookStruct &s)
-	SetWindow $s.winName hook(AA)=KMLayerViewer#aaHook
-End
-
-//-------------------------------------------------------------
-//	v8.0.2以前で使われていたフック関数
-//-------------------------------------------------------------
-Static Function aaHook(STRUCT WMWinHookStruct &s)
-	SIDAMLayerAnnotation#backCompFromLayerViewerAA(s.winName)
-End

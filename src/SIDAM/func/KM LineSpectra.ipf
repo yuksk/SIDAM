@@ -2,6 +2,17 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLineSpectra
 
+#include "KM LineCommon"
+#include "SIDAM_Color"
+#include "SIDAM_Range"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -90,6 +101,11 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 
 	if (numtype(s.p1) || numtype(s.q1) || numtype(s.p2) || numtype(s.q2))
 		s.errMsg += "coordinate must be a normal number."
+		return 0
+	endif
+
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 
@@ -407,7 +423,7 @@ Static Function pnl(String LVName)
 		return 0
 	endif
 
-	Wave w = KMGetImageWaveRef(LVName)
+	Wave w = SIDAMImageWaveRef(LVName)
 	int i
 
 	//	表示
@@ -502,18 +518,15 @@ Static Function pnlModifyGraph(String pnlName)
 	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
 	ModifyGraph/W=$pnlName rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName axRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName tlblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName alblRGB=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
-	ModifyGraph/W=$pnlName gbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
-	ModifyGraph/W=$pnlName wbRGB=(SIDAM_CLR_BG_R, SIDAM_CLR_BG_G, SIDAM_CLR_BG_B)
 	Label/W=$pnlName bottom "\\u"
 	Label/W=$pnlName left "\\u"
 
 	if (!CmpStr(StringFromList(1,pnlName,"#"),"line"))
 		ModifyWaterfall/W=$pnlName angle=90,axlen=0.5,hidden=0
-		ModifyGraph/W=$pnlName mode=0,useNegRGB=1,usePlusRGB=1,negRGB=(0,0,0),plusRGB=(0,0,0)
 		ModifyGraph/W=$pnlName noLabel(right)=2,axThick(right)=0
+		ModifyGraph/W=$pnlName mode=0,useNegRGB=1,usePlusRGB=1
+		GetWindow $pnlName, gbRGB
+		ModifyGraph/W=$pnlName negRGB=(V_Red,V_Green,V_Blue),plusRGB=(V_Red,V_Green,V_Blue)
 	endif
 End
 //-------------------------------------------------------------
@@ -692,7 +705,7 @@ Menu "SIDAMLineSpectraMenu", dynamic, contextualmenu
 	End
 	"Save...", SIDAMLineSpectra#outputPnl(WinName(0,1))
 	"-"
-	SIDAMLineCommon#pnlRightClickMenu(7),/Q, KMRange(grfName=WinName(0,1)+"#image")
+	SIDAMLineCommon#pnlRightClickMenu(7),/Q, SIDAMRange(grfName=WinName(0,1)+"#image")
 	SIDAMLineCommon#pnlRightClickMenu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
 End
 //-------------------------------------------------------------
@@ -858,7 +871,7 @@ End
 Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
 	if (s.eventCode == 2 || s.eventCode == 8)
 		//	結果文字列の長さを判定する
-		int chklen = KMCheckSetVarString(s.win,s.ctrlName,0,maxlength=MAX_OBJ_NAME-3)
+		int chklen = SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=MAX_OBJ_NAME-3)
 		Button doB disable=chklen*2, win=$s.win
 	endif
 End
@@ -869,7 +882,7 @@ Static Function outputPnlDo(String pnlName)
 	String parent = StringFromList(0,pnlName,"#")
 
 	Wave w = $GetUserData(parent,"","src")
-	Wave cvw = KMGetCtrlValues(parent,"p1V;q1V;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(parent,"p1V;q1V;p2V;q2V")
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 	int mode = str2num(GetUserData(parent,"","mode"))
 	ControlInfo/W=$pnlName positionC ;	int output = V_value

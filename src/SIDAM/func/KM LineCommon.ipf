@@ -2,6 +2,16 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMLineCommon
 
+#include "KM LineProfile"
+#include "KM LineSpectra"
+#include "SIDAM_Color"
+#include "SIDAM_Range"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -11,10 +21,10 @@ Static Constant CTRLHEIGHT2D = 70
 
 //=====================================================================================================
 //
-//	パネル表示について
+//	Panel controls
 //
 //-------------------------------------------------------------
-//	パネルコントロールを作成・配置する
+//	Create the panel controls
 //-------------------------------------------------------------
 Static Function pnlCtrls(String pnlName)
 
@@ -22,14 +32,14 @@ Static Function pnlCtrls(String pnlName)
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
 
-	//	2次元ウエーブのラインプロファイルを表示するときには次元切り替えがないので、2Dイメージ用のガイドを使う
+	//	Use a guide for a 2D image when line profiles of 2D waves are displayed
+	//	because waterfall plot is not used
 	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
 	DefineGuide/W=$pnlName KMFT={FT, height}
 
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)
 
-	//	コントロール項目の初期値
 	int pmin = max(s.pmin, 0), pmax = min(s.pmax, DimSize(w,0)-1)
 	int qmin = max(s.qmin, 0), qmax = min(s.qmax, DimSize(w,1)-1)
 	int p1 = round(pmin*0.75 + pmax*0.25), q1 = round(qmin*0.75 + qmax*0.25)
@@ -55,25 +65,37 @@ Static Function pnlCtrls(String pnlName)
 		SetVariable axlenV title="axlen:", pos={69,74}, size={90,18}, bodyWidth=55, win=$pnlName
 		SetVariable axlenV value=_NUM:0.5, limits={0.1,0.9,0.01}, proc=SIDAMLineCommon#pnlSetVarAxlen, win=$pnlName
 		CheckBox hiddenC title="hidden", pos={173,76}, value=0, proc=SIDAMLineCommon#pnlCheck, win=$pnlName
-
-		SetDrawLayer/W=$pnlName ProgBack
-		SetDrawEnv/W=$pnlName xcoord=rel, ycoord=abs, fillfgc=(58e3,58e3,58e3), linefgc=(58e3,58e3,58e3), linethick=1
-		DrawRect/W=$pnlName 0,CTRLHEIGHT2D*72/screenresolution,1,CTRLHEIGHT1D*72/screenresolution
+		drawCtrlBack(pnlName)
 	endif
 
 	SetWindow $pnlName activeChildFrame=0
 
 	changeIgorMenuMode(0)
 End
-//-------------------------------------------------------------
-//	表示するプロファイルの次元を変える
-//-------------------------------------------------------------
+
+//	Draw the gray background for the controls of waterfall
+Static Function drawCtrlBack(String pnlName)
+	SetDrawLayer/W=$pnlName ProgBack
+	SetDrawEnv/W=$pnlName gname=ctrlback, gstart
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=abs, fillfgc=(58e3,58e3,58e3), linefgc=(58e3,58e3,58e3), linethick=1
+	DrawRect/W=$pnlName 0,CTRLHEIGHT2D*72/screenresolution,1,CTRLHEIGHT1D*72/screenresolution
+	SetDrawEnv/W=$pnlName gstop
+	SetDrawLayer/W=$pnlName UserFront
+End
+
+//	Change line/image
 Static Function pnlChangeDim(String pnlName, int dim)
 	Wave w = $GetUserData(pnlName,"","src")
 	SetWindow $pnlName userData(dim)=num2istr(dim)
 
 	int hideLine = (WaveDims(w)==3 && dim==2) ? 1 : 0
 	Variable height = hideLine ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
+
+	if (hideLine)
+		DrawAction/L=ProgBack/W=$pnlName getgroup=ctrlback, delete
+	else
+		drawCtrlBack(pnlName)
+	endif
 
 	DefineGuide/W=$pnlName KMFT={FT, height}
 	SetWindow $pnlName#line hide=hideLine
@@ -83,9 +105,8 @@ Static Function pnlChangeDim(String pnlName, int dim)
 	SetVariable axlenV disable=hideLine, win=$pnlName
 	CheckBox hiddenC disable=hideLine, win=$pnlName
 End
-//-------------------------------------------------------------
-//	Igorメニューの切り替え
-//-------------------------------------------------------------
+
+//	Change the menu mode of Igor
 Static Function changeIgorMenuMode(int mode)
 	if (mode)
 		SetIgorMenuMode "File", "Save Graphics", EnableItem
@@ -109,7 +130,7 @@ End
 Static Function pnlHookParentMouse(STRUCT WMWinHookStruct &s,	String pnlName)
 
 	STRUCT SIDAMMousePos ms
-	Wave cvw = KMGetCtrlValues(pnlName,"p1C;p2C")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1C;p2C")
 	int isp1Checked = cvw[0], isp2Checked = cvw[1]
 	int isBothFixed = !isp1Checked && !isp2Checked
 	int isGrid = str2num(GetUserData(pnlName,"","grid"))
@@ -337,7 +358,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 
 		case 49:	//	1
 		case 50:	//	2
-			KMClickCheckBox(s.winName,"p"+num2istr(s.keycode-48)+"C")
+			SIDAMClickCheckBox(s.winName,"p"+num2istr(s.keycode-48)+"C")
 			return 1
 
 		case 120:	//	x
@@ -358,7 +379,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 	switch (s.specialKeyCode)
 		case 4:	//	F4
 			if (str2num(GetUserData(s.winName,"","dim"))==2)
-				KMRange(grfName=s.winName+"#image")
+				SIDAMRange(grfName=s.winName+"#image")
 				return 1
 			endif
 			return 0
@@ -387,10 +408,10 @@ Static Function keyArrows(STRUCT WMWinHookStruct &s)
 		endif
 	endfor
 
-	Wave cvw = KMGetCtrlValues(s.winName,"p1C;p1V;q1V;p2C;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(s.winName,"p1C;p1V;q1V;p2C;p2V;q2V")
 
 	//	Do nothing if neither 1 nor 2 is checked
-	if (!cvw[0] && !cvw[3])
+	if (!cvw[%p1C] && !cvw[%p2C])
 		return 0
 	endif
 
@@ -398,21 +419,29 @@ Static Function keyArrows(STRUCT WMWinHookStruct &s)
 	int isUp = s.keycode == 30, isDown = s.keycode == 31
 	int step = (s.eventMod & 2) ? 10 : 1	//	if the shift key is pressed, move 10 times faster
 	int direction = (isLeft || isDown) ? -1 : 1
-	Variable pinc = KMGetVarLimits(s.winName, "p1V",2) * step * direction
-	Variable qinc = KMGetVarLimits(s.winName, "q1V",2) * step * direction
+	int pinc = getIncrement(s.winName, "p1V") * step * direction 
+	int qinc = getIncrement(s.winName, "q1V") * step * direction 
 	Wave w = $GetUserData(s.winName,"","src")
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 
 	if (isLeft || isRight)
-		SetVariable p1V value=_NUM:limit(cvw[1]+pinc*cvw[0], 0, nx-1), win=$s.winName
-		SetVariable p2V value=_NUM:limit(cvw[4]+pinc*cvw[3], 0, nx-1), win=$s.winName
+		SetVariable p1V value=_NUM:limit(cvw[%p1V]+pinc*cvw[%p1C], 0, nx-1), win=$s.winName
+		SetVariable p2V value=_NUM:limit(cvw[%p2V]+pinc*cvw[%p2C], 0, nx-1), win=$s.winName
 	elseif (isUp || isDown)
-		SetVariable q1V value=_NUM:limit(cvw[2]+qinc*cvw[0], 0, ny-1), win=$s.winName
-		SetVariable q2V value=_NUM:limit(cvw[5]+qinc*cvw[3], 0, ny-1), win=$s.winName
+		SetVariable q1V value=_NUM:limit(cvw[%q1V]+qinc*cvw[%p1C], 0, ny-1), win=$s.winName
+		SetVariable q2V value=_NUM:limit(cvw[%q2V]+qinc*cvw[%p2C], 0, ny-1), win=$s.winName
 	endif
 
 	pnlSetDistanceAngle(s.winName)
 End
+
+Static Function getIncrement(String pnlName, String ctrlName)
+	ControlInfo/W=$pnlName $ctrlName
+	Variable num1 = strsearch(S_recreation,"limits={",0)+8
+	Variable num2 = strsearch(S_recreation,"}",num1)-1
+	return str2num(StringFromList(2,S_recreation[num1,num2],","))
+End
+
 //-------------------------------------------------------------
 //	Helper of pnlHookKeyboard, space
 //-------------------------------------------------------------
@@ -436,7 +465,7 @@ Static Function keySpecial(STRUCT WMWinHookStruct &s)
 
 	switch (s.specialKeyCode)
 		case 4:	//	F4
-			KMRange(grfName=s.winName+"#image")
+			SIDAMRange(grfName=s.winName+"#image")
 			break
 		case 5:	//	F5
 			SIDAMColor(grfName=s.winName+"#image")
@@ -537,7 +566,7 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 	strswitch (s.ctrlName)
 		case "distanceV":
 		case "angleV":
-			Wave cvw = KMGetCtrlValues(s.win,"p1C;p1V;q1V;p2C;p2V;q2V;distanceV;angleV")
+			Wave cvw = SIDAMGetCtrlValues(s.win,"p1C;p1V;q1V;p2C;p2V;q2V;distanceV;angleV")
 			if (cvw[3])		//	p2Cがチェックされている場合
 				vx = limit(ox+dx*cvw[1]+cvw[6]*cos(cvw[7]*pi/180), ox, ox+dx*(nx-1))
 				vy = limit(oy+dy*cvw[2]+cvw[6]*sin(cvw[7]*pi/180), oy, oy+dy*(ny-1))
@@ -566,7 +595,7 @@ End
 //	p1V, q1V, p2V, q2V の値に応じて distanceV, angleV の値を設定する
 //-------------------------------------------------------------
 Static Function pnlSetDistanceAngle(String pnlName)
-	Wave cvw = KMGetCtrlValues(pnlName,"p1V;q1V;p2V;q2V")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1V;q1V;p2V;q2V")
 	Wave w = $GetUserData(pnlName,"","src")
 	Variable vx = (cvw[2]-cvw[0])*DimDelta(w,0), vy = (cvw[3]-cvw[1])*DimDelta(w,1)
 	SetVariable distanceV value=_NUM:sqrt(vx^2+vy^2), win=$pnlName
@@ -577,7 +606,7 @@ End
 //-------------------------------------------------------------
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	Wave w = KMGetImageWaveRef(grfName)
+	Wave w = SIDAMImageWaveRef(grfName)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
@@ -666,7 +695,7 @@ Static Function/S rightclickMenuTarget()
 	if (!strlen(pnlName))
 		return ""
 	endif
-	
+
 	strswitch (GetUserData(pnlName,"","key"))
 		case "SIDAMLineSpectra":
 			Wave/Z srcw = $GetUserData(pnlName, "", "src")
@@ -689,7 +718,7 @@ Static Function/S rightclickMenuTarget()
 
 	for (i = 0, n = ItemsInList(allList); i < n; i += 1)
 		win = StringFromList(i, allList)
-		Wave/Z imgw = KMGetImageWaveRef(win)
+		Wave/Z imgw = SIDAMImageWaveRef(win)
 		if (!WaveExists(imgw) || DimSize(srcw,0) != DimSize(imgw,0) || DimSize(srcw,1) != DimSize(imgw,1))
 			continue
 		elseif (WhichListItem(win, GetUserData(pnlName,"","parent")) != -1)
@@ -745,7 +774,7 @@ Static Function pnlRightclickDoPositions(String pnlName)
 			q1 = 0; 	q2 = ny-1;	p1 = Ceil(DimSize(w,0)/2)-1;	p2 = p1;
 			break
 		case 9:	//	exchange
-			Wave cw = KMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
+			Wave cw = SIDAMGetCtrlValues(pnlName, "p1V;q1V;p2V;q2V")
 			p1 = cw[2];	q1 = cw[3];	p2 = cw[0];	q2 = cw[1]
 			break
 	endswitch
@@ -773,7 +802,7 @@ Static Function pnlRightclickDoFree(String pnlName)
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 	String ctrlList = "p1V;q1V;p2V;q2V"
 	ModifyControlList ctrlList format=SelectString(grid,"%d","%.2f"), win=$pnlName
-	Wave cvw = KMGetCtrlValues(pnlName,ctrlList), w = $GetUserData(pnlName,"","src")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,ctrlList), w = $GetUserData(pnlName,"","src")
 	if (!grid)
 		SetVariable p1V value=_NUM:round(cvw[0]), win=$pnlName
 		SetVariable q1V value=_NUM:round(cvw[1]), win=$pnlName

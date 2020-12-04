@@ -2,6 +2,41 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
+#include "KM Correlation"
+#include "KM Fourier Filter"
+#include "KM Fourier Peak"
+#include "KM Fourier Symmetrization"
+#include "KM Histogram"
+#include "KM InfoBar"
+#include "KM LayerViewer"
+#include "KM LineProfile"
+#include "KM LineSpectra"
+#include "KM ScaleBar"
+#include "KM SyncAxisRange"
+#include "KM SyncCursor"
+#include "KM SyncLayer"
+#include "KM Trace"
+#include "KM Workfunction"
+#include "SIDAM_Color"
+#include "SIDAM_Compatibility_Old_Functions"
+#include "SIDAM_Display"
+#include "SIDAM_FFT"
+#include "SIDAM_LayerAnnotation"
+#include "SIDAM_LoadData"
+#include "SIDAM_Position_Recorder"
+#include "SIDAM_Preference"
+#include "SIDAM_Range"
+#include "SIDAM_Subtraction"
+#include "SIDAM_SaveGraphics"
+#include "SIDAM_SaveMovie"
+#include "SIDAM_ShowParameters"
+#include "SIDAM_SpectrumViewer"
+#include "SIDAM_StartExit"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_misc"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -19,17 +54,22 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Display..."
-		KMPreview#menu("/F3"), /Q, KMPreviewPnl()
-		help = {"Display a preview panel"}
-
 		SIDAMDisplay#menu(0,"/F3"), /Q, SIDAMDisplay#menuDo()
 		help = {"Display a wave(s)"}
 
 		SIDAMDisplay#menu(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
-		help = {"Display a 2D wave as traces"}
+		help = {"Display a 2D wave as 1d-traces"}
 
+		SIDAMDisplay#menu(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+		help = {"Display a 2D wave as xy-traces"}
+		
 		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
+		
+		"-"
+		
+		"Preview (deprecated)", /Q, KMPreviewPnl()
+		help = {"Display a preview panel"}		
 	End
 
 	"-"
@@ -49,7 +89,7 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Developer"
-		SIDAMUtilDev#menu(), /Q, SIDAMshowProcedures()
+		SIDAMUtilMisc#menu(), /Q, SIDAMshowProcedures()
 		"List of Deprecated Functions", /Q, print SIDAMDeprecatedFunctions()
 		help = {"Show a list of deprecated functions in the history area"}
 	End
@@ -87,10 +127,10 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	//	Range
 	SubMenu "Range"
 		help = {"Adjust of z range of images in the active graph."}
-		"Manual.../F4",/Q, KMRange()
+		"Manual.../F4",/Q, SIDAMRange()
 		"-"
-		KMRange#rightclickMenu(2), /Q, KMRange#rightclickDo(2)
-		KMRange#rightclickMenu(3), /Q, KMRange#rightclickDo(3)
+		SIDAMRange#menu(2), /Q, SIDAMRange#menuDo(2)
+		SIDAMRange#menu(3), /Q, SIDAMRange#menuDo(3)
 	End
 
 	"Color Table.../F5",/Q, SIDAMColor()
@@ -138,7 +178,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	"-"
 
 	//	View spectra of LayerViewer
-	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#rightclickDo()
+	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#menuDo()
 	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#rightclickDo()
 	//	Line Profile
 	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#rightclickDo()
@@ -155,10 +195,10 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	help = {"Compute the histogram of a source wave."}
 	SubMenu "Fourier"
 		//	Fourier Transform
-		SelectString(KMFFTCheckWaveMenu(), "", "(")+"Fourier Transform.../F7", /Q, KMFFT#rightclickDo()
+		SIDAMMenus#menu("Fourier Transform...", forfft=1)+"/F7", /Q, SIDAMFFT#menuDo()
 		help = {"Compute a Fourier transform of a source wave."}
 		//	Fourier filter
-		SelectString(KMFFTCheckWaveMenu(), "", "(")+"Fourier Filter...", /Q, KMFourierFilter#rightclickDo()
+		SIDAMMenus#menu("Fourier Filter...", forfft=1), /Q, KMFourierFilter#rightclickDo()
 		help = {"Apply a Fourier filter to a source wave"}
 		//	Fourier Symmetrization
 		SIDAMMenus#menu("Fourier Symmetrization...", noComplex=1), /Q, KMFourierSym#rightclickDo()
@@ -166,7 +206,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	End
 
 	//	Correlation
-	SelectString(KMFFTCheckWaveMenu(), "", "(")+"Correlation...", /Q, KMCorrelation#rightclickDo()
+	SIDAMMenus#menu("Correlation...", forfft=1), /Q, KMCorrelation#rightclickDo()
 	help = {"Compute a correlation function of a source wave(s)."}
 	//	Work Function
 	SIDAMMenus#menu("Work Function...", dim=3), /Q,  KMWorkfunctionR()
@@ -174,7 +214,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"-"
 
-	"Position Recorder", /Q, KMPositionRecorder#rightclickDo()
+	"Position Recorder", /Q, SIDAMPositionRecorder("")
 	//	Extract Layers of LayerViewer
 	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
 	//	"Data Parameters"
@@ -193,14 +233,14 @@ End
 //-------------------------------------------------------------
 //	conditional menu
 //-------------------------------------------------------------
-Static Function/S menu(String str, [int noComplex, int dim])
+Static Function/S menu(String str, [int noComplex, int dim, int forfft])
 	noComplex = ParamIsDefault(noComplex) ? 0 : noComplex
 
 	String grfName = WinName(0,1)
 	if (!strlen(grfName))
 		return "(" + str
 	endif
-	Wave/Z w = KMGetImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageWaveRef(grfName)
 	if (!WaveExists(w))
 		return "(" + str
 	endif
@@ -213,6 +253,24 @@ Static Function/S menu(String str, [int noComplex, int dim])
 	//	gray out for complex waves
 	if (noComplex)
 		return SelectString((WaveType(w) & 0x01), "", "(") + str
+	endif
+
+	//	gray out for waves which are not for FFT
+	if (!ParamIsDefault(forfft) && forfft)
+		//	When a big wave is contained an experiment file, SIDAMValidateWaveforFFT may
+		// make the menu responce slow. Therefore, use SIDAMValidateWaveforFFT only if
+		//	the wave in a window has been modified since the last menu call.
+		Variable grfTime = str2num(GetUserData(grfName, "", "modtime"))
+		Variable wTime = NumberByKey("MODTIME", WaveInfo(w, 0))
+		Variable fftavailable = str2num(GetUserData(grfName, "", "fftavailable"))
+		int noRecord = numtype(grfTime) || numtype(fftavailable)
+		int isModified = wTime > grfTime
+		if (isModified || noRecord)
+			fftavailable = !SIDAMValidateWaveforFFT(w)
+			SetWindow $grfName userData(modtime)=num2istr(wTime)
+			SetWindow $grfName userData(fftavailable)=num2istr(fftavailable)
+		endif
+		return SelectString(fftavailable, "(", "") + str
 	endif
 
 	return str
@@ -281,10 +339,6 @@ Menu "GraphMarquee", dynamic
 	Submenu "Get peak"
 		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(0)
 		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(1)
-	End
-	Submenu "Erase peak"
-		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(2)
-		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(3)
 	End
 End
 

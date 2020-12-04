@@ -5,8 +5,10 @@
 #pragma hide = 1
 #endif
 
-#include "SIDAM_Prefs"						//	for SIDAMLoadPrefs, SIDAMSavePrefs
-#include "SIDAM_Compatibility"			//	for SIDAMBackwardCompatibility
+#include "SIDAM_Color"
+#include "SIDAM_LoadData"
+#include "SIDAM_Preference"
+#include "SIDAM_Compatibility"
 
 //	AfterCompiledHook
 Function SIDAMAfterCompiledHook()
@@ -15,7 +17,7 @@ Function SIDAMAfterCompiledHook()
 	SIDAMLoadPrefs(p)
 	p.last = DateTime
 	SIDAMSavePrefs(p)
-	
+
 	// if the precision in the preference and the actual preference is different,
 	//	correct the latter
 	if (p.precision == 1 && defined(SIDAMhighprecision))
@@ -23,21 +25,18 @@ Function SIDAMAfterCompiledHook()
 	elseif (p.precision == 2 && !defined(SIDAMhighprecision))
 		SIDAMInfoBarSetPrecision(1)
 	endif
-	
+
 	//	backward compatibility for an old experiment file
 	SIDAMBackwardCompatibility()
 End
-
-
-#ifndef SIDAMstarting
 
 //	BeforeFileOpenHook
 Function SIDAMFileOpenHook(refNum,filename,path,type,creator,kind)
 	Variable refNum,kind
 	String filename,path,type,creator
-	
+
 	Variable dontInvokeIgorFn = 0
-	
+
 	if (kind == 0 || kind == 6 || kind == 7)
 		PathInfo $path
 		try
@@ -51,7 +50,7 @@ Function SIDAMFileOpenHook(refNum,filename,path,type,creator,kind)
 			endif
 		endtry
 	endif
-	
+
 	return dontInvokeIgorFn
 End
 
@@ -59,17 +58,10 @@ End
 Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 	Variable refNum,kind
 	String filename,path,type,creator
-	
+
 	//	Remove unused color scales
 	SIDAMColor(kill=1)
-	
+
 	return 0
 End
 
-#endif
-
-
-//	For backward compatibility
-Function KMAfterCompiledHook()
-	SIDAMAfterCompiledHook()
-End

@@ -2,6 +2,12 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMWavesStats
 
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -106,9 +112,8 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		endfor
 	endif
 	
-	Make/N=4/FREE suffixLenw = {strlen(ks_index_avg),strlen(ks_index_sdev),strlen(ks_index_skew),strlen(ks_index_kurt)}
-	if (strlen(s.result) + WaveMax(suffixLenw) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave exceeds the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (strlen(s.result) && CheckName(s.result, 1))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 	
@@ -145,7 +150,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)))
+	pnl(SIDAMImageWaveRef(WinName(0,1)))
 End
 
 
@@ -352,11 +357,11 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	
 	STRUCT paramStruct cs
 	Wave cs.w = $GetUserData(s.win, "", "src")
-	Wave cvw = KMGetCtrlValues(s.win, "avgC;sdevC;skewC;kurtC;modeP")
+	Wave cvw = SIDAMGetCtrlValues(s.win, "avgC;sdevC;skewC;kurtC;modeP")
 	cs.stats = cvw[0]+cvw[1]*2+cvw[2]*4+cvw[3]*8
 	cs.mode = cvw[4]-1
 	ControlInfo/W=$s.win resultV ;	cs.result = S_Value
-	KMPopupTo(s, echoStr(cs))
+	SIDAMPopupTo(s, echoStr(cs))
 End
 //-------------------------------------------------------------
 //	値設定
@@ -379,8 +384,8 @@ End
 //	パネルの表示状態を設定
 //******************************************************************************
 Static Function pnlDisable(String pnlName)
-	Variable longName = KMCheckSetVarString(pnlName,"resultV",0)
-	Variable noCheck = !sum(KMGetCtrlValues(pnlName, "avgC;sdevC;skewC;kurtC;"))
+	Variable longName = SIDAMValidateSetVariableString(pnlName,"resultV",0)
+	Variable noCheck = !sum(SIDAMGetCtrlValues(pnlName, "avgC;sdevC;skewC;kurtC;"))
 	
 	ModifyControlList "doB;toP" disable=(longName || noCheck)*2, win=$pnlName
 	
@@ -396,7 +401,7 @@ End
 //******************************************************************************
 Static Function pnlDo(String pnlName)
 	Wave w = $GetUserData(pnlName,"","src")
-	Wave cvw = KMGetCtrlValues(pnlName, "avgC;sdevC;skewC;kurtC;modeP;displayC")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "avgC;sdevC;skewC;kurtC;modeP;displayC")
 	Variable stats = cvw[0]+cvw[1]*2+cvw[2]*4+cvw[3]*8
 	ControlInfo/W=$pnlName resultV ;	String result = S_Value
 	KillWindow $pnlName

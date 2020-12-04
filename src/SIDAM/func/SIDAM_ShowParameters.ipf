@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMShowParameters
 
+#include "SIDAM_Utilities_Image"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -45,7 +47,7 @@ Static Function/S rightclickMenu()
 End
 
 Static Function/DF getSIDAMSettingDFR(String grfName)
-	Wave/Z srcw = KMGetImageWaveRef(grfName)
+	Wave/Z srcw = SIDAMImageWaveRef(grfName)
 	if (!WaveExists(srcw))
 		Wave/Z srcw = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif

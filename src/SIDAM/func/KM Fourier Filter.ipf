@@ -2,6 +2,15 @@
 #pragma rtGlobals=1
 #pragma ModuleName=KMFourierFilter
 
+#include "KM InfoBar"
+#include "SIDAM_Display"
+#include "SIDAM_FFT"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -57,9 +66,9 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	s.errMsg = PRESTR_CAUTION + "KMFilter gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.srcw)
-	if (strlen(msg))
-		s.errMsg += msg
+	int flag = SIDAMValidateWaveforFFT(s.srcw)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 		return 0
 	endif
 	
@@ -82,11 +91,11 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		return 0
 	endif
 	
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for output wave will exceed the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
-	
+
 	s.invert = s.invert ? 1 : 0
 	s.endeffect = limit(s.endeffect, 0, 3)
 	
@@ -296,7 +305,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)), WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
@@ -320,7 +329,7 @@ Static Function pnl(Wave w, String grfName)
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2), activeChildFrame=0
 	
 	//	パネル項目
-	TabControl mTab pos={1,1}, size={338,368}, proc=KMTabControlProc, win=$pnlName
+	TabControl mTab pos={1,1}, size={338,368}, proc=SIDAMTabControlProc, win=$pnlName
 	TabControl mTab tabLabel(0)="original", tabLabel(1)="filtered", tabLabel(2)="FFT", value=2, win=$pnlName
 	
 	TitleBox pqT pos={15,24}, frame=0, win=$pnlName
@@ -397,7 +406,7 @@ Static Function pnl(Wave w, String grfName)
 	SetWindow $pnlName#original hide=0
 	SetWindow $pnlName#filtered hide=0
 	SetActiveSubWindow $pnlName
-	KMTabControlInitialize(pnlName,"mTab")
+	SIDAMInitializeTab(pnlName,"mTab")
 End
 //-------------------------------------------------------------
 //	パネル初期設定
@@ -422,7 +431,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	SetDataFolder GetWavesDataFolderDFR(w)
 	String name = UniqueName("wave",1,0)
 	SetDataFolder $dfTmp
-	MoveWave KMFFT(ow,result=name,win="Welch",out=3,subtract=1), $FOURIERNAME
+	MoveWave SIDAMFFT(ow,result=name,win="Hanning",out=3,subtract=1), $FOURIERNAME
 	
 	//	表示リスト用ウエーブ
 	Make/N=(0,7)/T $KM_WAVE_LIST/WAVE=listw
@@ -560,7 +569,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			ControlInfo/W=$s.win invertP ;	Variable invert = V_Value==2
 			ControlInfo/W=$s.win endP ;		Variable endeffect = V_Value-1
 			String paramStr = echoStr(srcw, paramw, result, invert, endeffect)
-			KMPopupTo(s, paramStr)
+			SIDAMPopupTo(s, paramStr)
 			break
 			
 		case "endP":
@@ -594,7 +603,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 		return 1
 	endif
 	
-	Variable disable = KMCheckSetVarString(s.win,s.ctrlName,0)
+	Variable disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
 	pnlUpdate(s.win, disable)
 End
 //-------------------------------------------------------------

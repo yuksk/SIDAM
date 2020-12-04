@@ -2,6 +2,9 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMLayerAnnotation
 
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Panel"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif

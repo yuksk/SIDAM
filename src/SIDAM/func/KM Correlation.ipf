@@ -2,6 +2,14 @@
 #pragma rtGlobals=3
 #pragma ModuleName= KMCorrelation
 
+#include "SIDAM_Display"
+#include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Help"
+#include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_WaveDf"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -78,16 +86,16 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 	
 	s.errMsg = PRESTR_CAUTION +"KMCorrelation gave error: "
 	
-	String msg = KMFFTCheckWaveMsg(s.w1)
-	if (strlen(msg))
-		s.errMsg += msg
+	int flag = SIDAMValidateWaveforFFT(s.w1)
+	if (flag)
+		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 		return 0
 	endif
 	
 	if (!WaveRefsEqual(s.w1, s.w2))
-		msg = KMFFTCheckWaveMsg(s.w2)
-		if (strlen(msg))
-			s.errMsg += msg
+		flag = SIDAMValidateWaveforFFT(s.w2)
+		if (flag)
+			s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
 			return 0
 		elseif (DimSize(s.w1,0) != DimSize(s.w2,0) || DimSize(s.w1,1) != DimSize(s.w2,1))
 			s.errMsg += "the input waves must have the same data points in x and y directions."
@@ -107,8 +115,8 @@ Static Function isValidArguments(STRUCT paramStruct &s)
 		endif
 	endif
 	
-	if (strlen(s.result) > MAX_OBJ_NAME)
-		s.errMsg += "length of name for the result wave will exceed the limit ("+num2istr(MAX_OBJ_NAME)+" characters)."
+	if (SIDAMCheckWaveName(s.result))
+		s.errMsg += "the result is invalid as a name of wave."
 		return 0
 	endif
 	
@@ -152,7 +160,7 @@ End
 //	右クリック用
 //-------------------------------------------------------------
 Static Function rightclickDo()
-	pnl(KMGetImageWaveRef(WinName(0,1)),WinName(0,1))
+	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 
@@ -510,11 +518,11 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 		case "toP":
 			Wave w1 = $GetUserData(s.win, "", "src")
-			Wave w2 = KMGetWaveRefFromPopup(s.win, "waveP")
-			Wave cvw = KMGetCtrlValues(s.win, "subtractC;normalizeC;maxposC")
+			Wave w2 = pnlPopupWaveRef(s.win, "waveP")
+			Wave cvw = SIDAMGetCtrlValues(s.win, "subtractC;normalizeC;maxposC")
 			ControlInfo/W=$s.win resultV
 			String paramStr = echoStr(w1, w2, S_Value, cvw[0], cvw[1], 0, cvw[2]*2)
-			KMPopupTo(s, paramStr)
+			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
 End
@@ -525,8 +533,8 @@ End
 Static Function pnlDisable(String pnlName)
 	
 	Wave w1 = $GetUserData(pnlName, "", "src")
-	Wave/Z w2 = KMGetWaveRefFromPopup(pnlName, "waveP")
-	if (!WaveExists(w2) || KMCheckSetVarString(pnlName,"resultV",0))
+	Wave/Z w2 = pnlPopupWaveRef(pnlName, "waveP")
+	if (!WaveExists(w2) || SIDAMValidateSetVariableString(pnlName,"resultV",0))
 		Button doB disable=2, win=$pnlName
 		PopupMenu toP disable=2, win=$pnlName
 		return 0
@@ -548,8 +556,8 @@ End
 Static Function pnlDo(String pnlName)
 	
 	Wave w1 = $GetUserData(pnlName, "", "src")
-	Wave w2 = KMGetWaveRefFromPopup(pnlName, "waveP")
-	Wave cvw = KMGetCtrlValues(pnlName, "subtractC;normalizeC;maxposC;displayC")
+	Wave w2 = pnlPopupWaveRef(pnlName, "waveP")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "subtractC;normalizeC;maxposC;displayC")
 	ControlInfo/W=$pnlName resultV ;		String result = S_Value
 	KillWindow $pnlName
 	
@@ -557,5 +565,21 @@ Static Function pnlDo(String pnlName)
 	
 	if (cvw[3])
 		SIDAMDisplay(resw, history=1)
+	endif
+End
+
+
+Static Function/WAVE pnlPopupWaveRef(String pnlName, String ctrlName)
+	
+	ControlInfo/W=$pnlName $ctrlName
+	if (strlen(StringByKey("value",S_recreation,"=",",")) <= 9)	//	何も選択されていないとき
+		return $""
+	endif
+	
+	Wave/Z w = $(GetUserData(pnlName, ctrlName, "srcDf") + PossiblyQuoteName(S_Value))
+	if (WaveExists(w))
+		return w
+	else
+		return $""
 	endif
 End
