@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "SIDAMdoc"
+version = "0.1.0"
+description = "SIDAM documentation"
+authors = ["Kohsaka <kohsaka@riken.jp>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+sphinx = "^3.3.0"
+sphinx-rtd-theme = "^0.5.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

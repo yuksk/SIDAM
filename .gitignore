@@ -20,3 +20,8 @@ src/SIDAM/fileloader/*
 !src/SIDAM/fileloader/Load\ RHK\ SM2.ipf
 !src/SIDAM/fileloader/Load\ Topometrix.ipf
 !src/SIDAM/fileloader/readme.md
+
+# docs
+docs/build/*
+docs/source/api_body.rst
+docs/poetry.lock
