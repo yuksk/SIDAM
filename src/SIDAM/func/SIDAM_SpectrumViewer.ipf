@@ -444,8 +444,9 @@ Static Function saveSpectrum(String pnlName)
 
 		sprintf result, "%s_p%dq%d", NameOfWave(srcw), cvw[%pV], cvw[%qV]
 		result = CleanupName(result,1)
-
-		Duplicate/O/R=[cvw[%pV]][cvw[%qV]][] srcw, $(GetWavesDataFolder(srcw,1)+result)/WAVE=extw
+		
+		DFREF dfr = GetWavesDataFolderDFR(srcw)
+		Duplicate/O/R=[cvw[%pV]][cvw[%qV]][] srcw, dfr:$result/WAVE=extw
 		Redimension/N=(numpnts(extw)) extw
 
 		if (SIDAMisUnevenlySpacedBias(srcw))
