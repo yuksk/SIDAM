@@ -1,6 +1,7 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#include "SIDAM_InfoBar"
 #include "SIDAM_Range"
 #include "SIDAM_Hook"
 

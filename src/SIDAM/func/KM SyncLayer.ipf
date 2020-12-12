@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName = KMSyncLayer
 
-#include "KM LayerViewer"
 #include "KM SyncCommon"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -105,11 +104,11 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				break
 			endif
 			String win, list = KMSyncCommon#getSyncList(s.winName, ks_key)
-			int i, n = ItemsInList(list), plane = KMLayerViewerDo(s.winName)
+			int i, n = ItemsInList(list), plane = SIDAMGetLayerIndex(s.winName)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i, list)
 				KMSyncCommon#setBlock(win, ks_key)	//	循環動作を防ぐため
-				KMLayerViewerDo(win, index=plane)
+				SIDAMSetLayerIndex(win, plane)
 				DoUpdate/W=$win
 			endfor
 			break

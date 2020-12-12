@@ -2,7 +2,6 @@
 #pragma rtGlobals=3	
 #pragma ModuleName=SIDAMSaveCommon
 
-#include "KM LayerViewer"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 
@@ -155,7 +154,7 @@ End
 //-------------------------------------------------------------
 Static Function/WAVE getLayers(String pnlName)
 	String grfName = StringFromList(0,pnlName,"#")
-	int initIndex = KMLayerViewerDo(grfName)	//	present layer
+	int initIndex = SIDAMGetLayerIndex(grfName)	//	present layer
 	
 	ControlInfo/W=$pnlName all_rC
 	if (V_Value)

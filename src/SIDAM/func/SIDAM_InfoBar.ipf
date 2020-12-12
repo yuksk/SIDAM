@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName= SIDAMInfoBar
 
-#include "KM LayerViewer"
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
 #include "SIDAM_Range"
@@ -87,7 +86,7 @@ Function SIDAMInfoBar(String grfName)
 	endif
 
 	if (is3D)
-		int layer = KMLayerViewerDo(grfName)
+		int layer = SIDAMGetLayerIndex(grfName)
 		SetVariable indexV title="index:", pos={3,5}, size={96,18}, win=$grfName
 		SetVariable indexV value=_NUM:layer, format="%d", win=$grfName
 		SetVariable energyV title="value:", value=_NUM:SIDAMIndexToScale(w,layer,2), win=$grfName
@@ -316,6 +315,8 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		isTrace2D = WaveDims(w)==2
 	endif
 
+	int plane
+
 	switch (s.eventCode)
 			
 		case 3:	//	mousedown
@@ -341,7 +342,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			if (is3D)
 				//	When the displayed layer has been changed (by mouse wheel, from
 				//	the panel of ModifyImage), the indexV and the energyV must be changed.
-				int plane = KMLayerViewerDo(s.winName)	//	the present layer
+				plane = SIDAMGetLayerIndex(s.winName)	//	the present layer
 				ControlInfo/W=$s.winname indexV
 				if (V_Value != plane)
 					SetVariable indexV value=_NUM:plane, win=$s.winName
@@ -371,7 +372,8 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			if (is3D)
 				STRUCT SIDAMMousePos ms
 				SIDAMGetMousePos(ms, s.winName, s.mouseLoc)
-				KMLayerViewerDo(s.winName, w=ms.w, direction=direction)
+				plane = SIDAMGetLayerIndex(s.winName, w=ms.w)
+				SIDAMSetLayerIndex(s.winName, plane+direction, w=ms.w)
 			elseif (istrace2D)
 				setTraceIndex(s.winName, getTraceIndex(s.winName)+direction)
 			endif
@@ -619,7 +621,7 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 12:		//	PageDown
 			if (is3D)	//	Change the displayed layer of a 3D wave
 				int direction = (s.keyCode == 11) ? 1 : -1
-				KMLayerViewerDo(s.winName, direction=direction)
+				SIDAMSetLayerIndex(s.winName, SIDAMGetLayerIndex(s.winName)+direction)
 			endif
 			return 1
 		case 27:		//	esc

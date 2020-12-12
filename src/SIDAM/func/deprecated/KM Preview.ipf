@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=KMPreview
 
-#include "KM LayerViewer"
 #include "SIDAM_Display"
 #include "SIDAM_Range"
 #include "SIDAM_Subtraction"
@@ -204,7 +203,7 @@ Static Function updateLayers(
 	
 	Wave/Z iw =  SIDAMImageWaveRef(grfName)
 	if (WaveExists(iw) && WaveDims(iw) == 3)
-		KMLayerViewerDo(grfName, direction=direction)
+		SIDAMSetLayerIndex(grfName, SIDAMGetLayerIndex(grfName)+direction)
 		//	0.5%表示　ウエーブ変更時に設定してあるが、サブウインドウのへフック関数を設定してもイベントを拾うことが
 		//	できないので、レイヤー変更後に再び実行する
 		SIDAMRange(grfName=grfName,zmin=0.5,zminmode=3,zmax=99.5,zmaxmode=3)

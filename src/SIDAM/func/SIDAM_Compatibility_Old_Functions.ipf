@@ -57,6 +57,10 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function KMLayerViewerDo(String grfName, [Wave/Z w, int index, int direction])
+	deprecatedCaution("")
+End
+
 Function KMInfoBar(String grfName)
 	deprecatedCaution("SIDAMInfoBar")
 	SIDAMInfoBar(grfName)

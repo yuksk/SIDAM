@@ -2,7 +2,6 @@
 #pragma rtGlobals=3	
 #pragma ModuleName=SIDAMSaveMovie
 
-#include "KM LayerViewer"
 #include "SIDAM_SaveCommon"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -96,13 +95,13 @@ Static Function saveMovie(String pnlName)
 	String grfName = StringFromList(0,pnlName,"#")
 	int i
 	for (i = lw[0]; i <= lw[1]; i++)
-		KMLayerViewerDo(grfName, index=i)
+		SIDAMSetLayerIndex(grfName, i)
 		DoUpdate/W=$grfName
 		AddMovieFrame
 	endfor
 	
 	CloseMovie
-	KMLayerViewerDo(grfName, index=lw[2])
+	SIDAMSetLayerIndex(grfName, lw[2])
 End
 //-------------------------------------------------------------
 //	return the command string from the items chosen in the panel

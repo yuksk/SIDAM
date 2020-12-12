@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMSaveGraphics
 
-#include "KM LayerViewer"
 #include "SIDAM_SaveCommon"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -188,7 +187,7 @@ Static Function saveGraphics(String pnlName)
 		#endif
 	endfor
 	
-	KMLayerViewerDo(parentWin, index=lw[2])
+	SIDAMSetLayerIndex(parentWin, lw[2])
 End
 //-------------------------------------------------------------
 //	return the command string and the extension created from

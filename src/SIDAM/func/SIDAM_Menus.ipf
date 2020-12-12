@@ -3,7 +3,6 @@
 #pragma ModuleName=SIDAMMenus
 
 #include "KM Fourier Peak"
-#include "KM LayerViewer"
 #include "KM ScaleBar"
 #include "KM SyncAxisRange"
 #include "KM SyncCursor"
@@ -13,6 +12,7 @@
 #include "SIDAM_Compatibility_Old_Functions"
 #include "SIDAM_Correlation"
 #include "SIDAM_Display"
+#include "SIDAM_ExtractLayer"
 #include "SIDAM_FFT"
 #include "SIDAM_Fourier_Filter"
 #include "SIDAM_Fourier_Symmetrization"
@@ -216,7 +216,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"Position Recorder", /Q, SIDAMPositionRecorder("")
 	//	Extract Layers of LayerViewer
-	KMLayerViewer#rightclickMenu(0), /Q, KMLayerViewer#rightclickDo(0)
+	SIDAMExtractLayer#menu(), /Q, SIDAMExtractLayer#menuDo()
 	//	"Data Parameters"
 	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
 

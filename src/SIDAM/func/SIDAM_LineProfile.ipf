@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLineProfile
 
-#include "KM LayerViewer"
 #include "SIDAM_Color"
 #include "SIDAM_Line"
 #include "SIDAM_Range"
@@ -429,7 +428,7 @@ Static Function pnlUpdateColor(String pnlName)
 	clrw[][1] = SIDAM_CLR_LINE_G
 	clrw[][2] = SIDAM_CLR_LINE_B
 
-	int layer = KMLayerViewerDo(grfName)
+	int layer = SIDAMGetLayerIndex(grfName)
 	int p0 = layer*DimSize(w,0)
 	int p1 = (layer+1)*DimSize(w,0)-1
 	clrw[p0,p1][0] = SIDAM_CLR_LINE2_R

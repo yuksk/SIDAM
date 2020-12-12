@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMFourierPeak
 
-#include "KM LayerViewer"
 #include "SIDAM_Utilities_Image"
 
 #ifndef SIDAMshowProc
@@ -78,7 +77,7 @@ Function/WAVE KMFourierPeakGetPos(
 		Wave mw = SIDAMGetMarquee(0)
 		if (WaveDims(w)==3)
 			//	3Dウエーブの場合は表示されているレイヤーについてピーク位置を求める
-			Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]][KMLayerViewerDo(WinName(0,1))]/FREE w, tw
+			Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]][SIDAMGetLayerIndex(WinName(0,1))]/FREE w, tw
 			Redimension/N=(-1,-1) tw
 		else
 			Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]]/FREE w, tw

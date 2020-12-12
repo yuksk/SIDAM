@@ -2,7 +2,6 @@
 #pragma rtGlobals = 3
 #pragma ModuleName = SIDAMRange
 
-#include "KM LayerViewer"
 #include "SIDAM_Histogram"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -449,7 +448,7 @@ End
 Static Function pnlHookParentLayerChanged(String grfName, String imgName)
 
 	Variable recorded = getZmodeValue(grfName, imgName, "layer")	//	nan for no record
-	Variable present = KMLayerViewerDo(grfName)						//	non for 2D
+	Variable present = SIDAMGetLayerIndex(grfName)					//	non for 2D
 	if (!numtype(present) && recorded!=present)
 		setZmodeValue(grfName, imgName, "layer", present)
 		return 1

@@ -548,3 +548,60 @@ Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
 	ModifyGraph/W=$grfName wbRGB=(wbRGB.red, wbRGB.green, wbRGB.blue)
 	ModifyGraph/W=$grfName gbRGB=(gbRGB.red, gbRGB.green, gbRGB.blue)
 End
+
+
+//@
+//	Get the index of a 3D wave shown in a window
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	w : wave, default wave of the top image
+//		The 3D wave to get the index.
+//
+//	Returns
+//	-------
+//	variable
+//		The index of displayed layer. If no 3D wave is shown,
+//		nan is returned.
+//@
+Function SIDAMGetLayerIndex(String grfName, [Wave/Z w])
+	if (ParamIsDefault(w))
+		Wave/Z w =  SIDAMImageWaveRef(grfName)
+	endif
+	if (!WaveExists(w) || WaveDims(w) != 3)
+		return NaN
+	endif
+	
+	return NumberByKey("plane", ImageInfo(grfName, NameOfWave(w), 0), "=")
+End
+
+//@
+//	Set the index of a 3D wave shown in a window
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	index : int
+//		The index of layer
+//	w : wave, default wave of the top image
+//		The 3D wave to set the index.
+//
+//	Returns
+//	-------
+//	variable
+//		0 if the index is correctly set. 1 if no 3D wave is shown.
+//@
+Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
+	if (ParamIsDefault(w))
+		Wave/Z w =  SIDAMImageWaveRef(grfName)
+	endif
+	if (!WaveExists(w) || WaveDims(w) != 3)
+		return 1
+	endif
+	
+	ModifyImage/W=$grfName $NameOfWave(w) plane=limit(round(index), 0, DimSize(w,2)-1)
+	return 0
+End
