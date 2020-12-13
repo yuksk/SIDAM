@@ -43,7 +43,7 @@ class IgorProcedureFile:
         p = re.compile(regex, flags=re.I|re.M)
         for match in p.finditer(content):
             function_name = p.sub(r'\7', match.group())
-            if (re.match('Static', match.group(), flags=re.I)):
+            if (re.match('(threadsafe )?static', match.group(), flags=re.I)):
                 # Static functions in a file without a module name are not necessary
                 # to be considered.
                 if (len(self.__module_name)):
