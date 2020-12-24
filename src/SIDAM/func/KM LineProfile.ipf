@@ -253,7 +253,8 @@ Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw
 	endif
 
 	String noteStr
-	Sprintf noteStr, "src@%s;start@p=%f,q=%f;end@p=%f,q=%f;width=%f", GetWavesDataFolder(s.w, 2), s.p1, s.q1, s.p2, s.q2, s.width
+	Sprintf noteStr, "src@%s;start@p=%.2f,q=%.2f;end@p=%.2f,q=%.2f;width=%.2f", GetWavesDataFolder(s.w, \
+		2), s.p1, s.q1, s.p2, s.q2, s.width
 	Note linew, noteStr
 	Note sdevw, noteStr
 End
