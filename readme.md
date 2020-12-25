@@ -26,7 +26,7 @@ Igor Pro 8 or later.
 
 ### Install
 
-Copy the macro files to the designated folders.
+After cloning or downloading the macro files, copy them to the designated folders.
 
 1. Copy `src/SIDAM.ipf` and `src/SIDAM` to the Igor Procedures folder and the
 User Procedures folder, respectively. If you don't know where the folders are,
