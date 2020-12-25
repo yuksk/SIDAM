@@ -524,7 +524,7 @@ Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
 
 	//	Copy the window to the clipboard
 	//	If an image is included in the window, copy as PNG
-	//	Otherwise (only traces), copy as EMF (Win) or Quartz PDF (Mac)
+	//	Otherwise copy as SVG
 	if (strlen(ImageNameList(grfName, ";")))
 		if (prefs.export[0] == 6)	//	Other DPI
 			if (ParamIsDefault(size))
@@ -541,7 +541,7 @@ Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
 			endif
 		endif
 	else
-		SavePICT/E=-2/WIN=$grfName as "Clipboard"
+		SavePICT/E=-9/WIN=$grfName as "Clipboard"
 	endif
 
 	//	Revert the background colors

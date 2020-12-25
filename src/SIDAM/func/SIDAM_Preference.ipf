@@ -138,10 +138,8 @@ Function SIDAMPrefsPnl()
 
 	//	tab 1
 	Groupbox formatG title="Format", pos={13,26}, size={325,115}, userData(tab)="1", win=$pnlName
-	Variable isWindows = strsearch(StringByKey("OS", IgorInfo(3)),"Windows", 0) != -1
-	String formatStr = "\"" + SelectString(isWindows, "Quartz PDF", "Enhanced metafile") + "\""
-	PopupMenu format1P title="Trace", pos={24,49}, size={182,20}, value=#formatStr, win=$pnlName
-	PopupMenu format2P title="Image", pos={23,83}, size={183,20}, value="PNG Image", win=$pnlName
+	PopupMenu format1P title="Trace", pos={24,49}, size={182,20}, value="SVG", win=$pnlName
+	PopupMenu format2P title="Image", pos={23,83}, size={183,20}, value="PNG", win=$pnlName
 	PopupMenu resolutionP title="Resolution:", pos={47,110}, size={159,20}, bodyWidth=100, win=$pnlName
 	PopupMenu resolutionP value= "Screen;2X Screen;4X Screen;5X Screen;8X Screen;Other DPI", win=$pnlName
 	PopupMenu resolutionP userData(tab)="1", focusRing=0, proc=SIDAMPrefs#pnlPopup, win=$pnlName
