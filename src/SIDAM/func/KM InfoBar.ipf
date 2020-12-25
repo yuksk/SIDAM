@@ -594,9 +594,8 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	Wave/Z w = SIDAMImageWaveRef(s.winName)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
-	int isWindows = strsearch(IgorInfo(2), "Windows", 0, 2) >= 0
 	
-	if (isWindows && s.specialKeyCode && (is2D || is3D))
+	if (s.specialKeyCode && (is2D || is3D))
 		switch (s.specialKeyCode)
 			case 4:		//	F4
 				SIDAMRange()
