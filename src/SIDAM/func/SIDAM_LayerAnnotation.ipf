@@ -15,95 +15,90 @@ Static Constant ITEMSEP =31
 Static StrConstant USERDATANAME = "SIDAMLayerAnnotation"
 
 
-Function/S SIDAMLayerAnnotation(
-	String grfName,		//	Name of window. Use the name of the top window if empty. 
-	String imgName,		//	Name of image. Use the name of the top image if empty.
-	String legendStr,	//	Legend string. If empty, stop updating the layer annotation.
-	[
-		int digit,		//	Number of digits after the decimal point, default is 0
-		int unit,			//	Use the unit of wave, 1: yes (default), 0: no
-		int sign,			//	Put "+" before the number when positive, 1: yes (default), 0: no
-		int prefix,		//	Use prefix such as k and m, 1: yes, 0: no (default)
-		int history		//	Print the command string in the history window, 1: yes, 0: no (default)
-	])
-	
-	if (verifyVariables(grfName, imgName, legendStr))
+//@
+//	Add an annotation text following the layer value of an image.
+//
+//	Parameters
+//	----------
+//	legendStr : string
+//		Legend string. If empty, stop updating the layer annotation.
+//	grfName : string, default ``WinName(0,1,1)``
+//		The name of window.
+//	imgName : string, default ``StringFromList(0, ImageNameList(grfName, ";"))``
+//		The name of image.
+//	digit : int, default 0
+//		The number of digits after the decimal point.
+//	unit : int, default 1
+//		Set !0 to use the unit of the wave.
+//	sign : int, default 1
+//		Set !0 to use "+" for positive values.
+//	prefix: int, default 0
+//		Set !0 to use prefix such as k and m.
+//
+//	Returns
+//	-------
+//	string
+//		The name of textbox.
+//@
+Function/S SIDAMLayerAnnotation(String legendStr, [String grfName,
+	String imgName, int digit, int unit, int sign, int prefix])
+
+	STRUCT paramStruct s
+	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
+	s.imgName = SelectString(ParamIsDefault(imgName), imgName, \
+		StringFromList(0, ImageNameList(s.grfName, ";")))
+
+	if (validate(s))
+		print s.errMsg
 		return ""
 	endif
 	
-	STRUCT paramStruct s
+	s.digit = ParamIsDefault(digit) ? 0 : digit
+	s.unit = ParamIsDefault(unit) ? 1 : unit
+	s.sign = ParamIsDefault(sign) ? 1 : sign
+	s.prefix = ParamIsDefault(prefix) ? 0 : prefix
 	
-	Make/N=4/W/U/FREE defaultvalues
-	if (getData(grfName, "", imgName, s))
-		defaultvalues = {s.digit, s.unit, s.sign, s.prefix}
-	else
-		defaultvalues = {0, 1, 1, 0}
-		s.legendName = UniqueName("Text", 14, 0, grfName)
+	if (!getData(s.grfName, "", s.imgName, s))
+		s.legendName = UniqueName("Text", 14, 0, s.grfName)
 	endif
 
-	s.legendStr = legendStr		
-	s.digit = ParamIsDefault(digit) ? defaultvalues[0] : digit
-	s.unit = ParamIsDefault(unit) ? defaultvalues[1] : unit
-	s.sign = ParamIsDefault(sign) ? defaultvalues[2] : sign
-	s.prefix = ParamIsDefault(prefix) ? defaultvalues[3] : prefix
 	s.layer = -1		//	force updating
-	
+
 	if (strlen(legendStr))
-		setLegend(grfName, imgName, s)
+		s.legendStr = legendStr
+		setLegend(s.grfName, s.imgName, s)
 	else
-		clearLegend(grfName,imgName)
-	endif
-	
-	if (!ParamIsDefault(history) && history)
-		String paramStr
-		sprintf paramStr, "\"%s\",\"%s\",\"%s\"", grfName, imgName, legendStr
-		if (strlen(legendStr))
-			paramStr += SelectString(s.digit!=defaultvalues[0],"",",digit="+num2istr(s.digit))
-			paramStr += SelectString(s.unit!=defaultvalues[1],"",",unit="+num2istr(s.unit))
-			paramStr += SelectString(s.sign!=defaultvalues[2],"",",sign="+num2istr(s.sign))
-			paramStr += SelectString(s.prefix!=defaultvalues[3],"",",prefix="+num2istr(s.prefix))
-		endif
-		printf "%sSIDAMLayerAnnotation(%s)\r", PRESTR_CMD, paramStr
+		clearLegend(s.grfName, s.imgName)
 	endif
 	
 	return s.legendName
 End
 
-Static Function verifyVariables(String &grfName, String &imgName, String legendStr)
-	String errMsg = PRESTR_CAUTION + "SIDAMLayerAnnotation gave error: "
-	
-	if (strlen(grfName))
-		if (!SIDAMWindowExists(grfName))
-			printf "%s\"%s\" is not found.\r", errMsg, grfName
-			return 1
-		endif
-	elseif (strlen(WinName(0,1)))
-		grfName = WinName(0,1)
-	else
-		printf "%sno graph.\r", errMsg
+Static Function validate(STRUCT paramStruct &s)
+	s.errMsg = PRESTR_CAUTION + "SIDAMLayerAnnotation gave error: "
+
+	if (!strlen(s.grfName))
+		s.errMsg += "graph not found."
+		return 1
+	elseif (!SIDAMWindowExists(s.grfName))
+		s.errMsg += "a graph named " + s.grfName + " is not found."
+		return 1
+	elseif (!strlen(ImageNameList(s.grfName,";")))
+		s.errMsg += s.grfName + " has no image."
 		return 1
 	endif
 	
-	String imgList = ImageNameList(grfName,";")
+	String imgList = ImageNameList(s.grfName,";")
 	if (!strlen(imgList))
-		printf "%sno image.\r", errMsg
+		s.errMsg += "no image."
 		return 1
-	elseif (strlen(imgName))
-		if (WhichListItem(imgName,imgList) < 0)
-			printf "%s\"%s\" is not found.\r", errMsg, imgName
-			return 1
-		endif
-	else
-		imgName = StringFromList(0,imgList)
-	endif
-	
-	if (WaveDims(ImageNameToWaveRef(grfName,imgName)) != 3)
-		printf "%s\an image of a 3D wave must be given.\r", errMsg
+	elseif (WhichListItem(s.imgName, imgList) < 0)
+		s.errMsg += "\"" + s.imgName + "\" is not found." 
 		return 1
 	endif
 	
-	if (strlen(legendStr) && (strsearch(legendStr, "$value$", 0) < 0))
-		printf "%sinvalid legend string.\r", errMsg
+	if (WaveDims(ImageNameToWaveRef(s.grfName, s.imgName)) != 3)
+		s.errMsg += "an image of a 3D wave must be given."
 		return 1
 	endif
 	
@@ -111,6 +106,8 @@ Static Function verifyVariables(String &grfName, String &imgName, String legendS
 End
 
 Static Structure paramStruct
+	String	grfName
+	String	imgName
 	String	legendStr
 	String	legendName
 	uint16	digit
@@ -118,6 +115,7 @@ Static Structure paramStruct
 	uchar	sign
 	uchar	prefix
 	int16	layer
+	String	errMsg
 EndStructure
 
 
@@ -150,7 +148,9 @@ Static Function getData(String grfName, String ctrlName, String imgName, STRUCT 
 	endif
 	
 	Make/N=7/T/FREE tw = StringFromList(p,content,num2char(ITEMSEP))
-	s.legendStr = tw[0]
+	//	ReplaceString for the backward compatibility
+	//	s.legendStr = tw[0]
+	s.legendStr = ReplaceString("$value$", tw[0], "${value} ")
 	s.legendName = tw[1]
 	s.digit = str2num(tw[2])
 	s.unit = str2num(tw[3])
@@ -234,10 +234,10 @@ Static Function updateLegend(String grfName, String imgName)
 	if (s.prefix)
 		formatStr += "W1P" + SelectString(s.unit, "", WaveUnits(w,2))
 	else
-		formatStr += "f" + SelectString(s.unit, "", " "+WaveUnits(w,2))
+		formatStr += "f" + SelectString(s.unit, "", WaveUnits(w,2))
 	endif
 	String str
-	sprintf str, ReplaceString("$value$", s.legendStr, formatStr), s.digit, SIDAMIndexToScale(w,layer,2)
+	sprintf str, ReplaceString("${value}", s.legendStr, formatStr), s.digit, SIDAMIndexToScale(w,layer,2)
 	
 	TextBox/C/N=$s.legendName/W=$grfName str
 
@@ -340,8 +340,8 @@ Static Function pnl(String grfName)
 	SetVariable digitV format="%d", limits={0,inf,1}, win=$pnlName
 	ModifyControlList "stringV;digitV", proc=SIDAMLayerAnnotation#pnlSetVar, win=$pnlName
 
-	CheckBox unitC title="add unit after $value$", pos={42,89}, size={130,15}, win=$pnlName
-	CheckBox signC title="add \"+\" before $value$", pos={42,114}, size={137,15}, win=$pnlName
+	CheckBox unitC title="add unit after ${value}", pos={42,89}, size={130,15}, win=$pnlName
+	CheckBox signC title="add \"+\" before ${value}", pos={42,114}, size={137,15}, win=$pnlName
 	CheckBox prefixC title="use \"k\" (1e3), \"m\" (1e-3), etc.", pos={42,139}, size={167,15}, win=$pnlName
 	ModifyControlList "unitC;signC;prefixC", proc=SIDAMLayerAnnotation#pnlCheck, win=$pnlName
 		
@@ -423,9 +423,9 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	endif
 	
 	STRUCT paramStruct ps
-	String grfName = StringFromList(0,s.win,"#")
+	ps.grfName = StringFromList(0,s.win,"#")
 	ControlInfo/W=$s.win imageP
-	String imgName = S_Value
+	ps.imgName = S_Value
 	
 	//	Both "do" and "delete" work only for the selected image because the main command
 	//	is designed to work for an image passed as a parameter. To gurantee this, call
@@ -434,23 +434,26 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "doB":
 			//	Retrive the present parameters to be passed to the main command before
 			//	calling restoreInitial()
-			getData(grfName, "", imgName, ps)
-			restoreInitial(grfName, "cancelB")
-			SIDAMLayerAnnotation(grfName,	imgName, ps.legendStr,\
-			digit=ps.digit, unit=ps.unit, sign=ps.sign, prefix=ps.prefix, history=1)
+			getData(ps.grfName, "", ps.imgName, ps)
+			restoreInitial(ps.grfName, "cancelB")
+			SIDAMLayerAnnotation(ps.legendStr, grfName=ps.grfName, imgName=ps.imgName,\
+				digit=ps.digit, unit=ps.unit, sign=ps.sign, prefix=ps.prefix)
+			printHistory(ps)
 			break
 
 		case "deleteB":
-			restoreInitial(grfName, "cancelB")
+			restoreInitial(ps.grfName, "cancelB")
 			//	If the legend is removed by restoreInitial(), the main command does not
 			//	have to be called.
-			if (getData(grfName, "", imgName, ps))
-				SIDAMLayerAnnotation(grfName,	imgName, "", history=1)
+			if (getData(ps.grfName, "", ps.imgName, ps))
+				SIDAMLayerAnnotation("", grfName=ps.grfName, imgName=ps.imgName)
+				ps.legendStr = ""
+				printHistory(ps)
 			endif
 			break
 			
 		case "cancelB":
-			restoreInitial(grfName, "cancelB")
+			restoreInitial(ps.grfName, "cancelB")
 			break
 
 	endswitch
@@ -535,7 +538,7 @@ Static Function reflectData(String pnlName, String imgName)
 	String grfName = StringFromList(0,pnlName,"#")
 	STRUCT paramStruct s
 	if (!getData(grfName, "", imgName, s))
-		s.legendStr = "$value$"
+		s.legendStr = "${value}"
 		s.legendName = UniqueName("Text", 14, 0, grfName)
 		s.digit = 0
 		s.unit = 1
@@ -552,6 +555,18 @@ Static Function reflectData(String pnlName, String imgName)
 	CheckBox prefixC value=s.prefix, win=$pnlName	
 End
 
+Static Function printHistory(STRUCT paramStruct &s)
+	String paramStr = ""
+	if (strlen(s.legendStr))
+		paramStr += ",grfName=\""+s.grfName+"\""
+		paramStr += ",imgName=\""+s.imgName+"\""
+		paramStr += SelectString(s.digit!=0,"",",digit="+num2istr(s.digit))
+		paramStr += SelectString(s.unit!=0,",unit="+num2istr(s.unit),"")
+		paramStr += SelectString(s.sign!=0,",sign="+num2istr(s.sign),"")
+		paramStr += SelectString(s.prefix!=0,"",",prefix="+num2istr(s.prefix))
+	endif
+	printf "%sSIDAMLayerAnnotation(\"%s\"%s)\r", PRESTR_CMD, s.legendStr, paramStr
+End
 
 //=====================================================================================================
 
