@@ -60,7 +60,7 @@ Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 	String filename,path,type,creator
 
 	//	Remove unused color scales
-	SIDAMColor(kill=1)
+	SIDAMColorKillWaves()
 
 	return 0
 End

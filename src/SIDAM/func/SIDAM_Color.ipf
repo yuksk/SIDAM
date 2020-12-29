@@ -15,44 +15,51 @@
 
 #include <WMImageInfo>
 
-//******************************************************************************
-///	SIDAMColor
-///	@param grfName [optional, default = WinName(0,1,1)]
-///		Name of a window.
-///	@param imgList [optional, default = ImageNameList(WinName(0,1,1),";")]
-///		List of images.
-///	@param ctable [optional]
-///		Name of a color table or path to a color table wave.
-///		The default is the present value.
-///	@param rev [optional]
-///		0 or 1. Set 1 to reverse the color table.
-///		The default is the present value.
-///	@param log [optional]
-///		0 or 1. 0 sets the default linearly-spaced colors.
-///		1 sets logarithmically-spaced colors.
-///		The default is the present value.
-///	@param minRGB [optional]
-///		{0}, {NaN}, or {r,g,b}. Set the color less than the ctab zMin.
-///		{0} turns min color off. {NaN} uses transparent.
-///		{r,g,b} sets the color. The default is the present value.
-///	@param maxRGB [optional]
-///		{0}, {NaN}, or {r,g,b}. Set the color greater than the ctab zMax.
-///		{0} turns max color off. {NaN} uses transparent.
-///		{r,g,b} sets the color. The default is the present value.
-///	@param history [optional, default = 0]
-///		0 or !0. Set !0 to print this command in the history.
-///	@param kill [optional, default = 0]
-///		0 or !0. Set !0 to kill all unused color table waves.
-///	@return
-///		0 for normal exit, !0 for any error in input parameters
-//******************************************************************************
-Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int log,
-	Wave minRGB, Wave maxRGB, int history, int kill])
 
-	if (!ParamIsDefault(kill) && kill)
-		killUnusedWaves()
-		return 0
-	endif
+//@
+//	Set a color table to a image or a list of images.
+//
+//	Parameters
+//	----------
+//	grfName : string, default ``WinName(0,1,1)``
+//		The name of a window.
+//	imgList : string, default ``ImageNameList(WinName(0,1,1),";")``
+//		The list of images. A single image is also accepted.
+//	ctable : string
+//		The name of a color table or path to a color table wave.
+//		Unless specified, the present value is used.
+//	rev : int
+//		0 or !0. Set !0 to reverse the color table.
+//		Unless specified, the present value is used.
+//	log : int
+//		0 or !0. Set !0 to use logarithmically-spaced colors.
+//		Unless specified, the present value is used.
+//	minRGB : wave
+//		Set the color for values less than the minimum value of the range.
+//		Unless specified, the present value is used.
+//
+//			* {0} : use the color for the minimum value of the range.
+//			* {NaN} : transparent.
+//			* {r,g,b} : specify the color.
+//
+//	maxRGB : wave
+//		Set the color for values less than the maximum value of the range.
+//		Unless specified, the present value is used.
+//
+//			* {0} : use the color for the minimum value of the range.
+//			* {NaN} : transparent.
+//			* {r,g,b} : specify the color.
+//
+//	history : int, default 0
+//		0 or !0. Set !0 to print this command in the history.
+//
+//	Returns
+//	-------
+//	variable
+//		0 for normal exit, !0 for any error in input parameters
+//@
+Function SIDAMColor([String grfName, String imgList, String ctable, int rev,
+	int log, Wave minRGB, Wave maxRGB, int history])
 
 	STRUCT paramStruct s
 	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
@@ -184,7 +191,7 @@ Static Function validateInputs(STRUCT paramStruct &s)
 	if (strlen(s.ctable) && WhichListItem(s.ctable,CTabList()) < 0 && !WaveExists($s.ctable))
 		loadColorTableAll()
 		if (!WaveExists($s.ctable))
-			killUnusedWaves()	//	Kill waves loaded for this check
+			SIDAMColorKillWaves()	//	Kill waves loaded for this check
 			s.errMsg = "a color table " + s.ctable + " is not found."
 			return 1
 		endif
@@ -1549,7 +1556,7 @@ EndStructure
 //-----------------------------------------------------------------------
 //	Kill all unused waves under SIDAM_DF_CTAB
 //-----------------------------------------------------------------------
-Static Function killUnusedWaves()
+Function SIDAMColorKillWaves()
 	int status = SIDAMKillDataFolder($SIDAM_DF_CTAB)
 	if (status != 3)
 		return 0

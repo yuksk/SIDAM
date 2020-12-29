@@ -10,13 +10,19 @@
 #pragma hide = 1
 #endif
 
-//******************************************************************************
-///	SIDAMPositionRecorder
-///	@param grfName [optional, default = WinName(0,1,1)]
-///		Name of a window.
-///	@return
-///		0 for normal exit, !0 for any error in input parameters
-//******************************************************************************
+//@
+//	Show a panel to record positions.
+//
+//	Parameters
+//	----------
+//	grfName : string, default ``WinName(0,1,1)``
+//		The name of window.
+//
+//	Returns
+//	-------
+//	variable
+//		0 for normal exit, !0 for any error in input parameters
+//@
 Function SIDAMPositionRecorder(String grfName)
 	grfName = SelectString(strlen(grfName),WinName(0,1,1),grfName)
 	if (validateInputs(grfName))

@@ -148,6 +148,7 @@ End
 ///		A wave displayed as the top image of grfName, or a free wave which is
 ///		a part of a wave displayed as the top image of grfName
 //******************************************************************************
+
 Function/WAVE SIDAMImageWaveRef(String grfName, [String imgName, Variable displayed])
 
 	if (ParamIsDefault(imgName))
@@ -497,9 +498,16 @@ Function/WAVE SIDAMGetMarquee(int mode)
 End
 
 
-//******************************************************************************
+//@
 //	Copy the window to the clipboard with transparent background
-//******************************************************************************
+//
+//	Parameters
+//	----------
+//	grfName : string, default ``WinName(0,1)``
+//		The name of window
+//	size : variable
+//		The size of copied image
+//@
 Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
 	grfName = SelectString(ParamIsDefault(grfName),grfName,WinName(0,1))
 	if (!SIDAMWindowExists(grfName))
