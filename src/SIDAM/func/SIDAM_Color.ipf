@@ -54,12 +54,15 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev, int
 		return 0
 	endif
 
-	STRUCT paramStruct ds
-	defaultValues(ds)
-
 	STRUCT paramStruct s
-	s.grfName = SelectString(ParamIsDefault(grfName), grfName, ds.grfName)
-	s.imgList = SelectString(ParamIsDefault(imgList), imgList, ds.imgList)
+	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
+	s.imgList = SelectString(ParamIsDefault(imgList), imgList, ImageNameList(s.grfName,";"))
+	
+	STRUCT paramStruct ds
+	ds.grfName = s.grfName
+	ds.imgList = s.imgList
+	defaultValues(ds)
+	
 	s.ctable = SelectString(ParamIsDefault(ctable), ctable, ds.ctable)
 	s.rev = ParamIsDefault(rev) ? ds.rev : rev
 	s.log = ParamIsDefault(log) ? ds.log : log
@@ -113,9 +116,6 @@ Static Structure paramSubStruct
 EndStructure
 
 Static Function defaultValues(STRUCT paramStruct &s)
-	s.grfName = WinName(0,1,1)
-	s.imgList = ImageNameList(s.grfName,";")
-
 	String imgName = StringFromList(0, s.imgList)
 	s.ctable = WM_ColorTableForImage(s.grfName, imgName)
 	s.rev = WM_ColorTableReversed(s.grfName, imgName)
