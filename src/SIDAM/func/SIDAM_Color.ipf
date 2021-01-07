@@ -224,10 +224,10 @@ Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
 	str0 += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
 	str0 += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
 	str0 += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
-	if (WaveExists(s.min.w) && WaveExists(base.min.w))
+	if (WaveExists(s.min.w) && !WaveExists(base.min.w))
 		str0 += SelectString(equalWaves(s.min.w,base.min.w,1),",minRGB="+SIDAMWaveToString(s.min.w),"")
 	endif
-	if (WaveExists(s.max.w) && WaveExists(base.max.w))
+	if (WaveExists(s.max.w) && !WaveExists(base.max.w))
 		str0 += SelectString(equalWaves(s.max.w,base.max.w,1),",maxRGB="+SIDAMWaveToString(s.max.w),"")
 	endif
 	if (!strlen(str0))
@@ -1306,6 +1306,12 @@ Static Function findChangedParameters(String pnlName, STRUCT paramStruct &s,
 	s.log = cw[1]
 	getRGBFromPanel(pnlName,s)
 
+	base.ctable = s.ctable
+	base.rev = s.rev
+	base.log = s.log
+	Wave/Z base.min.w = s.min.w
+	Wave/Z base.max.w = s.max.w
+	
 	//	Search for initial values of all images. If a parameter is different
 	//	from one chosen in the panel, the parameter has to be shown as the
 	//	command parameter.
