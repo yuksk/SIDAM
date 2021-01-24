@@ -46,11 +46,8 @@
 //******************************************************************************
 Menu "SIDAM", dynamic
 	SubMenu "Load Data..."
-		"Load Data...", /Q, SIDAMLoadData("", history=1)
-		help = {"Loads data from binary/text files into Igor waves."}
-
-		"Load Data From a Folder...", /Q, SIDAMLoadData("", folder=1, history=1)
-		help = {"Loads all data in a folder."}
+		"from a File...;from a Directory...", /Q, SIDAMLoadData("", history=1)
+		help = {"Load data from a file or directory."}
 	End
 
 	Submenu "Display..."

@@ -12,34 +12,50 @@
 #endif
 
 
-//******************************************************************************
-//	Main function to load data files
-//******************************************************************************
-Function/WAVE SIDAMLoadData(String pathStr, [int folder, int history])
-	int i, n
+//@
+//	Load data files
+//
+//	Parameters
+//	----------
+//	pathStr : string
+//		Path to a file or a directory. When a path to a directory is given,
+//		files under the directory are loaded recursively.
+//	history : int
+//		0 or !0. Set !0 to print this command in the history.
+//
+//	Returns
+//	-------
+//	wave
+//		Loaded wave
+//@
+Function/WAVE SIDAMLoadData(String pathStr, [int history])
 
-	folder = ParamIsDefault(folder) ? 0 : folder
 	history = ParamIsDefault(history) ? 0 : history
 
-	if(validatePath(pathStr, folder))
+	int isFolder
+	if(validatePath(pathStr, isFolder))
 		return $""
 	endif
 	
 	//	If pathStr is a folder, load all the files in the folder and subfolders
-	if (folder)
+	if (isFolder)
+		int i, n
 		String pathName = UniqueName("path", 12, 0)
 		NewPath/Q/Z $pathName, pathStr
 		
-		//	If a folder(s) is included in pathStr, call this function for the folder(s)
+		//	If a folder(s) is included in pathStr, call this function
+		//	for the folder(s)
 		n = ItemsInList(IndexedDir($pathName, -1, 0))
 		for (i = 0; i < n; i += 1)
 			SIDAMLoadData(IndexedDir($pathName, i, 1))		//	no history
 		endfor
 
-		//	If a file(s) is included in pathStr, call this function for the file(s)
+		//	If a file(s) is included in pathStr, call this function
+		//	for the file(s)
 		n = ItemsInList(IndexedFile($pathName, -1, "????"))
 		for (i = 0; i < n; i++)
-			SIDAMLoadData(ParseFilePath(2, pathStr, ":", 0, 0) + IndexedFile($pathName, i, "????"))	//	no history
+			SIDAMLoadData(ParseFilePath(2, pathStr, ":", 0, 0) \
+				+ IndexedFile($pathName, i, "????"))	//	no history
 		endfor
 		KillPath $pathName
 		
@@ -52,7 +68,7 @@ Function/WAVE SIDAMLoadData(String pathStr, [int folder, int history])
 	return loadDataFile(pathStr,history)
 End
 
-Static Function validatePath(String &pathStr, int &folder)
+Static Function validatePath(String &pathStr, int &isFolder)
 	String errMsg = PRESTR_CAUTION + "SIDAMLoadData gave error: "
 	
 	if (strlen(pathStr))
@@ -67,26 +83,28 @@ Static Function validatePath(String &pathStr, int &folder)
 		endif
 		
 		if (V_isFolder)
-			folder = 1
+			isFolder = 1
 		endif
 		
 		return V_Flag
-
-	else		//	called from the menu
-		if (folder)
-			GetFileFolderInfo/D/Q/Z=2	//	display a dialog to select a folder
-		else
-			GetFileFolderInfo/Q/Z=2	//	display a dialog to select a file
-		endif
-		if (V_Flag == -1)	//	user cancel
-			return V_Flag
-		elseif (V_Flag)
-			printf "%sfile or folder not found.\r", errMsg
-		endif
-		pathStr = S_path
-		return V_Flag	
-
 	endif
+
+	//	called from the menu
+	GetLastUserMenuInfo
+	isFolder = V_value == 2
+
+	if (isFolder)
+		GetFileFolderInfo/D/Q/Z=2	//	display a dialog to select a folder
+	else
+		GetFileFolderInfo/Q/Z=2	//	display a dialog to select a file
+	endif
+	if (V_Flag == -1)	//	user cancel
+		return V_Flag
+	elseif (V_Flag)
+		printf "%sfile or folder not found.\r", errMsg
+	endif
+	pathStr = S_path
+	return V_Flag	
 End
 
 Static Function/WAVE loadDataFile(String pathStr, int history)

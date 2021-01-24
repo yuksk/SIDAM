@@ -3,7 +3,6 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_Display"
-#include "SIDAM_LoadData"
 #include "SIDAM_InfoBar"
 #include "SIDAM_Range"
 #include "SIDAM_ShowParameters"
@@ -55,6 +54,10 @@ Static Function deprecatedCaution(String newName)
 	if (strlen(tw[0]))
 		printf "%s(called from \"%s\" in %s (line %s))\r", PRESTR_CAUTION, tw[0], tw[1], tw[2]
 	endif
+End
+
+Function/WAVE KMLoadData(String pathStr, [int folder, int history])
+	deprecatedCaution("SIDAMLoadData")
 End
 
 Function KMLayerViewerDo(String grfName, [Wave/Z w, int index, int direction])
@@ -441,12 +444,6 @@ Function/S KMUnquoteName(String str)
 		str = str[1,strlen(str)-1]
 	endif
 	return str
-End
-
-//	v8.1.3 ----------------------------------------------------------------------
-Function/WAVE KMLoadData(String pathStr, [int folder, int history])
-	deprecatedCaution("SIDAMLoadData")
-	return SIDAMLoadData(pathStr, folder=folder, history=history)
 End
 
 //	v8.1.0 ----------------------------------------------------------------------
