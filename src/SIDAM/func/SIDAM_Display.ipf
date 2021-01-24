@@ -11,21 +11,35 @@
 #pragma hide = 1
 #endif
 
-///	@param w
-///		A numeric wave to be displayed, or a refrence wave containing
-///		references to numeric waves.
-///	@param traces [optional, default = 0]
-///		0, 1, or 2.
-///		Set 1 to show a 2D waves as traces. 1st dimension is x, and number of
-///		traces is DimSize(w,1).
-///		Set 2 to append a 2D wave (2,n) as a trace, as designated by the dimension
-///		labels, that is,
-///		AppendToGraph w[%y][] vs w[%x][], or AppendToGraph w[%q][] vs w[%p][].
-///		When %p and %q are used, ModifyGraph offset and muloffset are used as well.
-///	@param history [optional, default = 0]
-///		0 or !0. Set !0 to print this command in the history.
-///	@return
-///		Name of window
+
+//@
+//	Show a trace of 1D wave, an image of 2D wave, and a layer of
+//	of 3D wave 
+//
+//	Parameters
+//	----------
+//	w : wave
+//		A numeric wave, or a refrence wave containing references to numeric waves.
+//	traces : int, default 0
+//		0, 1, or 2.
+//
+//			0. Normal
+//			1. Show a 2D waves as traces.
+//				1st dimension is ``x``, and the number of traces is ``DimSize(w,1)``.
+//			2. Append a 2D wave (2,n) as a trace to a graph.
+//				The dimension labels (``%x`` and ``%y``, or ``%p`` and ``%q``) must
+//				be appropriately given. Then this works as
+//				``AppendToGraph w[%y][] vs w[%x][]``, or
+//				``AppendToGraph w[%q][] vs w[%p][]``.
+//
+//	history : int, default 0
+//		0 or !0. Set !0 to print this command in the history.
+//
+//	Returns
+//	-------
+//	str
+//		The name of window
+//@
 Function/S SIDAMDisplay(Wave w, [int traces, int history])
 
 	STRUCT paramStruct s
@@ -41,8 +55,6 @@ Function/S SIDAMDisplay(Wave w, [int traces, int history])
 	switch (WaveType(s.w, 1))
 		case 1:	//	numeric
 			return displayNumericWave(s.w, s.traces, s.history)
-		case 3:	//	datafolder reference
-			return displayDFRefWave(s.w, s.history)
 		case 4:	//	wave reference
 			return displayWaveRefWave(s.w, s.history)
 	endswitch
@@ -50,36 +62,17 @@ End
 
 Static Function validate(STRUCT paramStruct &s)
 
-	switch (WaveType(s.w,1))
-		case 0:	//	null (including non-existing wave)
-		case 1:	//	numeric
-		case 2:	//	text
-			if (validateNonRefWave(s.w, s))
-				return 1
-			endif
-			break
-
-		case 3:	//	/DF
-			//	Make sure if all references are valid
-			Wave/DF dfrefw = s.w
-			Make/B/U/N=(numpnts(s.w))/FREE tw = DataFolderRefStatus(dfrefw[p])==0
-			if (WaveMax(tw))
-				s.errMsg = "an invalid datafolder(s) is contained in the reference wave."
-				return 1
-			endif
-			break
-
-		case 4:	//	/WAVE
-			//	Make sure if all references are valid
-			Wave/WAVE wrefw = s.w
-			Make/B/U/N=(numpnts(s.w))/FREE tw = validateNonRefWave(wrefw[p],s)
-			if (WaveMax(tw))
-				s.errMsg = "an invalid wave(s) is contained in the reference wave."
-				return 1
-			endif
-			break
-
-	endswitch
+	if (WaveType(s.w, 1) == 4)	//	wave reference
+		//	Make sure if all references are valid
+		Wave/WAVE wrefw = s.w
+		Make/B/U/N=(numpnts(s.w))/FREE tw = validateWave(wrefw[p],s)
+		if (WaveMax(tw))
+			s.errMsg = "an invalid wave(s) is contained in the reference wave."
+			return 1
+		endif
+	elseif (validateWave(s.w, s))
+		return 1
+	endif
 
 	if (s.traces < 0 || s.traces > 2)
 		s.errMsg = "traces is 0, 1, or 2."
@@ -96,31 +89,26 @@ Static Function validate(STRUCT paramStruct &s)
 	return 0
 End
 
-Static Function validateNonRefWave(Wave/Z w, STRUCT paramStruct &s)
+Static Function validateWave(Wave/Z w, STRUCT paramStruct &s)
 	if (!WaveExists(w))
 		s.errMsg = "wave not found."
 		return 1
+	elseif (WaveType(w,1) != 1)	//	null, text, data folder
+		s.errMsg = "the wave must be a numeric wave or a reference wave."
+		return 1	
 	endif
 
-	switch (WaveType(w,1))
-		case 0:	//	null
-		case 2:	//	text
-			s.errMsg = "the wave must be a numeric wave or a reference wave."
-			return 1
-
-		case 1:	//	numeric
-			if (WaveDims(w) > 3)
-				s.errMsg = "the dimension of wave must be less than 4."
-				return 1
-			elseif (WaveType(w,2) == 2)
-				s.errMsg = "a numeric free wave is not accepted."
-				return 1
-			elseif (s.traces==2 && !canBeDisplayedAsXYTrace(w))
-				s.errMsg = "the wave can not be displayed as xy-trace."
-				return 1
-			endif
-			break
-	endswitch
+	//	the following for numeric
+	if (WaveDims(w) > 3)
+		s.errMsg = "the dimension of wave must be less than 4."
+		return 1
+	elseif (WaveType(w,2) == 2)
+		s.errMsg = "a numeric free wave is not accepted."
+		return 1
+	elseif (s.traces==2 && !canBeDisplayedAsXYTrace(w))
+		s.errMsg = "the wave can not be displayed as xy-trace."
+		return 1
+	endif
 	return 0
 End
 
@@ -255,21 +243,6 @@ Static Function/S displayNumericWaveTraceXY(Wave w)
 	endif
 
 	return grfName
-End
-
-//-------------------------------------------------------------
-//	For datafolder reference wave
-//-------------------------------------------------------------
-Static Function/S displayDFRefWave(Wave/DF w, int history)
-	int i, n = numpnts(w)
-	for (i = 0; i < n; i++)
-		DFREF df = w[i]
-		if (CountObjectsDFR(df,1))
-			Make/N=(CountObjectsDFR(df,1))/FREE/WAVE refw
-			refw = df:$GetIndexedObjNameDFR(df, 1, p)
-			return SIDAMDisplay(w, history=history)
-		endif
-	endfor
 End
 
 //-------------------------------------------------------------
