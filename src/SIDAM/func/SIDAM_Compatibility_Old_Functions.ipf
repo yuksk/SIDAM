@@ -402,7 +402,7 @@ End
 
 //	v8.1.3 ----------------------------------------------------------------------
 Function/WAVE KMLoadData(String pathStr, [int folder, int history])
-	deprecatedCaution("SIDAMWindowExists")
+	deprecatedCaution("SIDAMLoadData")
 	return SIDAMLoadData(pathStr, folder=folder, history=history)
 End
 
