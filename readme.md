@@ -1,22 +1,27 @@
 ﻿# SIDAM
 
-Spectroscopic imaging data analysis macro for Igor Pro.
+``SIDAM`` is a **s**pectroscopic **i**maging **d**ata **a**nalysis **m**acro written in Igor Pro.
+``SIDAM`` is designed so that you can easily perform basic analyses and can concentrate on searching something new.
+You can use ``SIDAM`` via both GUI and CUI.
+You do not have to remember each command, but at the same time you can incorporate SIDAM functions into your scripts.
 
-
-## Description
-
-Noteworthy features of this macro are strong supports for analyzing 3D map data.
-- Flexible viewer: interactively show spectra at a mouse cursor, an Igor Pro
-cursor, or along a line on an image, which can be a topograph, a conductance
-map, or any other image of your analysis.
-- Powerful synchronization: layers of 3D map data, axis ranges of multiple
-images, and cursor locations of multiple images.
-- Attentive layer support: adjust color range, update an annotation text,
-and save a movie of layers.
-
-Of course, basic features (Subtraction, Line profile, Fourier transform,
-Fourier filter, Symmetrize Fourier transform, Correlation, Histogram, etc.)
-also included.
+Here is a list of frequently used basic features:
+- Flexible interactive viewer
+  - A spectrum or an image
+  - A spectrum or spectra along a line from a map
+  - A layer of map
+  - Line profiles
+  - Synchronize multiple images (axis range, layer index, and cursor position)
+- Color range adjustment (both fixed and flexible values)
+- Color table selection (more than 100 tables are imported from outside)
+- Background subtraction
+- Fourier analysis
+  - Fourier transform
+  - Fourier filter
+  - Symmetrize Fourier transform
+- Correlation
+- Histogram
+- Work function
 
 ## Requirement
 
@@ -27,6 +32,14 @@ Igor Pro 8 or later.
 ### Install
 
 After cloning or downloading the macro files, copy them to the designated folders.
+```
+SIDAM/
+├ src/
+│  ├ SIDAM.ipf -> Copy to Igor Procedures
+│  └ SIDAM/ -> Copy to User Procedures
+├ script/
+└ LICENSE/
+```
 
 1. Copy `src/SIDAM.ipf` and `src/SIDAM` to the Igor Procedures folder and the
 User Procedures folder, respectively. If you don't know where the folders are,
@@ -50,9 +63,6 @@ may be left and cause a compile error.
 3. Start the macro to update the file list. If you forget this and open an
 existing experiment file, a compile error may occur. In this case, stop
 opening the experiment file and start the macro in a new experiment file.
-
-For git users: you can just pull. You don't need to do 1 and 2, but still
-need to do 3.
 
 ### Uninstall
 
