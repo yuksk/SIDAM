@@ -286,22 +286,29 @@ Static Function applyColorTable(STRUCT paramStruct &s, int i)
 End
 
 
-//=====================================================================================================
+//==============================================================================
 //	Panel
-//=====================================================================================================
+//==============================================================================
 //	Positions of region for color tables
 Static Constant leftMargin = 160
 Static Constant topMargin = 50
 Static Constant bottomMargin = 5
 
-//	Height of color group list
-Static Constant listHeight = 205
+//	Height of group boxes of options, before first color, and after last color
+Static Constant optionBoxHeight = 70
+Static Constant colorBoxHeight = 90
 
 //	Width of a single column
 Static Constant columnWidth = 240
 
 //	Number of color tables in a column
-Static Constant ctabsInColumn = 30
+//	Since "Turbo" is added in Igor Pro 9, the number of Igor Pro's color table
+//	is 61.
+#if (IgorVersion() >= 9.0)
+	Static Constant ctabsInColumn = 31
+#else
+	Static Constant ctabsInColumn = 30
+#endif
 
 //	Size of a color table
 Static Constant ctabHeight = 14
@@ -341,6 +348,7 @@ Static Function pnl(String grfName)
 	RenameWindow $targetWin#$S_name, Color
 	String pnlName = targetWin + "#Color"
 
+	//print pnlHeight-270-topmargin-10
 	SetWindow $grfName hook(SIDAMColorPnl)=SIDAMColor#pnlHookParent
 	SetWindow $pnlName hook(self)=SIDAMColor#pnlHook
 	SetWindow $pnlName userData(grf)=grfName, activeChildFrame=0
@@ -360,20 +368,23 @@ Static Function pnl(String grfName)
 	Button optionB size={16,(ctabHeight+ctabMargin)*ctabsInColumn}, win=$pnlName
 	Button optionB userData(status)=num2istr(isOpen), proc=SIDAMColor#pnlButton,win=$pnlName
 
-	Variable base = pnlHeight-270
-	GroupBox op_revlogG pos={5,base},size={125,70},title="Options",win=$pnlName
-	CheckBox op_revC pos={14,base+21},title=" Reverse Colors",win=$pnlName
-	CheckBox op_logC pos={14,base+45},title=" Log Colors",win=$pnlName
+	Variable boxesTop = pnlHeight-((colorBoxHeight+5)*2+optionBoxHeight+5)
+	GroupBox op_revlogG pos={5,boxesTop},title="Options",win=$pnlName
+	GroupBox op_revlogG size={leftMargin-35,optionBoxHeight},win=$pnlName
+	CheckBox op_revC pos={14,boxesTop+21},title=" Reverse Colors",win=$pnlName
+	CheckBox op_logC pos={14,boxesTop+45},title=" Log Colors",win=$pnlName
 
-	base = pnlHeight-190
-	GroupBox op_beforeG pos={5,base},size={125,90},title="Before First Color"	,win=$pnlName
+	Variable base = boxesTop + optionBoxHeight + 5
+	GroupBox op_beforeG pos={5,base},title="Before First Color",win=$pnlName
+	GroupBox op_beforeG size={leftMargin-35,colorBoxHeight},win=$pnlName
 	CheckBox op_beforeUseC pos={14,base+20},title=" Use First Color",mode=1,win=$pnlName
 	CheckBox op_beforeClrC pos={14,base+44},title="",mode=1,win=$pnlName
 	CheckBox op_beforeTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
 	PopupMenu op_beforeClrP pos={32,base+42},value=#"\"*COLORPOP*\"",win=$pnlName
 
-	base = pnlHeight-95
-	GroupBox op_lastG pos={5,base},size={125,90},title="After Last Color",win=$pnlName
+	base += colorBoxHeight + 5
+	GroupBox op_lastG pos={5,base},title="After Last Color",win=$pnlName
+	GroupBox op_lastG size={leftMargin-35,colorBoxHeight},win=$pnlName
 	CheckBox op_lastUseC pos={14,base+20},title=" Use Last Color",mode=1,win=$pnlName
 	CheckBox op_lastClrC pos={14,base+44},title="",mode=1,win=$pnlName
 	CheckBox op_lastTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
@@ -391,6 +402,7 @@ Static Function pnl(String grfName)
 	//	Listbox of color table groups
 	String ctabgroupList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTABGROUPS,"")
 	Variable activegroup = findGroup(grfName,imgName)
+	Variable listHeight = boxesTop - topMargin - 10
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder $SIDAMNewDF("",ParseFilePath(0,SIDAM_DF_CTAB,":",1,0))
 	Make/T/O/N=(ItemsInList(ctabgroupList)) ctabgroup=StringFromList(p,ctabgroupList)
