@@ -1,10 +1,10 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma moduleName = SIDAMLineCommon
+#pragma moduleName = SIDAMLine
 
-#include "KM LineProfile"
-#include "KM LineSpectra"
 #include "SIDAM_Color"
+#include "SIDAM_LineProfile"
+#include "SIDAM_LineSpectra"
 #include "SIDAM_Range"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -19,13 +19,10 @@
 Static Constant CTRLHEIGHT1D = 96
 Static Constant CTRLHEIGHT2D = 70
 
-//=====================================================================================================
-//
+//==============================================================================
 //	Panel controls
-//
-//-------------------------------------------------------------
+//==============================================================================
 //	Create the panel controls
-//-------------------------------------------------------------
 Static Function pnlCtrls(String pnlName)
 
 	Wave w = $GetUserData(pnlName,"","src")
@@ -47,11 +44,11 @@ Static Function pnlCtrls(String pnlName)
 	Variable distance = sqrt((p1-p2)^2*dx^2+(q1-q2)^2*dy^2)
 	Variable angle = atan2((q2-q1)*dy,(p2-p1)*dx)/pi*180
 
-	CheckBox p1C title="start (1)", pos={11,5}, value=1, proc=SIDAMLineCommon#pnlCheck, win=$pnlName
+	CheckBox p1C title="start (1)", pos={11,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p1V title="p1:", pos={12,25}, value=_NUM:p1, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q1V title="q1:", pos={12,46}, value=_NUM:q1, limits={0,ny-1,1}, win=$pnlName
 
-	CheckBox p2C title="end (2)", pos={97,5}, value=1, proc=SIDAMLineCommon#pnlCheck, win=$pnlName
+	CheckBox p2C title="end (2)", pos={97,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p2V title="p2:", pos={101,25}, value=_NUM:p2, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q2V title="q2:", pos={101,46}, value=_NUM:q2, limits={0,ny-1,1}, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" size={73,16}, bodyWidth=55, format="%d", win=$pnlName
@@ -63,8 +60,8 @@ Static Function pnlCtrls(String pnlName)
 	if (WaveDims(w) == 3)
 		TitleBox waterT title="waterfall", pos={11,76}, frame=0, win=$pnlName
 		SetVariable axlenV title="axlen:", pos={69,74}, size={90,18}, bodyWidth=55, win=$pnlName
-		SetVariable axlenV value=_NUM:0.5, limits={0.1,0.9,0.01}, proc=SIDAMLineCommon#pnlSetVarAxlen, win=$pnlName
-		CheckBox hiddenC title="hidden", pos={173,76}, value=0, proc=SIDAMLineCommon#pnlCheck, win=$pnlName
+		SetVariable axlenV value=_NUM:0.5, limits={0.1,0.9,0.01}, proc=SIDAMLine#pnlSetVarAxlen, win=$pnlName
+		CheckBox hiddenC title="hidden", pos={173,76}, value=0, proc=SIDAMLine#pnlCheck, win=$pnlName
 		drawCtrlBack(pnlName)
 	endif
 
@@ -119,11 +116,52 @@ Static Function changeIgorMenuMode(int mode)
 	endif
 End
 
+//	Checkbox
+Static Function pnlCheck(STRUCT WMCheckboxAction &s)
+	if (s.eventCode != 2)
+		return 1
+	endif
 
-//=====================================================================================================
-//
+	strswitch (s.ctrlName)
+		case "p1C":
+		case "p2C":
+			ControlInfo/W=$s.win p1C;		int p1Checked = V_Value
+			ControlInfo/W=$s.win p2C;		int p2Checked = V_Value
+
+			SetVariable p1V disable=(!p1Checked)*2, win=$s.win
+			SetVariable q1V disable=(!p1Checked)*2, win=$s.win
+			SetVariable p2V disable=(!p2Checked)*2, win=$s.win
+			SetVariable q2V disable=(!p2Checked)*2, win=$s.win
+			SetVariable distanceV disable=!(p1Checked || p2Checked)*2, win=$s.win
+			SetVariable angleV disable=!(p1Checked || p2Checked)*2, win=$s.win
+
+			//	The widthV exist in the line profile
+			ControlInfo/W=$s.win widthV
+			if (V_Flag)
+				SetVariable widthV disable=!(p1Checked || p2Checked)*2, win=$s.win
+			endif
+
+			//	Update the text marker
+			GetWindow $s.win hook(self)
+			strswitch (StringFromList(0,S_Value,"#"))
+				case "KMLineSpectra":
+					SIDAMLineSpectra#pnlUpdateTextmarker(s.win)
+					break
+				case "KMLineProfile":
+					SIDAMLineProfile#pnlUpdateTextmarker(s.win)
+					break
+			endswitch
+			break
+
+		case "hiddenC":
+			ModifyWaterfall/W=$(s.win+"#line") hidden=s.checked
+			break
+	endswitch
+End
+
+//==============================================================================
 //	Window hook functions
-//
+//==============================================================================
 //-------------------------------------------------------------
 //	Helper of the parent hook function, mouse
 //-------------------------------------------------------------
@@ -492,61 +530,14 @@ Static Function changeComplex(String pnlName, int mode)
 End
 
 
-//=====================================================================================================
-//
-//	パネルコントロールについて
-//
-//-------------------------------------------------------------
-//	チェックボックス
-//-------------------------------------------------------------
-Static Function pnlCheck(STRUCT WMCheckboxAction &s)
-	if (s.eventCode != 2)
-		return 1
-	endif
-
-	strswitch (s.ctrlName)
-		case "p1C":
-		case "p2C":
-			ControlInfo/W=$s.win p1C;		int p1Checked = V_Value
-			ControlInfo/W=$s.win p2C;		int p2Checked = V_Value
-
-			SetVariable p1V disable=(!p1Checked)*2, win=$s.win
-			SetVariable q1V disable=(!p1Checked)*2, win=$s.win
-			SetVariable p2V disable=(!p2Checked)*2, win=$s.win
-			SetVariable q2V disable=(!p2Checked)*2, win=$s.win
-			SetVariable distanceV disable=!(p1Checked || p2Checked)*2, win=$s.win
-			SetVariable angleV disable=!(p1Checked || p2Checked)*2, win=$s.win
-
-			//	line profile には widthV が存在する
-			ControlInfo/W=$s.win widthV
-			if (V_Flag)
-				SetVariable widthV disable=!(p1Checked || p2Checked)*2, win=$s.win
-			endif
-
-			//	テキストマーカーの表示状態を更新
-			GetWindow $s.win hook(self)
-			strswitch (StringFromList(0,S_Value,"#"))
-				case "KMLineSpectra":
-					SIDAMLineSpectra#pnlUpdateTextmarker(s.win)
-					break
-				case "KMLineProfile":
-					SIDAMLineProfile#pnlUpdateTextmarker(s.win)
-					break
-			endswitch
-			break
-
-		case "hiddenC":
-			ModifyWaterfall/W=$(s.win+"#line") hidden=s.checked
-			break
-	endswitch
-End
-//-------------------------------------------------------------
-//	変更されたコントロールの値に応じて、他のコントロールの値を整合性が取れるように変更する
-//	つまり、
-//	distanceV, angleV の値に応じて p1V, q1V, p2V, q2V の値を設定する
-//	あるいは
-//	p1V, q1V, p2V, q2V の値に応じて distanceV, angleV の値を設定する
-//-------------------------------------------------------------
+//==============================================================================
+//	Helper functions for controls
+//==============================================================================
+//	Set the values of controls based on changed controls.
+//	When the value of distanceV or angleV is changed, set the value of
+//	p1V, q1V, p2V, and q2V
+//	When the value of p1V, q1V, p2V, or q2V is changed, set the value of
+// distanceV and angleV.
 Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 
 	//	Handle either mouse up or enter key
@@ -567,12 +558,12 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 		case "distanceV":
 		case "angleV":
 			Wave cvw = SIDAMGetCtrlValues(s.win,"p1C;p1V;q1V;p2C;p2V;q2V;distanceV;angleV")
-			if (cvw[3])		//	p2Cがチェックされている場合
+			if (cvw[%p2C])
 				vx = limit(ox+dx*cvw[1]+cvw[6]*cos(cvw[7]*pi/180), ox, ox+dx*(nx-1))
 				vy = limit(oy+dy*cvw[2]+cvw[6]*sin(cvw[7]*pi/180), oy, oy+dy*(ny-1))
 				SetVariable p2V value=_NUM:(grid ? round((vx-ox)/dx) : (vx-ox)/dx), win=$s.win
 				SetVariable q2V value=_NUM:(grid ? round((vy-oy)/dy) : (vy-oy)/dy), win=$s.win
-			elseif (cvw[0])	//	p1Cがチェックされている場合
+			elseif (cvw[%p1C])
 				vx = limit(ox+dx*cvw[4]-cvw[6]*cos(cvw[7]*pi/180), ox, ox+dx*(nx-1))
 				vy = limit(oy+dy*cvw[5]-cvw[6]*sin(cvw[7]*pi/180), oy, oy+dy*(ny-1))
 				SetVariable p1V value=_NUM:(grid ? round((vx-ox)/dx) : (vx-ox)/dx), win=$s.win
@@ -583,7 +574,7 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 		case "p2V":
 		case "q1V":
 		case "q2V":
-			if (strlen(s.ctrlName) == 3)	//	distanceV, angleV でなければ
+			if (strlen(s.ctrlName) == 3)	//	neither distanceV nor angleV
 				SetVariable $s.ctrlName value=_NUM:(grid ? round(s.dval) : s.dval), win=$s.win
 			endif
 			pnlSetDistanceAngle(s.win)
@@ -591,9 +582,9 @@ Static Function pnlSetVarUpdateValues(STRUCT WMSetVariableAction &s)
 		default:
 	endswitch
 End
-//-------------------------------------------------------------
-//	p1V, q1V, p2V, q2V の値に応じて distanceV, angleV の値を設定する
-//-------------------------------------------------------------
+
+//	Set the value of distanceV and angleV based on the values
+//	of p1V, q1V, p2V, and q2V
 Static Function pnlSetDistanceAngle(String pnlName)
 	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1V;q1V;p2V;q2V")
 	Wave w = $GetUserData(pnlName,"","src")
@@ -601,9 +592,8 @@ Static Function pnlSetDistanceAngle(String pnlName)
 	SetVariable distanceV value=_NUM:sqrt(vx^2+vy^2), win=$pnlName
 	SetVariable angleV value=_NUM:atan2(vy,vx)/pi*180, win=$pnlName
 End
-//-------------------------------------------------------------
-//	値設定のステップを決める, 今のところdistanceだけに使われている
-//-------------------------------------------------------------
+
+//	Determine the step size of setvariable, used only for distanceV at present.
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
 	Wave w = SIDAMImageWaveRef(grfName)
@@ -611,40 +601,35 @@ Static Function pnlSetVarIncrement(String pnlName)
 	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
 End
-//-------------------------------------------------------------
+
 //	Waterfall
-//-------------------------------------------------------------
 Static Function pnlSetVarAxlen(STRUCT WMSetVariableAction &s)
 	//	Handle either mouse up or enter key
 	if (s.eventCode != 1 && s.eventCode != 2)
 		return 1
 	endif
 	//	Newwaterfall wave0 vs {*, wavez}
-	//	NewWaterfall で wavez が有効になっている時(KMLineProfileで非等間隔バイアスウエーブを扱う時)には
-	//	表示ウエーブを削除しても wavez が表示されたままの扱いになってしまう (Igorのバグ?)
-	//	そのため、s.win を閉じる時に、エラーが出ないように s.win+#line を先に閉じる
-	//	したがって、この関数が呼ばれる際に　s.win+#line が存在しないタイミングがあるため、存在チェックを行う
+	//	When the wavez is used (unevenly-spaced bias), even if the displayed image
+	//	is deleted, the wavez is treated as if it was still shown. (Igor's bug?)
+	//	Therefore close s.win+#line to avoid an error.
 	if (SIDAMWindowExists(s.win+"#line"))
 		ModifyWaterfall/W=$(s.win+"#line") axlen=s.dval
 	endif
 End
 
-//=====================================================================================================
-//
-//	右クリックに関して
-//
-//-------------------------------------------------------------
-//	メニュー表示項目
-//-------------------------------------------------------------
-Static Function/S pnlRightClickMenu(int mode)
-	//	pnlHook が起点となって呼ばれたのでなければ続きを実行しない
-	String calling = "pnlHook,KM LineCommon.ipf"
+//==============================================================================
+//	for right-click
+//==============================================================================
+//	menu items
+Static Function/S menu(int mode)
+	//	Quit unless called from pnlHook()
+	String calling = "pnlHook,SIDAM_Line.ipf"
 	if (strsearch(GetRTStackInfo(3),calling,0))
 		return ""
 	endif
 
 	String pnlName = WinName(0,1)
-	Variable dim = str2num(GetUserData(pnlName,"","dim"))		//	2Dの時は nan が入る
+	Variable dim = str2num(GetUserData(pnlName,"","dim"))	//	nan for 2D
 
 	switch (mode)
 		case 0:	//	positions
@@ -657,7 +642,7 @@ Static Function/S pnlRightClickMenu(int mode)
 			return rtnStr
 
 		case 1:	//	dim
-			return SIDAMAddCheckmark(dim-1, "1D traces;2D image")	//	nan　に対しては空文字を返す
+			return SIDAMAddCheckmark(dim-1, "1D traces;2D image")	//	empty for nan
 
 		case 2:	//	complex
 			int isComplex = WaveType($GetUserData(pnlName,"","src")) & 0x01
@@ -677,7 +662,7 @@ Static Function/S pnlRightClickMenu(int mode)
 			return SelectString(grid, "! ", "") + "Free"
 
 		case 4:	//	Highlight
-			Variable highlight = str2num(GetUserData(pnlName,"","highlight"))	//	2Dの時は nan が入る
+			Variable highlight = str2num(GetUserData(pnlName,"","highlight"))	//	nan ofr 2D
 			return SelectString(dim==2, "","(") + SelectString(highlight, "Highlight", "! Highlight")				//	nan　に対しては空文字を返す
 
 		case 7:	//	Range
@@ -687,10 +672,9 @@ Static Function/S pnlRightClickMenu(int mode)
 			return SelectString(dim==2, "(","") + "Color Table..."
 	endswitch
 End
-//-------------------------------------------------------------
-//	マウス座標を取得するウインドウのリストを作成する
-//-------------------------------------------------------------
-Static Function/S rightclickMenuTarget()
+
+//	window list 
+Static Function/S menuTarget()
 	String pnlName = WinName(0,1)
 	if (!strlen(pnlName))
 		return ""
@@ -704,7 +688,7 @@ Static Function/S rightclickMenuTarget()
 			Wave/Z srcw = TraceNameToWaveRef(pnlName,StringFromList(0,TraceNameList(pnlName,";",1)))
 			break
 		default:
-			return ""	//	呼び出し元に関する制限、かつ、ウインドウが表示されていない場合
+			return ""
 	endswitch
 
 	if (!WaveExists(srcw))
@@ -712,17 +696,17 @@ Static Function/S rightclickMenuTarget()
 	endif
 
 	String allList = WinList("*",";","WIN:1,VISIBLE:1"), win
-	String rtnList = ""		//	メニュー表示用文字列
-	String grfList = ""		//	メニュー選択時に使用されるグラフリスト
+	String rtnList = ""	, grfList = ""
 	int i, n
 
 	for (i = 0, n = ItemsInList(allList); i < n; i += 1)
 		win = StringFromList(i, allList)
 		Wave/Z imgw = SIDAMImageWaveRef(win)
-		if (!WaveExists(imgw) || DimSize(srcw,0) != DimSize(imgw,0) || DimSize(srcw,1) != DimSize(imgw,1))
-			continue
+		if (!WaveExists(imgw) || DimSize(srcw,0) != DimSize(imgw,0) \
+			|| DimSize(srcw,1) != DimSize(imgw,1))
+				continue
 		elseif (WhichListItem(win, GetUserData(pnlName,"","parent")) != -1)
-			rtnList += "\\M0:!" + num2char(18) + ":"+NameOfWave(imgw) + " (" + win + ");"	//	チェックがつき、選択不可
+			rtnList += "\\M0:!" + num2char(18) + ":"+NameOfWave(imgw) + " (" + win + ");"
 		else
 			rtnList += "\\M0" + NameOfWave(imgw) + " (" + win + ");"
 		endif
@@ -732,11 +716,10 @@ Static Function/S rightclickMenuTarget()
 
 	return rtnList
 End
-//-------------------------------------------------------------
-//	positionsに関する実行項目
-//	メニューでの選択内容に応じて p1V, q1V, p2V, q2V, distanceV, angleV に適切な値を入れる
-//-------------------------------------------------------------
-Static Function pnlRightclickDoPositions(String pnlName)
+
+//	Set values of p1V, q1V, p2V, q2V, distanceV and angleV
+//	by selecting a menu about positions.
+Static Function menuPositions(String pnlName)
 	Wave w = $GetUserData(pnlName,"","src")
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 
@@ -744,12 +727,12 @@ Static Function pnlRightclickDoPositions(String pnlName)
 	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
 	Variable p1, q1, p2, q2, v
 	GetLastUserMenuInfo
-	//	origin & x の時の　origin
+	//	the origin for "origin & x"
 	if (1 <= V_Value && V_Value <=5)		//	origin & x
 		p1 = grid ? round(-DimOffset(w,0)/dx) : -DimOffset(w,0)/dx
 		q1 = grid ? round(-DimOffset(w,1)/dy) : -DimOffset(w,1)/dy
 	endif
-	//	origin & 30, 45, 60　の時に dx != dy の場合に備えて係数を求めておく
+	//	for dx != dy and origin & 30, 45, 60
 	if (2 <= V_value && V_value <= 4)
 		Make/D/N=3/FREE tw = {30,45,60}
 		v = dy/dx/tan(tw[V_value-2]/180*pi)
@@ -783,22 +766,15 @@ Static Function pnlRightclickDoPositions(String pnlName)
 	SetVariable p2V value=_NUM:p2, win=$pnlName
 	SetVariable q2V value=_NUM:q2, win=$pnlName
 
-	//	変更後の p1V, q1V, p2V, q2V の値に合わせて angleV, distanceV を変更する
 	pnlSetDistanceAngle(pnlName)
 End
-//-------------------------------------------------------------
-//	複素数表示の切り替え
-//-------------------------------------------------------------
-Static Function pnlRightclickDoComplex(String pnlName)
+
+Static Function menuComplex(String pnlName)
 	GetLastUserMenuInfo
 	changeComplex(pnlName, V_value-1)
 End
-//-------------------------------------------------------------
-//	Free/Grid の切り替え
-//	p1V, q1V, p2V, q2Vのフォーマットと値を適切に変更する
-//	変更後の値に対応するように distanceV と angleV を変更する
-//-------------------------------------------------------------
-Static Function pnlRightclickDoFree(String pnlName)
+
+Static Function menuFree(String pnlName)
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 	String ctrlList = "p1V;q1V;p2V;q2V"
 	ModifyControlList ctrlList format=SelectString(grid,"%d","%.2f"), win=$pnlName

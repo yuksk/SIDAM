@@ -2,8 +2,8 @@
 #pragma rtGlobals = 3
 #pragma ModuleName = SIDAMRange
 
-#include "KM Histogram"
 #include "KM LayerViewer"
+#include "SIDAM_Histogram"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_ImageInfo"
@@ -359,8 +359,8 @@ Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variabl
 
 	String dfTmp = SIDAMNewDF(StringFromList(0, grfName, "#"),"Range")
 	Wave w = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
-	Wave hw = KMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, \
-		bins=BINS, result=HIST, dfr=$dfTmp)
+	Duplicate SIDAMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, \
+		bins=BINS) $(dfTmp+HIST)/WAVE=hw
 	Duplicate hw $(dfTmp+HISTCLR)/WAVE=rangew
 	rangew = x
 
@@ -879,7 +879,7 @@ Static Function updatePnlHistogram(String pnlName, int mode)
 	endif
 
 	DFREF dfrTmp = $GetUserData(pnlName, "", "dfTmp")
-	Wave hw = KMHistogram(w, startz=z0, endz=z1, bins=BINS, result=HIST, dfr=dfrTmp)
+	Duplicate/O SIDAMHistogram(w, startz=z0, endz=z1, bins=BINS) dfrTmp:$HIST/WAVE=hw
 	Duplicate/O hw dfrTmp:$HISTCLR/WAVE=clrw
 	clrw = x
 
@@ -969,7 +969,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			Variable avg = V_avg, sdev = V_sdev
 		endif
 		if (m0 == 3 || m1 == 3)	//	cut
-			Wave hw = KMHistogram(tw,bins=256,cumulative=1,normalize=1,dfr=NewFreeDataFolder())
+			Wave hw = SIDAMHistogram(tw,bins=256,cumulative=1,normalize=1)
 		endif
 	endif
 

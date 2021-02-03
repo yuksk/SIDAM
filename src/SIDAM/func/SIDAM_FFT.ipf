@@ -28,40 +28,46 @@ Static StrConstant OUTPUT = "complex;real;magnitude;magnitude squared;phase;imag
 
 Static StrConstant SUFFIX = "_FFT"
 
-//******************************************************************************
-//	SIDAMFFT
-///	@param w
-///		A numeric wave, 2D or 3D
-///	@param result [optional, default = NameOfWave(w)+SUFFIX]
-///		Name of result wave.
-///	@param win [optional, default = "none"]
-///		Name of an image window function. The same name used for WindowFunction.
-///	@param out [optional, default = 3]
-///		Output mode of FFT. From 1 to 5, this is the same as used for
-///		the /OUT flag of FFT of Igor. 6 is imaginary output.
-///	@param subtract [optional, default = 0]
-///		0 or !0. Set !0 to subtract the average before FFT. For a 3D wave,
-///		the average of each layer is subtracted.
-///	@param history [optional, default = 0]
-///		0 or !0. Set !0 to print this command in the history.
-//******************************************************************************
-Function/WAVE SIDAMFFT(Wave/Z w, [String result, String win, int out,
-	int subtract, int history])
+//@
+//	Compute the discrite Fourier transform of the input wave.
+//	When the input wave is 3D, the histogram is generated layer by layer.
+//
+//	Parameters
+//	----------
+//	w : wave
+//		The input wave, 2D or 3D.
+//	win : 	string, default "none"
+//		An image window function.
+//	out : int, default 3
+//		The Output mode of FFT.
+//
+//			1. complex
+//			2. real
+//			3. magnitude
+//			4. magnitude squared
+//			5. phase
+//			6. imaginary
+//
+//	subtract : int, default 0
+//		Set !0 to subtract the average before FFT. For a 3D wave,
+//		the average of each layer is subtracted.
+//
+//	Returns
+//	-------
+//	wave
+//		Fourier-transformed wave
+//@
+Function/WAVE SIDAMFFT(Wave/Z w, [String win, int out, int subtract])
 
 	STRUCT paramStruct s
 	Wave/Z s.w = w
 	s.win = SelectString(ParamIsDefault(win), win, "none")
 	s.out = ParamIsDefault(out) ? 3 : out
 	s.subtract = ParamIsDefault(subtract) ? 0 : subtract
-	s.result = SelectString(ParamIsDefault(result), result, NameOfWave(w)+SUFFIX)
 
 	if (validate(s))
 		printf "%s%s gave error: %s\r", PRESTR_CAUTION, GetRTStackInfo(1), s.errMsg
 		return $""
-	endif
-
-	if (!ParamIsDefault(history) && history == 1)
-		print PRESTR_CMD + echoStr(w, s.result, s.win, s.out, s.subtract)
 	endif
 
 	if (WaveDims(w) == 2)
@@ -71,15 +77,7 @@ Function/WAVE SIDAMFFT(Wave/Z w, [String result, String win, int out,
 	endif
 
 	Note resw, StringFromList(s.out-1, OUTPUT) + ", " + s.win
-
-	int isNormalWave = WaveType(w,2) == 1
-	if (isNormalWave)
-		DFREF dfr = GetWavesDataFolderDFR(w)
-		Duplicate/O resw dfr:$s.result
-		return dfr:$s.result
-	else
-		return resw
-	endif
+	return resw
 End
 
 Static Function validate(STRUCT paramStruct &s)
@@ -97,10 +95,6 @@ Static Function validate(STRUCT paramStruct &s)
 	elseif (WhichListItem(s.win,allWindows()) < 0)
 		s.errMsg = "name of window function is not found."
 		return 1
-
-	elseif (SIDAMCheckWaveName(s.result))
-		s.errMsg += "the result is invalid as a name of wave."
-		return 1
 	endif
 
 	s.subtract = s.subtract ? 1 : 0
@@ -111,19 +105,19 @@ End
 Static Structure paramStruct
 	Wave	w
 	String	errMsg
-	String	result
 	String	win
 	uint16	out
 	uint16	subtract
 EndStructure
 
-Static Function/S echoStr(Wave w, String result, String win, int out, int subtract)
+Static Function/S echoStr(Wave w, String win, int out, int subtract,
+	String result)
 	String paramStr = GetWavesDataFolder(w,2)
-	paramStr += SelectString(CmpStr(result, NameOfWave(w)+SUFFIX), "", ",result=\""+result+"\"")
 	paramStr += SelectString(CmpStr(win, "none"), "", ",win=\""+win+"\"")
 	paramStr += SelectString(out==3, ",out="+num2str(out), "")
 	paramStr += SelectString(subtract, "", ",subtract="+num2str(subtract))
-	Sprintf paramStr, "SIDAMFFT(%s)", paramStr
+	Sprintf paramStr, "Duplicate/O SIDAMFFT(%s), %s%s", paramStr\
+		, GetWavesDataFolder(w,1), PossiblyQuoteName(result)
 	return paramStr
 End
 
@@ -476,9 +470,9 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 		case "toP":
 			Wave cvw = SIDAMGetCtrlValues(s.win, "outputP;subtractC")
-			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "resultV;windowP")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "windowP;resultV")
 			String paramStr = echoStr($GetUserData(s.win,"","src"),\
-				ctw[%resultV], ctw[%windowP], cvw[%outputP], cvw[%subtractC])
+				ctw[%windowP], cvw[%outputP], cvw[%subtractC], ctw[%resultV])
 			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
@@ -490,9 +484,14 @@ Static Function pnlDo(String pnlName)
 	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "resultV;windowP")
 	KillWindow $pnlName
 
-	Wave/Z resw = SIDAMFFT(w,result=ctw[%resultV],win=ctw[%windowP],\
-		out=cvw[%outputP],subtract=cvw[%subtractC],history=1)
-
+	Wave/Z fftw = SIDAMFFT(w, win=ctw[%windowP], out=cvw[%outputP], \
+		subtract=cvw[%subtractC])
+	
+	printf "%s%s\r", PRESTR_CMD, echoStr(w, ctw[%windowP], cvw[%outputP]\
+		, cvw[%subtractC], ctw[%resultV])
+	DFREF dfr = GetWavesDataFolderDFR(w)
+	Duplicate/O fftw dfr:$ctw[%resultV]/WAVE=resw
+	
 	if (cvw[%displayC])
 		SIDAMDisplay(resw, history=1)
 	endif

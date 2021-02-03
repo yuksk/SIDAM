@@ -3,10 +3,8 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_Display"
-#include "SIDAM_FFT"
 #include "SIDAM_LoadData"
 #include "SIDAM_Range"
-#include "SIDAM_Subtraction"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -58,12 +56,53 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+
+Function/WAVE KMLineSpectra(Wave/Z w, Variable p1, Variable q1, Variable p2,
+	Variable q2, [String result, int mode, int output, int history])
+	deprecatedCaution("SIDAMLineSpectra")
+End
+
+Function/WAVE KMLineProfile(Wave/Z w,Variable p1,Variable q1,Variable p2,
+	Variable q2,[Variable width,int output,int history,String result])
+	deprecatedCaution("SIDAMLineProfile")
+End
+Function/WAVE KMCorrelation(Wave/Z w1,[Wave/Z w2,String result,int subtract,
+	int normalize,int origin,int history])
+	deprecatedCaution("SIDAMCorrelation")
+End
+
+Function KMSubtraction(Wave/Z w, [Wave roi, int mode, int degree, int direction,
+	int index, int history, String result])
+	deprecatedCaution("SIDAMSubtraction")
+End
+
+Function KMFilter(Wave/Z srcw, Wave/Z paramw,
+	[String result, int invert, int endeffect, int history])
+	deprecatedCaution("SIDAMFilter")
+End
+
+Function KMFourierSym(Wave w, Wave q1w, Wave q2w, int sym, [int shear,
+	int endeffect, String result, int history])
+	deprecatedCaution("SIDAMFourierSym")
+End
+
 Function KMFFT(Wave/Z w, [String result, String win, int out,
 	int subtract, int history])
 	deprecatedCaution("SIDAMFFT")
-	SIDAMFFT(w, result=result, win=win, out=out, subtract=subtract, history=history)
 End
 
+Function KMWorkfunction(Wave/Z w, [String result, int startp, int endp, 
+	Variable offset])
+	deprecatedCaution("SIDAMWorkfunction")
+End
+
+Function KMHistogram(Wave/Z w, [String result, Variable startz, Variable endz,
+	Variable deltaz, int bins, int cumulative, int normalize,
+	int cmplxmode, int history])
+	deprecatedCaution("SIDAMHistogram")
+End
+
+//	v8.11.0 ----------------------------------------------------------------------
 Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,
 	int zminmode, int zmaxmode, int history])
 	deprecatedCaution("SIDAMRange")
@@ -195,11 +234,6 @@ Function KMShowParameters()
 End
 
 //	v8.1.12 ----------------------------------------------------------------------
-Function KMSubtraction(Wave/Z w, [Wave roi, int mode, int degree,	int direction, int index, int history, String result])
-	deprecatedCaution("SIDAMSubtraction")
-	SIDAMSubtraction(w,roi=roi,mode=mode,degree=degree,direction=direction,index=index,history=history,result=result)
-End
-
 Function KMOpenHelpNote(String noteFileName, [String pnlName, String title])
 	deprecatedCaution("SIDAMOpenHelpNote")
 	return SIDAMOpenHelpNote(noteFileName,pnlName,title)

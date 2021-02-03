@@ -4,7 +4,6 @@
 
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
 
@@ -34,15 +33,11 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;"
 ///		the average for mode=1 (line).
 ///	@param index [optional, default = 0]
 ///		The layer index for mode=2 and 3
-///	@param history [optional, default = 0]
-///		0 or !0. Set !0 to print this command in the history.
-///	@param result [optional, default = ""]
-///		The name of result wave. When empty, the input wave is overwritten.
 ///	@return
 ///		A result wave
 //******************************************************************************
 Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave/Z roi, int mode, int degree,
-	int direction, int method, int index, int history, String result])
+	int direction, int method, int index])
 
 	STRUCT paramStruct s
 	Wave/Z s.w = w
@@ -52,61 +47,36 @@ Function/WAVE SIDAMSubtraction(Wave/Z w, [Wave/Z roi, int mode, int degree,
 	s.direction = ParamIsDefault(direction) ? 0 : direction
 	s.method = ParamIsDefault(method) ? 0 : method
 	s.index = ParamIsDefault(index) ? 0 : index
-	s.result = SelectString(ParamIsDefault(result), result, "")
 
 	if (validate(s))
 		printf "%s%s gave error: %s\r", PRESTR_CAUTION, GetRTStackInfo(1), s.errMsg
 		return $""
 	endif
 
-	if (!ParamIsDefault(history) && history == 1)
-		print PRESTR_CMD + echoStr(s)
-	endif
-
-	//	each function returns a free wave
 	switch (mode)
 		case 0:
 			if (s.degree < 2)
-				Wave resw = subtract_plane(s.w, s.roi, s.degree)
+				return subtract_plane(s.w, s.roi, s.degree)
 			else
-				Wave resw = subtract_poly(s.w, s.roi, s.degree)
+				return subtract_poly(s.w, s.roi, s.degree)
 			endif
-			break
 		case 1:
 			if (s.degree > 0 && !s.method)
-				Wave resw = subtract_line_poly(s.w, s.degree, s.direction)
+				return subtract_line_poly(s.w, s.degree, s.direction)
 			elseif (!s.degree && !s.method)
-				Wave resw = subtract_line_constant(s.w, s.direction)
+				return subtract_line_constant(s.w, s.direction)
 			elseif (!s.degree && s.method==1)
-				Wave resw = subtract_line_median_constant(s.w, s.direction)
+				return subtract_line_median_constant(s.w, s.direction)
 			elseif (s.degree==1 && s.method==1)
-				Wave resw = subtract_line_median_slope(s.w, s.direction)
+				return subtract_line_median_slope(s.w, s.direction)
 			elseif (s.degree==2 && s.method==1)
-				Wave resw = subtract_line_median_curvature(s.w, s.direction)
+				return subtract_line_median_curvature(s.w, s.direction)
 			endif
-			break
 		case 2:
-			Wave resw = subtract_layer(s.w, s.index)
-			break
+			return subtract_layer(s.w, s.index)
 		case 3:
-			Wave resw = subtract_phase(s.w, s.index)
-			break
+			return subtract_phase(s.w, s.index)
 	endswitch
-
-	int isNormalWave = WaveType(w,2) == 1
-	if (!isNormalWave)
-		return resw
-	endif
-
-	int overwrite = strlen(s.result) == 0
-	if (overwrite)
-		w = resw
-		return w
-	else
-		DFREF dfr = GetWavesDataFolderDFR(w)
-		Duplicate/O resw dfr:$s.result
-		return dfr:$s.result
-	endif
 End
 
 Static Function validate(STRUCT paramStruct &s)
@@ -186,17 +156,8 @@ Static Function validate(STRUCT paramStruct &s)
 			s.errMsg = "mode must be an integer between 0 and 3."
 
 	endswitch
-	if (strlen(s.errMsg))
-		return 1
-	endif
 
-	//	result
-	if (strlen(s.result) && SIDAMCheckWaveName(s.result))
-		s.errMsg += "the result is invalid as a name of wave."
-		return 1
-	endif
-
-	return 0
+	return strlen(s.errMsg) ? 1 : 0
 End
 
 Static Structure paramStruct
@@ -208,7 +169,7 @@ Static Structure paramStruct
 	uchar	direction
 	uchar	method
 	uint16	index
-	String	result
+	String result
 EndStructure
 
 Static Function/S echoStr(STRUCT paramStruct &s)
@@ -239,15 +200,12 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 			break
 	endswitch
 
-	paramStr += SelectString(strlen(s.result) && CmpStr(s.result,NameOfWave(s.w)), "", ",result=\""+s.result+"\"")
-	Sprintf paramStr, "SIDAMSubtraction(%s)", paramStr
+	Sprintf paramStr, "Duplicate/O SIDAMSubtraction(%s), %s%s"\
+		, paramStr, GetWavesDataFolder(s.w, 1), s.result
 
 	return paramStr
 End
 
-//-------------------------------------------------------------
-//	Menu functions
-//-------------------------------------------------------------
 Static Function menuDo()
 	String grfName = WinName(0,4311,1)
 	Wave/Z w = SIDAMImageWaveRef(grfName)
@@ -257,7 +215,13 @@ Static Function menuDo()
 End
 
 Static Function marqueeDo()
-	SIDAMSubtraction(SIDAMImageWaveRef(WinName(0,1,1)),roi=SIDAMGetMarquee(0),history=1)
+	STRUCT paramStruct s
+	Wave s.w = SIDAMImageWaveRef(WinName(0,1,1))
+	Wave s.roi = SIDAMGetMarquee(0)
+	s.degree = 1
+	s.result = NameOfWave(s.w)
+	printf "%s%s\r" PRESTR_CMD, echoStr(s)
+	Duplicate/O SIDAMSubtraction(s.w, degree=s.degree, roi=s.roi) s.w
 End
 
 Static Function/S marqueeMenu()
@@ -320,22 +284,14 @@ Static Function pnl(Wave w, String grfName)
 	TitleBox valueT title=titleStr, pos={211,97}, win=$pnlName
 	TitleBox valueT frame=0, disable=!isComplex, win=$pnlName
 
-	PopupMenu scanP title="slow scan:", pos={174,68}, size={113,20}, win=$pnlName
-	PopupMenu scanP mode=2, value="\u21c4;\u21c5", disable=1, bodyWidth=60, win=$pnlName
-	PopupMenu xscanP title="x scan:", pos={188,99}, size={99,20}, mode=1, win=$pnlName
-	PopupMenu xscanP value="\u21e8;\u21e6", disable=1, bodyWidth=60, win=$pnlName
-	PopupMenu yscanP title="y scan:", pos={188,130}, size={99,20}, mode=1, win=$pnlName
-	PopupMenu yscanP value="\u21e7;\u21e9", disable=1, bodyWidth=60, win=$pnlName
-
 	Button doB title="Do It", pos={9,165}, size={60,20}, win=$pnlName
 	CheckBox displayC title="display", pos={83,167}, value=0, win=$pnlName
 	PopupMenu toP title="To", pos={153,166}, size={50,20}, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, bodyWidth=50, win=$pnlName
-	Button helpB title="?", pos={220,165}, size={20,20}, win=$pnlName
 	Button cancelB title="Cancel", pos={257,165}, size={60,20}, win=$pnlName
 
 	ModifyControlList "degreeP;modeP;toP" proc=SIDAMSubtraction#pnlPopup, win=$pnlName
-	ModifyControlList "doB;helpB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
+	ModifyControlList "doB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
 End
@@ -356,44 +312,39 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 
 		case "doB":
-			Wave w = $GetUserData(s.win, "", "src")
-			Wave cvw = SIDAMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;displayC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
-			Wave/T ctw = SIDAMGetCtrlTexts(s.win,"modeP;resultV")
-			Variable direction = (cvw[5]-1) + (cvw[6]-1)*2 + (cvw[7]-1)*4
-			String result = SelectString(cvw[3], ctw[1], "")
+			STRUCT paramStruct ps
+			collectVariableFromPnl(s.win, ps)
+			Wave cvw = SIDAMGetCtrlValues(s.win, "owC;roiC;displayC;")
+			ControlInfo/W=$s.win resultV
+			ps.result = SelectString(cvw[%owC], S_Value, NameOfWave(ps.w))
 			KillWindow $s.win
 
-			Variable mode = WhichListItem(ctw[0],MODE)
-			switch (mode)
+			switch (ps.mode)
 				case 0:
-					if ((cvw[0] == 2) && (cvw[8] == 1))
-						Wave resw = SIDAMSubtraction(w, result=result, \
-							roi={{cvw[9],cvw[10]},{cvw[11],cvw[12]}}, history=1)
+					if ((ps.degree == 1) && cvw[%roiC])
+						Wave rw = SIDAMSubtraction(ps.w, roi=ps.roi)
 					else
-						Wave resw = SIDAMSubtraction(w, degree=cvw[0]-1, \
-							result=result, history=1)
+						Wave rw = SIDAMSubtraction(ps.w, degree=ps.degree)
 					endif
 					break
 
 				case 1:
-					Wave resw = SIDAMSubtraction(w, mode=1, degree=cvw[0]-1, \
-						direction=cvw[1]-1, method=cvw[13]-1, result=result, history=1)
+					Wave rw = SIDAMSubtraction(ps.w, mode=ps.mode, degree=ps.degree, \
+						direction=ps.direction, method=ps.method)
 					break
 
 				default:
-					Wave resw = SIDAMSubtraction(w, mode=mode, degree=cvw[0]-1, \
-						direction=cvw[1]-1, index=cvw[2], result=result, history=1)
+					Wave rw = SIDAMSubtraction(ps.w, mode=ps.mode, degree=ps.degree, \
+						direction=ps.direction, index=ps.index)
 			endswitch
-
-			if (cvw[4])
+			printf "%s%s\r" PRESTR_CMD, echoStr(ps)
+			DFREF dfr = GetWavesDataFolderDFR(ps.w)
+			Duplicate/O rw dfr:$ps.result/WAVE=resw
+		
+			if (cvw[%displayC])
 				SIDAMDisplay(resw, history=1)
 			endif
 			break
-
-		case "helpB":
-			SIDAMOpenHelpNote("subtraction",s.win,"Subtraction")
-			break
-
 	endswitch
 End
 
@@ -444,34 +395,8 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 
 		case "toP":
-			Wave cvw = SIDAMGetCtrlValues(s.win, "degreeP;directionP;indexV;owC;scanP;xscanP;yscanP;roiC;p1V;q1V;p2V;q2V;methodP")
-			Wave/T ctw = SIDAMGetCtrlTexts(s.win,"modeP;resultV")
-
 			STRUCT paramStruct ps
-			Wave ps.w = $GetUserData(s.win, "", "src")
-			ps.mode = WhichListItem(ctw[0],MODE)
-			ps.result = SelectString(cvw[3], ctw[1], "")
-
-			switch (ps.mode)
-				case 0:
-					ps.degree = cvw[0]-1
-					ps.direction = cvw[1]-1
-					if (cvw[7] == 1)
-						Make/B/U/FREE tw = {{cvw[8],cvw[9]},{cvw[10],cvw[11]}}
-						Wave ps.roi = tw
-					endif
-					break
-				case 1:
-					ps.degree = cvw[0]-1
-					ps.direction = cvw[1]-1
-					ps.method = cvw[12]-1
-					break
-				case 2:
-				case 3:
-					ps.index = cvw[2]
-					break
-			endswitch
-
+			collectVariableFromPnl(s.win, ps)
 			SIDAMPopupTo(s, echoStr(ps))
 			break
 	endswitch
@@ -513,6 +438,22 @@ Static Function pnlShowHideControls(String pnlName)
 	ModifyControlList "indexV;valueT" disable=!forComplex, win=$pnlName
 	CheckBox roiC disable=!forPlane, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" disable=!forRoiNum, win=$pnlName
+End
+
+Static Function collectVariableFromPnl(String pnlName, STRUCT paramStruct &s)
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "degreeP;directionP;indexV;"\
+		+"roiC;p1V;q1V;p2V;q2V;methodP;owC")
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName,"modeP;resultV")
+
+	Wave s.w = $GetUserData(pnlName, "", "src")
+	s.mode = WhichListItem(ctw[%modeP],MODE)
+	s.degree = cvw[%degreeP]-1
+	s.direction = cvw[%directionP]-1
+	s.method = cvw[%methodP]-1
+	s.index = cvw[%indexV]
+	Make/B/U/FREE roi = {{cvw[%p1V], cvw[%q1V]},{cvw[%p2V], cvw[%q2V]}}
+	Wave s.roi = roi	
+	s.result = SelectString(cvw[%owC], ctw[%resultV], NameOfWave(s.w))
 End
 
 

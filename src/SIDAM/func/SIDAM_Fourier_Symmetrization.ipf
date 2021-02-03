@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=1
-#pragma ModuleName= KMFourierSym
+#pragma ModuleName = SIDAMFourierSym
 
 #include "KM Fourier Peak"
 #include "SIDAM_Display"
@@ -15,20 +15,45 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant ks_index_sym = "_sym"
-
-//******************************************************************************
-//	KMFourierSym
-//		メイン関数
-//******************************************************************************
-Function/WAVE KMFourierSym(w, q1w, q2w, sym, [shear, endeffect, result, history])
-	Wave/Z w				//	実行対象となる2D/3Dウエーブ
-	Wave/Z q1w, q2w		//	{qx, qx, a}, (qx, qy)はFFTイメージ中の座標、aはその点に対応する実空間でのあるべき長さ	
-	Variable sym			//	対称性　1: 2mm, 2: 3, 3: 3m, 4: 4, 5: 4mm
-	Variable shear		//	shear の方向. 0: x, 1: y, 省略時は0
-	Variable endeffect	//	領域外の扱い. 0: bounce, 1: wrap, 2: zero, 3, repeat 省略時は2
-	Variable history		//	履歴欄にコマンドを出力する(1), しない(0), 省略時は0
-	String result		//	結果ウエーブの名前, 省略時は"_fld"が入力ウエーブの名前の後ろについたもの
+//@
+//	Symmetrize Fourier transform based on symmetry.
+//
+//	Parameters
+//	----------
+//	w : wave
+//		The input wave, 2D or 3D.
+//	q1w : wave
+//		The first peak, {qx, qy, a}.
+//		The (qx, qy) is the peak position in pixel.
+//		The a is the "ideal" real-space length corresponding to the peak.
+//	q2w : wave
+//		The second peak, specified in the same manner as the q1w.
+//	sym : int
+//		The symmetry.
+//
+//			1: 2mm
+//			2: 3
+//			3: 3m
+//			4: 4
+//			5: 4mm
+//
+//	shear : int, default 0
+//		The shear direction, 0 for x, 1 for y.
+//	endeffect : int, default 2
+//		How to handle the ends of the wave.
+//
+//			0:	Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+//			1:	Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+//			2:	Zero (default). Uses 0 for any missing value.
+//			3:	Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].
+//
+//	Returns
+//	-------
+//	wave
+//		Symmetrized wave
+//@
+Function/WAVE SIDAMFourierSym(Wave w, Wave q1w, Wave q2w, int sym,
+	[int shear, int endeffect])
 	
 	STRUCT paramStruct s
 	Wave/Z s.w = w
@@ -37,32 +62,18 @@ Function/WAVE KMFourierSym(w, q1w, q2w, sym, [shear, endeffect, result, history]
 	s.sym = sym
 	s.shear = ParamIsDefault(shear) ? 0 : shear
 	s.endeffect = ParamIsDefault(endeffect) ? 2 : endeffect
-	s.result = SelectString(ParamIsDefault(result), result, NameOfWave(w)+ks_index_sym)
 	
-	//	エラーチェック
-	if (KMFourierSymCheck(s))
+	if (validate(s))
 		print s.errMsg
 		return $""
 	endif
 	
-	//	履歴欄出力
-	if (!ParamIsDefault(history) && history == 1)
-		print PRESTR_CMD + KMFourierSymEcho(w, q1w, q2w, s.sym, s.shear, s.endeffect, s.result)
-	endif
-	
-	//	計算実行
-	Wave resw = KMFourierSymDo(w, q1w, q2w, sym, s.shear, s.endeffect)
-	DFREF dfr = GetWavesDataFolderDFR(w)
-	Duplicate/O resw dfr:$s.result
-	
-	return dfr:$s.result
+	return symmetrize(w, q1w, q2w, sym, s.shear, s.endeffect)
 End
-//-------------------------------------------------------------
-//	KMFourierSymCheck: 		チェック用関数
-//-------------------------------------------------------------
-Static Function KMFourierSymCheck(STRUCT paramStruct &s)
 
-	s.errMsg = PRESTR_CAUTION + "KMFourierSym gave error: "
+Static Function validate(STRUCT paramStruct &s)
+
+	s.errMsg = PRESTR_CAUTION + "SIDAMFourierSym gave error: "
 	
 	int flag = SIDAMValidateWaveforFFT(s.w)
 	if (flag)
@@ -80,11 +91,6 @@ Static Function KMFourierSymCheck(STRUCT paramStruct &s)
 		return 1
 	endif
 	
-	if (SIDAMCheckWaveName(s.result))
-		s.errMsg += "the result is invalid as a name of wave."
-		return 1
-	endif
-	
 	s.shear = s.shear ? 1 : 0
 	s.endeffect = limit(s.endeffect, 0, 3)
 End
@@ -97,40 +103,32 @@ Static Structure paramStruct
 	uchar	sym
 	uchar	shear
 	uchar	endeffect
-	String	result
 EndStructure
 
-//-------------------------------------------------------------
-//	KMFourierSymEcho: 	履歴欄出力用文字列作成
-//-------------------------------------------------------------
-Static Function/S KMFourierSymEcho(w, q1w, q2w, sym, shear, endeffect, result)
-	Wave w, q1w, q2w
-	Variable sym, shear, endeffect
-	String result
+Static Function/S echoStr(Wave w, Wave q1w, Wave q2w, int sym,
+	int shear, int endeffect, String result)
 	
 	String paramStr = GetWavesDataFolder(w,2)
-	paramStr += "," + SelectString(WaveType(q1w,2)==2, GetWavesDataFolder(q1w,2), SIDAMWaveToString(q1w, noquote=1))
-	paramStr += "," + SelectString(WaveType(q2w,2)==2, GetWavesDataFolder(q2w,2), SIDAMWaveToString(q2w, noquote=1))
+	paramStr += "," + SelectString(WaveType(q1w,2)==2, \
+		GetWavesDataFolder(q1w,2), SIDAMWaveToString(q1w, noquote=1))
+	paramStr += "," + SelectString(WaveType(q2w,2)==2, \
+		GetWavesDataFolder(q2w,2), SIDAMWaveToString(q2w, noquote=1))
 	paramStr += "," + num2str(sym)
 	paramStr += SelectString(shear, "", ",shear=1")
 	paramStr += SelectString(endeffect==2, ",endeffect="+num2str(endeffect), "")
-	paramStr += SelectString(CmpStr(result, NameOfWave(w)+ks_index_sym), "", ",result=\""+result+"\"")
-	Sprintf paramStr, "KMFourierSym(%s)", paramStr
-	
+	Sprintf paramStr, "Duplicate/O SIDAMFourierSym(%s), %s%s"\
+		, paramStr, GetWavesDataFolder(w,1), PossiblyQuoteName(result)
+				
 	return paramStr
 End
 
 
-//******************************************************************************
-//	KMFourierSymDo
-//		実行関数
-//******************************************************************************
-Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
-	Wave w
-	Wave q1w, q2w	//	{qx, qy, a}, 観測されたピーク位置(ピクセル)と対応する格子定数(スケーリング)
-	Variable sym		//	1: 2mm, 2: 3, 3: 3m, 4: 4, 5: 4mm
-	Variable shear	//	0: x, 1: y
-	Variable endeffect//	0: bounce, 1: wrap, 2: zero
+//	Wave q1w, q2w	{qx, qy, a}
+//	int sym			1: 2mm, 2: 3, 3: 3m, 4: 4, 5: 4mm
+//	int shear			0: x, 1: y
+//	int endeffect	0: bounce, 1: wrap, 2: zero
+Static Function/WAVE symmetrize(Wave w, Wave q1w, Wave q2w, int sym,
+	int shear, int endeffect)
 	
 	Variable nx = DimSize(w,0), ny = DimSize(w,1), nz = DimSize(w,2)
 	Variable ox = DimOffset(w,0), oy = DimOffset(w,1)
@@ -139,37 +137,29 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 	Variable q1x = ox + dx * q1w[0], q1y = oy + dy *q1w[1]
 	Variable q2x = ox + dx * q2w[0], q2y = oy + dy *q2w[1]
 	
-	//	変換行列を求める
-	Wave mw = KMFourierSymGetMatrix(w, q1w, q2w, sym, shear)
+	//	transformation matrix
+	Wave mw = calcMatrix(w, q1w, q2w, sym, shear)
 	Variable m1 = mw[0], m2 = mw[1], m3 = mw[2]
 	
-	//	現状表示パネル
-	String pnlName = SIDAMNewPanel("status", 320, 35, float=1)
-	TitleBox statusT pos={140,8}, frame=0, anchor=MC, win=$pnlName
-	DoUpdate/W=$pnlName
-	
-	//	xy方向の伸張をスケーリングで修正する
+	//	Change the wave scaling for expansion in the x and y directions
 	Duplicate/FREE w tw
 	SetScale/P x -dx*(nx/2-1)*m1, dx*m1, "", tw
 	SetScale/P y -dy*ny/2*m3, dy*m3, "", tw
 	
-	//	拡張ウエーブを求める
-	TitleBox statusT title="extend", win=$pnlName;	DoUpdate/W=$pnlName
+	//	Extended wave
 	Wave ew = SIDAMEndEffect(tw, endeffect)
 	
-	//	シアーを補正したウエーブを求める
-	TitleBox statusT title="expand and shear", win=$pnlName;	DoUpdate/W=$pnlName
+	//	Shear correction
 	Make/N=(nx,ny,nz)/FREE w0
 	CopyScales tw, w0
 	Variable m = shear ? m2/m1 : m2/m3
 	if (shear)
-		MultiThread w0 = KMFourierSymInterpolate(ew, x, -m*x+y, r)
+		MultiThread w0 = sym_interpolation(ew, x, -m*x+y, r)
 	else
-		MultiThread w0 = KMFourierSymInterpolate(ew, x-m*y, y, r)
+		MultiThread w0 = sym_interpolation(ew, x-m*y, y, r)
 	endif
 	
-	//	補正後のウエーブの拡張ウエーブを求める
-	TitleBox statusT title="extend", win=$pnlName;	DoUpdate/W=$pnlName
+	//	Extended wave after the shear correction
 	Wave ew0 = SIDAMEndEffect(w0, endeffect)
 	
 	if (endeffect == 2)
@@ -177,64 +167,59 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 		CopyScales ew0, enw0
 		MultiThread enw0[nx,2*nx-1][ny,2*ny-1][] = 1	//	center-middle
 	endif
-	
-	//	主軸周りの回転ウエーブを用意する
-	if (sym != 1)
-		TitleBox statusT title="rotate", win=$pnlName;	DoUpdate/W=$pnlName
-	endif
+
+	//	Make rotated waves
 	switch (sym)
 		case 2:	//	3
 		case 3:	//	3m
-			Wave w1 = KMFourierSymRotate(ew0, pi/3)
-			Wave w2 = KMFourierSymRotate(ew0, pi/3*2)
+			Wave w1 = sym_rotation(ew0, pi/3)
+			Wave w2 = sym_rotation(ew0, pi/3*2)
 			if (endeffect == 2)
-				Wave nw1 = KMFourierSymRotate(enw0, pi/3)
-				Wave nw2 = KMFourierSymRotate(enw0, pi/3*2)
+				Wave nw1 = sym_rotation(enw0, pi/3)
+				Wave nw2 = sym_rotation(enw0, pi/3*2)
 			endif
 			break
 		case 4:	//	4
 		case 5:	//	4mm
-			Wave w1 = KMFourierSymRotate(ew0, pi/2)
+			Wave w1 = sym_rotation(ew0, pi/2)
 			if (endeffect == 2)
-				Wave nw1 = KMFourierSymRotate(enw0, pi/2)
+				Wave nw1 = sym_rotation(enw0, pi/2)
 			endif
 			break
 	endswitch
 	
-	//	折り返しウエーブを用意する
+	//	Make mirrored waves
 	if (sym == 1 || sym == 3 || sym ==5)
-		TitleBox statusT title="mirror", win=$pnlName;	DoUpdate/W=$pnlName
 		Variable theta = shear ? atan((m2*q1x+m3*q1y)/(m1*q1x)) : atan((m3*q1y)/(m1*q1x+m2*q1y))
 		switch (sym)
 			case 1:	//	2mm
-				Wave w1 = KMFourierSymMirror(ew0, 2*theta)
+				Wave w1 = sym_mirror(ew0, 2*theta)
 				if (endeffect == 2)
-					Wave nw1 = KMFourierSymMirror(enw0, 2*theta)
+					Wave nw1 = sym_mirror(enw0, 2*theta)
 				endif
 				break
 			case 3:	//	3m
-				Wave w3 = KMFourierSymMirror(ew0, 2*theta)
-				Wave w4 = KMFourierSymMirror(ew0, 2*(theta-pi/3))
-				Wave w5 = KMFourierSymMirror(ew0, 2*(theta-pi/3*2))
+				Wave w3 = sym_mirror(ew0, 2*theta)
+				Wave w4 = sym_mirror(ew0, 2*(theta-pi/3))
+				Wave w5 = sym_mirror(ew0, 2*(theta-pi/3*2))
 				if (endeffect == 2)
-					Wave nw3 = KMFourierSymMirror(enw0, 2*theta)
-					Wave nw4 = KMFourierSymMirror(enw0, 2*(theta-pi/3))
-					Wave nw5 = KMFourierSymMirror(enw0, 2*(theta-pi/3*2))
+					Wave nw3 = sym_mirror(enw0, 2*theta)
+					Wave nw4 = sym_mirror(enw0, 2*(theta-pi/3))
+					Wave nw5 = sym_mirror(enw0, 2*(theta-pi/3*2))
 				endif
 				break
 			case 5:	//	4mm
-				Wave w2 = KMFourierSymMirror(ew0, 2*theta)
-				Wave w3 = KMFourierSymMirror(ew0, 2*(theta-pi/4))
+				Wave w2 = sym_mirror(ew0, 2*theta)
+				Wave w3 = sym_mirror(ew0, 2*(theta-pi/4))
 				if (endeffect == 2)
-					Wave nw2 = KMFourierSymMirror(enw0, 2*theta)
-					Wave nw3 = KMFourierSymMirror(enw0, 2*(theta-pi/4))
+					Wave nw2 = sym_mirror(enw0, 2*theta)
+					Wave nw3 = sym_mirror(enw0, 2*(theta-pi/4))
 				endif
 				break
 		endswitch
 	endif
 	
-	//	対称化する
-	TitleBox statusT title="symmetrize", win=$pnlName;	DoUpdate/W=$pnlName
+	//	symmetrize
 	switch (sym)
 		case 1:	//	2mm
 			if (endeffect == 2)
@@ -289,22 +274,16 @@ Static Function/WAVE KMFourierSymDo(w, q1w, q2w, sym, shear, endeffect)
 			break
 	endswitch
 	
-	KillWindow $pnlName
-	
-	//	ウエーブノート
 	String noteStr
 	Sprintf noteStr, "%s\rm1:%.4f;m2:%.4e;m3:%.4f;q1w:%s;q2w:%s;sym:%d;shear:%d;endeffect:%d;", note(w), m1, m2, m3, SIDAMWaveToString(q1w,noquote=1), SIDAMWaveToString(q2w,noquote=1),sym,shear,endeffect
 	Note w0, noteStr
 	
-	//	NanonisのMLSモードでのウエーブの場合にはバイアス電圧情報をコピーする必要がある
 	SIDAMCopyBias(w, w0)
 	
 	return w0
 End
-//-------------------------------------------------------------
-//	KMFourierSymGetMatrix	:	変換行列を求める
-//-------------------------------------------------------------
-Static Function/WAVE KMFourierSymGetMatrix(w, q1w, q2w, sym, shear)
+
+Static Function/WAVE calcMatrix(w, q1w, q2w, sym, shear)
 	Wave w, q1w, q2w
 	Variable sym, shear
 	
@@ -338,28 +317,24 @@ Static Function/WAVE KMFourierSymGetMatrix(w, q1w, q2w, sym, shear)
 	
 	return resw
 End
-//-------------------------------------------------------------
-//	KMFourierSymRotate	:	回転ウエーブを返す
-//-------------------------------------------------------------
-ThreadSafe Static Function/WAVE KMFourierSymRotate(Wave ew, Variable theta)
-	Wave resw = KMFourierSymReduce(ew)
+
+ThreadSafe Static Function/WAVE sym_rotation(Wave ew, Variable theta)
+	Wave resw = sym_reduce(ew)
 	Variable vc = cos(theta), vs = sin(theta)
-	MultiThread resw = KMFourierSymInterpolate(ew, x*vc-y*vs, x*vs+y*vc, r)
+	MultiThread resw = sym_interpolation(ew, x*vc-y*vs, x*vs+y*vc, r)
 	return resw
 End
-//-------------------------------------------------------------
-//	KMFourierSymMirror	:	折り返しウエーブを返す
-//-------------------------------------------------------------
-ThreadSafe Static Function/WAVE KMFourierSymMirror(Wave ew, Variable theta)
-	Wave resw = KMFourierSymReduce(ew)
+
+ThreadSafe Static Function/WAVE sym_mirror(Wave ew, Variable theta)
+	Wave resw = sym_reduce(ew)
 	Variable vc = cos(theta), vs = sin(theta)
-	MultiThread resw = KMFourierSymInterpolate(ew, x*vc+y*vs, x*vs-y*vc, r)
+	MultiThread resw = sym_interpolation(ew, x*vc+y*vs, x*vs-y*vc, r)
 	return resw
 End
-//-------------------------------------------------------------
-//	KMFourierSymReduce	:	「拡張ゾーン形式」に対する元のウエーブの大きさを持つ空ウエーブを返す
-//-------------------------------------------------------------
-ThreadSafe Static Function/WAVE KMFourierSymReduce(Wave ew)
+
+//	Input an extended wave and return an empty wave size of
+//	which is the same as the original before extension
+ThreadSafe Static Function/WAVE sym_reduce(Wave ew)
 	Make/N=(DimSize(ew,0)/3, DimSize(ew,1)/3, DimSize(ew,2))/FREE redw
 	SetScale/P x DimOffset(ew,0)+DimDelta(ew,0)*DimSize(ew,0)/3, DimDelta(ew,0),"", redw
 	SetScale/P y DimOffset(ew,1)+DimDelta(ew,1)*DimSize(ew,1)/3, DimDelta(ew,1),"", redw
@@ -367,10 +342,8 @@ ThreadSafe Static Function/WAVE KMFourierSymReduce(Wave ew)
 	return redw
 End
 
-//	内挿
-ThreadSafe Static Function KMFourierSymInterpolate(w, kx, ky, rr)
-	Wave w
-	Variable kx, ky, rr
+ThreadSafe Static Function sym_interpolation(Wave w, Variable kx,
+	Variable ky, Variable rr)
 	
 	Variable ox = DimOffset(w,0), oy = DimOffset(w,1)
 	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
@@ -391,44 +364,36 @@ ThreadSafe Static Function KMFourierSymInterpolate(w, kx, ky, rr)
 	return w[p0][q0][rr]*c00+w[p0][q1][rr]*c01+w[p1][q0][rr]*c10+w[p1][q1][rr]*c11
 End
 
-//=====================================================================================================
+//==============================================================================
 
-
-//-------------------------------------------------------------
-//	右クリックメニューから実行される関数
-//-------------------------------------------------------------
-Static Function rightclickDo()
+Static Function menuDo()
 	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
 End
-//-------------------------------------------------------------
-//	マーキーメニュー実行用
-//-------------------------------------------------------------
+
 Static Function marqueeDo()
 	GetLastUserMenuInfo
 	String menuItem = S_value
 	Variable vec = str2num(menuItem[strlen(menuItem)-1])
 	
-	//	ピーク位置を求める
+	//	Get the peak position
 	String grfName = WinName(0,1)
 	Wave iw = SIDAMImageWaveRef(grfName)
 	Wave posw = KMFourierPeakGetPos(iw, 1, marquee=1)	//	asymmetric Lorentz2D	
 
-	//	求めた位置をパネルコントロールへ渡す
+	//	Pass the position to the panel
 	Variable cp = (posw[2]-DimOffset(iw,0))/DimDelta(iw,0)
 	Variable cq = (posw[3]-DimOffset(iw,1))/DimDelta(iw,1)
-	String pnlName = GetUserData(grfName, "", "KMFourierSymPnl")
+	String pnlName = GetUserData(grfName, "", KEY)
 	pnlPutNumbers(pnlName, vec, {cp,cq})
 End
-//-------------------------------------------------------------
-//	マーキーメニュー文字列
-//-------------------------------------------------------------
+
 Static Function/S marqueeMenu()
 	String grfName = WinName(0,1,1)
 	if (!strlen(grfName))
 		return ""
 	endif
 	
-	String pnlName = GetUserData(grfName, "", "KMFourierSymPnl")
+	String pnlName = GetUserData(grfName, "", KEY)
 	if (!strlen(pnlName))
 		return ""
 	else
@@ -436,28 +401,24 @@ Static Function/S marqueeMenu()
 	endif
 End
 
+//==============================================================================
 
-//=====================================================================================================
+Static StrConstant SUFFIX = "_sym"
+Static StrConstant KEY = "SIDAMFourierSymPnl"
 
-
-//******************************************************************************
-//	パネル表示
-//******************************************************************************
 Static Function pnl(Wave w, String grfName)
-	//	パネル表示・初期設定
 	String pnlName = SIdAMNewPanel("Symmetrize FFT ("+NameOfWave(w)+")", 355, 250)
-	SetWindow $pnlName hook(self)=KMFourierSym#pnlHook
+	SetWindow $pnlName hook(self)=SIDAMFourierSym#pnlHook
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	Variable nx = DimSize(w,0), ny = DimSize(w,1)
 	
-	//	パネル項目
 	SetVariable outputV title="output name", pos={8,9}, size={341,16}, bodyWidth=274, win=$pnlName
-	SetVariable outputV value= _STR:NameOfWave(w)+ks_index_sym, proc=KMFourierSym#pnlSetVar, win=$pnlName
+	SetVariable outputV value= _STR:NameOfWave(w)+SUFFIX, proc=SIDAMFourierSym#pnlSetVar, win=$pnlName
 	PopupMenu symP title="symmetry", pos={21,39}, size={143,20}, bodyWidth=90, win=$pnlName
-	PopupMenu symP mode=1, value= "2mm;3;3m;4;4mm", proc=KMFourierSym#pnlPopup, win=$pnlName
+	PopupMenu symP mode=1, value= "2mm;3;3m;4;4mm", proc=SIDAMFourierSym#pnlPopup, win=$pnlName
 	PopupMenu shearP title="shear", pos={196,39}, size={101,20}, bodyWidth=70, mode=1, value="x;y", win=$pnlName
 	PopupMenu endeffectP title="end effects", pos={13,70}, size={151,20}, bodyWidth=90, win=$pnlName
-	PopupMenu endeffectP mode=3, value= "bounce;wrap;zero;repeat", proc=KMFourierSym#pnlPopup, win=$pnlName
+	PopupMenu endeffectP mode=3, value= "bounce;wrap;zero;repeat", proc=SIDAMFourierSym#pnlPopup, win=$pnlName
 	
 	GroupBox v1G title="vector 1", pos={6,102}, size={169,103}, win=$pnlName
 	SetVariable p1V title="p", pos={17,124}, value=_STR:num2str(nx/2-1), win=$pnlName
@@ -469,16 +430,15 @@ Static Function pnl(Wave w, String grfName)
 	SetVariable q2V title="q", pos={191,150}, value= _STR:num2str(ny/2), win=$pnlName
 	SetVariable a2V title="a", pos={191,176}, value= _STR:"0", win=$pnlName
 	
-	Button doB title="Do It", pos={5,219}, size={60,20}, proc=KMFourierSym#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={5,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
 	CheckBox displayC title="display", pos={75,222}, size={54,14}, value=1, win=$pnlName
 	PopupMenu toP title="To", pos={140,219}, size={50,20}, bodyWidth=50, win=$pnlName
-	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=KMFourierSym#pnlPopup, win=$pnlName
-	Button helpB title="Help", pos={220,219}, size={60,20}, proc=KMFourierSym#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={290,219}, size={60,20}, proc=KMFourierSym#pnlButton, win=$pnlName
+	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMFourierSym#pnlPopup, win=$pnlName
+	Button helpB title="Help", pos={220,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
+	Button cancelB title="Cancel", pos={290,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
 	
-	//	SetVariableの共通部分
 	String ctrlList = "p1V;q1V;a1V;p2V;q2V;a2V;"
-	ModifyControlList ctrlList size={150,16}, bodyWidth=140, proc=KMFourierSym#pnlSetVar, win=$pnlName
+	ModifyControlList ctrlList size={150,16}, bodyWidth=140, proc=SIDAMFourierSym#pnlSetVar, win=$pnlName
 	ModifyControlList ctrlList valueColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
 	ModifyControlList ctrlList fColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
 	
@@ -486,16 +446,13 @@ Static Function pnl(Wave w, String grfName)
 	
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 	SetWindow $pnlName userData(parent)=grfName
-	SetWindow $grfName hook(KMFourierSymPnl)=KMFourierSym#pnlHookParent, userData(KMFourierSymPnl)=pnlName
+	SetWindow $grfName hook($KEY)=SIDAMFourierSym#pnlHookParent, userData($KEY)=pnlName
 End
 
-//******************************************************************************
-//	フック関数:
-//******************************************************************************
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
-			SetWindow $GetUserData(s.winName,"","parent") hook(KMFourierSymPnl)=$"", userData(KMFourierSymPnl)=""
+			SetWindow $GetUserData(s.winName,"","parent") hook($KEY)=$"", userData($KEY)=""
 			break
 		case 5:	//	mouseup
 			if (strlen(GetUserData(s.winName,"","parent")))
@@ -511,7 +468,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
-				SetWindow $GetUserData(s.winName,"","parent") hook(KMFourierSymPnl)=$"", userData(KMFourierSymPnl)=""
+				SetWindow $GetUserData(s.winName,"","parent") hook($KEY)=$"", userData($KEY)=""
 				KillWindow $s.winName
 			endif
 			break
@@ -519,34 +476,31 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	
 	return 0
 End
-//-------------------------------------------------------------
-//	グループボックスがクリックされたかどうかを返す
-//-------------------------------------------------------------
+
+//	A groupbox is clicked or not
 Static Function isGBClicked(STRUCT WMWinHookStruct &s, String grpName)
 	ControlInfo/W=$s.winName $grpName
-	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
+	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && \
+		V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
 End
 
-
-//******************************************************************************
-//	親ウインドウ(あれば)用フック関数:
-//******************************************************************************
 Static Function pnlHookParent(STRUCT WMWinHookStruct &s)	
 	switch (s.eventCode)
 		case 2:	//	killed
-			SetWindow $GetUserData(s.winName, "", "KMFourierSymPnl") userData(parent)=""
+			SetWindow $GetUserData(s.winName, "", KEY) userData(parent)=""
 			break
 		case 3:	//	mousedown
-			//	mouseup時に実行するイベントのためにeventModを記録しておく
+			//	Record the eventMod used at the event of mouseup
 			SetWindow $s.winName userData(eventMod)=num2istr(s.eventMod)
 			break
 		case 5:	//	mouseup
-			//	mousedown時に記録しておいたeventModを読み込む
+			//	The eventMode recorded at the event of mousedown
 			Variable eventMod = str2num(GetUserData(s.winName,"","eventMod"))
-			//	左クリックならばパネルで選択されている項目に値を代入する
-			//	(左クリック限定にしておかないとマーキーメニューの項目がうまく動作しない)
+			//	If the click is left click, put the numbers to the item
+			//	selected in the panel. This must be left click otherwise
+			//	the marquee menu does not work well.
 			if (!(eventMod & 16))
-				String pnlName = GetUserData(s.winName, "", "KMFourierSymPnl")
+				String pnlName = GetUserData(s.winName, "", KEY)
 				STRUCT SIDAMMousePos ms
 				SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1)
 				if (str2num(GetUserData(pnlName,"v1G","selected")))
@@ -555,7 +509,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 					pnlPutNumbers(pnlName, 2, {ms.p,ms.q})
 				endif
 			endif
-			//	記録しておいたeventModを削除する
+			//	Delete the recorded eventMod
 			SetWindow $s.winName userData(eventMod)=""
 			break
 	endswitch
@@ -563,12 +517,10 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	return 0
 End
 
-//******************************************************************************
-//	パネルコントロール
-//******************************************************************************
 //-------------------------------------------------------------
-//	値設定
+//	Controls
 //-------------------------------------------------------------
+//	Setvariable
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 
 	//	Handle either mouse up, enter key, or end edit
@@ -590,7 +542,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 			SIDAMValidateSetVariableString(s.win,s.ctrlName,1)
 			if (stringmatch(s.ctrlName, "a1V"))
 				ControlInfo/W=$s.win symP
-				if (V_Value != 1)	//	2mm以外
+				if (V_Value != 1)	//	not 2mm
 					SetVariable a2V value=_STR:s.sval, win=$s.win
 				endif
 			endif
@@ -607,11 +559,9 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	endfor
 	PopupMenu toP disable=disable, win=$s.win
 	Button doB disable=disable, win=$s.win
-	
 End
-//-------------------------------------------------------------
-//	ポップアップメニュー
-//-------------------------------------------------------------
+
+//	popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
@@ -627,18 +577,19 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			endif
 			break
 		case "toP":
-			//	パネルの内容からコマンド文字列を構成する
 			Wave w = $GetUserData(s.win,"","src")
 			Wave cvw = SIDAMGetCtrlValues(s.win, "symP;shearP;endeffectP")
 			ControlInfo/W=$s.win outputV
-			String paramStr = KMFourierSymEcho(w, SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V"), SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V"), cvw[0], cvw[1]-1, cvw[2]-1, S_Value)
+			String paramStr = echoStr(w,\
+				SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V"), \
+				SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V"), \
+				cvw[0], cvw[1]-1, cvw[2]-1, S_value)
 			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
 End
-//-------------------------------------------------------------
-//	ボタン
-//-------------------------------------------------------------
+
+//	Button
 Static Function pnlButton(STRUCT WMButtonAction &s)
 	if (s.eventCode != 2)
 		return 0
@@ -654,8 +605,11 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			Wave/T q2tw = SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V")
 			ControlInfo/W=$s.win outputV ;	String result = S_Value
 			KillWindow $s.win
-			print PRESTR_CMD + KMFourierSymEcho(w, q1tw, q2tw, cvw[0], cvw[1]-1, cvw[2]-1, result)
-			Wave resw = KMFourierSym(w, q1w, q2w, cvw[0], shear=cvw[1]-1, endeffect=cvw[2]-1, result=result)
+			printf "%s%s\r", PRESTR_CMD, echoStr(w, q1tw, q2tw, \
+				cvw[0], cvw[1]-1, cvw[2]-1, result)
+			DFREF dfr = GetWavesDataFolderDFR(w)
+			Duplicate/O SIDAMFourierSym(w, q1w, q2w, cvw[0], shear=cvw[1]-1, \
+				endeffect=cvw[2]-1) dfr:$result/WAVE=resw
 			if (cvw[3])
 				SIDAMDisplay(resw, history=1)
 			endif
@@ -668,9 +622,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 	endswitch
 End
-//-------------------------------------------------------------
-//	補助関数
-//-------------------------------------------------------------
+
 Static Function pnlPutNumbers(String pnlName, int num, Wave nw)
 	switch (num)
 		case 1:

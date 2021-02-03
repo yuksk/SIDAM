@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=1
-#pragma ModuleName=KMFourierFilter
+#pragma ModuleName=SIDAMFourierFilter
 
 #include "KM InfoBar"
 #include "SIDAM_Display"
@@ -15,96 +15,90 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant ks_index_filter = "_flt"
-Static StrConstant MASKNAME = "KM_mask"
-Static StrConstant ORIGINALNAME = "KM_original"
-Static StrConstant FOURIERNAME = "KM_fourier"
-Static StrConstant FILTEREDNAME = "KM_filtered"
+Static StrConstant SUFFIX = "_flt"
+Static StrConstant MASKNAME = "SIDAM_mask"
+Static StrConstant ORIGINALNAME = "SIDAM_original"
+Static StrConstant FOURIERNAME = "SIDAM_fourier"
+Static StrConstant FILTEREDNAME = "SIDAM_filtered"
 
-//******************************************************************************
-//	メイン関数
-//******************************************************************************
-Function/WAVE KMFilter(
-	Wave/Z srcw,
-	Wave/Z paramw,
-	[
-		String result,
-		int invert,
-		int endeffect,
-		int history
-	])
+//@
+//	Apply Fourier filter.
+//
+//	Parameters
+//	----------
+//	srcw : wave
+//		The input wave, 2D or 3D.
+//	paramw : wave
+//		The filter parameters.
+//	invert : int, default 0
+//		0 or !0. 0 for passing the filter areas, and !0 for cutting the filter areas.
+//	endeffect : int, default 1
+//		How to handle the ends of the wave.
+//
+//			0:	Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+//			1:	Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+//			2:	Zero (default). Uses 0 for any missing value.
+//			3:	Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].
+//
+//	Returns
+//	-------
+//	wave
+//		filtered wave
+//@
+Function/WAVE SIDAMFilter(Wave/Z srcw, Wave/Z paramw,
+	[int invert, int endeffect])
 	
 	STRUCT paramStruct s
 	Wave/Z s.srcw = srcw
 	Wave/Z s.pw = paramw
-	s.result = SelectString(ParamIsDefault(result), result, NameOfWave(srcw)+ks_index_filter)
 	s.invert = ParamIsDefault(invert) ? 0 : invert
 	s.endeffect = ParamIsDefault(endeffect) ? 1 : endeffect
 	
-	//	エラーチェック
-	if (!isValidArguments(s))
+	if (validate(s))
 		print s.errMsg
 		return $""
 	endif
 	
-	//	履歴欄出力
-	if (!ParamIsDefault(history) && history == 1)
-		print PRESTR_CMD + echoStr(srcw, paramw, result, invert, endeffect)
-	endif
-	
-	//	実行
 	Wave/WAVE ww = applyFilter(srcw, paramw, s.invert, s.endeffect)
-	DFREF dfr = GetWavesDataFolderDFR(srcw)
-	Duplicate/O ww[0] dfr:$s.result
-	
-	return dfr:$s.result
+	return ww[0]
 End
-//-------------------------------------------------------------
-//	引数チェック用関数
-//-------------------------------------------------------------
-Static Function isValidArguments(STRUCT paramStruct &s)
+
+Static Function validate(STRUCT paramStruct &s)
 	
-	s.errMsg = PRESTR_CAUTION + "KMFilter gave error: "
+	s.errMsg = PRESTR_CAUTION + "SIDAMFilter gave error: "
 	
 	int flag = SIDAMValidateWaveforFFT(s.srcw)
 	if (flag)
 		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
-		return 0
+		return 1
 	endif
 	
 	if (!WaveExists(s.pw))
 		s.errMsg += "the parameter wave is not found."
-		return 0
+		return 1
 	elseif (DimSize(s.pw,0) != 7)
 		s.errMsg += "the size of parameter wave is incorrect."
-		return 0
+		return 1
 	endif
 	
 	WaveStats/Q/M=1 s.pw
 	if (V_numNaNs || V_numINFs)
 		s.errMsg += "the parameter wave must not contain NaN or INF."
-		return 0
+		return 1
 	endif
 	
-	if (KMFilterCheckParameters(s.pw, s.srcw))
+	if (validateParameterRange(s.pw, s.srcw))
 		s.errMsg += "a parameter(s) is out of range."
-		return 0
+		return 1
 	endif
 	
-	if (SIDAMCheckWaveName(s.result))
-		s.errMsg += "the result is invalid as a name of wave."
-		return 0
-	endif
-
 	s.invert = s.invert ? 1 : 0
 	s.endeffect = limit(s.endeffect, 0, 3)
 	
-	return 1
+	return 0
 End
-//-------------------------------------------------------------
-//	パラメータウエーブチェック用関数
-//-------------------------------------------------------------
-Static Function KMFilterCheckParameters(Wave pw, Wave srcw)
+
+Static Function validateParameterRange(Wave pw, Wave srcw)
 	
 	Make/N=(DimSize(pw,1))/FREE tw
 	Make/N=10/FREE tw2
@@ -122,42 +116,40 @@ Static Structure paramStruct
 	String	errMsg
 	Wave	srcw
 	Wave	pw
-	String	result
 	uchar	invert
 	uchar	endeffect
 EndStructure
 
-//-------------------------------------------------------------
-//	履歴欄出力用文字列作成
-//-------------------------------------------------------------
-Static Function/S echoStr(Wave srcw, Wave paramw, String result, int invert, int endeffect)
-	
+Static Function/S echoStr(Wave srcw, Wave paramw, String result,
+		int invert, int endeffect)
 	String paramStr = GetWavesDataFolder(srcw,2)
-	paramStr += "," + SelectString(WaveType(paramw,2)==2, GetWavesDataFolder(paramw,2), SIDAMWaveToString(paramw, noquote=1))
-	paramStr += SelectString(CmpStr(NameOfWave(srcw)+ks_index_filter,result), "", ",result=\""+result+"\"")
+	paramStr += "," + SelectString(WaveType(paramw,2)==2, \
+		GetWavesDataFolder(paramw,2), SIDAMWaveToString(paramw, noquote=1))
+	paramStr += SelectString(CmpStr(NameOfWave(srcw)+SUFFIX,result), \
+		"", ",result=\""+result+"\"")
 	paramStr += SelectString(invert, "", ",invert="+num2str(invert))
 	paramStr += SelectString(endeffect==1, ",endeffect="+num2str(endeffect), "")
-	Sprintf paramStr, "KMFilter(%s)", paramStr
-	
+	Sprintf paramStr, "Duplicate/O SIDAMFilter(%s), %s%s", paramStr\
+		, GetWavesDataFolder(srcw, 1), PossiblyQuoteName(result)
 	return paramStr
 End
 
-//-------------------------------------------------------------
-//	フィルタの実行関数
-//	パネルからも使用できるように、マスクウエーブと結果ウエーブへの参照を返す
-//-------------------------------------------------------------
-Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffect)
+//	Apply a filter
+//	Return both mask and resultant waves so that this function
+//	can be used from the panel
+Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert,
+	int endeffect)
 	
-	int nx = DimSize(srcw,0), ny = DimSize(srcw,1), nz = DimSize(srcw,2), dim = WaveDims(srcw), i
+	int nx = DimSize(srcw,0), ny = DimSize(srcw,1), nz = DimSize(srcw,2)
+	int dim = WaveDims(srcw), i
 	
-	//	端処理のためのウエーブ作成
 	if (endeffect == 1)		//	wrap
 		Wave tsrcw = srcw
 	else
 		Wave tsrcw = SIDAMEndEffect(srcw,endeffect)
 	endif
 	
-	//	端処理に応じてパラメータウエーブの内容を修正
+	//	modify the parameters dependeing on the end effect
 	Duplicate/FREE paramw tparamw
 	if (endeffect != 1)
 		Variable cp = nx/2-1, cq = floor(ny/2)
@@ -169,10 +161,9 @@ Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffe
 		tparamw[6][] = paramw[6][q]*3
 	endif
 	
-	//	マスクウエーブを作成する
 	Wave maskw = makeMask(tsrcw, tparamw, invert)
 	
-	//	フィルタを実行する
+	//	do filtering
 	if (dim == 2)
 		MatrixOP/FREE/C flt2Dw = fft(tsrcw,0)*maskw
 		IFFT/FREE flt2Dw
@@ -188,7 +179,7 @@ Static Function/WAVE applyFilter(Wave srcw, Wave paramw, int invert, int endeffe
 		endfor
 	endif
 	
-	//	端処理に対応して不要部分を削除したウエーブを用意する
+	//	finalize waves dependeing on the end effect
 	if (endeffect == 1)
 		if (dim == 2)
 			Make/N=2/FREE/WAVE rww = {flt2Dw, maskw}
@@ -215,11 +206,8 @@ ThreadSafe Static Function/WAVE applyFilterHelper(Wave srcw, Variable index, Wav
 	return filteredw
 End
 
-//-------------------------------------------------------------
-//	マスクウエーブを作り、参照を返す
-//-------------------------------------------------------------
 Static Function/WAVE makeMask(
-	Wave w,			//	実空間ウエーブ
+	Wave w,			//	real space wave
 	Wave paramw,		//	p0, q0, n0, p1, q1, n1, r
 	Variable invert
 	)
@@ -231,11 +219,11 @@ Static Function/WAVE makeMask(
 	int n0, n1
 	int i, j, n
 	
-	//	フィルタ中心位置のリストを作成する
+	//	Make a list of center positions
 	Make/N=(0,3)/FREE lw
 	for (i = 0; i < DimSize(paramw,1); i++)
 		radius = paramw[6][i]*sqrt(dx^2+dy^2)
-		if (radius <= 0)	//	半径が非正ならば中止
+		if (radius <= 0)	
 			continue
 		endif
 		for (n0 = -paramw[2][i]; n0 <= paramw[2][i]; n0++)
@@ -256,7 +244,7 @@ Static Function/WAVE makeMask(
 		endfor
 	endfor
 	
-	//	中心位置の重複(あれば)を解消する
+	//	Remove duplicated centers if any
 	for (i = DimSize(lw,0)-1; i >= 0; i--)
 		for (j = i - 1; j >= 0; j--)
 			if (lw[i][0] == lw[j][0] && lw[i][1] == lw[j][1])
@@ -266,13 +254,13 @@ Static Function/WAVE makeMask(
 		endfor
 	endfor
 	
-	//	マスク作成
 	Make/N=(nx/2+1,ny)/FREE maskw=0
 	SetScale/P x 0, dx, "", maskw
 	SetScale/P y oy, dy, "", maskw
 	Make/N=(DimSize(lw,0))/WAVE/FREE ww
 	
-	MultiThread ww = makeMaskHelper(maskw, lw, p)	//	時間がかかるのはここ
+	//	This is a time-consuming part
+	MultiThread ww = makeMaskHelper(maskw, lw, p)
 	
 	for (i = 0; i < numpnts(ww); i++)
 		Wave tw = ww[i]
@@ -294,41 +282,32 @@ ThreadSafe Static Function/WAVE makeMaskHelper(Wave maskw, Wave lw, int index)
 	Make/N=(DimSize(maskw,0), DimSize(maskw,1))/FREE rtnw
 	CopyScales maskw, rtnw
 	
-	Variable a = lw[index][0], b = lw[index][1], c = -ln(2)/lw[index][2]^2	//	高速化
+	Variable a = lw[index][0], b = lw[index][1], c = -ln(2)/lw[index][2]^2
 	rtnw = ((x-a)^2+(y-b)^2)*c
 	MatrixOP/O rtnw = exp(rtnw)
 	
 	return rtnw
 End
 
-//-------------------------------------------------------------
-//	右クリック用
-//-------------------------------------------------------------
-Static Function rightclickDo()
+Static Function menuDo()
 	pnl(SIDAMImageWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 
-//=====================================================================================================
-
-
 //******************************************************************************
-//	パネル表示
+//	show a panel
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
 	
-	//	パネル表示
 	String pnlName = SIDAMNewPanel("Fourier filter ("+NameOfWave(w)+")",\
 		680, 370, resizable=1)	//	680=10+320+10+340, 370=40+320+10
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	
-	//	初期設定
+
 	String dfTmp = pnlInit(pnlName, w)
-	SetWindow $pnlName hook(self)=KMFourierFilter#pnlHook
+	SetWindow $pnlName hook(self)=SIDAMFourierFilter#pnlHook
 	SetWindow $pnlName userData(dfTmp)=dfTmp
 	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2), activeChildFrame=0
 	
-	//	パネル項目
 	TabControl mTab pos={1,1}, size={338,368}, proc=SIDAMTabControlProc, win=$pnlName
 	TabControl mTab tabLabel(0)="original", tabLabel(1)="filtered", tabLabel(2)="FFT", value=2, win=$pnlName
 	
@@ -355,41 +334,41 @@ Static Function pnl(Wave w, String grfName)
 	TitleBox deleteT title="selected filter", pos={76,57}, frame=0, disable=2, win=$pnlName#controls
 	Button applyB title="Apply", pos={6,84}, size={60,20}, disable=2, win=$pnlName#controls
 	PopupMenu invertP title="", pos={76,84}, size={70,20}, bodyWidth=70, disable=2, win=$pnlName#controls
-	PopupMenu invertP mode=1, value= #"\"pass;stop\"", userData="1", proc=KMFourierFilter#pnlPopup, win=$pnlName#controls
+	PopupMenu invertP mode=1, value= #"\"pass;stop\"", userData="1", proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
 	TitleBox applyT title="filter", pos={156,88}, frame=0, disable=2, win=$pnlName#controls
 	
 	GroupBox maskG title="mask", pos={200,0}, size={130,115}, disable=2, win=$pnlName#controls
 	TitleBox maskT title="color and opacity", pos={210,26}, size={88,12}, frame=0, disable=2, win=$pnlName#controls
-	PopupMenu colorP pos={211,53}, size={50,20} ,mode=1, proc=KMFourierFilter#pnlPopup, disable=2, win=$pnlName#controls
+	PopupMenu colorP pos={211,53}, size={50,20} ,mode=1, proc=SIDAMFourierFilter#pnlPopup, disable=2, win=$pnlName#controls
 	PopupMenu colorP popColor= (65535,65535,65535),value= #"\"*COLORPOP*\"", win=$pnlName#controls
-	Slider opacityS pos={211,85}, size={100,19}, limits={0,255,1} ,value=192, vert=0, ticks=0, proc=KMFourierFilter#pnlSlider, disable=2, win=$pnlName#controls
+	Slider opacityS pos={211,85}, size={100,19}, limits={0,255,1} ,value=192, vert=0, ticks=0, proc=SIDAMFourierFilter#pnlSlider, disable=2, win=$pnlName#controls
 	
-	PopupMenu endP title="end effect", pos={20,129}, size={165,20}, bodyWidth=110, disable=2, proc=KMFourierFilter#pnlPopup, win=$pnlName#controls
+	PopupMenu endP title="end effect", pos={20,129}, size={165,20}, bodyWidth=110, disable=2, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
 	PopupMenu endP mode=2, popvalue="wrap", value= #"\"bounce;wrap (none);zero;repeat\"", userData="2", win=$pnlName#controls
 	TitleBox endT title="this takes longer time", pos={196,133}, disable=1, frame=0, win=$pnlName#controls
-	SetVariable nameV title="output name", pos={8,161}, size={317,16}, bodyWidth=250, proc=KMFourierFilter#pnlSetVar, disable=2, win=$pnlName#controls
-	SetVariable nameV value= _STR:(NameOfWave(w)[0,30-strlen(ks_index_filter)]+ks_index_filter), win=$pnlName#controls
+	SetVariable nameV title="output name", pos={8,161}, size={317,16}, bodyWidth=250, proc=SIDAMFourierFilter#pnlSetVar, disable=2, win=$pnlName#controls
+	SetVariable nameV value= _STR:(NameOfWave(w)[0,30-strlen(SUFFIX)]+SUFFIX), win=$pnlName#controls
 	
 	Button saveB title="Save", pos={6,192}, size={60,20}, disable=2, win=$pnlName#controls
 	CheckBox displayC title="display", pos={75,195}, disable=2, win=$pnlName#controls
 	PopupMenu toP title="To", pos={163,192}, size={60,20}, bodyWidth=60, disable=2, win=$pnlName#controls
-	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=KMFourierFilter#pnlPopup, win=$pnlName#controls
+	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
 	Button helpB title="?", pos={231,192}, size={30,20}, win=$pnlName#controls
 	Button closeB title="Close", pos={269,192}, size={60,20}, win=$pnlName#controls
 	
-	ModifyControlList ControlNameList(pnlName+"#controls",";","*B") proc=KMFourierFilter#pnlButton, win=$pnlName#controls
+	ModifyControlList ControlNameList(pnlName+"#controls",";","*B") proc=SIDAMFourierFilter#pnlButton, win=$pnlName#controls
 	ModifyControlList ControlNameList(pnlName+"#controls",";","*") focusRing=0, win=$pnlName#controls
 	
-	//	表示領域
+	//	image area
 	DefineGuide/W=$pnlName IMGL={FL,9}, IMGT={FT,41}, IMGR={FR,-351}, IMGB={FB,-9}
 		//	original
-	Display/FG=(IMGL, IMGT, IMGR, IMGB)/HOST=$pnlName/HIDE=1	//	パネル作成時のちらつきを抑制するため
+	Display/FG=(IMGL, IMGT, IMGR, IMGB)/HOST=$pnlName/HIDE=1
 	RenameWindow $pnlName#$S_name, original
 	SetWindow $pnlName#original userData(tab)="0"
 	AppendImage/W=$pnlName#original $(dfTmp+ORIGINALNAME)
 	ModifyGraph/W=$pnlName#original noLabel=2, axThick=0, standoff=0, margin=1
 		//	filtered
-	Display/FG=(IMGL, IMGT, IMGR, IMGB)/HOST=$pnlName/HIDE=1	//	パネル作成時のちらつきを抑制するため
+	Display/FG=(IMGL, IMGT, IMGR, IMGB)/HOST=$pnlName/HIDE=1
 	RenameWindow $pnlName#$S_name, filtered
 	SetWindow $pnlName#filtered userData(tab)="1"
 	AppendImage/W=$pnlName#filtered $(dfTmp+FILTEREDNAME)
@@ -408,15 +387,13 @@ Static Function pnl(Wave w, String grfName)
 	SetActiveSubWindow $pnlName
 	SIDAMInitializeTab(pnlName,"mTab")
 End
-//-------------------------------------------------------------
-//	パネル初期設定
-//-------------------------------------------------------------
+
 Static Function/S pnlInit(String pnlName, Wave w)
 	DFREF dfrSav = GetDataFolderDFR()
-	String dfTmp = SIDAMNewDF(pnlName,"KMFilterPnl")
+	String dfTmp = SIDAMNewDF(pnlName,"SIDAMFilterPnl")
 	SetDataFolder $dfTmp
 	
-	//	表示用オリジナルウエーブ
+	//	the original wave
 	if (WaveDims(w)==2)
 		Duplicate w $ORIGINALNAME/WAVE=ow
 	else
@@ -424,16 +401,14 @@ Static Function/S pnlInit(String pnlName, Wave w)
 		Redimension/N=(-1,-1) ow
 	endif
 	
-	//	フィルタをかけた結果ウエーブ
+	//	the resultant wave after filtering
 	Duplicate ow $FILTEREDNAME
 	
-	//	FFTウエーブ
-	SetDataFolder GetWavesDataFolderDFR(w)
-	String name = UniqueName("wave",1,0)
+	//	FFT wave
 	SetDataFolder $dfTmp
-	MoveWave SIDAMFFT(ow,result=name,win="Hanning",out=3,subtract=1), $FOURIERNAME
+	Duplicate/O SIDAMFFT(ow,win="Hanning",out=3,subtract=1), $FOURIERNAME
 	
-	//	表示リスト用ウエーブ
+	//	wave for the list
 	Make/N=(0,7)/T $KM_WAVE_LIST/WAVE=listw
 	Make/N=(0,7) $KM_WAVE_SELECTED
 	Make/N=7/T/FREE labelw = {"p0","q0","n0","p1","q1","n1","HWHM"}
@@ -442,13 +417,13 @@ Static Function/S pnlInit(String pnlName, Wave w)
 		SetDimLabel 1, i, $(labelw[i]), listw
 	endfor
 	
-	//	表示リストの変更を拾う従属関係定義
+	//	The dependency to pick up a change in the list
 	Variable/G dummy
 	String str
-	Sprintf str, "KMFourierFilter#pnlListChange(%s,\"%s\")", dfTmp+KM_WAVE_LIST, pnlName
+	Sprintf str, "SIDAMFourierFilter#pnlListChange(%s,\"%s\")", dfTmp+KM_WAVE_LIST, pnlName
 	SetFormula dummy, str
 	
-	//	マスク表示用ウエーブ
+	//	wave for showing the mask
 	Make/B/U/N=(DimSize(w,0),DimSize(w,1),4) $MASKNAME/WAVE=maskw
 	maskw[][][,2] = 255
 	maskw[][][3] = 0
@@ -458,21 +433,18 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	return dfTmp
 End
 
-//******************************************************************************
-//	フック関数:
-//******************************************************************************
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
 		case 2:	//	kill
 			SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 			break
 		case 4:	//	mousemoved
-			if (strlen(ImageNameList(s.winName,";")))		//	グラフを表示しているサブウインドウだけで有効
+			if (strlen(ImageNameList(s.winName,";")))		//	only for subwindows showing a graph
 				KMDisplayCtrlBarUpdatePos(s, win=StringFromList(0, s.winName, "#"))
 			endif
 			break
 		case 5:	//	mouseup
-			if (strlen(ImageNameList(s.winName,";")))		//	グラフを表示しているサブウインドウだけで有効
+			if (strlen(ImageNameList(s.winName,";")))		//	only for subwindows showing a graph
 				pnlHookMouseup(s)
 			endif
 			break
@@ -493,11 +465,10 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	
 	return 0
 End
-//-------------------------------------------------------------
-//	 クリック時の動作、表に値を代入する
-//-------------------------------------------------------------
+
+//	Behavior when click, put numbers to the list
 Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
-	//	マウスカーソルの位置を取得する
+	//	get the position of the mouse cursor
 	STRUCT SIDAMMousePos ms
 	if (SIDAMGetMousePos(ms, s.winName, s.mouseLoc, grid=1))
 		return 1
@@ -511,7 +482,7 @@ Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 	WaveStats/Q/M=1 selw
-	if (!(V_max & 1))	//	選択されているセルが無い
+	if (!(V_max & 1))	//	no cell is selected
 		return 0
 	endif
 	
@@ -533,15 +504,13 @@ Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
 	if (!strlen(listw[V_maxRowLoc][6]))
 		listw[V_maxRowLoc][6] =  "1"
 	endif
-	selw[V_maxRowLoc][V_maxColLoc] -= 1	//	選択状態の解除	
+	selw[V_maxRowLoc][V_maxColLoc] -= 1	//	unselect
 End
 
 //******************************************************************************
-//	パネルコントロール
+//	Controls
 //******************************************************************************
-//-------------------------------------------------------------
-//	ポップアップメニュー
-//-------------------------------------------------------------
+//	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
@@ -554,7 +523,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		case "colorP":
 			Variable red, green, blue
 			sscanf s.popStr, "(%d,%d,%d)", red, green, blue
-			red = round(red/256) ;	green = round(green/256) ;	blue = round(blue/256)	//	高速化のための前処理
+			red = round(red/256) ;	green = round(green/256) ;	blue = round(blue/256)
 			Wave/SDFR=dfrTmp maskw = $MASKNAME
 			MultiThread maskw[][][0] = red
 			MultiThread maskw[][][1] = green
@@ -583,9 +552,8 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 	endswitch
 End
-//-------------------------------------------------------------
-//	スライダー
-//-------------------------------------------------------------
+
+//	Slider
 Static Function pnlSlider(STRUCT WMSliderAction &s)
 	if (s.eventCode == 4)
 		Wave/SDFR=$GetUserData(StringFromList(0,s.win,"#"),"","dfTmp") maskw = $MASKNAME
@@ -594,9 +562,8 @@ Static Function pnlSlider(STRUCT WMSliderAction &s)
 		MultiThread maskw[][][3] = round(maskw[p][q][3]/v)
 	endif
 End
-//-------------------------------------------------------------
-//	値設定
-//-------------------------------------------------------------
+
+//	SetVariable
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	//	Handle either enter key or end edit
 	if (s.eventCode != 2 && s.eventCode != 8)
@@ -606,9 +573,8 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	Variable disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
 	pnlUpdate(s.win, disable)
 End
-//-------------------------------------------------------------
-//	ボタン
-//-------------------------------------------------------------
+
+//	Button
 Static Function pnlButton(STRUCT WMButtonAction &s)	
 	if (s.eventCode != 2)
 		return 0
@@ -624,15 +590,16 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "addB":
 			Redimension/N=(n+1,-1) listw, selw
 			selw[n][] = 2
-			selw[n][0] += 1	//	選択状態にする
+			selw[n][0] += 1	//	selected
 			pnlUpdate(s.win, 1)
 			break
 		
 		case "deleteB":
 			WaveStats/Q/M=1 selw
-			if (V_max & 1)		//	選択されているセルがあれば
+			if (V_max & 1)	//	if there is a selected cell
 				if (n > 1)
-					DeletePoints/M=0 V_maxRowLoc, 1, listw, selw	//	selwに対する変更でpnlUpdateは呼ばれることになる
+					//	pnlUpdate() will be called by making this change to selw
+					DeletePoints/M=0 V_maxRowLoc, 1, listw, selw
 				else
 					Redimension/N=(0,-1) listw, selw
 					pnlUpdate(s.win, 2)
@@ -657,49 +624,48 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 	endswitch
 End
-//-------------------------------------------------------------
-//	Applyボタンの動作
-//-------------------------------------------------------------
+
+//******************************************************************************
+//	Helper functions for controls
+//******************************************************************************
+//	for the apply button
 Static Function pnlButtonApply(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T listw)	
 	if (s.eventCode != 2)
 		return 0
 	endif
 	
-	if (!DimSize(listw,0))		//	フィルタが1つも入力されていない
+	if (!DimSize(listw,0))	//	no filter
 		return 0
 	endif
 	
 	Wave/SDFR=dfrTmp ow=$ORIGINALNAME, maskw=$MASKNAME
 	
-	//	リストからパラメータウエーブを構成する
+	//	Construct a parameter wave from the list
 	Make/N=(7,DimSize(listw,0))/FREE paramw = strlen(listw[q][p]) ? str2num(listw[q][p]) : 0
-	if (KMFilterCheckParameters(paramw, ow))
+	if (validateParameterRange(paramw, ow))
 		DoAlert 0, "a paremeter(s) is out of range"
 		return 1
 	endif
 	
 	pnlUpdate(s.win, 3)
 	
-	//	フィルタ実行
 	ControlInfo/W=$s.win invertP ;	int invert = V_Value==2
 	ControlInfo/W=$s.win endP ;		int endeffect = V_Value-1
 	Wave/WAVE ww = applyFilter(ow, paramw, invert, endeffect)
 	
-	//	表示用マスクウエーブを作成する
+	//	Create a mask wave for the display
 	Wave mw = ww[1]
 	Variable nx = DimSize(ow,0), ny = DimSize(ow,1)
 	ControlInfo/W=$s.win opacityS
 	MultiThread maskw[nx/2-1,][][3] = round((1-mw[p-nx/2+1][q])*V_Value)
 	MultiThread maskw[,nx/2-2][][3] = maskw[nx-1-p][ny-1-q]
 	
-	//	表示用フィルタ済みウエーブへと実行結果をコピーする
 	Duplicate/O ww[0] dfrTmp:$FILTEREDNAME
 	
 	pnlUpdate(s.win, 0)
 End
-//-------------------------------------------------------------
-//	Saveボタンの動作
-//-------------------------------------------------------------
+
+//	for the save button
 Static Function pnlButtonSave(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T listw)
 	if (s.eventCode != 2)
 		return 0
@@ -710,45 +676,44 @@ Static Function pnlButtonSave(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T lis
 	
 	Make/N=(7,DimSize(listw,0))/FREE paramw = strlen(listw[q][p]) ? str2num(listw[q][p]) : 0
 	
-	ControlInfo/W=$s.win nameV ;	String result = S_Value
-	ControlInfo/W=$s.win invertP ;	Variable invert = V_Value==2
-	ControlInfo/W=$s.win endP ;	Variable endeffect = V_Value-1
+	Wave cvw = SIDAMGetCtrlValues(s.win, "invertP;endP;displayC")
+	Variable invert = cvw[%invertP]==2, endeffect = cvw[%endP] - 1
+	ControlInfo/W=$s.win nameV
+	String result = S_Value
 	
+	printf "%s%s\r", PRESTR_CMD, echoStr(srcw, paramw, result, invert, endeffect)
 	if (WaveDims(srcw) == 2)
-		//	2次元の場合は、再計算の必要がないので、
-		//	既にある結果を複製し、履歴欄にコマンドを出力する
+		//	Recalculation is not necessary for 2D.
+		//	Duplicate the existing result and echo the command string.
 		DFREF dfr = GetWavesDataFolderDFR(srcw)
 		Duplicate/O dfrTmp:$FILTEREDNAME dfr:$result/WAVE=resw
-		print PRESTR_CMD + echoStr(srcw, paramw, result, invert, endeffect)
 	else
-		//	3次元の場合は、全範囲を計算する
+		//	Recalulate the whole range for 3D.
 		pnlUpdate(s.win, 3)
-		Wave resw = KMFilter(srcw, paramw, result=result, invert=invert, endeffect=endeffect, history=1)
+		DFREF dfr = GetWavesDataFolderDFR(srcw)
+		Duplicate/O SIDAMFilter(srcw, paramw, invert=invert, \
+			endeffect=endeffect) dfr:$result/WAVE=resw
 		pnlUpdate(s.win, 0)
 	endif
 	
-	ControlInfo/W=$s.win displayC
-	if (V_Value)
+	if (cvw[%displayC])
 		SIDAMDisplay(resw, history=1)
 	endif
 End
 
-//******************************************************************************
-//	パネルコントロール補助関数
-//******************************************************************************
-//-------------------------------------------------------------
-//	表示リストに変更があれば、saveボタンを選択できないようにする従属関係関数
-//-------------------------------------------------------------
+//	A dependency function
 Static Function pnlListChange(Wave/T w, String pnlName)
-	if (DimSize(w,0))	//	初期設定時とdeleteBによりselwが空になった場合には動作を抑制する
+	//	Do nothing at initialization and when the selw is empty by the deleteB
+	if (DimSize(w,0))
 		pnlUpdate(pnlName+"#controls", 1)
 	endif
 	return 0
 End
-//-------------------------------------------------------------
-//	パネルの表示状態を更新
-//	0: すべて選択可能, 1: save,displayのみ選択不可能, 2: add, help, close以外選択不可能, 3: すべて選択不可能
-//-------------------------------------------------------------
+
+//	0: all controls can be selected
+//	1: "save" and "display" can not be selected
+//	2: "add", "help", "close" can be selected
+//	3: no controls can be selected
 Static Function pnlUpdate(String pnlName, int state)
 	
 	GroupBox filterG disable=(state==3)*2, win=$pnlName

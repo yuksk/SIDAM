@@ -2,26 +2,25 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
-#include "KM Correlation"
-#include "KM Fourier Filter"
 #include "KM Fourier Peak"
-#include "KM Fourier Symmetrization"
-#include "KM Histogram"
 #include "KM InfoBar"
 #include "KM LayerViewer"
-#include "KM LineProfile"
-#include "KM LineSpectra"
 #include "KM ScaleBar"
 #include "KM SyncAxisRange"
 #include "KM SyncCursor"
 #include "KM SyncLayer"
 #include "KM Trace"
-#include "KM Workfunction"
 #include "SIDAM_Color"
 #include "SIDAM_Compatibility_Old_Functions"
+#include "SIDAM_Correlation"
 #include "SIDAM_Display"
 #include "SIDAM_FFT"
+#include "SIDAM_Fourier_Filter"
+#include "SIDAM_Fourier_Symmetrization"
+#include "SIDAM_Histogram"
 #include "SIDAM_LayerAnnotation"
+#include "SIDAM_LineProfile"
+#include "SIDAM_LineSpectra"
 #include "SIDAM_LoadData"
 #include "SIDAM_Position_Recorder"
 #include "SIDAM_Preference"
@@ -36,6 +35,7 @@
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
 #include "SIDAM_Utilities_misc"
+#include "SIDAM_Workfunction"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -179,9 +179,9 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	//	View spectra of LayerViewer
 	SIDAMMenus#menu("Point Spectrum...", dim=3), /Q, SIDAMSpectrumViewer#menuDo()
-	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#rightclickDo()
+	SIDAMMenus#menu("Line Spectra...", dim=3), /Q, SIDAMLineSpectra#menuDo()
 	//	Line Profile
-	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#rightclickDo()
+	SIDAMMenus#menu("Line Profile..."),/Q, SIDAMLineProfile#menuDo()
 	help = {"Make a line profile wave of the image in the active graph."}
 
 
@@ -191,25 +191,25 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 	SIDAMMenus#menu("Subtract...")+"/F6", /Q, SIDAMSubtraction#menuDo()
 	help = {"Subtract n-th plane or line from a 2D wave or each layer of a 3D wave"}
 	//	Histogram
-	SIDAMMenus#menu("Histogram..."),/Q, KMHistogram#rightclickDo()
+	SIDAMMenus#menu("Histogram..."),/Q, SIDAMHistogram#menuDo()
 	help = {"Compute the histogram of a source wave."}
 	SubMenu "Fourier"
 		//	Fourier Transform
 		SIDAMMenus#menu("Fourier Transform...", forfft=1)+"/F7", /Q, SIDAMFFT#menuDo()
 		help = {"Compute a Fourier transform of a source wave."}
 		//	Fourier filter
-		SIDAMMenus#menu("Fourier Filter...", forfft=1), /Q, KMFourierFilter#rightclickDo()
+		SIDAMMenus#menu("Fourier Filter...", forfft=1), /Q, SIDAMFourierFilter#menuDo()
 		help = {"Apply a Fourier filter to a source wave"}
 		//	Fourier Symmetrization
-		SIDAMMenus#menu("Fourier Symmetrization...", noComplex=1), /Q, KMFourierSym#rightclickDo()
+		SIDAMMenus#menu("Fourier Symmetrization...", noComplex=1), /Q, SIDAMFourierSym#menuDo()
 		help = {"Symmetrize a FFT image"}
 	End
 
 	//	Correlation
-	SIDAMMenus#menu("Correlation...", forfft=1), /Q, KMCorrelation#rightclickDo()
+	SIDAMMenus#menu("Correlation...", forfft=1), /Q, SIDAMCorrelation#menuDo()
 	help = {"Compute a correlation function of a source wave(s)."}
 	//	Work Function
-	SIDAMMenus#menu("Work Function...", dim=3), /Q,  KMWorkfunctionR()
+	SIDAMMenus#menu("Work Function...", dim=3), /Q, SIDAMWorkfunction#menuDo()
 	help = {"Compute work function."}
 
 	"-"
@@ -311,7 +311,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 	"-"
 
 	//	Work Function
-	"Work Function...", /Q,  KMWorkfunctionR()
+	"Work Function...", /Q, SIDAMWorkfunction#menuDo()
 	help = {"Compute work function."}
 
 	"-"
@@ -335,7 +335,7 @@ End
 //******************************************************************************
 Menu "GraphMarquee", dynamic
 	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
-	KMFourierSym#marqueeMenu(),/Q, KMFourierSym#marqueeDo()
+	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
 	Submenu "Get peak"
 		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(0)
 		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(1)
