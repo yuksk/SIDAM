@@ -70,12 +70,7 @@ Function/WAVE SIDAMFFT(Wave/Z w, [String win, int out, int subtract])
 		return $""
 	endif
 
-	if (WaveDims(w) == 2)
-		Wave resw = FFT2D(w, s.win, s.out, s.subtract)
-	elseif (WaveDims(w) == 3)
-		Wave resw = FFT3D(w, s.win, s.out, s.subtract)
-	endif
-
+	Wave resw = FFTmain(w, s.win, s.out, s.subtract)
 	Note resw, StringFromList(s.out-1, OUTPUT) + ", " + s.win
 	return resw
 End
@@ -130,11 +125,10 @@ End
 
 
 //******************************************************************************
-//	FFT2D
-//	Apply a window function, do FFT, and symmetrize the result
-//	The origin after symmetrization is [nx/2-1][ny/2]
+//	Main part of FFT
+//	3D waves are done in layer by layer.
 //******************************************************************************
-Static Function/WAVE FFT2D(Wave w, String winStr, int out, int subtract)
+Static Function/WAVE FFTmain(Wave w, String winStr, int out, int subtract)
 
 	Variable nx = DimSize(w,0), ny = DimSize(w,1)
 
@@ -147,44 +141,38 @@ Static Function/WAVE FFT2D(Wave w, String winStr, int out, int subtract)
 	//	Even if the input wave is 32 bit, the wave returned by MatrixOP
 	//	below is 64 bit
 	if (subtract && win)
-		MatrixOP/NTHR=0/FREE tw = (w-mean(w)) * iw
+		MatrixOP/NTHR=0/FREE srcw = subtractMean(w, 0) * iw
 	elseif (subtract && !win)
-		MatrixOP/NTHR=0/FREE tw = w-mean(w)
+		MatrixOP/NTHR=0/FREE srcw = subtractMean(w, 0)
 	elseif (!subtract && win)
-		MatrixOP/NTHR=0/FREE tw = w * iw
+		MatrixOP/NTHR=0/FREE srcw = w * iw
 	else
-		MatrixOP/NTHR=0/FREE tw = fp64(w)	//	force 64 bit
+		MatrixOP/NTHR=0/FREE srcw = fp64(w)		//	force 64 bit
 	endif
 
-	//	If the result is real, FFT & FastOP is faster than MatrixOP.
-	//	If the result is complex, MatrixOP is faster than FFT & FastOP
-	Variable coef = 1/nx/ny
-	switch (out)
+	Variable coef = 1/(nx*ny)
+	switch(out)
 		case 1:	//	complex
-			MatrixOP/NTHR=0/FREE fftw = FFT(tw,0)*coef
+			MatrixOP/NTHR=0/FREE tww = fft(srcw,0)*coef
 			break
 		case 2:	//	real
-		case 3:	//	magnitude
-			FFT/OUT=(out)/FREE/DEST=fftw tw
-			FastOP fftw = (coef) * fftw
+			MatrixOP/NTHR=0/FREE tww = real(fft(srcw,0))*coef
 			break
-		case 4:	//	magnitude squared
-			FFT/OUT=(out)/FREE/DEST=fftw tw
-			FastOP fftw = (coef*coef) * fftw
+		case 3:	//	mag
+			MatrixOP/NTHR=0/FREE tww = mag(fft(srcw,0))*coef
+			break
+		case 4:	//	magSqr
+			MatrixOP/NTHR=0/FREE tww = magSqr(fft(srcw,0))*coef*coef
 			break
 		case 5:	//	phase
-			FFT/OUT=(out)/FREE/DEST=fftw tw
+			MatrixOP/NTHR=0/FREE tww = phase(fft(srcw,0))
 			break
-		case 6:	//	imaginary
-			MatrixOP/NTHR=0/FREE fftw = imag(FFT(tw,0))*coef
-			break
-		default:
-			FFT/OUT=(out)/FREE/DEST=fftw tw
-			FastOP fftw = (coef) * fftw
+		case 6:	//	imag
+			MatrixOP/NTHR=0/FREE tww = imag(fft(srcw,0))*coef
 			break
 	endswitch
 
-	Wave resw = symmetrize(fftw, out)
+	Wave resw = symmetrize(tww,out)
 
 	setScaling(resw, w)
 
@@ -286,66 +274,6 @@ Static Function/S changeUnit(String unitStr)
 				return unitStr + "^-1"
 			endif
 	endswitch
-End
-
-//******************************************************************************
-//	FFT3D
-//	Repeat 2D FFT for each layer
-//******************************************************************************
-Static Function/WAVE FFT3D(Wave w, String winStr, int out, int subtract)
-
-	Variable nx = DimSize(w,0), ny = DimSize(w,1)
-
-	int win = CmpStr(winStr,"none")
-	if (win)
-		Wave iw = imageWindowWave2D(nx,ny,winStr)
-	endif
-
-	//	Subtract the average / multiply a window function
-	//	Even if the input wave is 32 bit, the wave returned by MatrixOP
-	//	below is 64 bit
-	if (subtract && win)
-		MatrixOP/NTHR=0/FREE srcw = (w[][][r]-mean(w[][][r])) * iw[][][0]
-	elseif (subtract && !win)
-		MatrixOP/NTHR=0/FREE srcw = w[][][r]-mean(w[][][r])
-	elseif (!subtract && win)
-		MatrixOP/NTHR=0/FREE srcw = w * iw[][][0]
-	else
-		MatrixOP/NTHR=0/FREE srcw = fp64(w)		//	force 64 bit
-	endif
-
-	Variable coef = 1/nx/ny
-	switch(out)
-		case 1:	//	complex
-			MatrixOP/NTHR=0/FREE tww = fft(srcw[][][r],0)*coef
-			break
-		case 2:	//	real
-			MatrixOP/NTHR=0/FREE tww = real(fft(srcw[][][r],0))*coef
-			break
-		case 3:	//	mag
-			MatrixOP/NTHR=0/FREE tww = mag(fft(srcw[][][r],0))*coef
-			break
-		case 4:	//	magSqr
-			MatrixOP/NTHR=0/FREE tww = magSqr(fft(srcw[][][r],0))*coef*coef
-			break
-		case 5:	//	phase
-			MatrixOP/NTHR=0/FREE tww = phase(fft(srcw[][][r],0))
-			break
-		case 6:	//	imag
-			MatrixOP/NTHR=0/FREE tww = imag(fft(srcw[][][r],0))*coef
-			break
-	endswitch
-
-	Wave resw = symmetrize(tww,out)
-
-	setScaling(resw, w)
-
-	//	Make the result 32 bit, if the input wave is 32 bit.
-	if (NumberByKey("NUMTYPE",WaveInfo(w,0)) & 2)
-		Redimension/S resw
-	endif
-
-	return resw
 End
 
 
