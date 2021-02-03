@@ -2,8 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSpectrumViewer
 
-#include "KM InfoBar"
 #include "KM LineCommon"
+#include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -160,7 +160,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 		case 4:	//	mouse move
 			int isShiftPressed = s.eventMod & 0x02
 			if (!isShiftPressed)
-				KMDisplayCtrlBarUpdatePos(s)
+				SIDAMInfobarUpdatePos(s)
 			endif
 			return 0
 
@@ -171,7 +171,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			elseif (s.keycode >= 28 && s.keycode <= 31)	//	arrows
 				pnlHookArrows(s)
 			elseif (s.keycode >= 97)
-				KMInfobar#keyboardShortcuts(s)
+				SIDAMInfobarKeyboardShortcuts(s)
 			endif
 			return 1
 

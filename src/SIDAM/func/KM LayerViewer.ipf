@@ -2,9 +2,9 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMLayerViewer
 
-#include "KM InfoBar"
 #include "SIDAM_Color"
 #include "SIDAM_Display"
+#include "SIDAM_InfoBar"
 #include "SIDAM_Preference"
 #include "SIDAM_Range"
 #include "SIDAM_Utilities_Control"
@@ -41,7 +41,7 @@ Function/S KMLayerViewerPnl(Wave w)
 	ModifyGraph/W=$pnlName standoff=0,tick=3,noLabel=2,axThick=0,margin=1
 	
 	//  コントロールバー
-	KMInfoBar(pnlName)
+	SIDAMInfoBar(pnlName)
 	
 	DoUpdate/W=$pnlName
 	

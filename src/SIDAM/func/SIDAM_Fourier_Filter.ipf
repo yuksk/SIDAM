@@ -2,9 +2,9 @@
 #pragma rtGlobals=1
 #pragma ModuleName=SIDAMFourierFilter
 
-#include "KM InfoBar"
 #include "SIDAM_Display"
 #include "SIDAM_FFT"
+#include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
@@ -440,7 +440,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 4:	//	mousemoved
 			if (strlen(ImageNameList(s.winName,";")))		//	only for subwindows showing a graph
-				KMDisplayCtrlBarUpdatePos(s, win=StringFromList(0, s.winName, "#"))
+				SIDAMInfobarUpdatePos(s, win=StringFromList(0, s.winName, "#"))
 			endif
 			break
 		case 5:	//	mouseup

@@ -3,7 +3,6 @@
 #pragma ModuleName=SIDAMMenus
 
 #include "KM Fourier Peak"
-#include "KM InfoBar"
 #include "KM LayerViewer"
 #include "KM ScaleBar"
 #include "KM SyncAxisRange"
@@ -18,6 +17,7 @@
 #include "SIDAM_Fourier_Filter"
 #include "SIDAM_Fourier_Symmetrization"
 #include "SIDAM_Histogram"
+#include "SIDAM_InfoBar"
 #include "SIDAM_LayerAnnotation"
 #include "SIDAM_LineProfile"
 #include "SIDAM_LineSpectra"
@@ -63,7 +63,7 @@ Menu "SIDAM", dynamic
 		SIDAMDisplay#menu(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
 		help = {"Display a 2D wave as xy-traces"}
 		
-		KMInfoBar#menu()+"/F8", /Q, KMInfoBar("")
+		SIDAMInfoBar#menu()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 		
 		"-"
@@ -150,18 +150,18 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	SubMenu "Window"
 		SubMenu "Coordinates"
-			KMInfoBar#rightclickMenu(0), /Q,  KMInfoBar#rightclickDo(0)
+			SIDAMInfoBar#menuR(0), /Q,  SIDAMInfoBar#menuRDo(0)
 		End
 		SubMenu "Title"
-			KMInfoBar#rightclickMenu(1), /Q,  KMInfoBar#rightclickDo(1)
+			SIDAMInfoBar#menuR(1), /Q,  SIDAMInfoBar#menuRDo(1)
 		End
 		SubMenu "Complex"
-			KMInfoBar#rightclickMenu(3), /Q,  KMInfoBar#rightclickDo(3)
+			SIDAMInfoBar#menuR(3), /Q,  SIDAMInfoBar#menuRDo(3)
 		End
 		"Scale Bar...", /Q, KMScaleBar#rightclickDo()
 		"Layer Annotation...", /Q, SIDAMLayerAnnotation#rightclickDo()
 		//	Show/Hide Axis
-		KMInfoBar#rightclickMenu(2), /Q, KMInfoBar#rightclickDo(2)
+		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
 		help = {"Show/Hide axes of the graph."}
 	End
 
@@ -228,7 +228,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"-"
 
-	"Close Infobar", /Q, KMInfoBar(WinName(0,1))
+	"Close Infobar", /Q, SIDAMInfoBar(WinName(0,1))
 End
 //-------------------------------------------------------------
 //	conditional menu
@@ -293,10 +293,10 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	SubMenu "Window"
 		SubMenu "Coordinates"
-			 KMInfoBar#rightclickMenu(0), /Q,  KMInfoBar#rightclickDo(0)
+			SIDAMInfoBar#menuR(0), /Q,  SIDAMInfoBar#menuRDo(0)
 		End
 		SubMenu "Complex"
-			KMInfoBar#rightclickMenu(4), /Q,  KMInfoBar#rightclickDo(4)
+			SIDAMInfoBar#menuR(4), /Q,  SIDAMInfoBar#menuRDo(4)
 		End
 	End
 
@@ -326,7 +326,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	"-"
 
-	"Close Infobar", /Q, KMInfoBar(WinName(0,1))
+	"Close Infobar", /Q, SIDAMInfoBar(WinName(0,1))
 End
 
 

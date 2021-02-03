@@ -4,6 +4,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_Display"
 #include "SIDAM_LoadData"
+#include "SIDAM_InfoBar"
 #include "SIDAM_Range"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_Utilities_Bias"
@@ -54,6 +55,11 @@ Static Function deprecatedCaution(String newName)
 	if (strlen(tw[0]))
 		printf "%s(called from \"%s\" in %s (line %s))\r", PRESTR_CAUTION, tw[0], tw[1], tw[2]
 	endif
+End
+
+Function KMInfoBar(String grfName)
+	deprecatedCaution("SIDAMInfoBar")
+	SIDAMInfoBar(grfName)
 End
 
 Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,

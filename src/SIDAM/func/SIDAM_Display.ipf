@@ -2,8 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMDisplay
 
-#include "KM InfoBar"
 #include "KM LayerViewer"
+#include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
 
@@ -188,7 +188,7 @@ Static Function/S displayNumericWave(Wave w, int traces, int history)
 
 	if (WaveDims(w)==1)
 		Display/K=1 w
-		KMInfoBar(S_name)
+		SIDAMInfoBar(S_name)
 		return S_name
 
 	elseif (WaveDims(w)==2 && traces==1)
@@ -209,7 +209,7 @@ Static Function/S displayNumericWaveTrace(Wave w)
 	for (i = 1; i < DimSize(w,1); i++)
 		AppendToGraph w[][i]/TN=$(NameOfWave(w)+"#"+num2istr(i))
 	endfor
-	KMInfoBar(S_name)
+	SIDAMInfoBar(S_name)
 	return S_name
 End
 
@@ -281,7 +281,7 @@ Static Function/S displayWaveRefWave(Wave/WAVE w, int history)
 		echo(w,0)
 	endif
 
-	KMInfoBar(grfName)
+	SIDAMInfoBar(grfName)
 
 	return winNameList + grfName
 End

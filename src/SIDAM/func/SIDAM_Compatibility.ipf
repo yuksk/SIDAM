@@ -15,8 +15,8 @@ Function SIDAMBackwardCompatibility()
 	//	Rename KM*Hook to SIDAM*Hook
 	updateHookFunctions()
 
-	//	Change the hook function of Range (KM -> SIDAM)
-	updateRangeHook()
+	//	Change window hook functions
+	updateWindow()
 End
 
 Static StrConstant OLD_DF1 = "root:'_KM'"
@@ -107,20 +107,39 @@ Static Function updateHookFunctions()
 	endif
 End
 
-Static Function updateRangeHook()
+Static Function updateWindow()
 	String listStr = WinList("*",";","WIN:1"), grfName, str
 	int i
 	for (i = 0; i < ItemsInList(listStr); i++)
 		grfName = StringFromList(i,listStr)
+
+		//	range
 		GetWindow $grfName hook(KMRangePnl)
 		if (strlen(S_value))
 			SetWindow $grfName hook(KMRangePnl)=$""
 			SetWindow $grfName hook(SIDAMRange)=SIDAMRange#pnlHookParent
 		endif
+
 		str = GetUserData(grfName,"","KMRangeSettings")
 		if (strlen(str))
 			SetWIndow $grfName userData(SIDAMRangeSettings)=str
 			SetWindow $grfName userData(KMRangeSettings)=""
+		endif
+
+		//	layer viewer
+		GetWindow $grfName hook(self)
+		if (!CmpStr(S_value, "KMInfoBar#hook"))
+			SetWindow $grfName hook(self)=SIDAMInfoBar#hook
+		endif
+		
+		ControlInfo/W=$grfName indexV
+		if (abs(V_flag) == 5)
+			SetVariable indexV proc=SIDAMInfoBar#pnlSetvalue, win=$grfName
+		endif
+
+		ControlInfo/W=$grfName energyV
+		if (abs(V_flag) == 5)
+			SetVariable energyV proc=SIDAMInfoBar#pnlSetvalue, win=$grfName
 		endif
 	endfor
 End
