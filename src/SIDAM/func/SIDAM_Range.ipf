@@ -16,27 +16,35 @@
 
 #include <WMImageInfo>
 
-//******************************************************************************
-//	SIDAMRange
-///	@param grfName [optional, default = WinName(0,1,1)]
-///		Name of a window.
-///	@param imgList [optional, default = ImageNameList(WinName(0,1,1),";")]
-///		List of images.
-///	@param zminmode [optional, default = 1]
-///		z mode for min, 0: auto, 1: fix, 2: sigma, 3: cut
-///	@param zmaxmode [optional, default = 1]
-///		z mode for max, 0: auto, 1: fix, 2: sigma, 3: cut
-///	@param zmin
-///		Minimum of z range.
-//		If zmaxmode is 2 or 3, this is a parameter of the corresponding mode.
-///	@param zmax
-///		Maximum of z range.
-//		If zminmode is 2 or 3, this is a parameter of the corresponding mode.
-///	@param history [optional, default = 0]
-///		0 or !0. Set !0 to print this command in the history.
-//******************************************************************************
-Function SIDAMRange([String grfName, String imgList, Variable zmin, Variable zmax,
-	int zminmode, int zmaxmode, int history])
+//@
+//	Set a range of a color scale used for a image(s)
+//
+//	Parameters
+//	----------
+//	grfName : string, default ``WinName(0,1,1)``
+//		The name of window.
+//	imgList : string, default ``ImageNameList(grfName,";")``
+//		The list of images.
+//	zminmode : int, default 1
+//		The z mode for min.
+//
+//			0. auto
+//			1. fix
+//			2. sigma
+//			3. cut
+//			4. logsigma
+//
+//	zmaxmode : int, default 1
+//		The z mode for max. The numbers are the same as those for the zminmode.
+//	zmin : variable
+//		The minimum value of the range.
+//		When the zmaxmode is 2 or 3, this is a parameter of the mode.
+//	zmax : variable
+//		The maximum value of the range.
+//		When the zminmode is 2 or 3, this is a parameter of the mode.
+//@
+Function SIDAMRange([String grfName, String imgList, Variable zmin,
+	Variable zmax, int zminmode, int zmaxmode])
 
 	STRUCT paramStruct s
 	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
@@ -67,10 +75,6 @@ Function SIDAMRange([String grfName, String imgList, Variable zmin, Variable zma
 	if (canZmodeBeDeleted(s.grfName))
 		deleteZmodeValues(s.grfName)
 		SetWindow $s.grfName hook(SIDAMRange)=$""
-	endif
-
-	if (!ParamIsDefault(history) && history == 1)
-		printHistory(s)
 	endif
 End
 
@@ -108,54 +112,17 @@ Static Function validate(STRUCT paramStruct &s)
 		return 1
 	endif
 
-	if (s.zminmode < 0 || s.zminmode > 3)
-		s.errMsg += "zminmode must be an integer between 0 and 3."
+	if (s.zminmode < 0 || s.zminmode > 4)
+		s.errMsg += "zminmode must be an integer between 0 and 4."
 		return 1
 	endif
 
-	if (s.zmaxmode < 0 || s.zmaxmode > 3)
-		s.errMsg += "zmaxmode must be an integer between 0 and 3."
+	if (s.zmaxmode < 0 || s.zmaxmode > 4)
+		s.errMsg += "zmaxmode must be an integer between 0 and 4."
 		return 1
 	endif
 
 	return 0
-End
-
-Static Function printHistory(STRUCT paramStruct &s)
-
-	String paramStr = "grfName=\"" + s.grfName + "\""
-
-	int hasOnlyOneImage = ItemsInList(ImageNameList(s.grfName,";")) == 1
-	int isAllImages = strlen(s.imgList) == 0
-	if (!hasOnlyOneImage && !isAllImages)
-		paramStr += ",imgList=\"" + s.imgList + "\""
-	endif
-
-	switch (s.zminmode)
-		case 0:
-			paramStr += ",zmin=NaN"
-			break
-		case 1:
-			paramStr += ",zmin="+num2str(s.zmin)
-			break
-		default:
-			paramStr += ",zminmode="+num2istr(s.zminmode)
-			paramStr += ",zmin="+num2str(s.zmin)
-	endswitch
-
-	switch (s.zmaxmode)
-		case 0:
-			paramStr += ",zmax=NaN"
-			break
-		case 1:
-			paramStr += ",zmax="+num2str(s.zmax)
-			break
-		default:
-			paramStr += ",zmaxmode="+num2istr(s.zmaxmode)
-			paramStr += ",zmax="+num2str(s.zmax)
-	endswitch
-
-	printf "%sSIDAMRange(%s)\r", PRESTR_CMD, paramStr
 End
 
 Static Structure paramStruct
@@ -248,10 +215,10 @@ End
 //==============================================================================
 //	Panel
 //==============================================================================
-Static Constant CTRLHEIGHT = 148
+Static Constant CTRLHEIGHT = 175
 Static Constant BOTTOMHEIGHT = 30
-Static Constant PNLHEIGHT = 305
-Static Constant PNLWIDTH = 265
+Static Constant PNLHEIGHT = 335
+Static Constant PNLWIDTH = 262
 
 Static Constant BINS = 48		//	Number of bins of a histogram
 Static StrConstant HIST = "SIDAMRange_hist"			//	Name of a histogram wave
@@ -277,42 +244,47 @@ Static Function pnl(String grfName)
 	PopupMenu imageP title="image",pos={3,7},size={218,19},bodyWidth=180,win=$pnlName
 	CheckBox allC title="all",pos={233,9},proc=SIDAMRange#pnlCheck,win=$pnlName
 
-	GroupBox zminG pos={4,30},size={128,114},title="first Z",fColor=(65280,32768,32768),win=$pnlName
+	GroupBox zminG pos={4,30},size={128,141},title="first Z",fColor=(65280,32768,32768),win=$pnlName
 
-	CheckBox zminC      pos={9,53}, win=$pnlName
-	CheckBox zminAutoC  pos={9,74}, win=$pnlName
-	CheckBox zminSigmaC pos={9,98}, win=$pnlName
-	CheckBox zminCutC   pos={9,121},win=$pnlName
-
+	CheckBox zminC      pos={9,53}, title="", win=$pnlName
+	CheckBox zminAutoC  pos={9,76}, title="auto", win=$pnlName
+	CheckBox zminSigmaC pos={9,99}, title="\u03bc +", win=$pnlName
+	CheckBox zminCutC   pos={9,122},title="cut", win=$pnlName
+	CheckBox zminLogsigmaC   pos={9,145}, title="log", win=$pnlName
+	
 	SetVariable zminV      pos={27,51},format="%g",win=$pnlName
-	SetVariable zminSigmaV pos={27,96},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
-	SetVariable zminCutV   pos={27,120},value=_NUM:0.5,limits={0,100,0.1},win=$pnlName
+	SetVariable zminSigmaV pos={47,98},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
+	SetVariable zminCutV   pos={47,121},value=_NUM:0.5,limits={0,100,0.1},win=$pnlName
+	SetVariable zminLogsigmaV pos={47,144},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
 
-	TitleBox zminSigmaT pos={91,97}, title="\u03c3",win=$pnlName
-	TitleBox zminCutT   pos={92,120},title="%",win=$pnlName
+	TitleBox zminSigmaT pos={111,99}, title="\u03c3",win=$pnlName
+	TitleBox zminCutT   pos={111,122},title="%",win=$pnlName
+	TitleBox zminLogigmaT pos={111,145}, title="\u03c3",win=$pnlName
 
-	GroupBox zmaxG pos={134,30},size={128,114},title="last Z",fColor=(32768,40704,65280),win=$pnlName
+	GroupBox zmaxG pos={134,30},size={128,141},title="last Z",fColor=(32768,40704,65280),win=$pnlName
 
-	CheckBox zmaxC      pos={139,53}, win=$pnlName
-	CheckBox zmaxAutoC  pos={139,74}, win=$pnlName
-	CheckBox zmaxSigmaC pos={139,98}, win=$pnlName
-	CheckBox zmaxCutC   pos={139,121},win=$pnlName
+	CheckBox zmaxC      pos={139,53}, title="", win=$pnlName
+	CheckBox zmaxAutoC  pos={139,76}, title="auto",win=$pnlName
+	CheckBox zmaxSigmaC pos={139,99}, title="\u03bc +",win=$pnlName
+	CheckBox zmaxCutC   pos={139,122}, title="cut", win=$pnlName
+	CheckBox zmaxLogsigmaC   pos={139,145}, title="log", win=$pnlName
 
 	SetVariable zmaxV      pos={157,51},format="%g",win=$pnlName
-	SetVariable zmaxSigmaV pos={157,96},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
-	SetVariable zmaxCutV   pos={157,120},value=_NUM:99.5,limits={0,100,0.1},win=$pnlName
+	SetVariable zmaxSigmaV pos={177,98},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
+	SetVariable zmaxCutV   pos={177,121},value=_NUM:99.5,limits={0,100,0.1},win=$pnlName
+	SetVariable zmaxLogsigmaV pos={177,144},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
 
-	TitleBox zmaxSigmaT pos={221,98},title="\u03c3",win=$pnlName
-	TitleBox zmaxCutT   pos={222,121},title="%",win=$pnlName
+	TitleBox zmaxSigmaT pos={241,99},title="\u03c3",win=$pnlName
+	TitleBox zmaxCutT   pos={241,122},title="%",win=$pnlName
+	TitleBox zmaxLogigmaT pos={241,145},title="\u03c3",win=$pnlName
 
-	PopupMenu adjustP pos={5,281}, size={75,19}, bodyWidth=75, win=$pnlName
+	PopupMenu adjustP pos={5,312}, size={75,19}, bodyWidth=75, win=$pnlName
 	PopupMenu adjustP mode=0, value="present z;full z", win=$pnlName
 	PopupMenu adjustP title="histogram", proc=SIDAMRange#pnlPopup, win=$pnlName
-	Button doB pos={118,281}, title="Do It", win=$pnlName
-	Button cancelB pos={195,281}, title="Cancel", win=$pnlName
+	Button doB pos={118,312}, title="Do It", win=$pnlName
+	Button cancelB pos={195,312}, title="Cancel", win=$pnlName
 
-	ModifyControlList ControlNameList(pnlName,";","zm*C") size={13,13}, mode=1, title="", proc=SIDAMRange#pnlCheck, win=$pnlName
-	ModifyControlList "zminAutoC;zmaxAutoC" size={42,15}, title=" auto", win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","zm*C") mode=1, proc=SIDAMRange#pnlCheck, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","zm*V") size={60,18}, bodyWidth=60, proc=SIDAMRange#pnlSetVar, win=$pnlName
 	ModifyControlList "zminV;zmaxV" size={100,18}, bodyWidth=100, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*T") frame=0,win=$pnlName
@@ -787,18 +759,18 @@ Static Function resetPnlCtrls(String pnlName)
 	//	Select ratioboxes corresonding to the selected Z mode
 	int m0 = getZmodeValue(grfName, imgName, "m0")
 	int m1 = getZmodeValue(grfName, imgName, "m1")
-	updatePnlRadioBox(pnlName, StringFromList(m0,"zminAutoC;zminC;zminSigmaC;zminCutC"))
-	updatePnlRadioBox(pnlName, StringFromList(m1,"zmaxAutoC;zmaxC;zmaxSigmaC;zmaxCutC"))
+	updatePnlRadioBox(pnlName, StringFromList(m0,"zminAutoC;zminC;zminSigmaC;zminCutC;zminLogsigmaC"))
+	updatePnlRadioBox(pnlName, StringFromList(m1,"zmaxAutoC;zmaxC;zmaxSigmaC;zmaxCutC;zmaxLogsigmaC"))
 
 	//	If the Z mode is sigma or cut, put the value to the corresponding SetVariable
 	if (m0 >= 2)
 		Variable v0 = getZmodeValue(grfName, imgName, "v0")
-		SetVariable $StringFromList(m0-2,"zminSigmaV;zminCutV") value=_NUM:v0, win=$pnlName
+		SetVariable $StringFromList(m0-2,"zminSigmaV;zminCutV;zminLogsigmaV") value=_NUM:v0, win=$pnlName
 	endif
 
 	if (m1 >= 2)
 		Variable v1 = getZmodeValue(grfName, imgName, "v1")
-		SetVariable $StringFromList(m1-2,"zmaxSigmaV;zmaxCutV") value=_NUM:v1, win=$pnlName
+		SetVariable $StringFromList(m1-2,"zmaxSigmaV;zmaxCutV;zmaxLogsigmaV") value=_NUM:v1, win=$pnlName
 	endif
 
 	DoUpdate/W=$pnlName		//	to ensure the modifications above are correctly reflected
@@ -895,11 +867,11 @@ Static Function updateZmode(String pnlName)
 	[m0, m1] = findSelectedMode(pnlName)
 
 	//	z mode value of first Z, 0 for auto
-	Wave minValuew = SIDAMGetCtrlValues(pnlName, "zminV;zminSigmaV;zminCutV")
+	Wave minValuew = SIDAMGetCtrlValues(pnlName, "zminV;zminSigmaV;zminCutV;zminLogsigmaV")
 	Variable v0 = m0 ? minValuew[m0-1] : 0
 
 	//	z mode value of last Z, 0 for auto
-	Wave maxValuew = SIDAMGetCtrlValues(pnlName, "zmaxV;zmaxSigmaV;zmaxCutV")
+	Wave maxValuew = SIDAMGetCtrlValues(pnlName, "zmaxV;zmaxSigmaV;zmaxCutV;zmaxLogsigmaV")
 	Variable v1 = m1 ? maxValuew[m1-1] : 0
 
 	String grfName = GetUserData(pnlName,"","grf")
@@ -919,10 +891,10 @@ Static Function updateZmode(String pnlName)
 	setZmodeValue(grfName, imgNameList, "v1", v1)
 End
 
-//	0: auto; 1: fix; 2: sigma; 3: cut
+//	0: auto; 1: fix; 2: sigma; 3: cut, 4: logsigma
 Static Function [int m0, int m1] findSelectedMode(String pnlName)
-	Wave minw = SIDAMGetCtrlValues(pnlName, "zminAutoC;zminC;zminSigmaC;zminCutC")
-	Wave maxw = SIDAMGetCtrlValues(pnlName, "zmaxAutoC;zmaxC;zmaxSigmaC;zmaxCutC")
+	Wave minw = SIDAMGetCtrlValues(pnlName, "zminAutoC;zminC;zminSigmaC;zminCutC;zminLogsigmaC")
+	Wave maxw = SIDAMGetCtrlValues(pnlName, "zmaxAutoC;zmaxC;zmaxSigmaC;zmaxCutC;zmaxLogsigmaC")
 	minw *= p
 	maxw *= p
 	m0 = sum(minw)
@@ -962,7 +934,7 @@ End
 Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 	int m0, Variable v0, int m1, Variable v1)
 
-	if (m0 >= 2 || m1 >= 2)		//	sigma or cut
+	if (m0 >= 2 || m1 >= 2)		//	sigma, cut, logsigma
 		Wave tw = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
 		if (m0 == 2 || m1 == 2)	//	sigma
 			WaveStats/Q tw
@@ -970,6 +942,11 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 		endif
 		if (m0 == 3 || m1 == 3)	//	cut
 			Wave hw = SIDAMHistogram(tw,bins=256,cumulative=1,normalize=1)
+		endif
+		if (m0 == 4 || m1 == 4)	//	logsimga
+			MatrixOP/FREE tw2 = ln(tw)
+			WaveStats/Q tw2
+			Variable lnavg = V_avg, lnsdev = V_sdev
 		endif
 	endif
 
@@ -984,6 +961,9 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 		case 3:	//	cut
 			FindLevel/Q hw, v0/100
 			zmin = V_flag ? WaveMin(tw) : V_LevelX
+			break
+		case 4:	//	logsigma
+			zmin = numtype(lnavg) || numtype(lnsdev) ? WaveMin(tw) : exp(lnavg+lnsdev*v0)
 			break
 		default:	//	1 (fix)
 			zmin = v0
@@ -1000,12 +980,52 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			FindLevel/Q hw, v1/100
 			zmax = V_flag ? WaveMax(tw) : V_LevelX
 			break
+		case 4:	//	logsigma
+			zmax = numtype(lnavg) || numtype(lnsdev) ? WaveMax(tw) : exp(lnavg+lnsdev*v1)
+			break
 		default:	//	1 (fix)
 			zmax = v1
 	endswitch
 
 	Make/D/N=2/FREE rtnw = {zmin, zmax}
 	return rtnw
+End
+
+Static Function printHistory(STRUCT paramStruct &s)
+
+	String paramStr = "grfName=\"" + s.grfName + "\""
+
+	int hasOnlyOneImage = ItemsInList(ImageNameList(s.grfName,";")) == 1
+	int isAllImages = strlen(s.imgList) == 0
+	if (!hasOnlyOneImage && !isAllImages)
+		paramStr += ",imgList=\"" + s.imgList + "\""
+	endif
+
+	switch (s.zminmode)
+		case 0:
+			paramStr += ",zmin=NaN"
+			break
+		case 1:
+			paramStr += ",zmin="+num2str(s.zmin)
+			break
+		default:
+			paramStr += ",zminmode="+num2istr(s.zminmode)
+			paramStr += ",zmin="+num2str(s.zmin)
+	endswitch
+
+	switch (s.zmaxmode)
+		case 0:
+			paramStr += ",zmax=NaN"
+			break
+		case 1:
+			paramStr += ",zmax="+num2str(s.zmax)
+			break
+		default:
+			paramStr += ",zmaxmode="+num2istr(s.zmaxmode)
+			paramStr += ",zmax="+num2str(s.zmax)
+	endswitch
+
+	printf "%sSIDAMRange(%s)\r", PRESTR_CMD, paramStr
 End
 
 

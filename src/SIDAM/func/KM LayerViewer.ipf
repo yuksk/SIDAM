@@ -309,7 +309,7 @@ Static Function extractPnlDisplay(Wave extw, String LVName)
 	Wave srcw = SIDAMImageWaveRef(LVName)
 	Variable zmin, zmax
 	SIDAM_GetColorTableMinMax(LVName, NameOfWave(srcw),zmin,zmax,allowNaN=1)
-	SIDAMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax,history=1)
+	SIDAMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax)
 	
 	//	LayerViewerでのカラーテーブルを適用する
 	String ctab = WM_ColorTableForImage(LVName, NameOfWave(srcw))

@@ -56,6 +56,11 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,
+	int zminmode, int zmaxmode, int history])
+	deprecatedCaution("SIDAMRange")
+	SIDAMRange(grfName=grfName, imgList=imgList, zmin=zmin, zmax=zmax, zminmode=zminmode, zmaxmode=zmaxmode)
+End
 
 Function/WAVE KMLineSpectra(Wave/Z w, Variable p1, Variable q1, Variable p2,
 	Variable q2, [String result, int mode, int output, int history])
@@ -103,12 +108,6 @@ Function KMHistogram(Wave/Z w, [String result, Variable startz, Variable endz,
 End
 
 //	v8.11.0 ----------------------------------------------------------------------
-Function KMRange([String grfName, String imgList, Variable zmin, Variable zmax,
-	int zminmode, int zmaxmode, int history])
-	deprecatedCaution("SIDAMRange")
-	SIDAMRange(grfName=grfName, imgList=imgList, zmin=zmin, zmax=zmax, zminmode=zminmode, zmaxmode=zmaxmode, history=history)
-End
-
 Function KMPreviewPnl()
 	deprecatedCaution("")
 	KMPreview#pnl()
