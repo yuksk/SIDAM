@@ -5,6 +5,7 @@
 #include "SIDAM_Display"
 #include "SIDAM_InfoBar"
 #include "SIDAM_Range"
+#include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -118,6 +119,13 @@ Function KMHistogram(Wave/Z w, [String result, Variable startz, Variable endz,
 	Variable deltaz, int bins, int cumulative, int normalize,
 	int cmplxmode, int history])
 	deprecatedCaution("SIDAMHistogram")
+End
+
+Function KMScalebar([String grfName,String anchor,int size,
+	Wave fgRGBA,	Wave bgRGBA,int history])
+	deprecatedCaution("SIDAMScalebar")
+	SIDAMScalebar(grfName=grfName,anchor=anchor,size=size,\
+		fgRGBA=fgRGBA,bgRGBA=bgRGBA)	
 End
 
 //	v8.11.0 ----------------------------------------------------------------------

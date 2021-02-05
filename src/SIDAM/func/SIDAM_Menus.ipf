@@ -3,7 +3,6 @@
 #pragma ModuleName=SIDAMMenus
 
 #include "KM Fourier Peak"
-#include "KM ScaleBar"
 #include "KM SyncAxisRange"
 #include "KM SyncCursor"
 #include "KM SyncLayer"
@@ -28,6 +27,7 @@
 #include "SIDAM_Subtraction"
 #include "SIDAM_SaveGraphics"
 #include "SIDAM_SaveMovie"
+#include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_SpectrumViewer"
 #include "SIDAM_StartExit"
@@ -155,7 +155,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		SubMenu "Complex"
 			SIDAMInfoBar#menuR(3), /Q,  SIDAMInfoBar#menuRDo(3)
 		End
-		"Scale Bar...", /Q, KMScaleBar#rightclickDo()
+		"Scale Bar...", /Q, SIDAMScaleBar#menuDo()
 		"Layer Annotation...", /Q, SIDAMLayerAnnotation#rightclickDo()
 		//	Show/Hide Axis
 		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
