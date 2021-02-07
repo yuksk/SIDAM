@@ -321,7 +321,7 @@ Static Function pnl(Wave w, String grfName)
 	ModifyPanel/W=$pnlName#table frameStyle=0
 	
 	ListBox filL pos={0,18}, size={330,120}, frame=2, mode=5, selRow=-1, win=$pnlName#table
-	ListBox filL listWave=$(dfTmp+KM_WAVE_LIST), selWave=$(dfTmp+KM_WAVE_SELECTED), win=$pnlName#table
+	ListBox filL listWave=$(dfTmp+SIDAM_WAVE_LIST), selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName#table
 	
 	NewPanel/FG=(CTL,CTT,FR,FB)/HOST=$pnlName
 	RenameWindow $pnlName#$S_name, controls
@@ -409,8 +409,8 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	Duplicate/O SIDAMFFT(ow,win="Hanning",out=3,subtract=1), $FOURIERNAME
 	
 	//	wave for the list
-	Make/N=(0,7)/T $KM_WAVE_LIST/WAVE=listw
-	Make/N=(0,7) $KM_WAVE_SELECTED
+	Make/N=(0,7)/T $SIDAM_WAVE_LIST/WAVE=listw
+	Make/N=(0,7) $SIDAM_WAVE_SELECTED
 	Make/N=7/T/FREE labelw = {"p0","q0","n0","p1","q1","n1","HWHM"}
 	int i
 	for (i = 0; i < 7; i++)
@@ -420,7 +420,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	//	The dependency to pick up a change in the list
 	Variable/G dummy
 	String str
-	Sprintf str, "SIDAMFourierFilter#pnlListChange(%s,\"%s\")", dfTmp+KM_WAVE_LIST, pnlName
+	Sprintf str, "SIDAMFourierFilter#pnlListChange(%s,\"%s\")", dfTmp+SIDAM_WAVE_LIST, pnlName
 	SetFormula dummy, str
 	
 	//	wave for showing the mask
@@ -476,8 +476,8 @@ Static Function pnlHookMouseup(STRUCT WMWinHookStruct &s)
 	
 	String pnlName = StringFromList(0, s.winName, "#")
 	SetActiveSubWindow $pnlName
-	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") selw = $KM_WAVE_SELECTED
-	Wave/SDFR=$GetUserData(pnlName,"","dfTmp")/T listw = $KM_WAVE_LIST
+	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") selw = $SIDAM_WAVE_SELECTED
+	Wave/SDFR=$GetUserData(pnlName,"","dfTmp")/T listw = $SIDAM_WAVE_LIST
 	if (!DimSize(selw,0))
 		return 0
 	endif
@@ -532,7 +532,7 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			
 		case "toP":
 			Wave srcw = $GetUserData(pnlName,"","src")
-			Wave/T/SDFR=dfrTmp listw = $KM_WAVE_LIST
+			Wave/T/SDFR=dfrTmp listw = $SIDAM_WAVE_LIST
 			Make/N=(7,DimSize(listw,0))/FREE paramw = strlen(listw[q][p]) ? str2num(listw[q][p]) : 0
 			ControlInfo/W=$s.win nameV ;		String result = S_Value
 			ControlInfo/W=$s.win invertP ;	Variable invert = V_Value==2
@@ -582,8 +582,8 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	
 	String pnlName = StringFromList(0,s.win,"#")
 	DFREF dfrTmp = $GetUserData(pnlName,"","dfTmp")
-	Wave/T/SDFR=dfrTmp listw = $KM_WAVE_LIST
-	Wave/SDFR=dfrTmp selw = $KM_WAVE_SELECTED
+	Wave/T/SDFR=dfrTmp listw = $SIDAM_WAVE_LIST
+	Wave/SDFR=dfrTmp selw = $SIDAM_WAVE_SELECTED
 	int n = DimSize(selw,0)
 	
 	strswitch(s.ctrlName)

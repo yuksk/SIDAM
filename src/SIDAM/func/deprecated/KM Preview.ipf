@@ -18,6 +18,10 @@
 Static StrConstant ks_columntitile = "wave;bias;current;comment"		//	ウエーブリストの項目タイトル
 Static StrConstant ks_popupStr = "Display;Plane Subtraction;Select All"	//	ウエーブリストの右クリックメニュー項目
 
+StrConstant KM_WAVE_LIST = "KM_list"
+StrConstant KM_WAVE_SELECTED = "KM_selected"
+StrConstant KM_WAVE_COLOR = "KM_color"
+
 //******************************************************************************
 //	Main
 //******************************************************************************

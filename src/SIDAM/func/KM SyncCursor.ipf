@@ -173,13 +173,16 @@ Static Function pnl(String grfName)
 	CheckBox xC title="x: put all cursors at (x,y)", pos={49,29}, mode=1, value=mode, proc=KMSyncCursor#pnlCheck, win=$pnlName
 	
 	ListBox winL pos={5,52}, size={270,150}, frame=2, mode=4, win=$pnlName
-	ListBox winL listWave=$(dfTmp+KM_WAVE_LIST), selWave=$(dfTmp+KM_WAVE_SELECTED), colorWave=$(dfTmp+KM_WAVE_COLOR), win=$pnlName
+	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName
+	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
+	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
 	
 	Button selectB title="Select / Deselect all", pos={10,210}, size={120,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
 	Titlebox selectT title="You can also select a window by clicking it.", pos={10,240}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,268}, size={70,22}, disable=(DimSize($(dfTmp+KM_WAVE_SELECTED),0)==1)*2, win=$pnlName
 	Button doB userData(key)=ks_key, userData(fn)="KMSyncCursor", proc=KMSyncCommon#pnlButton, win=$pnlName
 	Button cancelB title="Cancel", pos={201,268}, size={70,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,268}, size={70,22}, win=$pnlName
+	Button doB disable=(DimSize($(dfTmp+SIDAM_WAVE_SELECTED),0)==1)*2, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End

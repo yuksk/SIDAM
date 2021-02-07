@@ -52,9 +52,9 @@ StrConstant SIDAM_FILE_SHORTCUTS = "shortcuts.md"
 //------------------------------------------------------------------------------
 //	Temporary waves
 //------------------------------------------------------------------------------
-StrConstant KM_WAVE_LIST = "KM_list"
-StrConstant KM_WAVE_SELECTED = "KM_selected"
-StrConstant KM_WAVE_COLOR = "KM_color"
+StrConstant SIDAM_WAVE_LIST = "SIDAM_list"
+StrConstant SIDAM_WAVE_SELECTED = "SIDAM_selected"
+StrConstant SIDAM_WAVE_COLOR = "SIDAM_color"
 
 //------------------------------------------------------------------------------
 //	Constants used in Igor Pro

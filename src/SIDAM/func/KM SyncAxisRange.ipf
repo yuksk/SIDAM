@@ -144,13 +144,16 @@ Static Function pnl(String grfName)
 	
 	//	各要素
 	ListBox winL pos={5,12}, size={270,150}, frame=2, mode=4, win=$pnlName
-	ListBox winL listWave=$(dfTmp+KM_WAVE_LIST), selWave=$(dfTmp+KM_WAVE_SELECTED), colorWave=$(dfTmp+KM_WAVE_COLOR), win=$pnlName
+	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName 
+	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
+	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
 	
 	Button selectB title="Select / Deselect all", pos={10,172}, size={120,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
 	Titlebox selectT title="You can also select a window by clicking it.", pos={10,200}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,228}, size={70,22}, disable=(DimSize($(dfTmp+KM_WAVE_SELECTED),0)==1)*2, win=$pnlName
 	Button doB userData(key)=ks_key, userData(fn)="KMSyncAxisRange", proc=KMSyncCommon#pnlButton, win=$pnlName
 	Button cancelB title="Cancel", pos={201,228}, size={70,22}, proc=KMSyncCommon#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,228}, size={70,22}, win=$pnlName
+	Button doB disable=(DimSize($(dfTmp+SIDAM_WAVE_SELECTED),0)==1)*2, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 End
