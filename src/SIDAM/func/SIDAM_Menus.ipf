@@ -2,9 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
-#include "KM SyncAxisRange"
-#include "KM SyncCursor"
-#include "KM SyncLayer"
 #include "KM Trace"
 #include "SIDAM_Color"
 #include "SIDAM_Compatibility_Old_Functions"
@@ -31,6 +28,9 @@
 #include "SIDAM_ShowParameters"
 #include "SIDAM_SpectrumViewer"
 #include "SIDAM_StartExit"
+#include "SIDAM_SyncAxisRange"
+#include "SIDAM_SyncCursor"
+#include "SIDAM_SyncLayer"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
@@ -135,13 +135,13 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	SubMenu "Sync"
 		//	Sync Layers
-		SIDAMMenus#menu("Sync Layers...",dim=3), /Q, KMSyncLayer#rightclickDo()
+		SIDAMMenus#menu("Sync Layers...",dim=3), /Q, SIDAMSyncLayer#menuDo()
 		help = {"Syncronize layer index of LayerViewers"}
 		//	Sync Axis Range
-		SIDAMMenus#menu("Sync Axis Range..."), /Q, KMSyncAxisRange#rightclickDo()
+		SIDAMMenus#menu("Sync Axis Range..."), /Q, SIDAMSyncAxisRange#menuDo()
 		help = {"Syncronize axis range"}
 		//	Sync Cursors
-		KMSyncCursor#rightclickMenu(), /Q, KMSyncCursor#rightclickDo()
+		SIDAMSyncCursor#menu(), /Q, SIDAMSyncCursor#menuDo()
 		help = {"Synchronize cursor positions in graphs showing images"}
 	End
 
@@ -284,7 +284,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	SubMenu "Sync"
 		//	Sync Axis Range
-		"Sync Axis Range...", /Q, KMSyncAxisRangeR()
+		"Sync Axis Range...", /Q, SIDAMSyncAxisRange#menuDo()
 		help = {"Syncronize axis range"}
 	End
 
