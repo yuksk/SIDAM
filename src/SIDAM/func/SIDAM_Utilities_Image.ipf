@@ -481,6 +481,9 @@ Function/WAVE SIDAMGetMarquee(int mode)
 
 	String info = ImageInfo(grfName, imgName, 0)
 	GetMarquee/W=$grfName $StringByKey("YAXIS", info), $StringByKey("XAXIS", info)
+	if (!V_flag)
+		return $""
+	endif
 
 	if (mode)
 		Make/FREE rtnw = {{V_left,V_bottom},{V_right,V_top}}

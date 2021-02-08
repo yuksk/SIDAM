@@ -57,6 +57,10 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function KMFourierPeakGetPos(	Wave w,int fitfn,[int marquee])
+	deprecatedCaution("SIDAMPeakPos")
+End
+
 Function/WAVE KMLoadData(String pathStr, [int folder, int history])
 	deprecatedCaution("SIDAMLoadData")
 End

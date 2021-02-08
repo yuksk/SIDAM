@@ -2,8 +2,8 @@
 #pragma rtGlobals=1
 #pragma ModuleName = SIDAMFourierSym
 
-#include "KM Fourier Peak"
 #include "SIDAM_Display"
+#include "SIDAM_PeakPos"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Help"
@@ -378,7 +378,7 @@ Static Function marqueeDo()
 	//	Get the peak position
 	String grfName = WinName(0,1)
 	Wave iw = SIDAMImageWaveRef(grfName)
-	Wave posw = KMFourierPeakGetPos(iw, 1, marquee=1)	//	asymmetric Lorentz2D	
+	Wave posw = SIDAMPeakPos(iw, 1)	//	asymmetric Lorentz2D	
 
 	//	Pass the position to the panel
 	Variable cp = (posw[2]-DimOffset(iw,0))/DimDelta(iw,0)

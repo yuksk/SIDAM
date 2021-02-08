@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
-#include "KM Fourier Peak"
 #include "KM SyncAxisRange"
 #include "KM SyncCursor"
 #include "KM SyncLayer"
@@ -21,6 +20,7 @@
 #include "SIDAM_LineProfile"
 #include "SIDAM_LineSpectra"
 #include "SIDAM_LoadData"
+#include "SIDAM_PeakPos"
 #include "SIDAM_Position_Recorder"
 #include "SIDAM_Preference"
 #include "SIDAM_Range"
@@ -334,8 +334,8 @@ Menu "GraphMarquee", dynamic
 	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
 	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
 	Submenu "Get peak"
-		KMFourierPeak#marqueeMenu(0), /Q, KMFourierPeak#marqueeDo(0)
-		KMFourierPeak#marqueeMenu(1), /Q, KMFourierPeak#marqueeDo(1)
+		SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
+		SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
 	End
 End
 
