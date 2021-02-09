@@ -156,7 +156,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 			SIDAMInfoBar#menuR(3), /Q,  SIDAMInfoBar#menuRDo(3)
 		End
 		"Scale Bar...", /Q, SIDAMScaleBar#menuDo()
-		"Layer Annotation...", /Q, SIDAMLayerAnnotation#rightclickDo()
+		"Layer Annotation...", /Q, SIDAMLayerAnnotation#menuDo()
 		//	Show/Hide Axis
 		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
 		help = {"Show/Hide axes of the graph."}
@@ -164,8 +164,8 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
-		SIDAMSaveGraphics#rightclickMenu(), /Q, SIDAMSaveGraphics#rightclickDo()
-		SIDAMSaveMovie#rightclickMenu(), /Q, SIDAMSaveMovie#rightclickDo()
+		SIDAMSaveGraphics#menu(), /Q, SIDAMSaveGraphics#menuDo()
+		SIDAMSaveMovie#menu(), /Q, SIDAMSaveMovie#menuDo()
 
 		"-"
 

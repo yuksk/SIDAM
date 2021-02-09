@@ -118,11 +118,7 @@ Static Structure paramStruct
 	String	errMsg
 EndStructure
 
-
-//-------------------------------------------------------------
-//	Function called by the right-click menu
-//-------------------------------------------------------------
-Static Function/S rightclickDo()
+Static Function/S menuDo()
 	pnl(WinName(0,1))
 End
 

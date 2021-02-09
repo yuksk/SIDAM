@@ -2,8 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSpectrumViewer
 
-#include "KM LineCommon"
 #include "SIDAM_InfoBar"
+#include "SIDAM_Line"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -176,7 +176,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			return 1
 
 		case 13: //	renamed
-			SIDAMLineCommon#pnlHookRename(s)
+			SIDAMLine#pnlHookRename(s)
 			return 0
 
 		default:
@@ -189,7 +189,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	String pnlList, pnlName
 	int i, n
 
-	if (SIDAMLineCommon#pnlHookParentCheckChild(s.winName,KEY,pnlResetRelation))
+	if (SIDAMLine#pnlHookParentCheckChild(s.winName,KEY,pnlResetRelation))
 		return 0
 	endif
 
@@ -232,7 +232,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			return 0
 
 		case 13:	//	renamed
-			SIDAMLineCommon#pnlHookParentRename(s,KEY)
+			SIDAMLine#pnlHookParentRename(s,KEY)
 			return 0
 
 		default:
@@ -375,7 +375,7 @@ Menu "KMSpectrumViewerMenu", dynamic, contextualmenu
 		SIDAMSpectrumViewer#changeLiveMenu(), SIDAMSpectrumViewer#changeLive()
 	End
 	SubMenu "Target window"
-		SIDAMLineCommon#rightclickMenuTarget(), SIDAMSpectrumViewer#changeTarget()
+		SIDAMLine#menuTarget(), SIDAMSpectrumViewer#changeTarget()
 	End
 	SubMenu "Complex"
 		SIDAMSpectrumViewer#changeComplexMenu(), SIDAMSpectrumViewer#changeComplex()

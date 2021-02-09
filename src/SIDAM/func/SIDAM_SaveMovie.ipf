@@ -10,10 +10,8 @@
 #pragma hide = 1
 #endif
 
-//-------------------------------------------------------------
-//	return the menu item for the right-click menu
-//-------------------------------------------------------------
-Static Function/S rightclickMenu()
+
+Static Function/S menu()
 	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
@@ -23,10 +21,7 @@ Static Function/S rightclickMenu()
 	return SelectString(isWindows && is3D, "", "\\M0Save Graphics (Movie)...")
 End
 
-//-------------------------------------------------------------
-//	function invoked by the right-click menu
-//-------------------------------------------------------------
-Static Function rightclickDo()
+Static Function menuDo()
 	pnl(WinName(0,1))
 End
 

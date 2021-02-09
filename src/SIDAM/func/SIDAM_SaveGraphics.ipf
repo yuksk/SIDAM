@@ -18,10 +18,8 @@
 // The disable state of the controls in this list depends on the format of graphics
 Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embedC;exceptC;resolutionP;dpiP"
 
-//-------------------------------------------------------------
-//	return the menu item for the right-click menu
-//-------------------------------------------------------------
-Static Function/S rightclickMenu()
+
+Static Function/S menu()
 	int isWindows = stringmatch(IgorInfo(2),"Windows")
 	
 	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
@@ -33,10 +31,7 @@ Static Function/S rightclickMenu()
 	return SelectString(isWindows && is3D, "", "\\M0Save Graphics (Layers)...")
 End
 
-//-------------------------------------------------------------
-//	function invoked by the right-click menu
-//-------------------------------------------------------------
-Static Function rightclickDo()
+Static Function menuDo()
 	pnl(WinName(0,1))
 End
 
