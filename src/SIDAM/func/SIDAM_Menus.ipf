@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMMenus
 
-#include "KM Trace"
 #include "SIDAM_Color"
 #include "SIDAM_Compatibility_Old_Functions"
 #include "SIDAM_Correlation"
@@ -31,6 +30,7 @@
 #include "SIDAM_SyncAxisRange"
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"
+#include "SIDAM_Trace"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
@@ -279,7 +279,7 @@ End
 //******************************************************************************
 Menu "SIDAMMenu1D", dynamic, contextualmenu
 	//	Trace
-	"Offset and Color...", /Q, KMTrace#rightclickDo()
+	"Offset and Color...", /Q, SIDAMTrace#menuDo()
 	help = {"Set offset of traces in the top graph."}
 
 	SubMenu "Sync"

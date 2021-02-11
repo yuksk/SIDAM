@@ -8,6 +8,7 @@
 #include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_Utilities_Bias"
+#include "SIDAM_Trace"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
@@ -57,6 +58,16 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function KMTraceOffset([String grfName, Variable xoffset, Variable yoffset, int fill])
+	deprecatedCaution("SIDAMTraceOffset")
+	SIDAMTraceOffset(grfName=grfName, xoffset=xoffset, yoffset=yoffset, fill=fill)
+End
+
+Function KMTraceColor([String grfName, String clrTab, STRUCT RGBColor &clr])
+	deprecatedCaution("SIDAMTraceColor")
+	SIDAMTraceColor(grfName=grfName, clrTab=clrTab, clr=clr)
+End
+	
 Function KMFourierPeakGetPos(	Wave w,int fitfn,[int marquee])
 	deprecatedCaution("SIDAMPeakPos")
 End
