@@ -62,11 +62,6 @@ Menu "SIDAM", dynamic
 		
 		SIDAMInfoBar#menu()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
-		
-		"-"
-		
-		"Preview (deprecated)", /Q, KMPreviewPnl()
-		help = {"Display a preview panel"}		
 	End
 
 	"-"
