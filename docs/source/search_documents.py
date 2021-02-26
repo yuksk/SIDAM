@@ -4,7 +4,7 @@ import re
 
 # path seen from the directory where the Makefile is.
 BASEPATH = '../src/SIDAM/func'
-OUTPUT = './source/api_body.rst'
+OUTPUT = './source/commands.rst'
 
 def _docs_from_file(filename: str) -> dict[str, str]:
     # find blocks of comment doc strings in a file
@@ -85,6 +85,8 @@ if __name__ == '__main__':
     documents_sorted = sorted(documents.items())
 
     if documents:
-         p = pathlib.Path(OUTPUT)
-         p.write_text('\n\n'.join([d[1] for d in documents_sorted]))
+        p = pathlib.Path(OUTPUT)
+        header = '.. _api:\n\nCommand help\n============\n\n'
+        contents = '\n\n'.join([d[1] for d in documents_sorted])
+        p.write_text(header+contents)
 

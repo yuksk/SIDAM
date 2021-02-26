@@ -25,3 +25,4 @@ src/SIDAM/fileloader/*
 docs/build/*
 docs/source/api_body.rst
 docs/poetry.lock
+docs/source/commands.rst
