@@ -1,0 +1,15 @@
+src/
+script/
+readme.md
+.gitattributes
+
+LICENSE
+!LICENSE/LICENSE.txt
+
+docs/Makefile
+docs/build/
+docs/source/
+docs/poetry.lock
+docs/pyproject.toml
+docs/objects.inv
+

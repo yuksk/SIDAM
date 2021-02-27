@@ -1,0 +1,578 @@
+.. _api:
+
+Command help
+============
+
+.. function:: SIDAMColor([grfName, imgList, ctable, rev, log, minRGB, maxRGB, history])
+
+   Set a color table to a image or a list of images.
+
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of a window.
+   :type imgList: string, default ``ImageNameList(WinName(0,1,1),";")``
+   :param imgList: The list of images. A single image is also accepted.
+   :type ctable: string
+   :param ctable: The name of a color table or path to a color table wave. Unless specified, the present value is used.
+   :type rev: int
+   :param rev: 0 or !0. Set !0 to reverse the color table. Unless specified, the present value is used.
+   :type log: int
+   :param log: 0 or !0. Set !0 to use logarithmically-spaced colors. Unless specified, the present value is used.
+   :type minRGB: wave
+   :param minRGB: Set the color for values less than the minimum value of the range. Unless specified, the present value is used.
+
+      * {0} : use the color for the minimum value of the range.
+      * {NaN} : transparent.
+      * {r,g,b} : specify the color.
+
+   :type maxRGB: wave
+   :param maxRGB: Set the color for values less than the maximum value of the range. Unless specified, the present value is used.
+
+      * {0} : use the color for the minimum value of the range.
+      * {NaN} : transparent.
+      * {r,g,b} : specify the color.
+
+   :type history: int, default 0
+   :param history: 0 or !0. Set !0 to print this command in the history.
+
+   :rtype: variable
+   :return: 0 for normal exit, !0 for any error in input parameters
+
+.. function:: SIDAMCopyBias(srcw, destw)
+
+   Copy unevevly-spaced bias info from one to another
+
+   :type srcw: wave
+   :param srcw: A source 3D wave
+   :type destw: wave
+   :param destw: A destination 3D wave
+
+   :rtype: variable
+   :return: 0: Successfully copied, 1: Error
+
+.. function:: SIDAMCorrelation(src, [dest, subtract, normalize])
+
+   Calculate correlation function
+
+   :type src: wave
+   :param src: The source wave, 2D or 3D.
+   :type dest: wave, default, the source wave
+   :param dest: The destination wave that has the same dimension as the source wave. When the source wave is 3D, a 2D wave that has the same dimension in the x and y directions is also allowed.
+   :type subtract: int, default 1
+   :param subtract: Set !0 to subtract the average before the calculation. For a 3D wave, the average of each layer is subtracted.
+   :type normalize: int, default 1
+   :param normalize: Set !0 to normalize the result. For a 3D wave, the result is normalized layer-by-layer.
+
+   :rtype: wave
+   :return: Correlation wave. When the destination wave is the same as the source wave, this is the auto correlation of the source wave.
+
+.. function:: SIDAMDisplay(w, [traces, history])
+
+   Show a trace of 1D wave, an image of 2D wave, and a layer of
+   of 3D wave 
+
+   :type w: wave
+   :param w: A numeric wave, or a refrence wave containing references to numeric waves.
+   :type traces: int, default 0
+   :param traces: 0, 1, or 2.
+
+      0. Normal
+      1. Show a 2D waves as traces.
+         1st dimension is ``x``, and the number of traces is ``DimSize(w,1)``.
+      2. Append a 2D wave (2,n) as a trace to a graph.
+         The dimension labels (``%x`` and ``%y``, or ``%p`` and ``%q``) must
+         be appropriately given. Then this works as
+         ``AppendToGraph w[%y][] vs w[%x][]``, or
+         ``AppendToGraph w[%q][] vs w[%p][]``.
+
+   :type history: int, default 0
+   :param history: 0 or !0. Set !0 to print this command in the history.
+
+   :rtype: str
+   :return: The name of window
+
+.. function:: SIDAMExportGraphicsTransparent([grfName, size])
+
+   Copy the window to the clipboard with transparent background
+
+   :type grfName: string, default ``WinName(0,1)``
+   :param grfName: The name of window
+   :type size: variable
+   :param size: The size of copied image
+
+.. function:: SIDAMFFT(w, [win, out, subtract])
+
+   Compute the discrite Fourier transform of the input wave.
+   When the input wave is 3D, the histogram is generated layer by layer.
+
+   :type w: wave
+   :param w: The input wave, 2D or 3D.
+   :type win: string, default "none"
+   :param win: An image window function.
+   :type out: int, default 3
+   :param out: The Output mode of FFT.
+
+      1. complex
+      2. real
+      3. magnitude
+      4. magnitude squared
+      5. phase
+      6. imaginary
+
+   :type subtract: int, default 0
+   :param subtract: Set !0 to subtract the average before FFT. For a 3D wave, the average of each layer is subtracted.
+
+   :rtype: wave
+   :return: Fourier-transformed wave
+
+.. function:: SIDAMFilter(srcw, paramw, [invert, endeffect])
+
+   Apply Fourier filter.
+
+   :type srcw: wave
+   :param srcw: The input wave, 2D or 3D.
+   :type paramw: wave
+   :param paramw: The filter parameters.
+   :type invert: int, default 0
+   :param invert: 0 or !0. 0 for passing the filter areas, and !0 for cutting the filter areas.
+   :type endeffect: int, default 1
+   :param endeffect: How to handle the ends of the wave.
+
+      0:   Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+      1:   Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+      2:   Zero (default). Uses 0 for any missing value.
+      3:   Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].
+
+   :rtype: wave
+   :return: filtered wave
+
+.. function:: SIDAMFourierSym(w, q1w, q2w, sym, [shear, endeffect])
+
+   Symmetrize Fourier transform based on symmetry.
+
+   :type w: wave
+   :param w: The input wave, 2D or 3D.
+   :type q1w: wave
+   :param q1w: The first peak, {qx, qy, a}. The (qx, qy) is the peak position in pixel. The a is the "ideal" real-space length corresponding to the peak.
+   :type q2w: wave
+   :param q2w: The second peak, specified in the same manner as the q1w.
+   :type sym: int
+   :param sym: The symmetry.
+
+      1: 2mm
+      2: 3
+      3: 3m
+      4: 4
+      5: 4mm
+
+   :type shear: int, default 0
+   :param shear: The shear direction, 0 for x, 1 for y.
+   :type endeffect: int, default 2
+   :param endeffect: How to handle the ends of the wave.
+
+      0:   Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+      1:   Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+      2:   Zero (default). Uses 0 for any missing value.
+      3:   Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].
+
+   :rtype: wave
+   :return: Symmetrized wave
+
+.. function:: SIDAMGetBias(w, dim)
+
+   Return a wave of unevenly-spaced bias values
+
+   :type w: wave
+   :param w: A 3D wave having unevenly-spaced bias info
+   :type dim: int
+   :param dim: 1 or 2.
+
+      1. The returned wave contains unevely spaced biases as they are.
+         This is used as an x wave to display a trace.
+      2. The returned wave contains average two neighboring layers.
+         This is used as an x wave or a y wave to display an image.
+
+   :rtype: wave
+   :return: a 1D wave, or a null wave for any error
+
+.. function:: SIDAMGetLayerIndex(grfName, [w])
+
+   Get the index of a 3D wave shown in a window
+
+   :type grfName: string
+   :param grfName: The name of window
+   :type w: wave, default wave of the top image
+   :param w: The 3D wave to get the index.
+
+   :rtype: variable
+   :return: The index of displayed layer. If no 3D wave is shown, nan is returned.
+
+.. function:: SIDAMHistogram(w, [startz, endz, deltaz, bins, cumulative, normalize, cmplxmode])
+
+   Generate a histogram of the input wave.
+   When the input wave is 3D, the histogram is generated layer by layer.
+
+   :type w: wave
+   :param w: The input wave, 2D or 3D.
+   :type startz: variable, default ``WaveMin(w)``
+   :param startz: The start value of a histogram.
+   :type endz: variable, default ``WaveMax(w)``
+   :param endz: The end value of a histogram.
+   :type deltaz: variable
+   :param deltaz: The width of a bin. Unless given, ``endz`` is used.
+   :type bins: int, default 64
+   :param bins: The number of bins.
+   :type cumulative: int, default 0
+   :param cumulative: Set !0 for a cumulative histogram.
+   :type normalize: int, default 1
+   :param normalize: Set !0 to normalize a histogram.
+   :type cmplxmode: int, default 0
+   :param cmplxmode: Select a mode for a complex input wave. 0 for amplitude, 1 for real, 2 for imaginary, 3 for phase.
+
+   :rtype: wave
+   :return: Histogram wave
+
+.. function:: SIDAMIndexToScale(w, index, dim)
+
+   Extension of ``IndexToScale()`` that includes unevenly-spaced bias
+
+   :type w: wave
+   :param w: A wave
+   :type index: int
+   :param index: A index number
+   :type dim: int
+   :param dim: A dimension number from 0 to 3
+
+   :rtype: variable
+   :return: The scaled coordinate value
+
+.. function:: SIDAMInfoBar(grfName)
+
+   Show the information bar
+
+   :type grfName: string
+   :param grfName: The name of window to show the information bar.
+
+.. function:: SIDAMLayerAnnotation(legendStr, [grfName, imgName, digit, unit, sign, prefix])
+
+   Add an annotation text following the layer value of an image.
+
+   :type legendStr: string
+   :param legendStr: Legend string. If empty, stop updating the layer annotation.
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of window.
+   :type imgName: string, default ``StringFromList(0, ImageNameList(grfName, ";"))``
+   :param imgName: The name of image.
+   :type digit: int, default 0
+   :param digit: The number of digits after the decimal point.
+   :type unit: int, default 1
+   :param unit: Set !0 to use the unit of the wave.
+   :type sign: int, default 1
+   :param sign: Set !0 to use "+" for positive values.
+   :type prefix: int, default 0
+   :param prefix: Set !0 to use prefix such as k and m.
+
+   :rtype: string
+   :return: The name of textbox.
+
+.. function:: SIDAMLineProfile(w, p1, q1, p2, q2, [width, output, basename])
+
+   Get a line profile of a wave along a trajectory line
+
+   :type w: wave
+   :param w: The input wave, 2D or 3D
+   :type p1: variable
+   :param p1:
+   :type q1: variable
+   :param q1: The position of the starting point (pixel)
+   :type p2: variable
+   :param p2:
+   :type q2: variable
+   :param q2: The position of the ending point (pixel)
+   :type width: variable, default 0
+   :param width: The width (diameter) of the line profile in pixels. This is the same as the width parameter of ``ImageLineProfile``.
+   :type output: int, default 0
+   :param output: Specify waves saved in addition to the profile wave. bit 0 : save waves of positions. bit 1 : save wave of standard deviation when the width > 0.
+   :type basename: string, default ""
+   :param basename: Name of the line profile wave and basename of additional waves (when the output > 0). If this is specified, output waves are save in the data folder where the input wave is.
+
+   :rtype: wave
+   :return: Line profile.
+
+.. function:: SIDAMLineSpectra(w, p1, q1, p2, q2, [mode, output, basename])
+
+   Get spectra along a trajectory line
+
+   :type w: wave
+   :param w: The 3D input wave
+   :type p1: variable
+   :param p1:
+   :type q1: variable
+   :param q1: The position of the starting point (pixel)
+   :type p2: variable
+   :param p2:
+   :type q2: variable
+   :param q2: The position of the ending point (pixel)
+   :type mode: int, default 0
+   :param mode: How to get spectra.
+
+      0. Take spectra from all the pixels on the trajectory line
+      1. Take a value at a pixel in either x or y direction
+         (depending on the angle of the trajectory line) and
+         interpolate in the other direction.
+      2. Use ``ImageLineProfile`` of Igor Pro.
+
+   :type output: int, default 0
+   :param output: 0 or !0. Set !0 to save waves of positions.
+   :type basename: string, default ""
+   :param basename: Name of the line profile wave and basename of additional waves (when the output != 0). If this is specified, output waves are save in the data folder where the input wave is.
+
+   :rtype: wave
+   :return: Spectra along the trajectory line
+
+.. function:: SIDAMLoadData(pathStr, [history])
+
+   Load data files
+
+   :type pathStr: string
+   :param pathStr: Path to a file or a directory. When a path to a directory is given, files under the directory are loaded recursively.
+   :type history: int
+   :param history: 0 or !0. Set !0 to print this command in the history.
+
+   :rtype: wave
+   :return: Loaded wave
+
+.. function:: SIDAMPeakPos(w, fitfn)
+
+   Find a peak position by fitting
+
+   :type w: wave
+   :param w: The input wave. If a marquee is shown, use the area specified by the marquee. If not, use the whole wave.
+   :type fitfn: int
+   :param fitfn: The fitting function, 0: asymGauss2D, 1: asymLor2D
+
+   :rtype: wave
+   :return: The fitting results are given as follows.
+
+      * offset : returnwave[%offset]
+      * amplitude : returnwave[%amplitude]
+      * peak position : returnwave[%xcenter], returnwave[%ycenter]
+      * peak width : returnwave[%xwidthpos], returnwave[%xwidthneg], returnwave[%ywidthpos], returnwave[%ywidthneg]
+      * peak angle : returnwave[%angle]
+
+.. function:: SIDAMPhaseAdjust(xw, yw, [suffix, order])
+
+   Numerically adjust the phase of lock-in x and y signals
+
+   :type xw: wave
+   :param xw: The input wave of x channel, 1D or 3D
+   :type yw: wave
+   :param yw: The input wave of y channel, 1D or 3D. The phase is rotated so that this channel becomes featureless.
+   :type suffix: string
+   :param suffix: The suffix of output waves. If this is given, phase-adjusted waves are saved in the datafolders where each of x and y wave is. The suffix is used for the name of saved waves.
+   :type order: int, default 1
+   :param order: When this is 0, the variance of yw is minimized. When this is 1, the variance of yw-(a*v+b) is minimized. (v is the bias voltage.)
+
+   :rtype: wave
+   :return: A wave reference wave containing phase-adjusted waves.
+
+      * x channel : returnwave[%x]
+      * y channel : returnwave[%y]
+      * angle : returnwave[%angle]
+
+.. function:: SIDAMPositionRecorder(grfName)
+
+   Show a panel to record positions.
+
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of window.
+
+   :rtype: variable
+   :return: 0 for normal exit, !0 for any error in input parameters
+
+.. function:: SIDAMRange([grfName, imgList, zmin, zmax, zminmode, zmaxmode])
+
+   Set a range of a color scale used for a image(s)
+
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of window.
+   :type imgList: string, default ``ImageNameList(grfName,";")``
+   :param imgList: The list of images.
+   :type zminmode: int, default 1
+   :param zminmode: The z mode for min.
+
+      0. auto
+      1. fix
+      2. sigma
+      3. cut
+      4. logsigma
+
+   :type zmaxmode: int, default 1
+   :param zmaxmode: The z mode for max. The numbers are the same as those for the zminmode.
+   :type zmin: variable
+   :param zmin: The minimum value of the range. When the zmaxmode is 2 or 3, this is a parameter of the mode.
+   :type zmax: variable
+   :param zmax: The maximum value of the range. When the zminmode is 2 or 3, this is a parameter of the mode.
+
+.. function:: SIDAMScaleToIndex(w, value, dim)
+
+   Extension of ``ScaleToIndex()`` that includes unevenly-spaced bias
+
+   :type w: wave
+   :param w: A wave
+   :type value: int
+   :param value: A scaled coordinate value
+   :type dim: int
+   :param dim: A dimension number from 0 to 3
+
+   :rtype: variable
+   :return: The index value
+
+.. function:: SIDAMScalebar([grfName, anchor, size, fgRGBA, bgRGBA])
+
+   Show a scale bar
+
+   :type grfName: string, default ``WinName(0,1)``
+   :param grfName: The name of a window.
+   :type anchor: string, {"LB", "LT", "RB", "RT"}
+   :param anchor: The position of the scale bar. If empty, delete the scale bar.
+   :type size: int
+   :param size: The font size (pt).
+   :type fgRGBA: wave
+   :param fgRGBA: The foreground color.
+   :type bgRGBA: wave
+   :param bgRGBA: The background color.
+
+
+.. function:: SIDAMSetBias(w, biasw)
+
+   Set information of unevenly spaced biases
+
+   :type w: wave
+   :param w: A 3D wave
+   :type biasw: wave
+   :param biasw: A 1D numeric wave containing bias values
+
+   :rtype: variable
+   :return: 0: Successfully copied, !0: Error
+
+.. function:: SIDAMSetLayerIndex(grfName, index, [w])
+
+   Set the index of a 3D wave shown in a window
+
+   :type grfName: string
+   :param grfName: The name of window
+   :type index: int
+   :param index: The index of layer
+   :type w: wave, default wave of the top image
+   :param w: The 3D wave to set the index.
+
+   :rtype: variable
+   :return: 0 if the index is correctly set. 1 if no 3D wave is shown.
+
+.. function:: SIDAMSubtraction(w, [roi, mode, degree, direction, method, index])
+
+   Subtract background
+
+   :type w: wave
+   :param w: The input wave, 2D or 3D
+   :type roi: wave
+   :param roi: The roi (region of interest) wave. This has the same number of rows and columns as the input wave and specifies a region of interst. Set the pixels to be included in the calculation to 1. Alternatively, a 2x2 wave specifying the corners of a rectanglar roi can be also used.
+   :type mode: int, default 0
+   :param mode: The subtract mode.
+
+      0. plane, subtract a polynomial plane/curve from a wave
+      1. line, subtract a value / a line from each row or column
+      2. layer, subtract a layer from a 3D wave
+      3. phase, subtract phase of a layer from a 3D complex wave
+
+   :type degree: int, default = 1 for mode=0, 0 for mode=1
+   :param degree: The degree of a subtracted plane/lines.
+   :type direction: int, default 0
+   :param direction: The direction of subtraction for mode=1. 0: x, 1: y.
+   :type method: int, default 0
+   :param method: 0 or 1. This is used for mode=1 to specify what to be subtracted from each line. 0: the average, 1: the median.
+   :type index: int, default 0
+   :param index: The layer index for mode=2 and 3
+
+   :rtype: wave
+   :return: A subtracted wave
+
+.. function:: SIDAMSyncAxisRange(syncWinList)
+
+   Synchronize the axis range of windows
+
+   :type syncWinList: string
+   :param syncWinList: The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.
+
+.. function:: SIDAMSyncCursor(syncWinList, [mode])
+
+   Synchronize the cursor position of windows
+
+   :type syncWinList: string
+   :param syncWinList: The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.
+   :type mode: int
+   :param mode: 0 or 1. 0 to synchronize in p and q, 1 to synchronize in x and y.
+
+.. function:: SIDAMSyncLayer(syncWinList)
+
+   Synchronize the layer shown in windows
+
+   :type syncWinList: string
+   :param syncWinList: The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.
+
+.. function:: SIDAMTraceColor([grfName, clrTab, STRUCT RGBColor &clr])
+
+   Set a color(s) of traces
+
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of window.
+   :type clrTab: string, default ""
+   :param clrTab: Name of a color table.
+   :type clr: STRUCT RGBColor, default clr.red = 0, clr.green = 0, clr.blue = 0
+   :param clr: Color of traces.
+
+.. function:: SIDAMTraceOffset([grfName, xoffset, yoffset, fill])
+
+   Set offsets of traces
+
+   :type grfName: string, default ``WinName(0,1,1)``
+   :param grfName: The name of window.
+   :type xoffset: variable
+   :param xoffset: The offset value in the x direction.
+   :type yoffset: variable
+   :param yoffset: The offset value in the y direction.
+   :type fill: int
+   :param fill: 0 or 0!. Set !0 to eliminate hidden lines.
+
+.. function:: SIDAMWorkfunction(w, [startp, endp, offset, basename])
+
+   Calculate the work function.
+
+   :type w: wave
+   :param w: The input wave, 1D or 3D
+   :type startp: int, default 0
+   :param startp: Range of fitting, start index
+   :type endp: int, default numpnts(w)-1 for 1D, DimSize(w,2)-1 for 3D
+   :param endp: Range of fitting, end index
+   :type offset: variable
+   :param offset: The offset of current. By default, this is a fitting parameter.
+   :type basename: string
+   :param basename: The basename of output waves. This is used when the input wave is 3D. If this is specified, output waves are saved in the data folder where the input wave is.
+
+   :rtype: wave
+   :return: For 1D input wave, a numeric wave is returned. For 3D input wave, a wave reference wave is returned. In both cases, the result can be referred as follows.
+
+      * work function : returnwave[%workfunction]
+      * current amplitude : returnwave[%amplitude]
+      * current offset : returnwave[%offset]
+      * chi-squared : returnwave[%chisq]
+
+.. function:: SIDAMisUnevenlySpacedBias(w)
+
+   Return if a 3D wave has unevenly-spaced biases info
+
+   :type w: wave
+   :param w: A 3D wave
+
+   :rtype: variable
+   :return: 0 for false, 1 for true, and -1 for error

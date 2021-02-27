@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SIDAM &mdash; SIDAMdoc  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command help" href="commands.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home"> SIDAMdoc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Command help</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">SIDAMdoc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>SIDAM</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sidam">
+<h1>SIDAM<a class="headerlink" href="#sidam" title="Permalink to this headline">¶</a></h1>
+<p><em>SIDAM</em> is a <strong>S</strong>pectroscopic <strong>I</strong>maging <strong>D</strong>ata <strong>A</strong>nalysis <strong>M</strong>acro written in Igor Pro.
+<em>SIDAM</em> is designed so that you can easily perform basic analyses and can concentrate on searching something new.
+You can use <em>SIDAM</em> via both GUI and CLI.
+Everything can be done from the menus and subsequent panels so you do not have to remember each command.
+At the same time, you can do the same thing by calling commands, meaning that you can incorporate SIDAM functions into your scripts.</p>
+<p>Here is a list of frequently used basic features:</p>
+<ul class="simple">
+<li><p>Flexible interactive viewer</p>
+<ul>
+<li><p>A spectrum or an image</p></li>
+<li><p>A spectrum or spectra along a line from a map</p></li>
+<li><p>A layer of map</p></li>
+<li><p>Line profiles</p></li>
+<li><p>Synchronize multiple images (axis range, layer index, and cursor position)</p></li>
+</ul>
+</li>
+<li><p>Color range adjustment (both fixed and flexible values)</p></li>
+<li><p>Color table selection (more than 100 tables are imported from outside)</p></li>
+<li><p>Background subtraction</p></li>
+<li><p>Fourier analysis</p>
+<ul>
+<li><p>Fourier transform</p></li>
+<li><p>Fourier filter</p></li>
+<li><p>Symmetrize Fourier transform</p></li>
+</ul>
+</li>
+<li><p>Correlation</p></li>
+<li><p>Histogram</p></li>
+<li><p>Work function</p></li>
+</ul>
+<div class="section" id="requirement">
+<h2>Requirement<a class="headerlink" href="#requirement" title="Permalink to this headline">¶</a></h2>
+<p>Igor Pro 8 or later.</p>
+</div>
+<div class="section" id="install-update-uninstall">
+<h2>Install/Update/Uninstall<a class="headerlink" href="#install-update-uninstall" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install">
+<h3>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h3>
+<p>After cloning or downloading the macro files, copy them to the designated folders.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>SIDAM/
+├ src/
+│  ├ SIDAM.ipf -&gt; Copy to Igor Procedures
+│  └ SIDAM/ -&gt; Copy to User Procedures
+├ script/
+└ LICENSE/
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>Copy <code class="docutils literal notranslate"><span class="pre">src/SIDAM.ipf</span></code> and <code class="docutils literal notranslate"><span class="pre">src/SIDAM</span></code> to the Igor Procedures folder and the
+User Procedures folder, respectively. If you don’t know where the folders are,
+choose <code class="docutils literal notranslate"><span class="pre">Help</span> <span class="pre">&gt;</span> <span class="pre">Show</span> <span class="pre">Igor</span> <span class="pre">Pro</span> <span class="pre">User</span> <span class="pre">Files</span></code> in Igor Pro.</p></li>
+<li><p>Restart Igor Pro, and choose <code class="docutils literal notranslate"><span class="pre">Macros</span> <span class="pre">&gt;</span> <span class="pre">SIDAM</span></code> in Igor Pro to start SIDAM.</p></li>
+</ol>
+<p>Instead of copying the file and folder, you can also make shortcuts or
+symbolic links of them in the designated folders.</p>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<p>Renew the macro files as follows.</p>
+<ol class="arabic simple">
+<li><p>Remove the SIDAM folder in the User Procedures folder. If you have added
+your own file in the extension folder, do not forget to keep them and move
+them back after 2.</p></li>
+<li><p>Overwrite SIDAM.ipf in the Igor Procedures and copy new SIDAM folder to the
+User Procedures folder. Do not overwrite the SIDAM folder because old files
+may be left and cause a compile error.</p></li>
+<li><p>Start the macro to update the file list. If you forget this and open an
+existing experiment file, a compile error may occur. In this case, stop
+opening the experiment file and start the macro in a new experiment file.</p></li>
+</ol>
+</div>
+<div class="section" id="uninstall">
+<h3>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
+<p>Remove all the files you copied when you installed.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Command help</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="commands.html" class="btn btn-neutral float-right" title="Command help" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Yuhki Kohsaka.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,967 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Command help &mdash; SIDAMdoc  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="SIDAM" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SIDAMdoc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command help</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SIDAMdoc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Command help</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/commands.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-help">
+<span id="api"></span><h1>Command help<a class="headerlink" href="#command-help" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="SIDAMColor">
+<code class="sig-name descname">SIDAMColor</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">imgList</em>, <em class="sig-param">ctable</em>, <em class="sig-param">rev</em>, <em class="sig-param">log</em>, <em class="sig-param">minRGB</em>, <em class="sig-param">maxRGB</em>, <em class="sig-param">history</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a color table to a image or a list of images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of a window.</p></li>
+<li><p><strong>imgList</strong> (string, default <code class="docutils literal notranslate"><span class="pre">ImageNameList(WinName(0,1,1),&quot;;&quot;)</span></code>) – The list of images. A single image is also accepted.</p></li>
+<li><p><strong>ctable</strong> (<em>string</em>) – The name of a color table or path to a color table wave. Unless specified, the present value is used.</p></li>
+<li><p><strong>rev</strong> (<em>int</em>) – 0 or !0. Set !0 to reverse the color table. Unless specified, the present value is used.</p></li>
+<li><p><strong>log</strong> (<em>int</em>) – 0 or !0. Set !0 to use logarithmically-spaced colors. Unless specified, the present value is used.</p></li>
+<li><p><strong>minRGB</strong> (<em>wave</em>) – <p>Set the color for values less than the minimum value of the range. Unless specified, the present value is used.</p>
+<ul>
+<li><p>{0} : use the color for the minimum value of the range.</p></li>
+<li><p>{NaN} : transparent.</p></li>
+<li><p>{r,g,b} : specify the color.</p></li>
+</ul>
+</p></li>
+<li><p><strong>maxRGB</strong> (<em>wave</em>) – <p>Set the color for values less than the maximum value of the range. Unless specified, the present value is used.</p>
+<ul>
+<li><p>{0} : use the color for the minimum value of the range.</p></li>
+<li><p>{NaN} : transparent.</p></li>
+<li><p>{r,g,b} : specify the color.</p></li>
+</ul>
+</p></li>
+<li><p><strong>history</strong> (<em>int</em><em>, </em><em>default 0</em>) – 0 or !0. Set !0 to print this command in the history.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0 for normal exit, !0 for any error in input parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMCopyBias">
+<code class="sig-name descname">SIDAMCopyBias</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">srcw</span></em>, <em class="sig-param"><span class="n">destw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMCopyBias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy unevevly-spaced bias info from one to another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcw</strong> (<em>wave</em>) – A source 3D wave</p></li>
+<li><p><strong>destw</strong> (<em>wave</em>) – A destination 3D wave</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0: Successfully copied, 1: Error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMCorrelation">
+<code class="sig-name descname">SIDAMCorrelation</code><span class="sig-paren">(</span><em class="sig-param">src</em><span class="optional">[</span>, <em class="sig-param">dest</em>, <em class="sig-param">subtract</em>, <em class="sig-param">normalize</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate correlation function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> (<em>wave</em>) – The source wave, 2D or 3D.</p></li>
+<li><p><strong>dest</strong> (<em>wave</em><em>, </em><em>default</em><em>, </em><em>the source wave</em>) – The destination wave that has the same dimension as the source wave. When the source wave is 3D, a 2D wave that has the same dimension in the x and y directions is also allowed.</p></li>
+<li><p><strong>subtract</strong> (<em>int</em><em>, </em><em>default 1</em>) – Set !0 to subtract the average before the calculation. For a 3D wave, the average of each layer is subtracted.</p></li>
+<li><p><strong>normalize</strong> (<em>int</em><em>, </em><em>default 1</em>) – Set !0 to normalize the result. For a 3D wave, the result is normalized layer-by-layer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Correlation wave. When the destination wave is the same as the source wave, this is the auto correlation of the source wave.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMDisplay">
+<code class="sig-name descname">SIDAMDisplay</code><span class="sig-paren">(</span><em class="sig-param">w</em><span class="optional">[</span>, <em class="sig-param">traces</em>, <em class="sig-param">history</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMDisplay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show a trace of 1D wave, an image of 2D wave, and a layer of
+of 3D wave</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – A numeric wave, or a refrence wave containing references to numeric waves.</p></li>
+<li><p><strong>traces</strong> (<em>int</em><em>, </em><em>default 0</em>) – <p>0, 1, or 2.</p>
+<ol class="arabic simple" start="0">
+<li><p>Normal</p></li>
+<li><p>Show a 2D waves as traces.
+1st dimension is <code class="docutils literal notranslate"><span class="pre">x</span></code>, and the number of traces is <code class="docutils literal notranslate"><span class="pre">DimSize(w,1)</span></code>.</p></li>
+<li><p>Append a 2D wave (2,n) as a trace to a graph.
+The dimension labels (<code class="docutils literal notranslate"><span class="pre">%x</span></code> and <code class="docutils literal notranslate"><span class="pre">%y</span></code>, or <code class="docutils literal notranslate"><span class="pre">%p</span></code> and <code class="docutils literal notranslate"><span class="pre">%q</span></code>) must
+be appropriately given. Then this works as
+<code class="docutils literal notranslate"><span class="pre">AppendToGraph</span> <span class="pre">w[%y][]</span> <span class="pre">vs</span> <span class="pre">w[%x][]</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">AppendToGraph</span> <span class="pre">w[%q][]</span> <span class="pre">vs</span> <span class="pre">w[%p][]</span></code>.</p></li>
+</ol>
+</p></li>
+<li><p><strong>history</strong> (<em>int</em><em>, </em><em>default 0</em>) – 0 or !0. Set !0 to print this command in the history.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The name of window</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMExportGraphicsTransparent">
+<code class="sig-name descname">SIDAMExportGraphicsTransparent</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">size</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMExportGraphicsTransparent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the window to the clipboard with transparent background</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1)</span></code>) – The name of window</p></li>
+<li><p><strong>size</strong> (<em>variable</em>) – The size of copied image</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMFFT">
+<code class="sig-name descname">SIDAMFFT</code><span class="sig-paren">(</span><em class="sig-param">w</em><span class="optional">[</span>, <em class="sig-param">win</em>, <em class="sig-param">out</em>, <em class="sig-param">subtract</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMFFT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the discrite Fourier transform of the input wave.
+When the input wave is 3D, the histogram is generated layer by layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 2D or 3D.</p></li>
+<li><p><strong>win</strong> (<em>string</em><em>, </em><em>default &quot;none&quot;</em>) – An image window function.</p></li>
+<li><p><strong>out</strong> (<em>int</em><em>, </em><em>default 3</em>) – <p>The Output mode of FFT.</p>
+<ol class="arabic simple">
+<li><p>complex</p></li>
+<li><p>real</p></li>
+<li><p>magnitude</p></li>
+<li><p>magnitude squared</p></li>
+<li><p>phase</p></li>
+<li><p>imaginary</p></li>
+</ol>
+</p></li>
+<li><p><strong>subtract</strong> (<em>int</em><em>, </em><em>default 0</em>) – Set !0 to subtract the average before FFT. For a 3D wave, the average of each layer is subtracted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Fourier-transformed wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMFilter">
+<code class="sig-name descname">SIDAMFilter</code><span class="sig-paren">(</span><em class="sig-param">srcw</em>, <em class="sig-param">paramw</em><span class="optional">[</span>, <em class="sig-param">invert</em>, <em class="sig-param">endeffect</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply Fourier filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>srcw</strong> (<em>wave</em>) – The input wave, 2D or 3D.</p></li>
+<li><p><strong>paramw</strong> (<em>wave</em>) – The filter parameters.</p></li>
+<li><p><strong>invert</strong> (<em>int</em><em>, </em><em>default 0</em>) – 0 or !0. 0 for passing the filter areas, and !0 for cutting the filter areas.</p></li>
+<li><p><strong>endeffect</strong> (<em>int</em><em>, </em><em>default 1</em>) – <p>How to handle the ends of the wave.</p>
+<p>0:   Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+1:   Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+2:   Zero (default). Uses 0 for any missing value.
+3:   Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>filtered wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMFourierSym">
+<code class="sig-name descname">SIDAMFourierSym</code><span class="sig-paren">(</span><em class="sig-param">w</em>, <em class="sig-param">q1w</em>, <em class="sig-param">q2w</em>, <em class="sig-param">sym</em><span class="optional">[</span>, <em class="sig-param">shear</em>, <em class="sig-param">endeffect</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMFourierSym" title="Permalink to this definition">¶</a></dt>
+<dd><p>Symmetrize Fourier transform based on symmetry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 2D or 3D.</p></li>
+<li><p><strong>q1w</strong> (<em>wave</em>) – The first peak, {qx, qy, a}. The (qx, qy) is the peak position in pixel. The a is the “ideal” real-space length corresponding to the peak.</p></li>
+<li><p><strong>q2w</strong> (<em>wave</em>) – The second peak, specified in the same manner as the q1w.</p></li>
+<li><p><strong>sym</strong> (<em>int</em>) – <p>The symmetry.</p>
+<p>1: 2mm
+2: 3
+3: 3m
+4: 4
+5: 4mm</p>
+</p></li>
+<li><p><strong>shear</strong> (<em>int</em><em>, </em><em>default 0</em>) – The shear direction, 0 for x, 1 for y.</p></li>
+<li><p><strong>endeffect</strong> (<em>int</em><em>, </em><em>default 2</em>) – <p>How to handle the ends of the wave.</p>
+<p>0:   Bounce. Uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].
+1:   Wrap. Uses w[n-i] in place of the missing w[-i] and vice-versa.
+2:   Zero (default). Uses 0 for any missing value.
+3:   Repeat. Uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Symmetrized wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMGetBias">
+<code class="sig-name descname">SIDAMGetBias</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">dim</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMGetBias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a wave of unevenly-spaced bias values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – A 3D wave having unevenly-spaced bias info</p></li>
+<li><p><strong>dim</strong> (<em>int</em>) – <p>1 or 2.</p>
+<ol class="arabic simple">
+<li><p>The returned wave contains unevely spaced biases as they are.
+This is used as an x wave to display a trace.</p></li>
+<li><p>The returned wave contains average two neighboring layers.
+This is used as an x wave or a y wave to display an image.</p></li>
+</ol>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a 1D wave, or a null wave for any error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMGetLayerIndex">
+<code class="sig-name descname">SIDAMGetLayerIndex</code><span class="sig-paren">(</span><em class="sig-param">grfName</em><span class="optional">[</span>, <em class="sig-param">w</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMGetLayerIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the index of a 3D wave shown in a window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (<em>string</em>) – The name of window</p></li>
+<li><p><strong>w</strong> (<em>wave</em><em>, </em><em>default wave of the top image</em>) – The 3D wave to get the index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The index of displayed layer. If no 3D wave is shown, nan is returned.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMHistogram">
+<code class="sig-name descname">SIDAMHistogram</code><span class="sig-paren">(</span><em class="sig-param">w</em><span class="optional">[</span>, <em class="sig-param">startz</em>, <em class="sig-param">endz</em>, <em class="sig-param">deltaz</em>, <em class="sig-param">bins</em>, <em class="sig-param">cumulative</em>, <em class="sig-param">normalize</em>, <em class="sig-param">cmplxmode</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMHistogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a histogram of the input wave.
+When the input wave is 3D, the histogram is generated layer by layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 2D or 3D.</p></li>
+<li><p><strong>startz</strong> (variable, default <code class="docutils literal notranslate"><span class="pre">WaveMin(w)</span></code>) – The start value of a histogram.</p></li>
+<li><p><strong>endz</strong> (variable, default <code class="docutils literal notranslate"><span class="pre">WaveMax(w)</span></code>) – The end value of a histogram.</p></li>
+<li><p><strong>deltaz</strong> (<em>variable</em>) – The width of a bin. Unless given, <code class="docutils literal notranslate"><span class="pre">endz</span></code> is used.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em>, </em><em>default 64</em>) – The number of bins.</p></li>
+<li><p><strong>cumulative</strong> (<em>int</em><em>, </em><em>default 0</em>) – Set !0 for a cumulative histogram.</p></li>
+<li><p><strong>normalize</strong> (<em>int</em><em>, </em><em>default 1</em>) – Set !0 to normalize a histogram.</p></li>
+<li><p><strong>cmplxmode</strong> (<em>int</em><em>, </em><em>default 0</em>) – Select a mode for a complex input wave. 0 for amplitude, 1 for real, 2 for imaginary, 3 for phase.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Histogram wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMIndexToScale">
+<code class="sig-name descname">SIDAMIndexToScale</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">dim</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMIndexToScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension of <code class="docutils literal notranslate"><span class="pre">IndexToScale()</span></code> that includes unevenly-spaced bias</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – A wave</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – A index number</p></li>
+<li><p><strong>dim</strong> (<em>int</em>) – A dimension number from 0 to 3</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The scaled coordinate value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMInfoBar">
+<code class="sig-name descname">SIDAMInfoBar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grfName</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMInfoBar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the information bar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grfName</strong> (<em>string</em>) – The name of window to show the information bar.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMLayerAnnotation">
+<code class="sig-name descname">SIDAMLayerAnnotation</code><span class="sig-paren">(</span><em class="sig-param">legendStr</em><span class="optional">[</span>, <em class="sig-param">grfName</em>, <em class="sig-param">imgName</em>, <em class="sig-param">digit</em>, <em class="sig-param">unit</em>, <em class="sig-param">sign</em>, <em class="sig-param">prefix</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMLayerAnnotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an annotation text following the layer value of an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>legendStr</strong> (<em>string</em>) – Legend string. If empty, stop updating the layer annotation.</p></li>
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of window.</p></li>
+<li><p><strong>imgName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">StringFromList(0,</span> <span class="pre">ImageNameList(grfName,</span> <span class="pre">&quot;;&quot;))</span></code>) – The name of image.</p></li>
+<li><p><strong>digit</strong> (<em>int</em><em>, </em><em>default 0</em>) – The number of digits after the decimal point.</p></li>
+<li><p><strong>unit</strong> (<em>int</em><em>, </em><em>default 1</em>) – Set !0 to use the unit of the wave.</p></li>
+<li><p><strong>sign</strong> (<em>int</em><em>, </em><em>default 1</em>) – Set !0 to use “+” for positive values.</p></li>
+<li><p><strong>prefix</strong> (<em>int</em><em>, </em><em>default 0</em>) – Set !0 to use prefix such as k and m.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>string</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The name of textbox.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMLineProfile">
+<code class="sig-name descname">SIDAMLineProfile</code><span class="sig-paren">(</span><em class="sig-param">w</em>, <em class="sig-param">p1</em>, <em class="sig-param">q1</em>, <em class="sig-param">p2</em>, <em class="sig-param">q2</em><span class="optional">[</span>, <em class="sig-param">width</em>, <em class="sig-param">output</em>, <em class="sig-param">basename</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMLineProfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a line profile of a wave along a trajectory line</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 2D or 3D</p></li>
+<li><p><strong>p1</strong> (<em>variable</em>) – </p></li>
+<li><p><strong>q1</strong> (<em>variable</em>) – The position of the starting point (pixel)</p></li>
+<li><p><strong>p2</strong> (<em>variable</em>) – </p></li>
+<li><p><strong>q2</strong> (<em>variable</em>) – The position of the ending point (pixel)</p></li>
+<li><p><strong>width</strong> (<em>variable</em><em>, </em><em>default 0</em>) – The width (diameter) of the line profile in pixels. This is the same as the width parameter of <code class="docutils literal notranslate"><span class="pre">ImageLineProfile</span></code>.</p></li>
+<li><p><strong>output</strong> (<em>int</em><em>, </em><em>default 0</em>) – Specify waves saved in addition to the profile wave. bit 0 : save waves of positions. bit 1 : save wave of standard deviation when the width &gt; 0.</p></li>
+<li><p><strong>basename</strong> (<em>string</em><em>, </em><em>default &quot;&quot;</em>) – Name of the line profile wave and basename of additional waves (when the output &gt; 0). If this is specified, output waves are save in the data folder where the input wave is.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Line profile.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMLineSpectra">
+<code class="sig-name descname">SIDAMLineSpectra</code><span class="sig-paren">(</span><em class="sig-param">w</em>, <em class="sig-param">p1</em>, <em class="sig-param">q1</em>, <em class="sig-param">p2</em>, <em class="sig-param">q2</em><span class="optional">[</span>, <em class="sig-param">mode</em>, <em class="sig-param">output</em>, <em class="sig-param">basename</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMLineSpectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get spectra along a trajectory line</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The 3D input wave</p></li>
+<li><p><strong>p1</strong> (<em>variable</em>) – </p></li>
+<li><p><strong>q1</strong> (<em>variable</em>) – The position of the starting point (pixel)</p></li>
+<li><p><strong>p2</strong> (<em>variable</em>) – </p></li>
+<li><p><strong>q2</strong> (<em>variable</em>) – The position of the ending point (pixel)</p></li>
+<li><p><strong>mode</strong> (<em>int</em><em>, </em><em>default 0</em>) – <p>How to get spectra.</p>
+<ol class="arabic simple" start="0">
+<li><p>Take spectra from all the pixels on the trajectory line</p></li>
+<li><p>Take a value at a pixel in either x or y direction
+(depending on the angle of the trajectory line) and
+interpolate in the other direction.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">ImageLineProfile</span></code> of Igor Pro.</p></li>
+</ol>
+</p></li>
+<li><p><strong>output</strong> (<em>int</em><em>, </em><em>default 0</em>) – 0 or !0. Set !0 to save waves of positions.</p></li>
+<li><p><strong>basename</strong> (<em>string</em><em>, </em><em>default &quot;&quot;</em>) – Name of the line profile wave and basename of additional waves (when the output != 0). If this is specified, output waves are save in the data folder where the input wave is.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Spectra along the trajectory line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMLoadData">
+<code class="sig-name descname">SIDAMLoadData</code><span class="sig-paren">(</span><em class="sig-param">pathStr</em><span class="optional">[</span>, <em class="sig-param">history</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMLoadData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pathStr</strong> (<em>string</em>) – Path to a file or a directory. When a path to a directory is given, files under the directory are loaded recursively.</p></li>
+<li><p><strong>history</strong> (<em>int</em>) – 0 or !0. Set !0 to print this command in the history.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Loaded wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMPeakPos">
+<code class="sig-name descname">SIDAMPeakPos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">fitfn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMPeakPos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a peak position by fitting</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave. If a marquee is shown, use the area specified by the marquee. If not, use the whole wave.</p></li>
+<li><p><strong>fitfn</strong> (<em>int</em>) – The fitting function, 0: asymGauss2D, 1: asymLor2D</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>The fitting results are given as follows.</p>
+<ul class="simple">
+<li><p>offset : returnwave[%offset]</p></li>
+<li><p>amplitude : returnwave[%amplitude]</p></li>
+<li><p>peak position : returnwave[%xcenter], returnwave[%ycenter]</p></li>
+<li><p>peak width : returnwave[%xwidthpos], returnwave[%xwidthneg], returnwave[%ywidthpos], returnwave[%ywidthneg]</p></li>
+<li><p>peak angle : returnwave[%angle]</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMPhaseAdjust">
+<code class="sig-name descname">SIDAMPhaseAdjust</code><span class="sig-paren">(</span><em class="sig-param">xw</em>, <em class="sig-param">yw</em><span class="optional">[</span>, <em class="sig-param">suffix</em>, <em class="sig-param">order</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMPhaseAdjust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numerically adjust the phase of lock-in x and y signals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xw</strong> (<em>wave</em>) – The input wave of x channel, 1D or 3D</p></li>
+<li><p><strong>yw</strong> (<em>wave</em>) – The input wave of y channel, 1D or 3D. The phase is rotated so that this channel becomes featureless.</p></li>
+<li><p><strong>suffix</strong> (<em>string</em>) – The suffix of output waves. If this is given, phase-adjusted waves are saved in the datafolders where each of x and y wave is. The suffix is used for the name of saved waves.</p></li>
+<li><p><strong>order</strong> (<em>int</em><em>, </em><em>default 1</em>) – When this is 0, the variance of yw is minimized. When this is 1, the variance of yw-(a*v+b) is minimized. (v is the bias voltage.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>A wave reference wave containing phase-adjusted waves.</p>
+<ul class="simple">
+<li><p>x channel : returnwave[%x]</p></li>
+<li><p>y channel : returnwave[%y]</p></li>
+<li><p>angle : returnwave[%angle]</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMPositionRecorder">
+<code class="sig-name descname">SIDAMPositionRecorder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grfName</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMPositionRecorder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show a panel to record positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of window.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0 for normal exit, !0 for any error in input parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMRange">
+<code class="sig-name descname">SIDAMRange</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">imgList</em>, <em class="sig-param">zmin</em>, <em class="sig-param">zmax</em>, <em class="sig-param">zminmode</em>, <em class="sig-param">zmaxmode</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a range of a color scale used for a image(s)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of window.</p></li>
+<li><p><strong>imgList</strong> (string, default <code class="docutils literal notranslate"><span class="pre">ImageNameList(grfName,&quot;;&quot;)</span></code>) – The list of images.</p></li>
+<li><p><strong>zminmode</strong> (<em>int</em><em>, </em><em>default 1</em>) – <p>The z mode for min.</p>
+<ol class="arabic simple" start="0">
+<li><p>auto</p></li>
+<li><p>fix</p></li>
+<li><p>sigma</p></li>
+<li><p>cut</p></li>
+<li><p>logsigma</p></li>
+</ol>
+</p></li>
+<li><p><strong>zmaxmode</strong> (<em>int</em><em>, </em><em>default 1</em>) – The z mode for max. The numbers are the same as those for the zminmode.</p></li>
+<li><p><strong>zmin</strong> (<em>variable</em>) – The minimum value of the range. When the zmaxmode is 2 or 3, this is a parameter of the mode.</p></li>
+<li><p><strong>zmax</strong> (<em>variable</em>) – The maximum value of the range. When the zminmode is 2 or 3, this is a parameter of the mode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMScaleToIndex">
+<code class="sig-name descname">SIDAMScaleToIndex</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">dim</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMScaleToIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension of <code class="docutils literal notranslate"><span class="pre">ScaleToIndex()</span></code> that includes unevenly-spaced bias</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – A wave</p></li>
+<li><p><strong>value</strong> (<em>int</em>) – A scaled coordinate value</p></li>
+<li><p><strong>dim</strong> (<em>int</em>) – A dimension number from 0 to 3</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The index value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMScalebar">
+<code class="sig-name descname">SIDAMScalebar</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">anchor</em>, <em class="sig-param">size</em>, <em class="sig-param">fgRGBA</em>, <em class="sig-param">bgRGBA</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMScalebar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show a scale bar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1)</span></code>) – The name of a window.</p></li>
+<li><p><strong>anchor</strong> (<em>string</em><em>, </em><em>{&quot;LB&quot;</em><em>, </em><em>&quot;LT&quot;</em><em>, </em><em>&quot;RB&quot;</em><em>, </em><em>&quot;RT&quot;}</em>) – The position of the scale bar. If empty, delete the scale bar.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – The font size (pt).</p></li>
+<li><p><strong>fgRGBA</strong> (<em>wave</em>) – The foreground color.</p></li>
+<li><p><strong>bgRGBA</strong> (<em>wave</em>) – The background color.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSetBias">
+<code class="sig-name descname">SIDAMSetBias</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">biasw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSetBias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set information of unevenly spaced biases</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – A 3D wave</p></li>
+<li><p><strong>biasw</strong> (<em>wave</em>) – A 1D numeric wave containing bias values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0: Successfully copied, !0: Error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSetLayerIndex">
+<code class="sig-name descname">SIDAMSetLayerIndex</code><span class="sig-paren">(</span><em class="sig-param">grfName</em>, <em class="sig-param">index</em><span class="optional">[</span>, <em class="sig-param">w</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSetLayerIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the index of a 3D wave shown in a window</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (<em>string</em>) – The name of window</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – The index of layer</p></li>
+<li><p><strong>w</strong> (<em>wave</em><em>, </em><em>default wave of the top image</em>) – The 3D wave to set the index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0 if the index is correctly set. 1 if no 3D wave is shown.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSubtraction">
+<code class="sig-name descname">SIDAMSubtraction</code><span class="sig-paren">(</span><em class="sig-param">w</em><span class="optional">[</span>, <em class="sig-param">roi</em>, <em class="sig-param">mode</em>, <em class="sig-param">degree</em>, <em class="sig-param">direction</em>, <em class="sig-param">method</em>, <em class="sig-param">index</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSubtraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subtract background</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 2D or 3D</p></li>
+<li><p><strong>roi</strong> (<em>wave</em>) – The roi (region of interest) wave. This has the same number of rows and columns as the input wave and specifies a region of interst. Set the pixels to be included in the calculation to 1. Alternatively, a 2x2 wave specifying the corners of a rectanglar roi can be also used.</p></li>
+<li><p><strong>mode</strong> (<em>int</em><em>, </em><em>default 0</em>) – <p>The subtract mode.</p>
+<ol class="arabic simple" start="0">
+<li><p>plane, subtract a polynomial plane/curve from a wave</p></li>
+<li><p>line, subtract a value / a line from each row or column</p></li>
+<li><p>layer, subtract a layer from a 3D wave</p></li>
+<li><p>phase, subtract phase of a layer from a 3D complex wave</p></li>
+</ol>
+</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>default = 1 for mode=0</em><em>, </em><em>0 for mode=1</em>) – The degree of a subtracted plane/lines.</p></li>
+<li><p><strong>direction</strong> (<em>int</em><em>, </em><em>default 0</em>) – The direction of subtraction for mode=1. 0: x, 1: y.</p></li>
+<li><p><strong>method</strong> (<em>int</em><em>, </em><em>default 0</em>) – 0 or 1. This is used for mode=1 to specify what to be subtracted from each line. 0: the average, 1: the median.</p></li>
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>default 0</em>) – The layer index for mode=2 and 3</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A subtracted wave</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSyncAxisRange">
+<code class="sig-name descname">SIDAMSyncAxisRange</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">syncWinList</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSyncAxisRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronize the axis range of windows</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>syncWinList</strong> (<em>string</em>) – The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSyncCursor">
+<code class="sig-name descname">SIDAMSyncCursor</code><span class="sig-paren">(</span><em class="sig-param">syncWinList</em><span class="optional">[</span>, <em class="sig-param">mode</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSyncCursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronize the cursor position of windows</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>syncWinList</strong> (<em>string</em>) – The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.</p></li>
+<li><p><strong>mode</strong> (<em>int</em>) – 0 or 1. 0 to synchronize in p and q, 1 to synchronize in x and y.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMSyncLayer">
+<code class="sig-name descname">SIDAMSyncLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">syncWinList</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMSyncLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronize the layer shown in windows</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>syncWinList</strong> (<em>string</em>) – The list of windows to be synchronized. If a window(s) that is not synchronized, it is synchronized with the remaining windows. If all the windows are synchronized, stop synchronization.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMTraceColor">
+<code class="sig-name descname">SIDAMTraceColor</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">clrTab</em>, <em class="sig-param">STRUCT RGBColor &amp;clr</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMTraceColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a color(s) of traces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of window.</p></li>
+<li><p><strong>clrTab</strong> (<em>string</em><em>, </em><em>default &quot;&quot;</em>) – Name of a color table.</p></li>
+<li><p><strong>clr</strong> (<em>STRUCT RGBColor</em><em>, </em><em>default clr.red = 0</em><em>, </em><em>clr.green = 0</em><em>, </em><em>clr.blue = 0</em>) – Color of traces.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMTraceOffset">
+<code class="sig-name descname">SIDAMTraceOffset</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">grfName</em>, <em class="sig-param">xoffset</em>, <em class="sig-param">yoffset</em>, <em class="sig-param">fill</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMTraceOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set offsets of traces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grfName</strong> (string, default <code class="docutils literal notranslate"><span class="pre">WinName(0,1,1)</span></code>) – The name of window.</p></li>
+<li><p><strong>xoffset</strong> (<em>variable</em>) – The offset value in the x direction.</p></li>
+<li><p><strong>yoffset</strong> (<em>variable</em>) – The offset value in the y direction.</p></li>
+<li><p><strong>fill</strong> (<em>int</em>) – 0 or 0!. Set !0 to eliminate hidden lines.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMWorkfunction">
+<code class="sig-name descname">SIDAMWorkfunction</code><span class="sig-paren">(</span><em class="sig-param">w</em><span class="optional">[</span>, <em class="sig-param">startp</em>, <em class="sig-param">endp</em>, <em class="sig-param">offset</em>, <em class="sig-param">basename</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMWorkfunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the work function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>wave</em>) – The input wave, 1D or 3D</p></li>
+<li><p><strong>startp</strong> (<em>int</em><em>, </em><em>default 0</em>) – Range of fitting, start index</p></li>
+<li><p><strong>endp</strong> (<em>int</em><em>, </em><em>default numpnts</em><em>(</em><em>w</em><em>)</em><em>-1 for 1D</em><em>, </em><em>DimSize</em><em>(</em><em>w</em><em>,</em><em>2</em><em>)</em><em>-1 for 3D</em>) – Range of fitting, end index</p></li>
+<li><p><strong>offset</strong> (<em>variable</em>) – The offset of current. By default, this is a fitting parameter.</p></li>
+<li><p><strong>basename</strong> (<em>string</em>) – The basename of output waves. This is used when the input wave is 3D. If this is specified, output waves are saved in the data folder where the input wave is.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>wave</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>For 1D input wave, a numeric wave is returned. For 3D input wave, a wave reference wave is returned. In both cases, the result can be referred as follows.</p>
+<ul class="simple">
+<li><p>work function : returnwave[%workfunction]</p></li>
+<li><p>current amplitude : returnwave[%amplitude]</p></li>
+<li><p>current offset : returnwave[%offset]</p></li>
+<li><p>chi-squared : returnwave[%chisq]</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SIDAMisUnevenlySpacedBias">
+<code class="sig-name descname">SIDAMisUnevenlySpacedBias</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">w</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SIDAMisUnevenlySpacedBias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if a 3D wave has unevenly-spaced biases info</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w</strong> (<em>wave</em>) – A 3D wave</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>variable</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>0 for false, 1 for true, and -1 for error</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="SIDAM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Yuhki Kohsaka.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
