@@ -3,7 +3,7 @@ import pathlib
 import re
 
 # path seen from the directory where the Makefile is.
-BASEPATH = '../src/SIDAM/func'
+BASEPATH = '../src/SIDAM'
 OUTPUT = './source/commands.rst'
 
 def _docs_from_file(filename: str) -> dict[str, str]:

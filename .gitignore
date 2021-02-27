@@ -1,6 +1,7 @@
 # extension
 src/SIDAM/extension/*
 !src/SIDAM/extension/readme.md
+!src/SIDAM/extension/SIDAM_PhaseAdjust.ipf
 
 # ctab
 src/SIDAM/ctab/*
