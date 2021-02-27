@@ -70,13 +70,17 @@ Function/WAVE SIDAMWorkfunction(Wave/Z w, [int startp, int endp,
 	Wave/WAVE refw = wf3D(w, s.startp, s.endp, s.offset)
 	
 	if (!ParamIsDefault(basename) && strlen(basename))
-		DFREF dfr = GetWavesDataFolderDFR(w)
-		Duplicate/O refw[%amplitude] dfr:$(basename+SUFFIX_AMP)
-		Duplicate/O refw[%workfunction] dfr:$(basename+SUFFIX_WF)
-		Duplicate/O refw[%chisq] dfr:$(basename+SUFFIX_CHISQ)
-		Duplicate/O refw[%fiterror] dfr:$(basename+SUFFIX_ERROR)
-		Duplicate/O refw[%fitquitreason] dfr:$(basename+SUFFIX_QUIT)
+		DFREF dfrSav = GetDataFolderDFR()
+		SetDataFolder GetWavesDataFolderDFR(w)
+		saveResults(refw, "amplitude", basename+SUFFIX_AMP)
+		saveResults(refw, "workfunction", basename+SUFFIX_WF)
+		saveResults(refw, "chisq", basename+SUFFIX_CHISQ)
+		saveResults(refw, "fiterror", basename+SUFFIX_ERROR)
+		saveResults(refw, "fitquitreason", basename+SUFFIX_QUIT)
+		SetDataFolder dfrSav
 	endif
+	
+	return refw
 End
 
 Static Function validate(STRUCT paramStruct &s)
@@ -135,6 +139,11 @@ Static Function/S echoStr(Wave w, int startp, int endp, Variable offset,
 	paramStr += SelectString(strlen(basename),"",",basename=\""+basename+"\"")
 	Sprintf paramStr, "SIDAMWorkfunction(%s)", paramStr
 	return paramStr
+End
+
+Static Function saveResults(Wave/WAVE refw, String key, String name)
+	Duplicate/O refw[%$key] $name
+	refw[%$key] = $name
 End
 
 Static Function menuDo()
