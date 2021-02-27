@@ -2,6 +2,10 @@
 #pragma rtGlobals=3
 #pragma moduleName = KMScaleBar
 
+#ifndef SIDAMshowProc
+#pragma hide = 1
+#endif
+
 #include "SIDAM_ScaleBar"
 
 //	This is for backward compatibility
