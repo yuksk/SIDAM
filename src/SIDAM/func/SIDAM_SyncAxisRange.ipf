@@ -94,8 +94,13 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			int i, n = ItemsInList(list)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i,list)
-				fnName = SIDAMSync#pause(win, SYNCKEY)
 				SIDAMGetAxis(win, topName(win), axis1)
+				//	This is necessary to prevent a loop caused by mutual calling
+				if (axis0.xmin == axis1.xmin && axis0.xmax == axis1.xmax \
+					&& axis0.ymin == axis1.ymin && axis0.ymax == axis1.ymax)
+						continue
+				endif
+				fnName = SIDAMSync#pause(win, SYNCKEY)
 				SetAxis/W=$win $axis1.xaxis axis0.xmin, axis0.xmax
 				SetAxis/W=$win $axis1.yaxis axis0.ymin, axis0.ymax
 				SIDAMSync#resume(win, SYNCKEY, fnName)

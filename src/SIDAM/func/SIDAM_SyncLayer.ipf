@@ -98,6 +98,10 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			int i, n = ItemsInList(list), plane = SIDAMGetLayerIndex(s.winName)
 			for (i = 0; i < n; i++)
 				win = StringFromList(i, list)
+				//	This is necessary to prevent a loop caused by mutual calling
+				if (plane == SIDAMGetLayerIndex(win))
+					continue
+				endif
 				fnName = SIDAMSync#pause(win, SYNCKEY)
 				SIDAMSetLayerIndex(win, plane)
 				SIDAMSync#resume(win, SYNCKEY, fnName)

@@ -216,7 +216,7 @@ Static Function updateLegend(String grfName, String imgName)
 		return 0
 	endif
 	
-	int layer = NumberByKey("plane", ImageInfo(grfName,imgName,0), "=")	//	present layer
+	int layer = SIDAMGetLayerIndex(grfName)
 	if (s.layer == layer)	// if the present layer is the same as before, do nothing
 		return 0
 	endif
