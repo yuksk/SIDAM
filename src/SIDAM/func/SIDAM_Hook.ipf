@@ -18,14 +18,6 @@ Function SIDAMAfterCompiledHook()
 	p.last = DateTime
 	SIDAMSavePrefs(p)
 
-	// if the precision in the preference and the actual preference is different,
-	//	correct the latter
-	if (p.precision == 1 && defined(SIDAMhighprecision))
-		SIDAMInfoBarSetPrecision(0)
-	elseif (p.precision == 2 && !defined(SIDAMhighprecision))
-		SIDAMInfoBarSetPrecision(1)
-	endif
-
 	//	backward compatibility for an old experiment file
 	SIDAMBackwardCompatibility()
 End

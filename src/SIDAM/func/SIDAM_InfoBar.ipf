@@ -18,13 +18,6 @@
 Static StrConstant COORDINATESMENU = "x and y (rectangular);r and theta (polar);1/r and theta (polar, inverse magnitude);x' and y' (rectangular, including angle)"
 Static StrConstant TITLEMENU = "Name of graph;Name of wave;Setpoint;Displayed size;Path of wave"
 
-//	Digit for the coordinates
-//	Defined in setting the preference
-#ifdef SIDAMhighprecision
-	Static Constant PRECISION = 4
-#else
-	Static Constant PRECISION = 2
-#endif
 
 //@
 //	Show the information bar
@@ -438,7 +431,7 @@ Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int
 	String formatStr = "[p,q] = " + SelectString(grid, "[%.1f, %.1f]", "[%d, %d]")
 	Sprintf pqs, formatStr, ms.p, ms.q
 	
-	formatStr = "z = %."+num2istr(PRECISION)+"e"
+	formatStr = "z = %."+num2istr(SIDAM_WINDOW_PRECISION)+"e"
 	if (WaveType(ms.w)&0x01)
 		Variable mode = NumberByKey("imCmplxMode",ImageInfo(grfName,NameOfWave(ms.w),0),"=")
 		switch (mode)
@@ -462,7 +455,7 @@ Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int
 End
 
 Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
-	String pStr = "%."+num2istr(PRECISION)+"f"
+	String pStr = "%."+num2istr(SIDAM_WINDOW_PRECISION)+"f"
 	String pStr2 = "("+pStr+", "+pStr+")"
 	
 	strswitch (GetUserData(grfName,"","mode"))

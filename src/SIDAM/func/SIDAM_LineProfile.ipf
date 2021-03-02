@@ -357,16 +357,16 @@ Static Function pnlModifyGraph(String plotArea)
 
 	ModifyGraph/W=$plotArea margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
-	ModifyGraph/W=$plotArea rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
+	ModifyGraph/W=$plotArea rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 	Label/W=$plotArea bottom "Scaling Distance (\\u\M)"
 	Label/W=$plotArea left "\\u"
 
 	SetDrawLayer/W=$plotArea ProgBack
-	SetDrawEnv/W=$plotArea textrgb=(SIDAM_CLR_NOTE_R, SIDAM_CLR_NOTE_G, SIDAM_CLR_NOTE_B), fstyle=2, fsize=10
+	SetDrawEnv/W=$plotArea textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B), fstyle=2, fsize=10
 	SetDrawEnv/W=$plotArea xcoord=rel, ycoord=rel
 	DrawText/W=$plotArea 0.03,0.99,"pos 1"
 	SetDrawLayer/W=$plotArea ProgBack
-	SetDrawEnv/W=$plotArea textrgb=(SIDAM_CLR_NOTE_R, SIDAM_CLR_NOTE_G, SIDAM_CLR_NOTE_B), fstyle=2, fsize=10
+	SetDrawEnv/W=$plotArea textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B), fstyle=2, fsize=10
 	SetDrawEnv/W=$plotArea xcoord=rel,ycoord=rel, textxjust=2
 	DrawText/W=$plotArea 0.97,0.99,"pos 2"
 
@@ -424,16 +424,16 @@ Static Function pnlUpdateColor(String pnlName)
 
 	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") w = $PNL_W, clrw = $PNL_C
 	Redimension/N=(numpnts(w),3) clrw
-	clrw[][0] = SIDAM_CLR_LINE_R
-	clrw[][1] = SIDAM_CLR_LINE_G
-	clrw[][2] = SIDAM_CLR_LINE_B
+	clrw[][0] = SIDAM_WINDOW_LINE_R
+	clrw[][1] = SIDAM_WINDOW_LINE_G
+	clrw[][2] = SIDAM_WINDOW_LINE_B
 
 	int layer = SIDAMGetLayerIndex(grfName)
 	int p0 = layer*DimSize(w,0)
 	int p1 = (layer+1)*DimSize(w,0)-1
-	clrw[p0,p1][0] = SIDAM_CLR_LINE2_R
-	clrw[p0,p1][1] = SIDAM_CLR_LINE2_G
-	clrw[p0,p1][2] = SIDAM_CLR_LINE2_B
+	clrw[p0,p1][0] = SIDAM_WINDOW_LINE2_R
+	clrw[p0,p1][1] = SIDAM_WINDOW_LINE2_G
+	clrw[p0,p1][2] = SIDAM_WINDOW_LINE2_B
 End
 
 

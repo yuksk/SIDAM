@@ -5,6 +5,9 @@
 #pragma hide = 1
 #endif
 
+Static Constant TopoGainFactor = 10		//	divider
+Static Constant TopoCorrFactor = 1.495	//	attenuation factor
+	
 //******************************************************************************
 //	LoadTopometrix
 //		KMLoadDataProcから読み出すファイルへのパスを受け取り、データタイプに応じてそれぞれの
@@ -413,9 +416,7 @@ Static Function/WAVE ReadTopoMapFile(GenHeader)
 				driveamp = 1
 			endif
 			if (sensitivity >= 1e-6 && sensitivity <= 10 && driveamp >= 0.003 && driveamp <= 5.001)
-				STRUCT SIDAMPrefs prefs
-				SIDAMLoadPrefs(prefs)
-				w *= prefs.TopoGainFactor*(sensitivity/10)/(driveamp/100)*prefs.TopoCorrFactor
+				w *= TopoGainFactor*(sensitivity/10)/(driveamp/100)*TopoCorrFactor
 				valueunits = "nS"
 			endif
 		endif

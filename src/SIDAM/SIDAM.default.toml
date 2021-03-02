@@ -1,0 +1,60 @@
+# This is the configuration file of SIDAM. If you want to modify
+# configurations, it is recommended to save a copy of this file as
+# "SIDAM.toml" and modify it with keeping this file untouched.
+# You need to call SIDAMsource() and compile to reflect the modifications.
+
+[window]
+# Width and height of an image window. The unit is points.
+width = 200
+height = 200
+# Precision of the values shown in the control bar.
+precision = 2
+
+[window.colors]
+# For general curves
+line = [7967, 30583, 46260]
+# For emphasized curves
+line2 = [65535, 32639, 3598]
+# For note
+note = [11308, 41120, 11308]
+
+[window.export]
+# Make the background transparent, "graph", "window", or "both".
+transparent = "both"
+# Image resolution. If this is an integer n from 1 to 8, the actual resolution
+# is n*72. Otherwise, this number is directly used.
+resolution = 2
+
+# Names of color table groups and their paths.
+# $APPLICATION will be replaced with
+# SpecialDirPath("Igor Application",0,0,0)+"Color Tables"
+[ctab]
+SIDAM = "ctab:SIDAM"
+Matplotlib1 = "ctab:Matplotlib:1"
+Matplotlib2 = "ctab:Matplotlib:2"
+SciColMaps = "ctab:SciColMaps"
+Cmocean = "ctab:cmocean"
+CET = "ctab:CET"
+EPFL = "$APPLICATION:EPFL"
+LANL = "$APPLICATION:LANL"
+Moreland = "$APPLICATION:Moreland"
+MISC = "$APPLICATION:Misc"
+
+# Relationship extensions and loading functions.
+[loader]
+# Nanonis sxm, nsp
+"sxm,nsp" = "LoadNanonisSxmNsp"
+# Nanonis dat
+dat = "LoadNanonisDat"
+# Nanonis 3ds
+3ds = "LoadNanonis3ds"
+# SM2
+sm2 = "LoadRHKSM2"
+# Topometrix
+"tfr,tfp,ffr,ffp,1fr,1fp,2fr,2fp,iv1,iv2,1fl,2fl,di1,di2,is1,is2" = "LoadTopometrix"
+
+[nanonis]
+# The text encoding used when nanonis files were saved. If this item is empty,
+# use the default text encoding of Igor Pro.
+text_encoding = ""
+

@@ -138,7 +138,7 @@ End
 
 //	COMMENT
 Static Function SXMHeaderComment(Variable refNum)
-	int code = TextEncodingCode(TEXTENCODING_NANONIS)
+	int code = TextEncodingCode(SIDAM_NANONIS_TEXTENCODING)
 	String buffer
 	String/G COMMENT = ""
 	

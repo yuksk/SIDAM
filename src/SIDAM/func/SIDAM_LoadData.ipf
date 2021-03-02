@@ -2,9 +2,9 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMLoadData
 
+#include "SIDAM_Config"
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_misc"
 #include "SIDAM_Utilities_Panel"
 
 #ifndef SIDAMshowProc
@@ -159,27 +159,26 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 End
 
 Static Function/S fetchFunctionName(String extStr)
-	//	Open functions.ini if exists. If not, open functions.default.ini.
-	Variable refNum
-	String pathStr = SIDAMPath()+SIDAM_FOLDER_LOADER+":"
-	Open/R/Z refNum as (pathStr+SIDAM_FILE_LOADERLIST)
-	if (V_flag)
-		Open/R refNum as (pathStr+SIDAM_FILE_LOADERLIST_DEFAULT)
+	Variable refNum = SIDAMConfig(SIDAM_CONFIG_LOADER)
+	if (numtype(refNum))
+		return ""
 	endif
-
-	String listStr = "", buffer = ""
+	
+	String fnName = "", buffer, line
 	do
 		FReadLine refNum, buffer
-		if (strlen(buffer) == 0)		//	end of file
+		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
 			break
-		elseif (!stringmatch(buffer[0,1],"//"))	//	exclude a comment line
-			listStr += buffer
+		endif
+		line = SIDAMConfig#removeComment(buffer)
+		if (WhichListItem(extStr, SIDAMConfig#keyFromLine(line), ",") != -1)
+			fnName = SIDAMConfig#stringFromLine(line)
+			break
 		endif
 	while (1)
 	Close refNum
 	
-	String fnName = StringFromList(1, GrepList(liststr,extStr,0,"\r"), ":")
-	return SelectString(strlen(fnName), "", fnName[0,strlen(fnName)-2])	//	without "return"
+	return fnName
 End
 
 Static Function printHistory(String pathStr)

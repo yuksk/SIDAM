@@ -3,7 +3,6 @@
 #pragma ModuleName=SIDAMDisplay
 
 #include "SIDAM_InfoBar"
-#include "SIDAM_Preference"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
 
@@ -196,15 +195,7 @@ Static Function/S displayNumericWaveLayer(Wave w)
 	String pnlName = S_name
 	AppendImage/W=$pnlName/G=1 w
 	ModifyImage/W=$pnlName $PossiblyQuoteName(NameOfWave(w)) ctabAutoscale=3
-	
-	STRUCT SIDAMPrefs prefs
-	SIDAMLoadPrefs(prefs)
-	ModifyGraph/W=$pnlName width=prefs.viewer.width
-	if (prefs.viewer.height == 1)		//	same as width
-		ModifyGraph/W=$pnlName height=prefs.viewer.width
-	else	//	2: plan
-		ModifyGraph/W=$pnlName height={Plan,1,left,bottom}
-	endif
+	ModifyGraph/W=$pnlName width=SIDAM_WINDOW_WIDTH, height=SIDAM_WINDOW_HEIGHT
 	ModifyGraph/W=$pnlName standoff=0,tick=3,noLabel=2,axThick=0,margin=1
 
 	SIDAMInfoBar(pnlName)

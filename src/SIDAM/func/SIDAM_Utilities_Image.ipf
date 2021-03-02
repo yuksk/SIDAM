@@ -1,7 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
 
-#include "SIDAM_Preference"
 #include "SIDAM_Utilities_Panel"
 
 #ifndef SIDAMshowProc
@@ -501,6 +500,9 @@ End
 //@
 //	Copy the window to the clipboard with transparent background
 //
+//	If an image is included in the window, copy as PNG
+//	Otherwise copy as SVG.
+//
 //	Parameters
 //	----------
 //	grfName : string, default ``WinName(0,1)``
@@ -522,33 +524,30 @@ Function SIDAMExportGraphicsTransparent([String grfName, Variable size])
 	GetWindow $grfName, gbRGB
 	gbRGB.red = V_Red ;	gbRGB.green = V_Green ;	gbRGB.blue = V_Blue
 
-	STRUCT SIDAMPrefs prefs
-	SIDAMLoadPrefs(prefs)
-
 	//	Make the background white to export it as transparent
-	if (prefs.export[2] != 0)		//	1 or 2, Window or Both
+	int isBoth = !CmpStr(LowerStr(SIDAM_WINDOW_EXPORT_TRANSPARENT), "both")
+	int isGraph = !CmpStr(LowerStr(SIDAM_WINDOW_EXPORT_TRANSPARENT), "graph")
+	int isWindow = !CmpStr(LowerStr(SIDAM_WINDOW_EXPORT_TRANSPARENT), "window")
+	if (isBoth || isWindow)
 		ModifyGraph/W=$grfName wbRGB=(65535,65535,65535)
 	endif
-	if (prefs.export[2] != 1)		//	0 or 2, Graph or Both
+	if (isBoth || isGraph)
 		ModifyGraph/W=$grfName gbRGB=(65535,65535,65535)
 	endif
 
 	//	Copy the window to the clipboard
-	//	If an image is included in the window, copy as PNG
-	//	Otherwise copy as SVG
 	if (strlen(ImageNameList(grfName, ";")))
-		if (prefs.export[0] == 6)	//	Other DPI
+		if (SIDAM_WINDOW_EXPORT_RESOLUTION > 8)	//	Other DPI
 			if (ParamIsDefault(size))
-				SavePICT/E=-5/TRAN=1/RES=(prefs.export[1])/WIN=$grfName as "Clipboard"
+				SavePICT/E=-5/TRAN=1/RES=(SIDAM_WINDOW_EXPORT_RESOLUTION)/WIN=$grfName as "Clipboard"
 			else
-				SavePICT/E=-5/TRAN=1/RES=(prefs.export[1])/W=(0,0,size,size)/WIN=$grfName as "Clipboard"
+				SavePICT/E=-5/TRAN=1/RES=(SIDAM_WINDOW_EXPORT_RESOLUTION)/W=(0,0,size,size)/WIN=$grfName as "Clipboard"
 			endif
 		else
-			Variable res = 72*round(0.2*prefs.export[0]^2+0.5*prefs.export[0]+0.2)	//	X1, X2, X4, X5, X8
 			if (ParamIsDefault(size))
-				SavePICT/E=-5/TRAN=1/B=(res)/WIN=$grfName as "Clipboard"
+				SavePICT/E=-5/TRAN=1/B=(SIDAM_WINDOW_EXPORT_RESOLUTION)/WIN=$grfName as "Clipboard"
 			else
-				SavePICT/E=-5/TRAN=1/B=(res)/W=(0,0,size,size)/WIN=$grfName as "Clipboard"
+				SavePICT/E=-5/TRAN=1/B=(SIDAM_WINDOW_EXPORT_RESOLUTION)/W=(0,0,size,size)/WIN=$grfName as "Clipboard"
 			endif
 		endif
 	else

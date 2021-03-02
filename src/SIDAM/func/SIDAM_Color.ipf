@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMColor
 
+#include "SIDAM_Config"
 #include "SIDAM_Preference"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_ImageInfo"
@@ -346,7 +347,7 @@ Static Function pnl(String grfName)
 	int i, n
 	STRUCT SIDAMPrefs prefs
 	SIDAMLoadPrefs(prefs)
-	int isOpen = prefs.color
+	int isOpen = prefs.color != 0
 
 	//	Display a panel
 	int pnlwidth = (isOpen ? leftMargin : separatorWidth)+columnWidth*2
@@ -407,7 +408,7 @@ Static Function pnl(String grfName)
 	updateOptionCheckboxes(pnlName,imgName)
 
 	//	Listbox of color table groups
-	String ctabgroupList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTABGROUPS,"")
+	String ctabgroupList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTAB,"")
 	Variable activegroup = findGroup(grfName,imgName)
 	Variable listHeight = boxesTop - topMargin - 10
 	DFREF dfrSav = GetDataFolderDFR()
@@ -444,7 +445,7 @@ Static Function pnl(String grfName)
 	DoUpdate/W=$pnlName
 
 	//	Create the other groups
-	for (i = 0, n = ItemsInList(SIDAM_CTABGROUPS)+1; i < n; i++)
+	for (i = 0, n = ItemsInList(SIDAM_CTAB)+1; i < n; i++)
 		if (i == activegroup)
 			continue
 		endif
@@ -503,7 +504,7 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 	if (group == 0)	//	Igor
 		list = CTabList()
 	else				//	Color table waves
-		String dfNames = ReplaceString("$APPLICATION:",SIDAM_CTABGROUPS,"")
+		String dfNames = ReplaceString("$APPLICATION:",SIDAM_CTAB,"")
 		DFREF dfr = $(SIDAM_DF_CTAB+PossiblyQuoteName(StringFromList(group-1,dfNames)))
 		list = fetchWavepathList(dfr)
 	endif
@@ -587,7 +588,7 @@ Static Function findGroup(String grfName, String imgName)
 		return 0
 	endif
 	String groupName = StringFromList(ItemsInList(SIDAM_DF,":")+1,ctab,":")
-	return WhichListItem(groupName,SIDAM_CTABGROUPS)+1
+	return WhichListItem(groupName,SIDAM_CTAB)+1
 End
 
 //-----------------------------------------------------------------------
@@ -794,7 +795,7 @@ Static Function pnlHookWheel(STRUCT WMWinHookStruct &s)
 	endif
 	ControlInfo/W=$pnlName ctabgroupL
 	int newGroup = V_Value-sign(s.wheelDy)	//	move to the right group by scrolling down
-	if (newGroup >= 0 && newGroup <= ItemsInList(SIDAM_CTABGROUPS))
+	if (newGroup >= 0 && newGroup <= ItemsInList(SIDAM_CTAB))
 		ListBox ctabgroupL selRow=newGroup, win=$pnlName
 		selectGroup(pnlName, newGroup)
 	endif
@@ -1399,35 +1400,29 @@ End
 //	Load all color table ibw files
 //-----------------------------------------------------------------------
 Static Function loadColorTableAll()
-	Variable refNum
+	Variable refNum = SIDAMConfig(SIDAM_CONFIG_CTAB)
+	if (numtype(refNum))
+		return 1
+	endif
+	
 	int i, j, n
 
-	//	Open ctab.ini if exists. If not, open ctab.default.ini.
-	String pathStr = SIDAMPath()+SIDAM_FOLDER_COLOR+":"
-	Open/R/Z refNum as (pathStr+SIDAM_FILE_COLORLIST)
-	if (V_flag)
-		Open/R refNum as (pathStr+SIDAM_FILE_COLORLIST_DEFAULT)
-	endif
-
-	//	Read names of groups and paths to directories from ctab(.default).ini
+	//	Read names of groups and paths to directories
 	Make/N=(2,256)/T/FREE groups		//	256 is expected to be large enough
-	String buffer
+	String buffer, line
 	n = 0
 	do
 		FReadLine refNum, buffer
-		//	exclude comment
-		i = strsearch(buffer,"//",0)
-		if (i == 0)
-			continue
-		elseif (i != -1)
-			buffer = buffer[0,i-1]
-		else
-			buffer = buffer[0,strlen(buffer)-2]	//	remove \r at the end
+		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
+			break
 		endif
-		groups[][n++] = {StringFromList(0,buffer),RemoveListItem(0,buffer)}
-	while (strlen(buffer))
+		line = SIDAMConfig#removeComment(buffer)
+		if (strlen(line))
+			groups[][n++] = {SIDAMConfig#keyFromLine(line), SIDAMConfig#stringFromLine(line)}
+		endif
+	while (1)
 	Close refNum
-	DeletePoints/M=1 n-1,DimSize(groups,1)-n+1,groups
+	DeletePoints/M=1 n,DimSize(groups,1)-n,groups
 
 	//	Load ibw files of color table waves
 	String path, absPath, dfStr
@@ -1442,11 +1437,11 @@ Static Function loadColorTableAll()
 				//	C:Program Files:WaveMetrics:Igor Pro 8 Folder:Color Tables:LANL
 				absPath = ReplaceString("$APPLICATION",path,colorTablesAbsPath,1)
 			else
-				//	Other items in SIDAM_CTABGROUPS are supposed to be at
-				//	SIDAMPath() + SIDAM_FOLDER_COLOR
+				//	Other items in SIDAM_CTAB are supposed to be at
+				//	SIDAMPath() + path
 				//	Consequently, absPath would be, for example,
 				//	***:User Procedures:SIDAM:ctab:SIDAM
-				absPath = SIDAMPath() + SIDAM_FOLDER_COLOR + ":" + path
+				absPath = SIDAMPath() + path
 			endif
 			//	Datafolder under which ibw files are loaded
 			dfStr = SIDAM_DF_CTAB + groups[0][i]

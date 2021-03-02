@@ -300,7 +300,7 @@ End
 Function LoadNanonisCommonVariableString(name,str)
 	String name, str
 	
-	int code = TextEncodingCode(TEXTENCODING_NANONIS)
+	int code = TextEncodingCode(SIDAM_NANONIS_TEXTENCODING)
 	String value = ConvertTextEncoding(str, code, 1, 1, 0)	
 	
 	//	最初に空白がある場合にはそれを削除してから処理を行う

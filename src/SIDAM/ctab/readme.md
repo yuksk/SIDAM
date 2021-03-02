@@ -1,3 +1,5 @@
 # ctab folder
 
-Color table waves available in SIDAM are in this folder. You can add your own color table waves to this folder. See also `ctab.default.ini`.
+Color table waves available in SIDAM are in this folder. If you want to add
+your own color table waves, put them here and modify the configuration file.
+See also `SIDAM.default.toml`.

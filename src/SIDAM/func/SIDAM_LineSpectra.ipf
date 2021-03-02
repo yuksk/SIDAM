@@ -477,7 +477,7 @@ End
 Static Function pnlModifyGraph(String pnlName)
 	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
-	ModifyGraph/W=$pnlName rgb=(SIDAM_CLR_LINE_R, SIDAM_CLR_LINE_G, SIDAM_CLR_LINE_B)
+	ModifyGraph/W=$pnlName rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 	Label/W=$pnlName bottom "\\u"
 	Label/W=$pnlName left "\\u"
 
@@ -539,15 +539,15 @@ Static Function pnlUpdateColor(String grfName)
 
 		Wave/SDFR=$GetUserData(pnlName,"","dfTmp") w = $PNL_W, clrw = $PNL_C
 		Redimension/N=(numpnts(w),3) clrw
-		clrw[][0] = SIDAM_CLR_LINE_R
-		clrw[][1] = SIDAM_CLR_LINE_G
-		clrw[][2] = SIDAM_CLR_LINE_B
+		clrw[][0] = SIDAM_WINDOW_LINE_R
+		clrw[][1] = SIDAM_WINDOW_LINE_G
+		clrw[][2] = SIDAM_WINDOW_LINE_B
 
 		p0 = pcsr(A,grfName)*DimSize(w,0)
 		p1 = (pcsr(A,grfName)+1)*DimSize(w,0)-1
-		clrw[p0,p1][0] = SIDAM_CLR_LINE2_R
-		clrw[p0,p1][1] = SIDAM_CLR_LINE2_G
-		clrw[p0,p1][2] = SIDAM_CLR_LINE2_B
+		clrw[p0,p1][0] = SIDAM_WINDOW_LINE2_R
+		clrw[p0,p1][1] = SIDAM_WINDOW_LINE2_G
+		clrw[p0,p1][2] = SIDAM_WINDOW_LINE2_B
 	endfor
 End
 

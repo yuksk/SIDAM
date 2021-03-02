@@ -21,33 +21,39 @@ StrConstant SIDAM_DF_SETTINGS = "settings"
 
 //------------------------------------------------------------------------------
 //	Colors
-//------------------------------------------------------------------------------------------------
-//	for windows
-Constant SIDAM_CLR_LINE_R = 0,		SIDAM_CLR_LINE_G = 32768,		SIDAM_CLR_LINE_B = 65535	//	data and axis
-Constant SIDAM_CLR_LINE2_R = 65535,	SIDAM_CLR_LINE2_G = 43690,	SIDAM_CLR_LINE2_B = 0		//	for emphasis
-Constant SIDAM_CLR_NOTE_R = 32768,	SIDAM_CLR_NOTE_G = 40704,		SIDAM_CLR_NOTE_B = 65280	//	note
+//------------------------------------------------------------------------------
+//	for characters of SetVariable
+//	indicating input strings can be converted to numbers
+Constant SIDAM_CLR_EVAL_R = 0
+Constant SIDAM_CLR_EVAL_G = 15872
+Constant SIDAM_CLR_EVAL_B = 65280
 
-//	for characters of SetVariable, indicating input strings can be converted to numbers
-Constant SIDAM_CLR_EVAL_R = 0, 		SIDAM_CLR_EVAL_G = 15872,		 SIDAM_CLR_EVAL_B = 65280
-
-//	for background of SetVariable, indicating something necesary to be modifed
-Constant SIDAM_CLR_CAUTION_R = 65280, SIDAM_CLR_CAUTION_G = 32768, SIDAM_CLR_CAUTION_B = 32768
+//	for background of SetVariable
+//	indicating something necesary to be modifed
+Constant SIDAM_CLR_CAUTION_R = 65280
+Constant SIDAM_CLR_CAUTION_G = 32768
+Constant SIDAM_CLR_CAUTION_B = 32768
 
 //------------------------------------------------------------------------------
 //	Folders and files
 //------------------------------------------------------------------------------
 StrConstant SIDAM_FOLDER_MAIN = "SIDAM"
-StrConstant SIDAM_FOLDER_FUNC = "func"
-StrConstant SIDAM_FOLDER_COLOR = "ctab"
-StrConstant SIDAM_FOLDER_LOADER = "fileloader"
-StrConstant SIDAM_FOLDER_EXT = "extension"
+StrConstant SIDAM_FOLDER_ADDTIONAL = "fileloader;extension;"
 StrConstant SIDAM_FOLDER_HELP = "help"
-StrConstant SIDAM_FILE_COLORLIST = "ctab.ini"
-StrConstant SIDAM_FILE_COLORLIST_DEFAULT = "ctab.default.ini"
-StrConstant SIDAM_FILE_LOADERLIST = "functions.ini"
-StrConstant SIDAM_FILE_LOADERLIST_DEFAULT = "functions.default.ini"
+StrConstant SIDAM_FILE_CONFIG = "SIDAM.toml"
+StrConstant SIDAM_FILE_CONFIG_DEFAULT = "SIDAM.default.toml"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
 StrConstant SIDAM_FILE_SHORTCUTS = "shortcuts.md"
+
+//------------------------------------------------------------------------------
+//	Tables in the configuration file
+//------------------------------------------------------------------------------
+StrConstant SIDAM_CONFIG_CTAB = "[ctab]"
+StrConstant SIDAM_CONFIG_LOADER = "[loader]"
+StrConstant SIDAM_CONFIG_WINDOW = "[window]"
+StrConstant SIDAM_CONFIG_WINDOW_COLORS = "[window.colors]"
+StrConstant SIDAM_CONFIG_WINDOW_EXPORT = "[window.export]"
+StrConstant SIDAM_CONFIG_NANONIS = "[nanonis]"
 
 //------------------------------------------------------------------------------
 //	Temporary waves
@@ -69,8 +75,3 @@ StrConstant PRESTR_CAUTION = "** "	//	prefix characters for cautions in the hist
 StrConstant MENU_COMPLEX1D = "real and imaginary;real only;imaginary only;magnitude;phase (radians)"
 StrConstant MENU_COMPLEX2D = "Magnitude;Real only;Imaginary only;Phase in radians"
 
-//------------------------------------------------------------------------------
-//	Text encoding
-//------------------------------------------------------------------------------
-//	for nanonis, this prorbaby depends on OS
-StrConstant TEXTENCODING_NANONIS = "ShiftJIS"

@@ -4,6 +4,7 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_Compatibility_Old_Functions"
+#include "SIDAM_Config"
 #include "SIDAM_Correlation"
 #include "SIDAM_Display"
 #include "SIDAM_ExtractLayer"
@@ -18,7 +19,6 @@
 #include "SIDAM_LoadData"
 #include "SIDAM_PeakPos"
 #include "SIDAM_Position_Recorder"
-#include "SIDAM_Preference"
 #include "SIDAM_Range"
 #include "SIDAM_Subtraction"
 #include "SIDAM_SaveGraphics"
@@ -66,10 +66,9 @@ Menu "SIDAM", dynamic
 
 	"-"
 
-	"Preference", /Q, SIDAMPrefsPnl()
-
-	Submenu "Help"
 		"Cheet sheet of shortcuts", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_SHORTCUTS)
+	Submenu "Misc"
+		"Open configuration file", /Q, SIDAMConfigNoteBook()
 		
 		"-"
 		

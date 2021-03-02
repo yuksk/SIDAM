@@ -8,7 +8,7 @@ An ipf file in this folder can be used to define your own shortcuts.
 Here is an example to define a shortcut (Ctrl+1) setting a color scale (Autumn) to the top window.
 Save this example with an arbitrary file name with an extension of .ipf (but it must be different from existing macro files) in this folder, restart the macro, and you can use the shortcut.
 
-~~~
+```IGOR Pro
 Menu "SIDAM"
 	SubMenu "Extension"
 		SubMenu "Shortcuts"
@@ -16,4 +16,4 @@ Menu "SIDAM"
 		End
 	End
 End
-~~~
+```
