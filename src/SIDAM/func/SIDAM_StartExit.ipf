@@ -123,11 +123,8 @@ Function sidamExit()
 	SetIgorHook/K AfterCompiledHook = SIDAMAfterCompiledHook
 	SetIgorHook/K BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
 	Execute/P/Q/Z "DELETEINCLUDE \""+SIDAM_FILE_INCLUDE+"\""
-	Execute/P/Q/Z "DELETEINCLUDE \""+KM_FILE_INCLUDE+"\""			//	backward compatibility
 	Execute/P/Q/Z "SetIgorOption poundUndefine=SIDAMshowProc"
 	Execute/P/Q/Z "COMPILEPROCEDURES "
 	Execute/P/Q/Z "BuildMenu \"All\""
 	KillPath/Z KMMain
-	KillPath/Z KMCtab		//	backward compatibility
-	KillPath/Z KMHelp		//	backward compatibility
 End

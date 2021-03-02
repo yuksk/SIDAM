@@ -79,8 +79,3 @@ StrConstant SIDAM_URL_FEED = "https://gitlab.com/ThnJYSZq/SIDAM/-/tags?feed_toke
 //------------------------------------------------------------------------------
 //	for nanonis, this prorbaby depends on OS
 StrConstant TEXTENCODING_NANONIS = "ShiftJIS"
-
-//------------------------------------------------------------------------------
-//	For backward compatibility
-//------------------------------------------------------------------------------
-StrConstant KM_FILE_INCLUDE = "All KM Procedures"
