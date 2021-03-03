@@ -3,6 +3,7 @@
 #pragma moduleName = SIDAMLayerAnnotation
 
 #include "SIDAM_Utilities_Bias"
+#include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
 
 #ifndef SIDAMshowProc
