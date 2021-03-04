@@ -43,7 +43,7 @@ StrConstant SIDAM_FOLDER_HELP = "help"
 StrConstant SIDAM_FILE_CONFIG = "SIDAM.toml"
 StrConstant SIDAM_FILE_CONFIG_DEFAULT = "SIDAM.default.toml"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
-StrConstant SIDAM_FILE_SHORTCUTS = "shortcuts.md"
+StrConstant SIDAM_FILE_SHORTCUTS = "help:shortcuts.md"
 
 //------------------------------------------------------------------------------
 //	Tables in the configuration file

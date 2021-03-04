@@ -66,13 +66,16 @@ Static Function hookParent(STRUCT WMWinHookStruct &s)
 End
 
 
-//******************************************************************************
-//	Open a help file specified by filename
-//******************************************************************************
-Function/S SIDAMOpenExternalHelp(String filename)
-	String pathStr = SIDAMPath() + SIDAM_FOLDER_HELP + ":" + filename
-	//	This should be only for Windows. I don't know how to do it for Macintosh.
-	BrowseURL "file:///"+ParseFilePath(5,pathStr,"\\",0,0)
+Function/S SIDAMBrowseShortcuts()
+	String pathStr = SIDAMPath() + SIDAM_FILE_SHORTCUTS
+	int isWindows = strsearch(StringByKey("OS",IgorInfo(3)), "windows", 0, 2) != -1
+	int isMac = strsearch(StringByKey("OS",IgorInfo(3)), "macintosh", 0, 2) != -1
+	if (isWindows)
+		BrowseURL "file:///"+ParseFilePath(5,pathStr,"\\",0,0)
+	endif
+	if (isMac)
+		BrowseURL ParseFilePath(5,pathStr,"/",0,0)
+	endif
 End
 
 Function SIDAMAbout()

@@ -66,9 +66,9 @@ Menu "SIDAM", dynamic
 
 	"-"
 
-		"Cheet sheet of shortcuts", /Q, SIDAMOpenExternalHelp(SIDAM_FILE_SHORTCUTS)
 	Submenu "Misc"
 		"Open configuration file", /Q, SIDAMConfigNoteBook()
+		"Browse cheet sheet of shortcuts", /Q, SIDAMBrowseShortcuts()
 		
 		"-"
 		
