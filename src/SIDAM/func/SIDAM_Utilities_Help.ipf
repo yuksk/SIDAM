@@ -75,40 +75,6 @@ Function/S SIDAMOpenExternalHelp(String filename)
 	BrowseURL "file:///"+ParseFilePath(5,pathStr,"\\",0,0)
 End
 
-
-//******************************************************************************
-//	Check new version
-//******************************************************************************
-Function SIDAMCheckUpdate()
-	PutScrapText FetchURL(SIDAM_URL_FEED)
-	
-	Make/T/N=1/FREE txtw
-	Grep/E="<title>v" "Clipboard" as txtw
-	
-	Variable major, minor, patch
-	String str = txtw[0]
-	sscanf str[strsearch(str,"v",0),inf], "v%d%*[.]%d%*[.]%d</title>", major, minor, patch
-
-	if (!major && !minor && !patch)
-		DoAlert 0, "Version info is unavailable."
-		return 1
-	endif
-	
-	int isNewerMajor = SIDAM_VERSION_MAJOR < major
-	int isNewerMinor = SIDAM_VERSION_MINOR < minor
-	int isNewerPatch = SIDAM_VERSION_PATCH < patch
-	int isNewerAvailable = isNewerMajor || isNewerMinor || isNewerPatch
-	String promptStr
-
-	if (isNewerAvailable)
-		Sprintf promptStr, "New version (v%d.%d.%d) is available.", major, minor, patch
-	else
-		Sprintf promptStr, "You are using the latest version."
-	endif
-	DoAlert 0, promptStr
-	return 0
-End
-
 Function SIDAMAbout()
 	String promptStr
 	Sprintf promptStr, "SIDAM v%d.%d.%d", SIDAM_VERSION_MAJOR, SIDAM_VERSION_MINOR, SIDAM_VERSION_PATCH

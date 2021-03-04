@@ -74,7 +74,6 @@ Menu "SIDAM", dynamic
 		"-"
 		
 		"About SIDAM...", /Q, SIDAMAbout()
-		"Updates for SIDAM...", /Q, SIDAMCheckUpdate()
 	End
 
 	Submenu "Extension"

@@ -70,11 +70,6 @@ StrConstant MENU_COMPLEX1D = "real and imaginary;real only;imaginary only;magnit
 StrConstant MENU_COMPLEX2D = "Magnitude;Real only;Imaginary only;Phase in radians"
 
 //------------------------------------------------------------------------------
-//	URL
-//------------------------------------------------------------------------------
-StrConstant SIDAM_URL_FEED = "https://gitlab.com/ThnJYSZq/SIDAM/-/tags?feed_token=eWufChs5v3WpTvcoe_YS&format=atom"
-
-//------------------------------------------------------------------------------
 //	Text encoding
 //------------------------------------------------------------------------------
 //	for nanonis, this prorbaby depends on OS
