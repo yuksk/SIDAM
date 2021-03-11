@@ -9,14 +9,23 @@
 
 //  Extension of WMImageInfo
 
-//******************************************************************************
-///Extension of WM_ColorTableForImage
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@return	Name of a color table or absolute path to a color table wave
-///				Empty When the image is not found
-//******************************************************************************
-Function/S SIDAM_ColorTableForImage(String grfName, String imgName)	//	tested
+//@
+//	Extension of WM_ColorTableForImage
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window.
+//	imgName : string
+//		The name of an image.
+//
+//	Returns
+//	-------
+//	string
+//		Name of a color table or absolute path to a color table wave.
+//		Empty When the image is not found.
+//@
+Function/S SIDAM_ColorTableForImage(String grfName, String imgName)
 	String str = WM_ColorTableForImage(grfName,imgName)
 	if (GetRTError(1) || !strlen(str))
 		return ""
@@ -27,19 +36,31 @@ Function/S SIDAM_ColorTableForImage(String grfName, String imgName)	//	tested
 	endif
 End
 
-//******************************************************************************
-///Extension of WM_GetColorTableMinMax
-///	@param grfName		Name of a window.
-///	@param imgName		Name of an image.
-///	@param[out] zmin		minimum value of ctab
-///	@param[out] zmax		maximum value of ctab
-///	@param allowNaN	0:	zmin and zmax are always numeric as WM_GetColorTableMinMax
-///						!0:	zmin and zmax are NaN if they are auto
-///							The default value is 0
-///	@return	0 for normal exit, 1 for any error
-//******************************************************************************
+//@
+//	Extension of WM_GetColorTableMinMax
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	imgName : string
+//		The name of an image.
+//	zmin : variable
+//		The minimum value of ctab is returned.
+//	zmax : variable
+//		The maximum value of ctab is returned.
+//	allowNaN : int, default 0
+//		0 or !0. When allowNaN=0, zmin and zmax are always numeric as
+//		WM_GetColorTableMinMax. When !0, zmin and zmax are NaN if they
+//		are auto.
+//
+//	Returns
+//	-------
+//	int
+//		0 for normal exit, 1 for any error
+//@
 Function SIDAM_GetColorTableMinMax(String grfName, String imgName,
-	Variable &zmin, Variable &zmax, [int allowNaN])	//	tested
+	Variable &zmin, Variable &zmax, [int allowNaN])
 	
 	String ctabInfo = WM_ImageColorTabInfo(grfName,imgName)
 	if (GetRTError(1) || !strlen(ctabInfo))
@@ -134,16 +155,25 @@ Override Function WM_GetColorTableMinMax(graphName, imageName, colorMin, colorMa
 End
 
 
-//******************************************************************************
-///Returns if a logarithmically-spaced color is set.
-///	(log version of WM_ColorTableReversed)
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@return	0: a linearly-spaced color
-///				1: a logarithmically-spaced color
-///				-1: any error
-//******************************************************************************
-Function SIDAM_ColorTableLog(String grfName, String imgName)	//	tested
+//@
+//	Returns if a logarithmically-spaced color is set.
+//	(log version of WM_ColorTableReversed)
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	imgName : string
+//		The name of an image.
+//
+//	Returns
+//	-------
+//	int
+//		0. a linearly-spaced color.
+//		1. a logarithmically-spaced color.
+//		-1. any error.
+//@
+Function SIDAM_ColorTableLog(String grfName, String imgName)
 	String info = ImageInfo(grfName, imgName, 0)
 	if (GetRTError(1))
 		return -1
@@ -151,17 +181,28 @@ Function SIDAM_ColorTableLog(String grfName, String imgName)	//	tested
 	return str2num(TrimString(WMGetRECREATIONInfoByKey("log",info)))
 End
 
-//******************************************************************************
-///	Returns mode of minRGB/maxRGB
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@param key		"minRGB" or "maxRGB"
-///	@return	0: use first/last color
-///				1: (r,g,b)
-///				2: transparent
-///				-1: any error
-//******************************************************************************
-Function SIDAM_ImageColorRGBMode(String grfName, String imgName, String key) //	tested
+
+//@
+//	Returns mode of minRGB/maxRGB
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	imgName : string
+//		The name of an image.
+//	key : string
+//		"minRGB" or "maxRGB"
+//
+//	Returns
+//	-------
+//	int
+//		0. use first/last color
+//		1. (r,g,b)
+//		2. transparent
+//		-1. any error
+//@
+Function SIDAM_ImageColorRGBMode(String grfName, String imgName, String key)
 	String info = ImageInfo(grfName, imgName, 0)
 	if (GetRTError(1))
 		return -1
@@ -183,15 +224,26 @@ Function SIDAM_ImageColorRGBMode(String grfName, String imgName, String key) //	
 	endif
 End
 
-//******************************************************************************
-///	Returns values of minRGB/maxRGB
-///	@param grfName	Name of a window.
-///	@param imgName	Name of an image.
-///	@param key		"minRGB" or "maxRGB"
-///	@param[out] s	rgb color
-///	@return	0: no error
-///				!0: any error
-//******************************************************************************
+
+//@
+//	Returns values of minRGB/maxRGB
+//
+//	Parameters
+//	----------
+//	grfName : string
+//		The name of window
+//	imgName : string
+//		The name of an image.
+//	key : string
+//		"minRGB" or "maxRGB"
+//	s : STRUCT RGBColor
+//		rgb color is returned.
+//
+//	Returns
+//	-------
+//	int
+//		0 for no error, !0 for any error.
+//@
 Function SIDAM_ImageColorRGBValues(String grfName, String imgName, String key,
 	STRUCT RGBColor &s) //	tested
 
