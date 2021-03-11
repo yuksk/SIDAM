@@ -350,12 +350,3 @@ Function/S SIDAMValidateWaveforFFTMsg(int flag)
 	}
 	return tw[flag]
 End
-
-
-//******************************************************************************
-//	Return !0 for a invalid name of wave. Unlike CheckName, this does not return
-//	!0 for a name of an existing wave. 
-//******************************************************************************
-Function SIDAMCheckWaveName(String name)
-	return CheckName(name, 1) && !WaveExists($name)
-End

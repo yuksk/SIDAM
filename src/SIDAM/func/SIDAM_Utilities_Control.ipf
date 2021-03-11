@@ -150,7 +150,7 @@ Function SIDAMValidateSetVariableString(String pnlName, String ctrlName,
 		hasProblem = numtype(eval(str))!=0
 	else
 		hasProblem = strlen(str) < minlength || strlen(str) > maxlength \
-			|| SIDAMCheckWaveName(str)
+			|| (CheckName(str, 1) && !WaveExists($str))
 	endif
 
 	if (hasProblem)
