@@ -20,6 +20,8 @@ Function SIDAMAfterCompiledHook()
 
 	//	backward compatibility for an old experiment file
 	SIDAMBackwardCompatibility()
+	
+	return 0
 End
 
 //	BeforeFileOpenHook
@@ -57,3 +59,10 @@ Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 	return 0
 End
 
+
+//	Backward compatibility
+Function KMAfterCompiledHook()
+	SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
+	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
+	SIDAMAfterCompiledHook()
+End
