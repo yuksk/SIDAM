@@ -3,7 +3,6 @@
 #pragma ModuleName=SIDAMUtilControl
 
 #include "SIDAM_Utilities_Panel"
-#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
