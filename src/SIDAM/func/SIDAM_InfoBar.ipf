@@ -154,7 +154,6 @@ End
 Static Function closeInfoBar(String pnlName)
 
 	SetWindow $pnlName hook(self)=$""
-	SetWindow $pnlName userData(mode)=""
 
 	String listStr = ControlNameList(pnlName)
 	int i, n
@@ -162,6 +161,12 @@ Static Function closeInfoBar(String pnlName)
 		KillControl/W=$pnlName $StringFromList(i,listStr)
 	endfor
 	ControlBar/W=$pnlName 0
+
+	DoUpdate/W=$pnlName	
+	SetWindow $pnlName userData(mode)=""
+	SetWindow $pnlName userData(title)=""
+	SetWindow $pnlName userdata(modtime)=""
+	SetWindow $pnlName userdata(fftavailable)=""
 End
 
 //-------------------------------------------------------------
