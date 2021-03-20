@@ -27,12 +27,12 @@ resolution = 2
 
 # Names of color table groups and their paths.
 [ctab]
-SIDAM = "ctab:SIDAM"
-Matplotlib1 = "ctab:Matplotlib:1"
-Matplotlib2 = "ctab:Matplotlib:2"
-SciColMaps = "ctab:SciColMaps"
-Cmocean = "ctab:cmocean"
 CET = "ctab:CET"
+Cmocean = "ctab:cmocean"
+ColorBrewer = 'ctab:ColorBrewer'
+Matplotlib = "ctab:Matplotlib"
+SciColMaps = "ctab:SciColMaps"
+SIDAM = "ctab:SIDAM"
 
 # Relationship extensions and loading functions.
 [loader]

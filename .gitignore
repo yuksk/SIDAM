@@ -8,6 +8,7 @@
 /src/SIDAM/ctab/*
 !/src/SIDAM/ctab/CET
 !/src/SIDAM/ctab/cmocean
+!/src/SIDAM/ctab/ColorBrewer
 !/src/SIDAM/ctab/Matplotlib
 !/src/SIDAM/ctab/SciColMaps
 !/src/SIDAM/ctab/SIDAM

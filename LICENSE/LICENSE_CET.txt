@@ -1,3 +1,0 @@
-CET Perceptually Uniform Colour Maps (c) Peter Kovesi (Licensed under CC BY 4.0) https://creativecommons.org/licenses/by/4.0/
-
-https://peterkovesi.com/projects/colourmaps/
