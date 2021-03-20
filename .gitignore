@@ -1,33 +1,32 @@
-src/SIDAM/*
-!src/SIDAM/func
-!src/SIDAM/help
-!src/SIDAM/SIDAM.default.toml
+/src/SIDAM/*
+!/src/SIDAM/func
+!/src/SIDAM/help
+!/src/SIDAM/SIDAM.default.toml
 
 # ctab
-# src/SIDAM/ctab/*
-!src/SIDAM/ctab/CET
-!src/SIDAM/ctab/cmocean
-!src/SIDAM/ctab/Matplotlib
-!src/SIDAM/ctab/SciColMaps
-!src/SIDAM/ctab/SIDAM
-!src/SIDAM/ctab/readme.md
+!/src/SIDAM/ctab
+/src/SIDAM/ctab/*
+!/src/SIDAM/ctab/CET
+!/src/SIDAM/ctab/cmocean
+!/src/SIDAM/ctab/Matplotlib
+!/src/SIDAM/ctab/SciColMaps
+!/src/SIDAM/ctab/SIDAM
+!/src/SIDAM/ctab/readme.md
 
 # extension
-# src/SIDAM/extension/*
-!src/SIDAM/extension/readme.md
-!src/SIDAM/extension/SIDAM_PhaseAdjust.ipf
+!/src/SIDAM/extension/readme.md
+!/src/SIDAM/extension/SIDAM_PhaseAdjust.ipf
 
 # fileloader
-# src/SIDAM/fileloader/*
-!src/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
-!src/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
-!src/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
-!src/SIDAM/fileloader/Load\ RHK\ SM2.ipf
-!src/SIDAM/fileloader/Load\ Topometrix.ipf
-!src/SIDAM/fileloader/readme.md
+!/src/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
+!/src/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
+!/src/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
+!/src/SIDAM/fileloader/Load\ RHK\ SM2.ipf
+!/src/SIDAM/fileloader/Load\ Topometrix.ipf
+!/src/SIDAM/fileloader/readme.md
 
 # docs
-docs/build/*
-docs/source/api_body.rst
-docs/poetry.lock
-docs/source/commands.rst
+/docs/build/
+/docs/source/api_body.rst
+/docs/poetry.lock
+/docs/source/commands.rst
