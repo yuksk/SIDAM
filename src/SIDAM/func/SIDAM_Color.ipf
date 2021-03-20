@@ -408,7 +408,7 @@ Static Function pnl(String grfName)
 	updateOptionCheckboxes(pnlName,imgName)
 
 	//	Listbox of color table groups
-	String ctabgroupList = "Igor;" + ReplaceString("$APPLICATION:",SIDAM_CTAB,"")
+	String ctabgroupList = "Igor;" + SIDAM_CTAB
 	Variable activegroup = findGroup(grfName,imgName)
 	Variable listHeight = boxesTop - topMargin - 10
 	DFREF dfrSav = GetDataFolderDFR()
@@ -504,8 +504,7 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 	if (group == 0)	//	Igor
 		list = CTabList()
 	else				//	Color table waves
-		String dfNames = ReplaceString("$APPLICATION:",SIDAM_CTAB,"")
-		DFREF dfr = $(SIDAM_DF_CTAB+PossiblyQuoteName(StringFromList(group-1,dfNames)))
+		DFREF dfr = $(SIDAM_DF_CTAB+PossiblyQuoteName(StringFromList(group-1,SIDAM_CTAB)))
 		list = fetchWavepathList(dfr)
 	endif
 	int i, n
@@ -1426,23 +1425,10 @@ Static Function loadColorTableAll()
 
 	//	Load ibw files of color table waves
 	String path, absPath, dfStr
-	String colorTablesAbsPath = SpecialDirPath("Igor Application",0,0,0)+"Color Tables"
 	for (i = 0; i < DimSize(groups,1); i++)
 		for (j = 0; j < ItemsInList(groups[1][i]); j++)
 			path = StringFromList(j,groups[1][i])
-			if (GrepString(path,"\$APPLICATION"))
-				// "$APPLICATION" is replaced with
-				//	SpecialDirPath("Igor Application",0,0,0)+"Color Tables"
-				//	Consequently, absPath would be, for example,
-				//	C:Program Files:WaveMetrics:Igor Pro 8 Folder:Color Tables:LANL
-				absPath = ReplaceString("$APPLICATION",path,colorTablesAbsPath,1)
-			else
-				//	Other items in SIDAM_CTAB are supposed to be at
-				//	SIDAMPath() + path
-				//	Consequently, absPath would be, for example,
-				//	***:User Procedures:SIDAM:ctab:SIDAM
-				absPath = SIDAMPath() + path
-			endif
+			absPath = SIDAMPath() + path
 			//	Datafolder under which ibw files are loaded
 			dfStr = SIDAM_DF_CTAB + groups[0][i]
 			//	If more than 1 groups are shown in a group
