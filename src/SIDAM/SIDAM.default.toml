@@ -27,6 +27,7 @@ resolution = 2
 
 # Names of color table groups and their paths.
 [ctab]
+CartoColors = "ctab:CartoColors"
 CET = "ctab:CET"
 Cmocean = "ctab:cmocean"
 ColorBrewer = 'ctab:ColorBrewer'

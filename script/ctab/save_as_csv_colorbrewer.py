@@ -29,7 +29,7 @@ class Colorbrewer:
                     out=x)
             np.savetxt(name+'.csv', x, fmt='%d', delimiter=',')
 
-    def _get_array(self, name: str, num: int) -> np.ndarray:
+    def _get_array(self, name, num):
         """Extract rgb colors of a table specfied by the name as 
         an ndarray from the DataFrame.
         """
@@ -52,8 +52,8 @@ class Colorbrewer:
         # arr[:,0], arr[:,1], and arr[:,2] are r, g, and b, respectively
         arr = np.array(list_int)
 
-        # If the table is qualitativee, return the array without interplating
-        if c.df.at['type', name] == 'qual':
+        # If the table is qualitative, return the array without interplating
+        if self.df.at['type', name] == 'qual':
             return arr
 
         # If the table is sequential, diverging, or cyclic, return

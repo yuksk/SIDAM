@@ -6,6 +6,7 @@
 # ctab
 !/src/SIDAM/ctab
 /src/SIDAM/ctab/*
+!/src/SIDAM/ctab/CartoColors
 !/src/SIDAM/ctab/CET
 !/src/SIDAM/ctab/cmocean
 !/src/SIDAM/ctab/ColorBrewer

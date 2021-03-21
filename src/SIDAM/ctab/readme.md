@@ -6,6 +6,10 @@ See also `SIDAM.default.toml`.
 
 ## Imported color tables
 
+### CartoColors
+Color tables from [the CARTOColors project](https://github.com/CartoDB/cartocolor).  
+CartoColors is made available under a [Creative Commons Attribution license](https://creativecommons.org/licenses/by/3.0/us/).
+
 ### CET
 Color tables from [the CET Perceptually Uniform Colour Maps](https://peterkovesi.com/projects/colourmaps/) by Peter Kovesi.  
 CET is made available under a [Creative Commons Attribution license](https://creativecommons.org/licenses/by/4.0/).
