@@ -313,16 +313,10 @@ Static Constant optionBoxHeight = 70
 Static Constant colorBoxHeight = 90
 
 //	Width of a single column
-Static Constant columnWidth = 240
+Static Constant columnWidth = 230
 
 //	Number of color tables in a column
-//	Since "Turbo" is added in Igor Pro 9, the number of Igor Pro's color table
-//	is 61.
-#if (IgorVersion() >= 9.0)
-	Static Constant ctabsInColumn = 31
-#else
-	Static Constant ctabsInColumn = 30
-#endif
+Static Constant ctabsInColumn = 28
 
 //	Size of a color table
 Static Constant ctabHeight = 14
@@ -508,8 +502,12 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 
 	String list
 	if (group == 0)	//	Igor
-		list = CTabList()
-	else				//	Color table waves
+		//	Igor's list. Some color scales have 2 tables, 100 and 256.
+		//	Do not list 100 ones.
+		list = RemoveFromList("Grays;Rainbow;YellowHot;BlueHot;BlueRedGreen;"\
+			+"RedWhiteBlue;PlanetEarth;Terrain;", CTabList())
+	else
+		//	Color table waves
 		DFREF dfr = $(SIDAM_DF_CTAB+PossiblyQuoteName(StringFromList(group-1,SIDAM_CTAB)))
 		list = fetchWavepathList(dfr)
 	endif
