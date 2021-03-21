@@ -1,4 +1,4 @@
-﻿SIDAM
+SIDAM
 =====
 
 *SIDAM* is a **S**\ pectroscopic **I**\ maging **D**\ ata **A**\ nalysis **M**\ acro written in Igor Pro.
@@ -18,7 +18,7 @@ Here is a list of frequently used basic features:
   - Synchronize multiple images (axis range, layer index, and cursor position)
 
 - Color range adjustment (both fixed and flexible values)
-- Color table selection (more than 100 tables are imported from outside)
+- Color table selection (more than 200 tables are imported from outside)
 - Background subtraction
 - Fourier analysis
 
@@ -45,11 +45,12 @@ Install
 After cloning or downloading the macro files, copy them to the designated folders.::
 
    SIDAM/
-   ├ src/
-   │  ├ SIDAM.ipf -> Copy to Igor Procedures
-   │  └ SIDAM/ -> Copy to User Procedures
+   ├ LICENSE
+   ├ readme.rst
    ├ script/
-   └ LICENSE/
+   └ src/
+       ├ SIDAM.ipf -> Copy to Igor Procedures
+       └ SIDAM/    -> Copy to User Procedures
 
 1. Copy ``src/SIDAM.ipf`` and ``src/SIDAM`` to the Igor Procedures folder and the
    User Procedures folder, respectively. If you don't know where the folders are,
@@ -63,19 +64,9 @@ symbolic links of them in the designated folders.
 Update
 ^^^^^^
 
-Renew the macro files as follows.
-
-1. Remove the SIDAM folder in the User Procedures folder. If you have added
-   your own file in the extension folder, do not forget to keep them and move
-   them back after 2.
-
-2. Overwrite SIDAM.ipf in the Igor Procedures and copy new SIDAM folder to the
-   User Procedures folder. Do not overwrite the SIDAM folder because old files
-   may be left and cause a compile error.
-
-3. Start the macro to update the file list. If you forget this and open an
-   existing experiment file, a compile error may occur. In this case, stop
-   opening the experiment file and start the macro in a new experiment file.
+Basically the same as the install.
+If you have added your own files in the extension folder, do not forget add
+them again after an update.
 
 Uninstall
 ^^^^^^^^^
