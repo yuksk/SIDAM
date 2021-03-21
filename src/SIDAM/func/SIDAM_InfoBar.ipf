@@ -475,7 +475,6 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 				Sprintf xys, "(x,y) = ("+pStr+", %s %s)", ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
 			else
 				Sprintf xys, "(x,y) = "+pStr2, ms.x, ms.y
-			else
 			endif
 			break
 		case "1": 	//	r, theta
