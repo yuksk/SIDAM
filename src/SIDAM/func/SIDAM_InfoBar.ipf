@@ -52,8 +52,8 @@ Function SIDAMInfoBar(String grfName)
 	int isTrace2D = 0
 	if (isNoimage)
 		Wave w = topTraceWaveRef(grfName)
-		//	True if a 2D wave is shown as a trace
-		isTrace2D = WaveDims(w)==2
+		//	True if a 2D wave is shown as only one trace
+		isTrace2D = WaveDims(w)==2 && ItemsInList(TraceNameList(grfName,";",1))==1
 	endif
 
 	//	This userdata is used when the right-click menu is opend in order to
@@ -309,8 +309,15 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 
 	int isTrace2D = 0
 	if (!WaveExists(w))
-		Wave w = topTraceWaveRef(s.winName)
-		isTrace2D = WaveDims(w)==2
+		ControlInfo/W=$s.winName pqV
+		Variable existpq = V_flag
+		ControlInfo/W=$s.winName xyV
+		Variable existxy = V_flag
+		isTrace2D = existpq && existxy
+		if (isTrace2D)
+			Wave w = TraceNameToWaveRef(\
+				s.winName,StringFromList(0,TraceNameList(s.winName,";",1)))
+		endif
 	endif
 
 	int plane
@@ -819,13 +826,11 @@ Static Function pnlSetvalue(STRUCT WMSetVariableAction &s)
 
 	switch (dim)
 		case 0:
-			ReplaceWave/W=$s.win trace=$NameOfWave(w), w[index][]
-			break
 		case 1:
-			ReplaceWave/W=$s.win trace=$NameOfWave(w), w[][index]
+			setTraceIndex(s.win, index)
 			break
 		case 2:
-			ModifyImage/W=$s.win $NameOfWave(w) plane=index
+			SIDAMSetLayerIndex(s.win, index, w=w)
 			break
 	endswitch
 End
@@ -880,8 +885,8 @@ End
 //	Set the index (%d of w[%d][*] or w[*][%d]) of the top trace.
 Static Function setTraceIndex(String grfName, int index)
 	Wave w = topTraceWaveRef(grfName)
+	Wave rw = getTraceRange(grfName)
 	if (tracepq(grfName))
-		Wave rw = getTraceRange(grfName)
 		if (numpnts(rw)==0)
 			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[][limit(index,0,DimSize(w,1)-1)]
 		elseif (numpnts(rw)==1)
@@ -891,17 +896,19 @@ Static Function setTraceIndex(String grfName, int index)
 		endif
 	else
 		if (numpnts(rw)==0)
-			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,1)-1)][]
+			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,0)-1)][]
 		elseif (numpnts(rw)==1)
-			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,1)-1)][rw[0],*]
+			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,0)-1)][rw[0],*]
 		else
-			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,1)-1)][rw[0],rw[1]]
+			ReplaceWave/W=$grfName trace=$NameOfWave(w), w[limit(index,0,DimSize(w,0)-1)][rw[0],rw[1]]
 		endif
 	endif
 End
 
-//	Return the yrange string ([%d][*] or [*][%d]) of the top trace in grfName
+//	Return the yrange string ([*], [%d][*], or [*][%d]) of the top trace in grfName
 Static Function/S getYrangeStr(String grfName)
 	String trcName = StringFromList(0, TraceNameList(grfName,";",1))
-	return StringByKey("YRANGE", TraceInfo(grfName, trcName, 0))
+	String str = StringByKey("YRANGE", TraceInfo(grfName, trcName, 0))
+	//	w[*] is equivalent to w[*][0]
+	return str + SelectString(CmpStr(str, "[*]"), "[0]", "")
 End
