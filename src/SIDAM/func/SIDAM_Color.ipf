@@ -229,7 +229,13 @@ End
 
 Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
 	String str0 = "", str1 = ""
-	str0 += SelectString(CmpStr(s.ctable,base.ctable),"",",ctable=\""+s.ctable+"\"")
+	if (CmpStr(s.ctable,base.ctable))
+		if (strsearch(s.ctable, SIDAM_DF_CTAB, 0) == -1)
+			str0 += ",ctable=\""+s.ctable+"\""
+		else
+			str0 += ",ctable=SIDAM_DF_CTAB+\""+ReplaceString(SIDAM_DF_CTAB, s.ctable, "")+"\""
+		endif
+	endif
 	str0 += SelectString(s.rev==base.rev,",rev="+num2istr(s.rev),"")
 	str0 += SelectString(s.log==base.log,",log="+num2istr(s.log),"")
 	if (WaveExists(s.min.w) && !WaveExists(base.min.w))
