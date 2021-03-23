@@ -1,7 +1,7 @@
 # This is the configuration file of SIDAM. If you want to modify
 # configurations, it is recommended to save a copy of this file as
 # "SIDAM.toml" and modify it with keeping this file untouched.
-# You need to call SIDAMsource() and compile to reflect the modifications.
+# You need to call SIDAMsource() to reflect the modifications.
 
 [window]
 # Width and height of an image window. The unit is points.

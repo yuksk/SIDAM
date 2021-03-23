@@ -27,8 +27,12 @@ Function SIDAMStart()
 End
 
 Function SIDAMSource()
+	//	Unless SIDAM_dummy, which does not exist, is inserted and deleted,
+	//	the compile somehow does not start.
+	Execute/P/Q/Z "INSERTINCLUDE \"SIDAM_dummy\""	
 	Execute/P/Q "SIDAMStartExit#createProcFile()"
-	Execute/P "COMPILEPROCEDURES "	//	This does not work...
+	Execute/P/Q/Z "DELETEINCLUDE \"SIDAM_dummy\""	
+	Execute/P "COMPILEPROCEDURES "
 End
 
 Static Function createProcFile()
