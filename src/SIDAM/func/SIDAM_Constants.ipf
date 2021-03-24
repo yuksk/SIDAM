@@ -38,22 +38,12 @@ Constant SIDAM_CLR_CAUTION_B = 32768
 //	Folders and files
 //------------------------------------------------------------------------------
 StrConstant SIDAM_FOLDER_MAIN = "SIDAM"
-StrConstant SIDAM_FOLDER_ADDTIONAL = "fileloader;extension;"
+StrConstant SIDAM_FOLDER_ADDTIONAL = "extension;"
 StrConstant SIDAM_FOLDER_HELP = "help"
 StrConstant SIDAM_FILE_CONFIG = "SIDAM.toml"
 StrConstant SIDAM_FILE_CONFIG_DEFAULT = "SIDAM.default.toml"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
 StrConstant SIDAM_FILE_SHORTCUTS = "help:shortcuts.md"
-
-//------------------------------------------------------------------------------
-//	Tables in the configuration file
-//------------------------------------------------------------------------------
-StrConstant SIDAM_CONFIG_CTAB = "[ctab]"
-StrConstant SIDAM_CONFIG_LOADER = "[loader]"
-StrConstant SIDAM_CONFIG_WINDOW = "[window]"
-StrConstant SIDAM_CONFIG_WINDOW_COLORS = "[window.colors]"
-StrConstant SIDAM_CONFIG_WINDOW_EXPORT = "[window.export]"
-StrConstant SIDAM_CONFIG_NANONIS = "[nanonis]"
 
 //------------------------------------------------------------------------------
 //	Temporary waves

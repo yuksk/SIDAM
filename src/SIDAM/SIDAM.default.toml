@@ -1,7 +1,14 @@
 # This is the configuration file of SIDAM. If you want to modify
 # configurations, it is recommended to save a copy of this file as
-# "SIDAM.toml" and modify it with keeping this file untouched.
-# You need to call SIDAMsource() to reflect the modifications.
+# "SIDAM.toml" and modify it. You can place "SIDAM.toml" at the User
+# Procedures folder or here. You need to call SIDAMsource() and compile
+# to reflect the modifications.
+
+# In the following, both an absolute path and a relative pass are
+# accepted as a path. A relative path starts with ":" and is specified
+# from the folder where the config file exists. Therefore, if you save
+# "SIDAM.toml" at the User Procedures folder, you need to modify
+# accordingly paths in the following.
 
 [window]
 # Width and height of an image window. The unit is points.
@@ -21,22 +28,28 @@ note = [11308, 41120, 11308]
 [window.export]
 # Make the background transparent, "graph", "window", or "both".
 transparent = "both"
-# Image resolution. If this is an integer n from 1 to 8, the actual resolution
-# is n*72. Otherwise, this number is directly used.
+# Image resolution. If this is an integer n from 1 to 8, the actual
+# resolution is n*72. Otherwise, this number is directly used.
 resolution = 2
 
-# Names of color table groups and their paths.
+# Names of color table groups and paths to folders where color table
+# waves exist. You can add your own group.
 [ctab]
-CartoColors = "ctab:CartoColors"
-CET = "ctab:CET"
-Cmocean = "ctab:cmocean"
-ColorBrewer = 'ctab:ColorBrewer'
-Matplotlib = "ctab:Matplotlib"
-SciColMaps = "ctab:SciColMaps"
-SIDAM = "ctab:SIDAM"
+CartoColors = ":ctab:CartoColors"
+CET = ":ctab:CET"
+Cmocean = ":ctab:cmocean"
+ColorBrewer = ":ctab:ColorBrewer"
+Matplotlib = ":ctab:Matplotlib"
+SciColMaps = ":ctab:SciColMaps"
+SIDAM = ":ctab:SIDAM"
+
+[loader]
+# Paths to folders where data loading functions exist. Multiple folders
+# can be given as a list separated with ";".
+path = ":fileloader"
 
 # Relationship extensions and loading functions.
-[loader]
+[loader.functions]
 # Nanonis sxm, nsp
 "sxm,nsp" = "LoadNanonisSxmNsp"
 # Nanonis dat
@@ -49,7 +62,14 @@ sm2 = "LoadRHKSM2"
 "tfr,tfp,ffr,ffp,1fr,1fp,2fr,2fp,iv1,iv2,1fl,2fl,di1,di2,is1,is2" = "LoadTopometrix"
 
 [nanonis]
-# The text encoding used when nanonis files were saved. If this item is empty,
-# use the default text encoding of Igor Pro.
+# The text encoding used when nanonis files were saved.
+# If this item is empty, use the default text encoding of Igor Pro.
 text_encoding = ""
 
+[extension]
+# Paths to extension folders. Files in the extension folders are loaded
+# together with SIDAM files when SIDAM starts. If you have scripts using
+# SIDAM functions, you may want to make an extension folder and put
+# your script files in the folder. Multiple folders can be given as
+# a list separated with ";".
+path = ":func:experimental;"

@@ -6,7 +6,6 @@
 #include "SIDAM_Preference"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_ImageInfo"
-#include "SIDAM_Utilities_misc"
 #include "SIDAM_Utilities_Panel"
 #include "SIDAM_Utilities_WaveDf"
 
@@ -1403,36 +1402,29 @@ End
 //	Load all color table ibw files
 //-----------------------------------------------------------------------
 Static Function loadColorTableAll()
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_CTAB)
-	if (numtype(refNum))
-		return 1
-	endif
-	
 	int i, j, n
 
 	//	Read names of groups and paths to directories
-	Make/N=(2,256)/T/FREE groups		//	256 is expected to be large enough
-	String buffer, line
-	n = 0
-	do
-		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
-			break
-		endif
-		line = SIDAMConfig#removeComment(buffer)
-		if (strlen(line))
-			groups[][n++] = {SIDAMConfig#keyFromLine(line), SIDAMConfig#stringFromLine(line)}
-		endif
-	while (1)
-	Close refNum
-	DeletePoints/M=1 n,DimSize(groups,1)-n,groups
+	String key
+	Make/N=(2,ItemsInList(SIDAM_CTAB_PATH))/T/FREE groups	
+	for (j = 0; j < ItemsInList(SIDAM_CTAB); j++)
+		key = StringFromList(0, SIDAM_CTAB)
+		groups[][j] = {key, StringByKey(key, SIDAM_CTAB_PATH)}
+	endfor
 
 	//	Load ibw files of color table waves
 	String path, absPath, dfStr
 	for (i = 0; i < DimSize(groups,1); i++)
 		for (j = 0; j < ItemsInList(groups[1][i]); j++)
 			path = StringFromList(j,groups[1][i])
-			absPath = SIDAMPath() + path
+			//	If the folder path starts with ":", regard it as a relative path
+			//	from the folder where the config file is, otherwise an absolute path.
+			if (CmpStr(path[0], ":"))
+				absPath = path
+			else
+				absPath = ParseFilePath(1, SIDAMConfigPath(), ":", 1, 0) \
+					+ path[1,strlen(path)-1]
+			endif
 			//	Datafolder under which ibw files are loaded
 			dfStr = SIDAM_DF_CTAB + groups[0][i]
 			//	If more than 1 groups are shown in a group

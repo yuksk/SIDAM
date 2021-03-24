@@ -61,15 +61,15 @@ After cloning or downloading the macro files, copy them to the designated folder
 Instead of copying the file and folder, you can also make shortcuts or
 symbolic links of them in the designated folders.
 
-Update
-^^^^^^
+Update/Uninstall
+^^^^^^^^^^^^^^^^
 
-Basically the same as the install.
-If you have added your own files in the extension folder, do not forget add
-them again after an update.
+Remove all the files you copied when you installed, and install as above again.
+If you made shortcuts or symbolic links when you installed, you can use
+``git pull origin master``. to update files.
 
 Uninstall
-^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 Remove all the files you copied when you installed.
 

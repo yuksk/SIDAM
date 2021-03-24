@@ -67,15 +67,12 @@ Menu "SIDAM", dynamic
 	"-"
 
 	Submenu "Misc"
-		"Open configuration file", /Q, SIDAMConfigNoteBook()
+		"Open configuration file", /Q, OpenNoteBook/ENCG=1/Z SIDAMConfigPath()
 		"Browse cheet sheet of shortcuts", /Q, SIDAMBrowseShortcuts()
 		
 		"-"
 		
 		"About SIDAM...", /Q, SIDAMAbout()
-	End
-
-	Submenu "Extension"
 	End
 
 	Submenu "Developer"

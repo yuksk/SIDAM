@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMLoadData
 
-#include "SIDAM_Config"
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Panel"
@@ -159,26 +158,17 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 End
 
 Static Function/S fetchFunctionName(String extStr)
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_LOADER)
-	if (numtype(refNum))
-		return ""
-	endif
-	
-	String fnName = "", buffer, line
-	do
-		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
-			break
+	int i
+	String item, key
+	for (i = 0; i < ItemsInList(SIDAM_LOADER_FUNCTIONS); i++)
+		item = StringFromList(i, SIDAM_LOADER_FUNCTIONS)
+		key = StringFromList(0, item, ":")
+		if (WhichListItem(extStr, key, ",") != -1)
+			return StringFromList(1, item, ":")
 		endif
-		line = SIDAMConfig#removeComment(buffer)
-		if (WhichListItem(extStr, SIDAMConfig#keyFromLine(line), ",") != -1)
-			fnName = SIDAMConfig#stringFromLine(line)
-			break
-		endif
-	while (1)
-	Close refNum
-	
-	return fnName
+	endfor
+
+	return ""
 End
 
 Static Function printHistory(String pathStr)

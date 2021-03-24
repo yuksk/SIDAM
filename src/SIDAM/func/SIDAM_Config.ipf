@@ -8,71 +8,11 @@
 
 #include "SIDAM_Utilities_misc"
 
-//	Open SIDAM.toml if exists. If not, open SIDAM.default.toml
-//	Then, proceed to a table designated by the tableName parameter.
-Function SIDAMConfig(String tableName)
+//	Return keys of a table as a list
+Function/S SIDAMConfigKeys(String tableName)
 	Variable refNum
-	Open/R/Z refNum as SIDAMPath()+SIDAM_FILE_CONFIG
-	if (V_flag)
-		Open/R/Z refNum as SIDAMPath()+SIDAM_FILE_CONFIG_DEFAULT
-	endif
-	if (V_flag)
-		Abort "Error in reading the config file."
-	endif
-
-	int notfound = proceedToTable(refNum, tableName)
-	return notfound ? NaN : refNum
-End
-
-//	Open SIDAM.toml as a notebook
-Function SIDAMConfigNoteBook()
-	OpenNoteBook/ENCG=1/Z SIDAMPath()+SIDAM_FILE_CONFIG
-	if (V_flag)
-		OpenNoteBook/ENCG=1/R/Z SIDAMPath()+SIDAM_FILE_CONFIG_DEFAULT
-	endif
-	if (V_flag)
-		Abort "Error in opening the config file."
-	endif
-End
-
-//	Write configuration as constants
-Function SIDAMConfigToProc(Variable refNum)
-	fprintf refNum, "StrConstant SIDAM_CTAB = \"%s\"\r", getCtabConfig()
-	
-	Variable width, height, precision
-	getWindowConfig(width, height, precision)
-	fprintf refNum, "Constant SIDAM_WINDOW_WIDTH = %f\r", width
-	fprintf refNum, "Constant SIDAM_WINDOW_HEIGHT = %f\r", height
-	fprintf refNum, "Constant SIDAM_WINDOW_PRECISION = %d\r", precision
-	
-	STRUCT Colors clrs
-	getWindowColorsConfig(clrs)
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_R = %d\r",	clrs.line.red
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_G = %d\r", clrs.line.green
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_B = %d\r", clrs.line.blue
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_R = %d\r", clrs.line2.red
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_G = %d\r", clrs.line2.green
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_B = %d\r", clrs.line2.blue
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_R = %d\r",	clrs.note.red
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_G = %d\r", clrs.note.green
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_B = %d\r", clrs.note.blue
-	
-	String transparent
-	Variable resolution
-	getWindowExportConfig(transparent, resolution)
-	fprintf refNum, "StrConstant SIDAM_WINDOW_EXPORT_TRANSPARENT = \"%s\"\r", transparent
-	fprintf refNum, "Constant SIDAM_WINDOW_EXPORT_RESOLUTION = %d\r", resolution
-	
-	String nanonis_encoding
-	getNanonisEncodingConfig(nanonis_encoding)
-	fprintf refNum, "StrConstant SIDAM_NANONIS_TEXTENCODING = \"%s\"\r", nanonis_encoding
-End
-
-Static Function/S getCtabConfig()
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_CTAB)
-	if (numtype(refNum))
-		return ""
-	endif
+	Open/R/Z refNum as SIDAMConfigPath()
+	proceedToTable(refNum, tableName)
 	
 	String listStr = "", buffer, line
 	do
@@ -90,82 +30,13 @@ Static Function/S getCtabConfig()
 	return listStr
 End
 
-Static Function getWindowConfig(Variable &width, Variable &height,
-		Variable &precision)
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_WINDOW)
-	if (numtype(refNum))
-		return 1
-	endif
+//	Return contents of a table as a key:value; list
+Function/S SIDAMConfigItems(String tableName, [String listSep])
+	listSep = SelectString(ParamIsDefault(listSep), listSep, ";")
 
-	String listStr = "", buffer, line
-	do
-		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
-			break
-		endif
-		line = removeComment(buffer)
-		strswitch (keyFromLine(line))
-			case "width":
-				width = valueFromLine(line)
-				break
-			case "height":
-				height = valueFromLine(line)
-				break
-			case "precision":
-				precision = valueFromLine(line)
-				break
-		endswitch
-	while (1)
-	Close refNum
-End
-
-Static Structure Colors
-	STRUCT RGBColor line
-	STRUCT RGBColor line2
-	STRUCT RGBColor note
-EndStructure
-
-Static Function getWindowColorsConfig(STRUCT Colors &s)
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_WINDOW_COLORS)
-	if (numtype(refNum))
-		return 1
-	endif
-
-	String listStr = "", buffer, line
-	do
-		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
-			break
-		endif
-		line = removeComment(buffer)
-		strswitch (keyFromLine(line))
-			case "line":
-				lineToRGB(line, s.line)
-				break
-			case "line2":
-				lineToRGB(line, s.line2)
-				break
-			case "note":
-				lineToRGB(line, s.note)
-				break
-		endswitch
-	while (1)
-	Close refNum	
-End
-
-Static Function lineToRGB(String line, STRUCT RGBColor &clr)
-	Wave vw = arrayFromLine(line)
-	clr.red = vw[0]
-	clr.green = vw[1]
-	clr.blue = vw[2]
-End
-
-Static Function getWindowExportConfig(String &transparent,
-		Variable &resolution)
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_WINDOW_EXPORT)
-	if (numtype(refNum))
-		return 1
-	endif
+	Variable refNum
+	Open/R/Z refNum as SIDAMConfigPath()
+	proceedToTable(refNum, tableName)
 	
 	String listStr = "", buffer, line
 	do
@@ -174,42 +45,91 @@ Static Function getWindowExportConfig(String &transparent,
 			break
 		endif
 		line = removeComment(buffer)
-		strswitch (keyFromLine(line))
-			case "transparent":
-				transparent = stringFromLine(line)
-				break
-			case "resolution":
-				resolution = valueFromLine(line)
-				break
-		endswitch
+		if (strlen(line))
+			listStr += keyFromLine(line) + ":" + stringFromLine(line) + listSep
+		endif
 	while (1)
 	Close refNum
+
+	return listStr
 End
 
-Static Function getNanonisEncodingConfig(String &enc)
-	Variable refNum = SIDAMConfig(SIDAM_CONFIG_NANONIS)
-	if (numtype(refNum))
-		return 1
+//	Return a path to the config file.
+//	The config file is searched in the following order.
+//	1. User Procedures:SIDAM.toml
+//	2. User Procedures:SIDAM:SIDAM.toml
+//	3. User Procedures:SIDAM:SIDAM.default.toml
+Function/S SIDAMConfigPath()
+	Variable refNum
+	String path
+	
+	path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
+		+ "User Procedures:" + SIDAM_FILE_CONFIG
+	if (isConfigExist(path))
+		return path
 	endif
 	
-	String listStr = "", buffer, line
-	do
-		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
-			break
-		endif
-		line = removeComment(buffer)
-		strswitch (keyFromLine(line))
-			case "text_encoding":
-				enc = stringFromLine(line)
-				if (!strlen(enc))
-					DefaultTextEncoding
-					enc = TextEncodingName(V_defaultTextEncoding, 0)
-				endif
-				break
-		endswitch
-	while (1)
-	Close refNum
+	path = SIDAMPath()+SIDAM_FILE_CONFIG
+	if (isConfigExist(path))
+		return path
+	endif
+	
+	path = SIDAMPath()+SIDAM_FILE_CONFIG_DEFAULT
+	if (isConfigExist(path))
+		return path
+	endif
+
+	Abort "The config file not found."
+End
+
+Static Function isConfigExist(String path)
+	Variable refNum
+	Open/R/Z refNum as path
+	if (V_flag)
+		return 0
+	else
+		Close refNum
+		return 1
+	endif
+End
+
+//	Write configuration as constants
+Function SIDAMConfigToProc(Variable refNum)
+	fprintf refNum, "StrConstant SIDAM_CTAB = \"%s\"\r", SIDAMConfigKeys("[ctab]")
+	fprintf refNum, "StrConstant SIDAM_CTAB_PATH = \"%s\"\r", SIDAMConfigItems("[ctab]")
+	
+	fprintf refNum, "StrConstant SIDAM_LOADER_FUNCTIONS = \"%s\"\r", SIDAMConfigItems("[loader.functions]")
+	
+	String items = SIDAMConfigItems("[window]")
+	fprintf refNum, "Constant SIDAM_WINDOW_WIDTH = %f\r", NumberByKey("width", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_HEIGHT = %f\r", NumberByKey("height", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_PRECISION = %d\r", NumberByKey("precision", items)
+	
+	items = SIDAMConfigItems("[window.colors]")
+	Wave vw = arrayFromValue(StringByKey("line", items))
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_R = %d\r", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_G = %d\r", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_B = %d\r", vw[2]
+	Wave vw = arrayFromValue(StringByKey("line2", items))
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_R = %d\r", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_G = %d\r", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_B = %d\r", vw[2]
+	Wave vw = arrayFromValue(StringByKey("note", items))
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_R = %d\r", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_G = %d\r", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_B = %d\r", vw[2]
+	
+	items = SIDAMConfigItems("[window.export]")
+	fprintf refNum, "StrConstant SIDAM_WINDOW_EXPORT_TRANSPARENT = \"%s\"\r", StringByKey("transparent", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_EXPORT_RESOLUTION = %d\r", NumberByKey("resolution", items)
+	
+	items = SIDAMConfigItems("[nanonis]")
+	String nanonis_encoding = StringByKey("text_encoding", items)
+	if (!strlen(nanonis_encoding))
+		DefaultTextEncoding
+		nanonis_encoding = TextEncodingName(V_defaultTextEncoding, 0)
+	endif
+	fprintf refNum, "StrConstant SIDAM_NANONIS_TEXTENCODING = \"%s\"\r", nanonis_encoding
 End
 
 
@@ -237,9 +157,8 @@ Static Function valueFromLine(String line)
 	return str2num(StringFromList(1, line, "="))
 End
 
-Static Function/WAVE arrayFromLine(String line)
-	//	For ease of implementation, "=" is not assumed to be included in the key.
-	String str = unsurrounding_(StringFromList(1, line, "="))
+Static Function/WAVE arrayFromValue(String value)
+	String str = unsurrounding_(value)
 	if (strsearch(str, "\"", 0) != -1 || strsearch(str, "'", 0) != -1)
 		Make/T/FREE/N=(ItemsInList(str, ",")) tw = unsurrounding_(StringFromList(p, str, ","))
 		return tw
@@ -257,7 +176,7 @@ Static Function proceedToTable(Variable refNum, String tableName)
 		FReadLine refNum, buffer
 		if (!strlen(buffer))	//	EOF
 			Close refNum
-			return 1
+			Abort "Error in finding a table ("+tableName+") in the config file."
 		elseif (!CmpStr(buffer, tableName+"\r"))
 			return 0
 		endif
