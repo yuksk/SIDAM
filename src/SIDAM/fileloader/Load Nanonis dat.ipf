@@ -132,7 +132,7 @@ Static Function LoadNanonisDatGetDataConvert(s, ww)
 			break
 		case "Z spectroscopy":
 			for (i = 1, n = numpnts(ww); i < n; i += 1)
-				SetScale/I x xw[0], xw[numpnts(xw)-1]*1e10, "\u00c5", ww[i]		//	m -> angstrom
+				SetScale/I x xw[0]*1e10, xw[numpnts(xw)-1]*1e10, "\u00c5", ww[i]		//	m -> angstrom
 				LoadNanonisCommonConversion(ww[i])
 			endfor
 			break
