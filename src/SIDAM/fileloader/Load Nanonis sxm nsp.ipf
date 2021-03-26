@@ -230,9 +230,12 @@ Static Function SXMHeaderCvt(STRUCT header &s)
 	KillStrings REC_DATE, REC_TIME, SCAN_PIXELS, SCAN_RANGE, SCAN_OFFSET,SCAN_DIR
 	KillVariables ACQ_TIME, SCAN_ANGLE, BIAS
 	
-	s.xpnts = '# pixels' ;				s.ypnts = '# lines'	
-	s.xscale ='width (m)'*1e10; 			s.yscale = 'height (m)'*1e10	// angstrom
-	s.xcenter = 'center x (m)'*1e10;	s.ycenter = 'center y (m)'*1e10	// angstrom
+	s.xpnts = '# pixels'
+	s.ypnts = '# lines'	
+	s.xscale ='width (m)' * SIDAM_NANONIS_LENGTHSCALE
+	s.yscale = 'height (m)' * SIDAM_NANONIS_LENGTHSCALE
+	s.xcenter = 'center x (m)' * SIDAM_NANONIS_LENGTHSCALE
+	s.ycenter = 'center y (m)' * SIDAM_NANONIS_LENGTHSCALE
 	s.direction = stringmatch(direction, "down")
 End
 
@@ -307,16 +310,16 @@ Static Function/WAVE SXMData(String pathStr, STRUCT header &s)
 	//	Physical values
 	for (layer = 0; layer < nLayer; layer += 1)
 		Wave lw = refw[layer]
-		SetScale/I x, s.xcenter-s.xscale/2, s.xcenter+s.xscale/2, "\u00c5", lw
-		SetScale/I y, s.ycenter-s.yscale/2, s.ycenter+s.yscale/2, "\u00c5", lw
+		SetScale/I x, s.xcenter-s.xscale/2, s.xcenter+s.xscale/2, SIDAM_NANONIS_LENGTHUNIT, lw
+		SetScale/I y, s.ycenter-s.yscale/2, s.ycenter+s.yscale/2, SIDAM_NANONIS_LENGTHUNIT, lw
 		strswitch (WaveUnits(lw, -1))
-			case "m":
-				FastOP lw = (1e10) * lw	//	angstrom
-				SetScale d, WaveMin(lw), WaveMax(lw), "\u00c5", lw
+			case "m":	//	height
+				FastOP lw = (SIDAM_NANONIS_LENGTHSCALE) * lw	
+				SetScale d, WaveMin(lw), WaveMax(lw), SIDAM_NANONIS_LENGTHUNIT, lw
 				break
-			case "A":
-				FastOP lw = (1e9) * lw		//	nA
-				SetScale d, WaveMin(lw), WaveMax(lw), "nA", lw
+			case "A":	//	current
+				FastOP lw = (SIDAM_NANONIS_CURRENTSCALE) * lw
+				SetScale d, WaveMin(lw), WaveMax(lw), SIDAM_NANONIS_CURRENTUNIT, lw
 				break
 			default:
 				SetScale d, WaveMin(lw), WaveMax(lw), "", lw

@@ -63,6 +63,19 @@ sm2 = "LoadRHKSM2"
 # The text encoding used when nanonis files were saved.
 # If this item is empty, use the default text encoding of Igor Pro.
 text_encoding = ""
+# "m", "A", and "V" are used for length, current, and voltage
+# in nanonis files. The following is to convert them to "nm", "nA",
+# and "mV", respectively.
+# If you prefer angstrom for length, use "\u00c5" for the unit and
+# 1e10 for the scale.
+length_unit = "nm"
+length_scale = 1e9
+current_unit = "nA"
+current_scale = 1e9
+voltage_unit = "mV"
+voltage_scale = 1e3
+conductance_unit = "nS"
+conductance_scale = 1e9
 
 [extension]
 # Paths to extension folders. Files in the extension folders are loaded

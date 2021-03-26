@@ -21,7 +21,9 @@ Function/S SIDAMConfigKeys(String tableName)
 			break
 		endif
 		line = removeComment(buffer)
-		if (strlen(line))
+		if (GrepString(line, "^\[.*?\]"))
+			break
+		elseif (strlen(line))
 			listStr += keyFromLine(line) + ";"
 		endif
 	while (1)
@@ -45,7 +47,9 @@ Function/S SIDAMConfigItems(String tableName, [String listSep])
 			break
 		endif
 		line = removeComment(buffer)
-		if (strlen(line))
+		if (GrepString(line, "^\[.*?\]"))
+			break
+		elseif (strlen(line))
 			listStr += keyFromLine(line) + ":" + stringFromLine(line) + listSep
 		endif
 	while (1)
@@ -130,6 +134,14 @@ Function SIDAMConfigToProc(Variable refNum)
 		nanonis_encoding = TextEncodingName(V_defaultTextEncoding, 0)
 	endif
 	fprintf refNum, "StrConstant SIDAM_NANONIS_TEXTENCODING = \"%s\"\r", nanonis_encoding
+	fprintf refNum, "StrConstant SIDAM_NANONIS_LENGTHUNIT = \"%s\"\r", StringByKey("length_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_LENGTHSCALE = %f\r", NumberByKey("length_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_CURRENTUNIT = \"%s\"\r", StringByKey("current_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_CURRENTSCALE = %f\r", NumberByKey("current_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_VOLTAGEUNIT = \"%s\"\r", StringByKey("voltage_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_VOLTAGESCALE = %f\r", NumberByKey("voltage_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_CONDUCTANCEUNIT = \"%s\"\r", StringByKey("conductance_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_CONDUCTANCESCALE = %f\r", NumberByKey("conductance_scale", items)
 End
 
 

@@ -17,7 +17,9 @@ Static StrConstant SUFFIX_CHISQ = "_chisq"
 Static StrConstant SUFFIX_ERROR = "_err"
 Static StrConstant SUFFIX_QUIT = "_quit"
 
-Static Constant CONVCOEF = 0.9525082672661202
+Static Constant HBAR = 1.054571817e-34				//	hbar, J s
+Static Constant MASS =  9.109383701500001e-31		//	electron mass, kg
+Static Constant CHARGE = 1.602176634e-19			//	elementary charge, C
 
 //@
 //	Calculate the work function.
@@ -73,6 +75,7 @@ Function/WAVE SIDAMWorkfunction(Wave/Z w, [int startp, int endp,
 		DFREF dfrSav = GetDataFolderDFR()
 		SetDataFolder GetWavesDataFolderDFR(w)
 		saveResults(refw, "amplitude", basename+SUFFIX_AMP)
+		saveResults(refw, "offset", basename+SUFFIX_OFFSET)
 		saveResults(refw, "workfunction", basename+SUFFIX_WF)
 		saveResults(refw, "chisq", basename+SUFFIX_CHISQ)
 		saveResults(refw, "fiterror", basename+SUFFIX_ERROR)
@@ -181,16 +184,16 @@ Static Function/WAVE wf1D(Wave w, int startp, int endp, Variable offset)
 	SetDimLabel 0, 1, amplitude, resw
 	SetDimLabel 0, 2, chisq, resw
 	SetDimLabel 0, 3, offset, resw
-	resw[%workfunction] = CONVCOEF/coefw[2]^2
+	resw[%workfunction] = convCoef(w)/coefw[2]^2
 	resw[%amplitude] = coefw[1]
 	resw[%offset] = coefw[0]
 	resw[%chisq] = V_chisq
 	
 	printf "wave:\t%s\r", NameOfWave(w)
 	printf "fitting function: I = A*exp(-z/z0)+I0\r"
-	printf "\tz0:\t%f [%s]\r", coefw[2], WaveUnits(w,0)
-	printf "\tA:\t%f [%s]\r", resw[%amplitude], StringByKey("DUNITS", WaveInfo(w,0))
-	printf "\tI0:\t%f [%s]\r", resw[%offset], StringByKey("DUNITS", WaveInfo(w,0))
+	printf "\tz0:\t%e [%s]\r", coefw[2], WaveUnits(w,0)
+	printf "\tA:\t%e [%s]\r", resw[%amplitude], StringByKey("DUNITS", WaveInfo(w,0))
+	printf "\tI0:\t%e [%s]\r", resw[%offset], StringByKey("DUNITS", WaveInfo(w,0))
 	printf "\tchisq:\t%e\r", resw[%chisq]
 	printf "work function: %f [eV]\r", resw[%workfunction]
 
@@ -222,9 +225,10 @@ Static Function/WAVE wf3D(Wave w, int startr, int endr, Variable offset)
 	SetScale d 0, 0, "eV", wfw
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(w,0)), aw, offsetw
 
+	Variable coef = convCoef(w)
 	MultiThread offsetw = worker(ww, p, q, 0)
 	MultiThread aw = worker(ww, p, q, 1)
-	MultiThread wfw =  CONVCOEF/(worker(ww, p, q, 2))^2
+	MultiThread wfw =  coef/(worker(ww, p, q, 2))^2
 	MultiThread chisqw = worker(ww, p, q, 3)
 	MultiThread errw = worker(ww, p, q, 4)
 	MultiThread qw = worker(ww, p, q, 5)
@@ -272,6 +276,23 @@ ThreadSafe Static Function worker(Wave/WAVE ww, int pp, int qq, int index)
 	return tww[index]
 End
 
+Static Function convCoef(Wave w)
+	Variable scale
+	strswitch (WaveUnits(w, WaveDims(w)-1))
+		case "m":
+			scale = 1
+			break
+		case "nm":
+			scale = 1e9
+			break
+		case "\u00c5":	//	angstrom
+			scale = 1e10
+			break
+		default:
+			Abort "The unit in the z direction must be either m, nm, or \u00c5 (\\u00c5)"
+	endswitch
+	return (HBAR * scale)^2 / (8 * MASS * CHARGE)
+End
 
 //-------------------------------------------------------------
 //	Panel

@@ -6,9 +6,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonisDat(pathStr)
-	String pathStr
-	
+Function/WAVE LoadNanonisDat(String pathStr)
 	String fileName = ParseFilePath(3, pathStr, ":", 0, 0) //	name w/o an extension
 	DFREF dfrSav = GetDataFolderDFR()
 	
@@ -33,10 +31,7 @@ End
 //	in the current datafolder.
 //	Information necessary for the data reading function is saved to
 //	the structure "s".
-Static Function LoadNanonisDatGetHeader(pathStr, s)
-	String pathStr
-	STRUCT header &s
-	
+Static Function LoadNanonisDatGetHeader(String pathStr, STRUCT header &s)
 	LoadNanonisCommonGetHeader(pathStr)
 	
 	SVAR Experiment
@@ -73,10 +68,7 @@ EndStructure
 
 //	Data reading functions.
 //	The resultant waves are saved in the current datafolder.
-Static Function/WAVE LoadNanonisDatGetData(pathStr, s)
-	String pathStr
-	STRUCT header &s
-	
+Static Function/WAVE LoadNanonisDatGetData(String pathStr, STRUCT header &s)
 	LoadWave/G/W/A/Q pathStr
 	Make/N=(ItemsInList(S_waveNames))/WAVE/FREE ww = $StringFromList(p,S_waveNames)
 	
@@ -111,11 +103,8 @@ Static Function/WAVE LoadNanonisDatGetData(pathStr, s)
 	return refw
 End
 
-Static Function LoadNanonisDatGetDataConvert(s, ww)
-	STRUCT header &s
-	Wave/WAVE ww
-	
-	Variable i, n
+Static Function LoadNanonisDatGetDataConvert(STRUCT header &s, Wave/WAVE ww)
+	int i, n
 	
 	//	The first column is the bias voltage, length, or frequency except
 	//	the Histroy Data.
@@ -124,20 +113,24 @@ Static Function LoadNanonisDatGetDataConvert(s, ww)
 	strswitch (s.type)
 		case "bias spectroscopy":
 			for (i = 1, n = numpnts(ww); i < n; i += 1)
-				SetScale/I x xw[0]*1e3, xw[numpnts(xw)-1]*1e3, "mV", ww[i]	//	V -> mV
-				LoadNanonisCommonConversion(ww[i], driveamp=s.driveamp, modulated=s.modulated)
+				SetScale/I x xw[0]*SIDAM_NANONIS_VOLTAGESCALE\
+				             , xw[numpnts(xw)-1]*SIDAM_NANONIS_VOLTAGESCALE\
+				             , SIDAM_NANONIS_VOLTAGEUNIT, ww[i]
+				LoadNanonisCommonConversion(ww[i], driveamp=s.driveamp, \
+				                            modulated=s.modulated)
 			endfor
 			break
 		case "Z spectroscopy":
 			for (i = 1, n = numpnts(ww); i < n; i += 1)
-				SetScale/I x xw[0]*1e10, xw[numpnts(xw)-1]*1e10, "\u00c5", ww[i]		//	m -> angstrom
+				SetScale/I x xw[0]*SIDAM_NANONIS_LENGTHSCALE\
+				             , xw[numpnts(xw)-1]*SIDAM_NANONIS_LENGTHSCALE\
+				             , SIDAM_NANONIS_LENGTHUNIT, ww[i]
 				LoadNanonisCommonConversion(ww[i])
 			endfor
 			break
 		case "Spectrum":
 			for (i = 1, n = numpnts(ww); i < n; i += 1)
 				SetScale/I x xw[0], xw[numpnts(xw)-1], "Hz", ww[i]
-				LoadNanonisCommonConversion(ww[i])
 			endfor
 			break
 		case "History Data":
@@ -157,9 +150,7 @@ End
 //
 //	Read the header and save as global variables.
 //	Returns the size of header.
-Function LoadNanonisCommonGetHeader(pathStr)
-	String pathStr
-	
+Function LoadNanonisCommonGetHeader(String pathStr)
 	Variable refNum, subFolder, i
 	String buffer, key, name, value
 	DFREF dfrSav = GetDataFolderDFR()
@@ -212,16 +203,13 @@ Function LoadNanonisCommonGetHeader(pathStr)
 	return V_filePos	//	the size of header
 End
 
-//------------------------------------------------------------------------------
 //	Convert raw values to physical or easy-to-read values
-//------------------------------------------------------------------------------
 Function LoadNanonisCommonConversion(Wave w, [Variable driveamp, 
 	String modulated])
 
 	int isLockin = GrepString(NameOfWave(w),"_LI([RXY]|phi|_Demod)_")
 	int isBias = GrepString(NameOfWave(w), "_Bias")
 	SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
-	int isFFTspectrum = !CmpStr(Experiment, "Spectrum")
 
 	if (isLockin)
 		int noLockInHeader = numtype(driveamp) == 2
@@ -231,11 +219,11 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 		if (noLockInHeader)	
 			SetScale d WaveMin(w), WaveMax(w), "A", w
 			print "CAUTION: Information about lock-in settings is missing. "\
-				+ "Conversion to nS is NOT done."
+				+ "Conversion is NOT done."
 
 		elseif (isBiasModulated)
-			FastOP w = (1e9/driveamp) * w 	//	A -> nS
-			SetScale d WaveMin(w), WaveMax(w), "nS", w
+			FastOP w = (SIDAM_NANONIS_CONDUCTANCESCALE/driveamp) * w
+			SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_CONDUCTANCEUNIT, w
 
 		elseif (isZModulated)
 			FastOP w = (1/driveamp) * w
@@ -247,23 +235,17 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 		endif
 
 	elseif (isBias)
-		FastOP w = (1e3) * w		//	V -> mV
-		SetScale d WaveMin(w), WaveMax(w), "mV", w
-
-	elseif (isFFTspectrum)
-		FastOP w = (1e15) * w		//	A -> fA
-		SetScale d WaveMin(w), WaveMax(w), "fA/sqrt(Hz)", w
+		FastOP w = (SIDAM_NANONIS_VOLTAGESCALE) * w
+		SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_VOLTAGEUNIT, w
 
 	else
-		FastOP w = (1e9) * w		//	A -> nA
-		SetScale d WaveMin(w), WaveMax(w), "nA", w
+		FastOP w = (SIDAM_NANONIS_CURRENTSCALE) * w
+		SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_CURRENTUNIT, w
 	endif
 End
 
 //	Calculate the average between the forward and the backward data
-Function/WAVE LoadNanonisCommonDataAvg(bwdStr)
-	String bwdStr
-	
+Function/WAVE LoadNanonisCommonDataAvg(String bwdStr)
 	String listStr = WaveList("*",";",""), name, avgName, subName
 	Variable i, n
 	Make/WAVE/N=0/FREE refw
@@ -289,9 +271,7 @@ End
 
 //	Save the header values as global variables.
 //	This function is used for sxm files as well.
-Function LoadNanonisCommonVariableString(name,str)
-	String name, str
-	
+Function LoadNanonisCommonVariableString(String name, String str)
 	int code = TextEncodingCode(SIDAM_NANONIS_TEXTENCODING)
 	String value = ConvertTextEncoding(str, code, 1, 1, 0)	
 	

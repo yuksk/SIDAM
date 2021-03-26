@@ -380,30 +380,44 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 	
 	//	scan area
 	Make/N=5/FREE xw = {-1, 1, 1, -1, -1}, yw = {-1, -1, 1, 1, -1}
-	Make/N=5 scan_x = ((xw*cos(s.angle/180*pi) + yw*sin(s.angle/180*pi)) * s.size.x/2 + s.center.x) * 1e10	//	m -> angstrom
-	Make/N=5 scan_y = ((-xw*sin(s.angle/180*pi) + yw*cos(s.angle/180*pi)) * s.size.y/2 + s.center.y) * 1e10	//	m -> angstrom
-	
+	Make/N=(2,5) scan
+	scan[0][] = ((xw[q]*cos(s.angle/180*pi) + yw[q]*sin(s.angle/180*pi)) * s.size.x/2 + s.center.x)
+	scan[1][] = ((-xw[q]*sin(s.angle/180*pi) + yw[q]*cos(s.angle/180*pi)) * s.size.y/2 + s.center.y)
+	scan *= SIDAM_NANONIS_LENGTHSCALE
+
 	//	sts points
-	MatrixOP/FREE tw0 = transposeVol(w,4)*1e10	//	m -> angstrom
-	MatrixOP stspos_x = tw0[][][xIndex]
-	MatrixOP stspos_y = tw0[][][yIndex]
-	Redimension/N=(s.pnts.x*s.pnts.y)/S stspos_x, stspos_y
+	MatrixOP/FREE tw0 = transposeVol(w,4)
+	MatrixOP/FREE stspos_x = fp32(tw0[][][xIndex]) * SIDAM_NANONIS_LENGTHSCALE
+	MatrixOP/FREE stspos_y = fp32(tw0[][][yIndex]) * SIDAM_NANONIS_LENGTHSCALE
 	
+	Concatenate/NP=2 {stspos_x, stspos_y}, stspos
+	Redimension/N=(s.pnts.x*s.pnts.y*2) stspos
+	Redimension/N=(s.pnts.x*s.pnts.y, 2) stspos
+	MatrixTranspose stspos
+	
+	SetDimLabel 0, 0, x, scan, stspos
+	SetDimLabel 0, 1, y, scan, stspos
+	Setscale d 0, 1, SIDAM_NANONIS_LENGTHUNIT, scan, stspos
+		
 	SetDataFolder dfrSav
 	
 	//	stm image
 	if (s.pnts.y == 1)	//Linecut
 		Make/N=(s.pnts.x) $(fileName+"_Z")/WAVE=topow
-		topow[] = w[zIndex][p]*1e10					//	angstrom
+		topow[] = w[zIndex][p] * SIDAM_NANONIS_LENGTHSCALE
 	else
 		Make/N=(s.pnts.x, s.pnts.y) $(fileName+"_Z")/WAVE=topow
-		MultiThread topow[][] = w[zIndex][p][q]*1e10		//	angstrom
+		MultiThread topow[][] = w[zIndex][p][q] * SIDAM_NANONIS_LENGTHSCALE
 	endif
-	SetScale d WaveMin(topow), WaveMax(topow), "\u00c5", w
+	SetScale d WaveMin(topow), WaveMax(topow), SIDAM_NANONIS_LENGTHUNIT, w
 	
 	//	The measured positions are inside the edge of area by half a pixel
-	SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2)*1e10, s.size.x/s.pnts.x*1e10, "\u00c5", topow	//	m -> angstrom
-	SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2)*1e10, s.size.y/s.pnts.y*1e10, "\u00c5", topow	//	m -> angstrom
+	SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2) * SIDAM_NANONIS_LENGTHSCALE\
+	             , s.size.x/s.pnts.x * SIDAM_NANONIS_LENGTHSCALE\
+	             , SIDAM_NANONIS_LENGTHUNIT, topow
+	SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2) * SIDAM_NANONIS_LENGTHSCALE\
+	             , s.size.y/s.pnts.y * SIDAM_NANONIS_LENGTHSCALE\
+	             , SIDAM_NANONIS_LENGTHUNIT, topow
 	
 	return topow
 End
@@ -469,11 +483,16 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		MatrixOP $CleanupName(namew[i],1)/WAVE=specw = transposeVol(tw2,4)
 		
 		if (s.pnts.y == 1)		//	linecut
-			SetScale/I x, 0, s.size.x*1e10, "\u00c5", specw				//	m -> angstrom
+			SetScale/I x, 0, s.size.x*SIDAM_NANONIS_LENGTHSCALE\
+			            , SIDAM_NANONIS_LENGTHUNIT, specw	
 		else
 			//	The measured positions are inside the edge of area by half a pixel
-			SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2)*1e10, s.size.x/s.pnts.x*1e10, "\u00c5", specw	//	m -> angstrom
-			SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2)*1e10, s.size.y/s.pnts.y*1e10, "\u00c5", specw	//	m -> angstrom
+			SetScale/P x, (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2)*SIDAM_NANONIS_LENGTHSCALE\
+			            , s.size.x/s.pnts.x*SIDAM_NANONIS_LENGTHSCALE\
+			            , SIDAM_NANONIS_LENGTHUNIT, specw
+			SetScale/P y, (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2)*SIDAM_NANONIS_LENGTHSCALE\
+			            , s.size.y/s.pnts.y*SIDAM_NANONIS_LENGTHSCALE\
+			            , SIDAM_NANONIS_LENGTHUNIT, specw
 		endif
 		
 		if (WaveExists(s.mlsw))	//	MLS
@@ -481,10 +500,14 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		else							//	linear
 			strswitch (s.signal)
 				case "Bias (V)":
-					SetScale/I z, sweepStart*1e3, sweepEnd*1e3, "mV", specw			//	V -> mV
+					SetScale/I z, sweepStart*SIDAM_NANONIS_VOLTAGESCALE\
+					            , sweepEnd*SIDAM_NANONIS_VOLTAGESCALE\
+					            , SIDAM_NANONIS_VOLTAGEUNIT, specw
 					break
 				case "Z (m)":
-					SetScale/I z, sweepStart*1e10, sweepEnd*1e10, "\u00c5", specw	//	m -> angstrom
+					SetScale/I z, sweepStart*SIDAM_NANONIS_LENGTHSCALE\
+					            , sweepEnd*SIDAM_NANONIS_LENGTHSCALE\
+					            , SIDAM_NANONIS_LENGTHUNIT, specw
 					break
 				default:
 					SetScale/I z, sweepStart, sweepEnd, "", specw
@@ -526,10 +549,10 @@ Static Function LoadNanonis3dsSetMLSBias(Wave specw, STRUCT Nanonis3ds &s)
 	
 	strswitch (s.signal)
 		case "Bias (V)":
-			ew *= 1e3		//	V -> mV
+			ew *= SIDAM_NANONIS_VOLTAGESCALE
 			break
 		case "Z (m)":
-			ew *= 1e10	//	m -> angstrom
+			ew *= SIDAM_NANONIS_LENGTHSCALE
 			break
 		default:
 			//	do nothing
