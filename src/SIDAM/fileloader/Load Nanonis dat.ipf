@@ -5,23 +5,21 @@
 #pragma hide = 1
 #endif
 
-//******************************************************************************
-//	ファイル読み込みメイン
-//******************************************************************************
+//	Main function
 Function/WAVE LoadNanonisDat(pathStr)
 	String pathStr
 	
-	String fileName = ParseFilePath(3, pathStr, ":", 0, 0)	//	拡張子抜きの名前
+	String fileName = ParseFilePath(3, pathStr, ":", 0, 0) //	name w/o an extension
 	DFREF dfrSav = GetDataFolderDFR()
 	
-	//	ヘッダ読み込み
+	//	Read the header
 	NewDataFolder/O/S $SIDAM_DF_SETTINGS
 	STRUCT header s
-	if (LoadNanonisDatGetHeader(pathStr, s))	//	Nanonis dat ファイルではない場合
+	if (LoadNanonisDatGetHeader(pathStr, s))	//	Not a Nanonis data file
 		return $""
 	endif
 	
-	//	データ読み込み
+	//	Read the data
 	SetDataFolder dfrSav
 	Wave/WAVE resw =  LoadNanonisDatGetData(pathStr, s)
 	
@@ -29,17 +27,18 @@ Function/WAVE LoadNanonisDat(pathStr)
 End
 
 
-//******************************************************************************
-//	ヘッダ読み込み
-//		ヘッダから読み込んだ値はグローバル変数としてカレントデータフォルダへ保存される
-//******************************************************************************
+//	Read the header
+//
+//	The values read from the header are saved as global variables
+//	in the current datafolder.
+//	Information necessary for the data reading function is saved to
+//	the structure "s".
 Static Function LoadNanonisDatGetHeader(pathStr, s)
 	String pathStr
 	STRUCT header &s
 	
 	LoadNanonisCommonGetHeader(pathStr)
 	
-	//	データ読み込みルーチンのためにヘッダの値を構造体へコピーしておく
 	SVAR Experiment
 	s.type = Experiment
 	strswitch (s.type)
@@ -72,10 +71,8 @@ Static Structure header
 EndStructure
 
 
-//******************************************************************************
-//	データ読み込み
-//		読み込まれたウエーブはカレントデータフォルダへ保存される
-//******************************************************************************
+//	Data reading functions.
+//	The resultant waves are saved in the current datafolder.
 Static Function/WAVE LoadNanonisDatGetData(pathStr, s)
 	String pathStr
 	STRUCT header &s
@@ -83,7 +80,6 @@ Static Function/WAVE LoadNanonisDatGetData(pathStr, s)
 	LoadWave/G/W/A/Q pathStr
 	Make/N=(ItemsInList(S_waveNames))/WAVE/FREE ww = $StringFromList(p,S_waveNames)
 	
-	//	名前の変更
 	S_waveNames = ReplaceString("__A_",S_waveNames,"")
 	S_waveNames = ReplaceString("__V_",S_waveNames,"")
 	S_waveNames = ReplaceString("_omega",S_waveNames,"")
@@ -97,18 +93,19 @@ Static Function/WAVE LoadNanonisDatGetData(pathStr, s)
 	strswitch (s.type)
 		case  "Z spectroscopy":
 		case "bias spectroscopy":
-			LoadNanonisDatGetDataConvert(s, ww)	//	単位変換
-			if (!(GetKeyState(1)&4))						//	shiftが押されていなかったら平均を取る
+			LoadNanonisDatGetDataConvert(s, ww)
+			if (!(GetKeyState(1)&4))
+				//	Calculate the average between the forward and the backward data
+				//	unless the shift key is pressed.
 				LoadNanonisCommonDataAvg("_bwd")
 			endif
 			break
 		case "Spectrum":
 		case "History Data":
-			LoadNanonisDatGetDataConvert(s, ww)	//	単位変換
+			LoadNanonisDatGetDataConvert(s, ww)
 			break
 	endswitch
 	
-	//	読み込まれたウエーブへの参照を返す
 	DFREF dfr = GetDataFolderDFR()
 	Make/FREE/N=(CountObjectsDFR(dfr, 1))/WAVE refw = $GetIndexedObjNameDFR(dfr, 1, p)	
 	return refw
@@ -120,7 +117,8 @@ Static Function LoadNanonisDatGetDataConvert(s, ww)
 	
 	Variable i, n
 	
-	//	最初の列はバイアス電圧・距離・周波数が書き込まれている (History Data以外)
+	//	The first column is the bias voltage, length, or frequency except
+	//	the Histroy Data.
 	Wave xw = ww[0]
 	
 	strswitch (s.type)
@@ -155,13 +153,10 @@ Static Function LoadNanonisDatGetDataConvert(s, ww)
 End
 
 
-//******************************************************************************
-//	datと3dsに共通して使われる関数
-//******************************************************************************
-//----------------------------------------------------------------------
-//	ヘッダを読み込んでグローバル変数として保存する
-//	返り値はヘッダのサイズ
-//----------------------------------------------------------------------
+//	Functions commonly used for dat and 3ds
+//
+//	Read the header and save as global variables.
+//	Returns the size of header.
 Function LoadNanonisCommonGetHeader(pathStr)
 	String pathStr
 	
@@ -169,7 +164,7 @@ Function LoadNanonisCommonGetHeader(pathStr)
 	String buffer, key, name, value
 	DFREF dfrSav = GetDataFolderDFR()
 	
-	strswitch (LowerStr(ParseFilePath(4, pathStr, ":", 0, 0)))	//	拡張子
+	strswitch (LowerStr(ParseFilePath(4, pathStr, ":", 0, 0)))	//	an extension
 		case "dat":
 			key = "%[^\t]\t%[^\t]\t"
 			break
@@ -181,10 +176,10 @@ Function LoadNanonisCommonGetHeader(pathStr)
 	endswitch
 	
 	Open/R/T="????" refNum as pathStr
-	FReadLine refNum, buffer	//	最初の行を読む
+	FReadLine refNum, buffer	//	Read the first line
 	do
 		sscanf buffer, key, name, value
-		//	">"を含むならば、サブフォルダを作成する
+		//	Make a sub datafolder if ">" is included in the name.
 		i = strsearch(name, ">", 0)
 		subFolder = (i != -1)
 		if (subFolder)
@@ -192,7 +187,7 @@ Function LoadNanonisCommonGetHeader(pathStr)
 			name = name[i+1,strlen(name)-1]
 		endif
 		
-		//	","を含む場合にはmultiline settingsであるとする
+		//	multiline settings if "," is included
 		if (strsearch(name,",",0) > -1)
 			Make/N=(ItemsInList(value),5)/O $"multiline settings"/WAVE=w
 			for (i = 0; i < 5; i += 1)
@@ -207,13 +202,14 @@ Function LoadNanonisCommonGetHeader(pathStr)
 			SetDataFolder dfrSav
 		endif
 		
-		FReadLine refNum, buffer	//	次の行を読む
-	while (strlen(buffer) != 1 && CmpStr(buffer,":HEADER_END:\r"))		//	空行でなければ(dat) && HEADER_END(3ds)
+		FReadLine refNum, buffer	//	read the next line
+	//	empty line (dat) && HEADER_END (3ds)
+	while (strlen(buffer) != 1 && CmpStr(buffer,":HEADER_END:\r"))
 	
 	FStatus refNum
 	Close refNum
 	
-	return V_filePos	//	ヘッダのサイズ
+	return V_filePos	//	the size of header
 End
 
 //------------------------------------------------------------------------------
@@ -264,10 +260,7 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 	endif
 End
 
-//----------------------------------------------------------------------
-//	カレントデータフォルダ内でfwd と bwd の平均を求める
-//	返り値は平均ウエーブへの参照ウエーブ
-//----------------------------------------------------------------------
+//	Calculate the average between the forward and the backward data
 Function/WAVE LoadNanonisCommonDataAvg(bwdStr)
 	String bwdStr
 	
@@ -275,8 +268,9 @@ Function/WAVE LoadNanonisCommonDataAvg(bwdStr)
 	Variable i, n
 	Make/WAVE/N=0/FREE refw
 	
-	//	bwdStrで指定した文字列が含まれているものがbackwardウエーブ
-	//	backwardウエーブからbwdStrを除いたものがforwardウエーブ
+	//	If a string given by the bwdStr is included in the name of wave,
+	//	it is the backward wave. The forward wave is given by removing
+	//	the bwdStr from the name of the backward wave.
 	for (i = 0, n = ItemsInList(listStr); i < n; i += 1)
 		name = StringFromList(i,listStr)
 		if (!GrepString(name,bwdStr))
@@ -293,31 +287,31 @@ Function/WAVE LoadNanonisCommonDataAvg(bwdStr)
 	return refw
 End
 
-//----------------------------------------------------------------------
-//	値を文字列もしくは数値としてグローバル変数に保存する
-//	(sxmでもでも使用されている)
-//----------------------------------------------------------------------
+//	Save the header values as global variables.
+//	This function is used for sxm files as well.
 Function LoadNanonisCommonVariableString(name,str)
 	String name, str
 	
 	int code = TextEncodingCode(SIDAM_NANONIS_TEXTENCODING)
 	String value = ConvertTextEncoding(str, code, 1, 1, 0)	
 	
-	//	最初に空白がある場合にはそれを削除してから処理を行う
-	//	(sxmファイルのヘッダはそういうものがある)
+	//	Remove an empty space at the beginning if any (sxm).
 	if (char2num(value[0]) == 32)
 		do
 			value = ReplaceString(" ", value, "", 1, 1)
 		while (char2num(value[0]) == 32)
 	endif
 	
-	//	最初と最後に"が含まれる場合には削除する (3dsの文字列ヘッダ)
+	//	Remove " at the beginning and the end if any (3ds).
 	if (!CmpStr(value[0],"\"") && !CmpStr(value[strlen(value)-1],"\""))
 		value = ReplaceString("\"",value,"",0,1)
 		value = RemoveEnding(value,"\"")
 	endif
 	
-	//	数字(無限大含む)以外が含まれている、ピリオドが2つ以上含まれている、空文字列、のいずれかの場合には文字列と見なす
+	//	Regard a value as a string if one of the following is satisfied.
+	//	1. A character except numbers (including the infinity) is included.
+	//	2. Two periods or more are included.
+	//	3. Empty
 	if (GrepString(LowerStr(value),"[^0-9e+-.(inf)]") || ItemsInList(value,".") > 2 || !strlen(value))
 		name = SelectString(CheckName(name, 4), name, CleanupName(name, 1))
 		String/G $name = value

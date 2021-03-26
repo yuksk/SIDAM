@@ -6,18 +6,16 @@
 #pragma hide = 1
 #endif
 
-//******************************************************************************
-//	ファイル読み込みメイン
-//******************************************************************************
+//	Main function
 Function/WAVE LoadNanonis3ds(String pathStr)
-	DFREF dfrSav = GetDataFolderDFR()	//	基準となるデータフォルダ
+	DFREF dfrSav = GetDataFolderDFR()
 	
-	//	ヘッダ読み込み
+	//	Read the header
 	NewDataFolder/O/S $SIDAM_DF_SETTINGS
 	STRUCT Nanonis3ds s
 	LoadNanonis3dsGetHeader(pathStr, s)
 	
-	//	データ読み込み
+	//	Read the data
 	SetDataFolder dfrSav
 	Wave/WAVE resw = LoadNanonis3dsGetData(pathStr, s)
 	
@@ -25,20 +23,22 @@ Function/WAVE LoadNanonis3ds(String pathStr)
 End
 
 
-//******************************************************************************
-//	ヘッダ読み込み
-//		ヘッダから読み込んだ値(の一部)はグローバル変数としてカレントデータフォルダへ保存される
-//******************************************************************************
+//	Read the header
+//
+//	The values read from the header are saved as global variables
+//	in the current datafolder.
+//	Information necessary for the data reading function is saved to
+//	the structure "s".
 Static Function LoadNanonis3dsGetHeader(String pathStr, STRUCT Nanonis3ds &s)
 	
-	//	ヘッダを読み込んでグローバル変数として保存する
+	//	Save the header values as global variables
 	s.headerSize = LoadNanonisCommonGetHeader(pathStr)
 	Wave/Z s.mlsw = 'multiline settings'
-	s.filename = ParseFilePath(3, pathStr, ":", 0, 0)	//	拡張子抜きのファイル名
+	s.filename = ParseFilePath(3, pathStr, ":", 0, 0)	//	filename w/o an extension
 	
-	//	ヘッダの値を構造体へコピーする
-	//	NumVarOrDefault や StrVarOrDefault は NVAR や SVAR を使わずにすむ方法として用いている
-	//	(実際に NaN 等が入ることを期待しているわけではない)
+	//	Keep the header values in the structure for the data loading function.
+	//	NumVarOrDefault and StrVarOrDefault are used because NVAR and SVAR
+	//	do not have to be used. (NaN is not expected.)
 	SVAR/Z gridDim = 'Grid dim'
 	s.pnts.x = str2num(StringFromList(0, gridDim, " "))
 	s.pnts.y = str2num(StringFromList(2, gridDim, " "))
@@ -205,8 +205,8 @@ Structure Nanonis3ds
 	String	exp						//	Experiment
 	uint32	start, end			//	Start time, End time
 	String	user					//	User
-	Variable	temperature		//	Temperature	(拡張), 使用されていない場合には NaN
-	Variable	field				//	Field (拡張), 使用されていない場合には NaN
+	Variable	temperature		//	Temperature	(extension), NaN if not used.
+	Variable	field				//	Field (extension), NaN if not used.
 	String	comment				//	Comment
 	STRUCT	Nanonis3dsSetpoint	bias
 	STRUCT	Nanonis3dsBiasSpectrscopy	spec
@@ -216,9 +216,9 @@ Structure Nanonis3ds
 	STRUCT	Nanonis3dsPiezo		piezo
 	STRUCT	Nanonis3dsScan		scan
 	STRUCT	Nanonis3dsZCtrl		zctrl
-	Wave	mlsw					//	MLSモードでのｌ電圧情報
-	uint16	headerSize			//	ヘッダのサイズ, 読み込みルーチン用
-	String	filename				//	ファイル名, ログ作成用
+	Wave	mlsw					//	Voltages in the MLS mode
+	uint16	headerSize			//	Header size
+	String	filename				//	for log
 EndStructure
 
 Static Structure Nanonis3dsSetpoint
@@ -327,36 +327,33 @@ Static Structure ixy
 	uint16	y
 EndStructure
 
-//******************************************************************************
-//	データ読み込み
-//		読み込まれたウエーブはカレントデータフォルダへ保存される
-//******************************************************************************
+
+//	Data reading functions.
+//	The resultant waves are saved in the current datafolder.
 Static Function/WAVE LoadNanonis3dsGetData(String pathStr, STRUCT Nanonis3ds &s)
-	String fileName = ParseFilePath(3, pathStr, ":", 0, 0)	//	拡張子抜きの名前
+	String fileName = ParseFilePath(3, pathStr, ":", 0, 0)	//	filename w/o an extension
 	
-	//	ファイルからデータを読み込み、ウエーブを作る
 	GBLoadWave/Q/N=tmp/T={2,4}/S=(s.headerSize)/W=1 pathStr
 	wave w=tmp0
 	Redimension/N=(ItemsInList(s.paramList)+ItemsInList(s.channels)*s.pnts.z, s.pnts.x, s.pnts.y) w
 	
-	//	読み込まれたウエーブからSTM像ウエーブを構成する
+	//	Make an STM image wave from the big wave
 	Wave stmw = LoadNanonis3dsGetDataParam(w, fileName, s)
 	
-	// 各チャンネルの名前からウエーブ名を構成する
+	//	Make wave names from the channel information
 	Wave/T namew = LoadNanonis3dsGetDataWaveNames(fileName, s.channels)
 	
-	//	読み込まれたウエーブからスペクトルウエーブを構成する
+	//	Make spectrum waves from the big wave
 	Wave/WAVE specw = LoadNanonis3dsGetDataSpec(w, namew, s)
 	
-	if (GetKeyState(1)&4)	//	shiftが押されていたら
-		//	読み込まれたウエーブへの参照ウエーブを構成する
+	//	Calculate the average between the forward and the backward data
+	//	unless the shift key is pressed.
+	if (GetKeyState(1)&4)
 		Make/N=(1+numpnts(specw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = specw[p-1]
 	else
-		//	スペクトルウエーブの fwd と bwd の平均を求める
 		Wave/WAVE avgw = LoadNanonisCommonDataAvg("_bwd")
-		//	読み込まれたウエーブへの参照ウエーブを構成する
 		Make/N=(1+numpnts(avgw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = avgw[p-1]
@@ -366,11 +363,8 @@ Static Function/WAVE LoadNanonis3dsGetData(String pathStr, STRUCT Nanonis3ds &s)
 	return refw
 End
 
-//----------------------------------------------------------------------
-//	ファイルから読み込んだ一つの大きなウエーブから、STM像など構成
-//		STM像ウエーブはカレントデータフォルダへ保存する
-//		返り値はSTM像ウエーブへの参照
-//----------------------------------------------------------------------
+//	Make an STM image wave from the big wave
+//	The created image wave is saved in the current datafolder.
 Static Function/WAVE LoadNanonis3dsGetDataParam(
 	Wave w,
 	String fileName,
@@ -384,12 +378,12 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 	DFREF dfrSav = GetDataFolderDFR()
 	NewDataFolder/S pos
 	
-	//	測定範囲を構成
+	//	scan area
 	Make/N=5/FREE xw = {-1, 1, 1, -1, -1}, yw = {-1, -1, 1, 1, -1}
 	Make/N=5 scan_x = ((xw*cos(s.angle/180*pi) + yw*sin(s.angle/180*pi)) * s.size.x/2 + s.center.x) * 1e10	//	m -> angstrom
 	Make/N=5 scan_y = ((-xw*sin(s.angle/180*pi) + yw*cos(s.angle/180*pi)) * s.size.y/2 + s.center.y) * 1e10	//	m -> angstrom
 	
-	//	STS測定点を構成
+	//	sts points
 	MatrixOP/FREE tw0 = transposeVol(w,4)*1e10	//	m -> angstrom
 	MatrixOP stspos_x = tw0[][][xIndex]
 	MatrixOP stspos_y = tw0[][][yIndex]
@@ -397,7 +391,7 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 	
 	SetDataFolder dfrSav
 	
-	//	STM像を構成
+	//	stm image
 	if (s.pnts.y == 1)	//Linecut
 		Make/N=(s.pnts.x) $(fileName+"_Z")/WAVE=topow
 		topow[] = w[zIndex][p]*1e10					//	angstrom
@@ -407,16 +401,14 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 	endif
 	SetScale d WaveMin(topow), WaveMax(topow), "\u00c5", w
 	
-	//	測定点座標は、測定領域端よりもピクセルの幅の半分だけ内側に入っている
+	//	The measured positions are inside the edge of area by half a pixel
 	SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2)*1e10, s.size.x/s.pnts.x*1e10, "\u00c5", topow	//	m -> angstrom
 	SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2)*1e10, s.size.y/s.pnts.y*1e10, "\u00c5", topow	//	m -> angstrom
 	
 	return topow
 End
 
-//----------------------------------------------------------------------
-//	ヘッダのチャンネル名からウエーブ名を構成する
-//----------------------------------------------------------------------
+//	Make wave names from the channel information
 Static Function/WAVE LoadNanonis3dsGetDataWaveNames(String fileName, String chanList)
 	
 	Make/N=(ItemsInList(chanList))/T/FREE namew
@@ -430,11 +422,11 @@ Static Function/WAVE LoadNanonis3dsGetDataWaveNames(String fileName, String chan
 		nameStr = ReplaceString(" [bwd]", nameStr, "_bwd")
 		nameStr = ReplaceString(" ", nameStr, "_")
 		nameStr = filename + "_" + nameStr
-		if (strlen(nameStr) > MAX_OBJ_NAME-4)		//	-4 は _bwd の分
+		if (strlen(nameStr) > MAX_OBJ_NAME-4)		//	-4 is for "_bwd"
 			if (strsearch(nameStr, "_bwd", 0) == -1)
 				namew[i] = nameStr[0,MAX_OBJ_NAME-1-4]
 			else
-				nameStr = ReplaceString("_bwd", nameStr, "")	//	一度 _bwd を削除して
+				nameStr = ReplaceString("_bwd", nameStr, "")
 				namew[i] = nameStr[0,MAX_OBJ_NAME-1-4] + "_bwd"
 			endif
 		else
@@ -445,19 +437,16 @@ Static Function/WAVE LoadNanonis3dsGetDataWaveNames(String fileName, String chan
 	return namew
 End
 
-//----------------------------------------------------------------------
-//	ファイルから読み込んだ一つの大きなウエーブから、チャンネル毎にスペクトルウエーブを構成
-//		結果のウエーブはカレントデータフォルダへ保存する
-//		返り値は各スペクトルウエーブへの参照ウエーブ
-//----------------------------------------------------------------------
+//	Make spectrum waves from the big wave.
+//	The created image waves are saved in the current datafolder.
 Static Function/WAVE LoadNanonis3dsGetDataSpec(
 	Wave w,
 	Wave/T namew,
 	STRUCT Nanonis3ds &s
 	)
 	
-	Variable startIndex = WhichListItem("Sweep Start", s.paramList)	//	0のはず
-	Variable endIndex = WhichListItem("Sweep End", s.paramList)	//	1のはず
+	Variable startIndex = WhichListItem("Sweep Start", s.paramList)	//	0
+	Variable endIndex = WhichListItem("Sweep End", s.paramList)		//	1
 	Variable sweepStart = w[startIndex][0][0], sweepEnd = w[endIndex][0][0]
 	Variable nchan = ItemsInList(s.channels), nparam =  ItemsInList(s.paramList)
 	int i, v
@@ -469,18 +458,20 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		v = nparam + i*s.pnts.z
 		Duplicate/FREE/R=[v,v+s.pnts.z-1][][] w tw
 		
-		//	MatrixOP $namew[i] = fp32(transposeVol(tw2,4)) とするよりも、先にfp32を実行してしまうほうが少し速い
+		//	Doing fp32 before transposeVol is faster than the other way around.
 		MatrixOP/FREE tw2 = fp32(tw)
-		//	ラインカットの場合には上のMatrixOPで次元が落ちてしまうため、transposeVolでエラーが出るのを防ぐ必要がある
+		//	Make sure if the wave is 3D.
+		//	In the case of linecut, the above MatrixOP returns a 2D wave.
 		if (!DimSize(tw2,2))
 			Redimension/N=(-1,-1,1) tw2
 		endif
-		MatrixOP $CleanupName(namew[i],1)/WAVE=specw = transposeVol(tw2,4)	//	名前に : が含まれることがあるので CleanupName が必要
+		// The wave name has to be clean because it may contain ":"
+		MatrixOP $CleanupName(namew[i],1)/WAVE=specw = transposeVol(tw2,4)
 		
 		if (s.pnts.y == 1)		//	linecut
 			SetScale/I x, 0, s.size.x*1e10, "\u00c5", specw				//	m -> angstrom
 		else
-			//	測定点座標は、測定領域端よりもピクセルの幅の半分だけ内側に入っている
+			//	The measured positions are inside the edge of area by half a pixel
 			SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2)*1e10, s.size.x/s.pnts.x*1e10, "\u00c5", specw	//	m -> angstrom
 			SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2)*1e10, s.size.y/s.pnts.y*1e10, "\u00c5", specw	//	m -> angstrom
 		endif
@@ -504,7 +495,7 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 			endif
 		endif
 		
-		//	物理値に変換
+		//	Physical values
 		LoadNanonisCommonConversion(specw, driveamp=s.lockin.amp, modulated=s.lockin.modulated)
 		
 		refw[i] = {specw}
@@ -513,10 +504,8 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 	return refw
 End
 
-//----------------------------------------------------------------------
-//	multiline segments関連
-//----------------------------------------------------------------------
-//	バイアス電圧の値をDimension labelに保存
+//	For MLS
+//	Save the values of bias voltage to the dimension label
 Static Function LoadNanonis3dsSetMLSBias(Wave specw, STRUCT Nanonis3ds &s)
 	Wave mlsw = s.mlsw
 	int segIndex, segSteps, layer, i, n, last
