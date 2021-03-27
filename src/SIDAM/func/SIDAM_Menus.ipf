@@ -146,7 +146,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 			SIDAMInfoBar#menuR(3), /Q,  SIDAMInfoBar#menuRDo(3)
 		End
 		"Scale Bar...", /Q, SIDAMScaleBar#menuDo()
-		"Layer Annotation...", /Q, SIDAMLayerAnnotation#menuDo()
+		SIDAMMenus#menu("Layer Annotation...",dim=3), /Q, SIDAMLayerAnnotation#menuDo()
 		//	Show/Hide Axis
 		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
 		help = {"Show/Hide axes of the graph."}

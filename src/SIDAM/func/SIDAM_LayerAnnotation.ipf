@@ -33,8 +33,8 @@ Static StrConstant USERDATANAME = "SIDAMLayerAnnotation"
 //		Set !0 to use the unit of the wave.
 //	sign : int, default 1
 //		Set !0 to use "+" for positive values.
-//	prefix: int, default 0
-//		Set !0 to use prefix such as k and m.
+//	prefix: int, default 1
+//		Set !0 to use a prefix such as k and m.
 //
 //	Returns
 //	-------
@@ -57,7 +57,7 @@ Function/S SIDAMLayerAnnotation(String legendStr, [String grfName,
 	s.digit = ParamIsDefault(digit) ? 0 : digit
 	s.unit = ParamIsDefault(unit) ? 1 : unit
 	s.sign = ParamIsDefault(sign) ? 1 : sign
-	s.prefix = ParamIsDefault(prefix) ? 0 : prefix
+	s.prefix = ParamIsDefault(prefix) ? 1 : prefix
 	
 	if (!getData(s.grfName, "", s.imgName, s))
 		s.legendName = UniqueName("Text", 14, 0, s.grfName)
