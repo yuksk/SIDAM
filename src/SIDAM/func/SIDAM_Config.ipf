@@ -107,7 +107,11 @@ Function SIDAMConfigToProc(Variable refNum)
 	String items = SIDAMConfigItems("[window]")
 	fprintf refNum, "Constant SIDAM_WINDOW_WIDTH = %f\r", NumberByKey("width", items)
 	fprintf refNum, "Constant SIDAM_WINDOW_HEIGHT = %f\r", NumberByKey("height", items)
-	fprintf refNum, "Constant SIDAM_WINDOW_PRECISION = %d\r", NumberByKey("precision", items)
+	
+	items = SIDAMConfigItems("[window.format]")
+	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_XY = \"%s\"\r", StringByKey("xy", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_Z = \"%s\"\r", StringByKey("z", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_FORMAT_SHOWUNIT = %d\r", NumberByKey("show_units", items)
 	
 	items = SIDAMConfigItems("[window.colors]")
 	Wave vw = arrayFromValue(StringByKey("line", items))

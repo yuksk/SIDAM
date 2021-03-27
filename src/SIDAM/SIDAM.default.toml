@@ -14,8 +14,16 @@
 # Width and height of an image window. The unit is points.
 width = 200
 height = 200
-# Precision of the values shown in the control bar.
-precision = 2
+
+# Format strings used to show the coordinates in the info bar.
+# "W0P" instead of "f" or "e" may be better when the unit of a wave
+# is "m" or "A" rather than "nm" or "nA".
+# For detail, search the help of Igor Pro for "Creating Formatted Text".
+[window.format]
+xy = " %.2f"
+z = " %.2e"
+# 1 for xy, 2 for z, 3 for both, 0 for neither
+show_units = 3
 
 [window.colors]
 # For general curves

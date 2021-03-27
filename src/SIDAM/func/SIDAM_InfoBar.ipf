@@ -431,19 +431,24 @@ Function SIDAMInfobarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	adjustCtrlPos(win)
 End
 
-Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int grid, String grfName)
+Static Function setpqzStr(String &pqs, String &zs, 
+	STRUCT SIDAMMousePos &ms, int grid, String grfName)
+	
 	if (!WaveExists(ms.w))		//	the mouse cursor is not on any image
-		pqs = "[p,q] = [-, -]"
-		zs = "z = -"
+		pqs = "[p:-, q:-]"
+		zs = "z:-"
 		return 0
 	elseif (WaveDims(ms.w) == 1)
 		return 0
 	endif
 	
-	String formatStr = "[p,q] = " + SelectString(grid, "[%.1f, %.1f]", "[%d, %d]")
+	String formatStr = SelectString(grid, "[p:%.1f, q:%.1f]", "[p:%d, q:%d]")
 	Sprintf pqs, formatStr, ms.p, ms.q
 	
-	formatStr = "z = %."+num2istr(SIDAM_WINDOW_PRECISION)+"e"
+	formatStr = "z:"+SIDAM_WINDOW_FORMAT_Z
+	if (SIDAM_WINDOW_FORMAT_SHOWUNIT & 2)
+		formatStr += StringByKey("DUNITS",WaveInfo(ms.w,0))
+	endif
 	if (WaveType(ms.w)&0x01)
 		Variable mode = NumberByKey("imCmplxMode",ImageInfo(grfName,NameOfWave(ms.w),0),"=")
 		switch (mode)
@@ -457,7 +462,7 @@ Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int
 				Sprintf zs, formatStr, imag(ms.z)
 				break
 			case 3:		//	phase (in radian)
-				Sprintf zs, "z = %.4fpi", imag(r2polar(ms.z))/pi
+				Sprintf zs, "z: %.4fpi", imag(r2polar(ms.z))/pi
 				break
 		endswitch
 	else
@@ -467,39 +472,52 @@ Static Function setpqzStr(String &pqs, String &zs, STRUCT SIDAMMousePos &ms, int
 End
 
 Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
-	String pStr = "%."+num2istr(SIDAM_WINDOW_PRECISION)+"f"
-	String pStr2 = "("+pStr+", "+pStr+")"
+	int showunit = (SIDAM_WINDOW_FORMAT_SHOWUNIT & 1) && WaveExists(ms.w)
+	String pStr
+	if (showunit)
+		pStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
+			+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 1) + ")"
+	else
+		pStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY \
+			+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
+	endif
 	
 	strswitch (GetUserData(grfName,"","mode"))
 		default:
 			//	*** FALLTHROUGH ***
 		case "0":		//	x, y	(also for traces)
 			if (!WaveExists(ms.w))
-				xys = "(x,y) = (-,-)"
+				xys = "(x:-, y:-)"
 			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
-				Sprintf xys, "(x,y) = (%s %s, "+pStr+")", Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
+				Sprintf xys, "(x:%s %s, y:"+SIDAM_WINDOW_FORMAT_XY+")" \
+					, Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
 			elseif (stringmatch(WaveUnits(ms.w,1),"dat"))
-				Sprintf xys, "(x,y) = ("+pStr+", %s %s)", ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
+				Sprintf xys, "(x:"+SIDAM_WINDOW_FORMAT_XY+", y:%s %s)" \
+					, ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
 			else
-				Sprintf xys, "(x,y) = "+pStr2, ms.x, ms.y
+				Sprintf xys, pStr, "x", ms.x, "y", ms.y
 			endif
 			break
 		case "1": 	//	r, theta
-			Sprintf xys, "(r,t) = "+pStr2, sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+			Sprintf xys, pStr\
+				, "r", sqrt(ms.x^2+ms.y^2) \
+				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
 		case "2": 	//	r^-1, theta-90
-			Sprintf xys, "(1/r,t) = "+pStr2, 1/sqrt(ms.x^2+ms.y^2), acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+			Sprintf xys, pStr\
+				, "1/r", 1/sqrt(ms.x^2+ms.y^2)\
+				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
 		case "3":		//	x', y', angle is degree
 			Variable angle = str2num(SIDAMGetSettings(ms.w,4)) / 180 * pi
 			if (numtype(angle))
-				xys = "(x',y') = (-,-)"
+				xys = "(x':-, y':-)"
 			else
 				Variable cx = DimOffset(ms.w,0) + DimDelta(ms.w,0)*(DimSize(ms.w,0)-1)/2
 				Variable cy = DimOffset(ms.w,1) + DimDelta(ms.w,1)*(DimSize(ms.w,1)-1)/2
 				Variable rx = (ms.x-cx)*cos(angle) - (ms.y-cy)*sin(angle) + cx
 				Variable ry = (ms.x-cx)*sin(angle) + (ms.y-cy)*cos(angle) + cy
-				Sprintf xys, "(x',y') = "+pStr2, rx, ry
+				Sprintf xys, pStr, "x'", rx, "y'", ry
 			endif
 			break
 	endswitch
