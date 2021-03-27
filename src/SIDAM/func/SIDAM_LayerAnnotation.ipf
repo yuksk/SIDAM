@@ -10,9 +10,6 @@
 #pragma hide = 1
 #endif
 
-Static Constant LISTSEP = 29
-Static Constant KEYSEP = 30
-Static Constant ITEMSEP =31
 Static StrConstant USERDATANAME = "SIDAMLayerAnnotation"
 
 
@@ -35,6 +32,12 @@ Static StrConstant USERDATANAME = "SIDAMLayerAnnotation"
 //		Set !0 to use "+" for positive values.
 //	prefix: int, default 1
 //		Set !0 to use a prefix such as k and m.
+//	style: int, default 1
+//		Apply a style.
+//
+//			0: No style
+//			1: White background
+//			2: Black background
 //
 //	Returns
 //	-------
@@ -42,36 +45,36 @@ Static StrConstant USERDATANAME = "SIDAMLayerAnnotation"
 //		The name of textbox.
 //@
 Function/S SIDAMLayerAnnotation(String legendStr, [String grfName,
-	String imgName, int digit, int unit, int sign, int prefix])
+	String imgName, int digit, int unit, int sign, int prefix, int style])
 
 	STRUCT paramStruct s
 	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
 	s.imgName = SelectString(ParamIsDefault(imgName), imgName, \
 		StringFromList(0, ImageNameList(s.grfName, ";")))
+	s.style = ParamIsDefault(style) ? 1 : style
 
 	if (validate(s))
 		print s.errMsg
 		return ""
+	elseif (!strlen(legendStr))
+		clearLegend(s.grfName, s.imgName)
+		return ""
 	endif
-	
+
 	s.digit = ParamIsDefault(digit) ? 0 : digit
 	s.unit = ParamIsDefault(unit) ? 1 : unit
 	s.sign = ParamIsDefault(sign) ? 1 : sign
 	s.prefix = ParamIsDefault(prefix) ? 1 : prefix
-	
-	if (!getData(s.grfName, "", s.imgName, s))
+
+	s.legendName = getLegendName(s.grfName, s.imgName)
+	if (!strlen(s.legendName))
 		s.legendName = UniqueName("Text", 14, 0, s.grfName)
 	endif
 
+	s.legendStr = legendStr
 	s.layer = -1		//	force updating
+	setLegend(s.grfName, s.imgName, s)
 
-	if (strlen(legendStr))
-		s.legendStr = legendStr
-		setLegend(s.grfName, s.imgName, s)
-	else
-		clearLegend(s.grfName, s.imgName)
-	endif
-	
 	return s.legendName
 End
 
@@ -88,7 +91,7 @@ Static Function validate(STRUCT paramStruct &s)
 		s.errMsg += s.grfName + " has no image."
 		return 1
 	endif
-	
+
 	String imgList = ImageNameList(s.grfName,";")
 	if (!strlen(imgList))
 		s.errMsg += "no image."
@@ -97,12 +100,14 @@ Static Function validate(STRUCT paramStruct &s)
 		s.errMsg += "\"" + s.imgName + "\" is not found." 
 		return 1
 	endif
-	
+
 	if (WaveDims(ImageNameToWaveRef(s.grfName, s.imgName)) != 3)
 		s.errMsg += "an image of a 3D wave must be given."
 		return 1
 	endif
-	
+
+	s.style = (s.style < 0 || s.style > 2) ? 0 : s.style
+
 	return 0
 End
 
@@ -116,6 +121,7 @@ Static Structure paramStruct
 	uchar	sign
 	uchar	prefix
 	int16	layer
+	uchar	style
 	String	errMsg
 EndStructure
 
@@ -124,27 +130,33 @@ Static Function/S menuDo()
 End
 
 
-//---------------------------------------------------------------------------------------------------
-//	Information necessary for making a legend string is stored in userData as string.
+//------------------------------------------------------------------------------
+//	Information necessary for making a legend string is stored in userData
+//	as string.
 //	
 //	setData: receive the parameter structure and save it as userData.
 //	getData: get values from userData and put them to the parameter structure.
 //	updateLegend: getData and actually update the legend.
-//	setLegend: setData, updateLegend, and set the hook function to call updateLegend.
-//	clearLegend: delete the legend textbox, delete data, and delete the hook function if necessary.
-//---------------------------------------------------------------------------------------------------
-Static Function getData(String grfName, String ctrlName, String imgName, STRUCT paramStruct &s)
-	String dataStr = GetUserData(grfName,ctrlName,USERDATANAME)
+//	setLegend: setData, updateLegend, and set the hook function to call
+//		updateLegend.
+//	clearLegend: delete the legend textbox, delete data, and delete the hook
+//		function if necessary.
+//------------------------------------------------------------------------------
+Static Function getData(String grfName, String ctrlName, String imgName,
+		STRUCT paramStruct &s)
+
+	String dataStr = GetUserData(grfName, ctrlName, USERDATANAME)
 	if (!strlen(dataStr))
 		return 0
 	endif
 	
-	String content = StringByKey(imgName,dataStr,num2char(KEYSEP),num2char(LISTSEP))
+	String content = StringByKey(imgName, dataStr, SIDAM_CHAR_KEYSEP, \
+	                             SIDAM_CHAR_LISTSEP)
 	if (!strlen(content))
 		return 0
 	endif
 	
-	Make/N=7/T/FREE tw = StringFromList(p,content,num2char(ITEMSEP))
+	Make/N=8/T/FREE tw = StringFromList(p,content,SIDAM_CHAR_ITEMSEP)
 	//	ReplaceString for the backward compatibility
 	//	s.legendStr = tw[0]
 	s.legendStr = ReplaceString("$value$", tw[0], "${value} ")
@@ -154,17 +166,33 @@ Static Function getData(String grfName, String ctrlName, String imgName, STRUCT 
 	s.sign = str2num(tw[4])
 	s.prefix = str2num(tw[5])
 	s.layer = str2num(tw[6])
+	s.style = str2num(tw[7])
 	return 1
 End
 
-//---------------------------------------------------------------------------------------------------
+Static Function/S getLegendName(String grfName, String imgName)
+	String dataStr = GetUserData(grfName,"",USERDATANAME)
+	if (!strlen(dataStr))
+		return ""
+	endif
+	
+	String content = StringByKey(imgName,dataStr,SIDAM_CHAR_KEYSEP,\
+	                             SIDAM_CHAR_LISTSEP)
+	return SelectString(strlen(content), "", \
+	                    StringFromList(1, content, SIDAM_CHAR_ITEMSEP))
+End
+
+//------------------------------------------------------------------------------
 //	Store the param structure as userData of grfName or ctrlName
 //	The userData is like
 //	imgName0:***,***,***;imgName1:***,***,***;
-//	but ",", ":", and ";" are num2char(ITEMSEP), num2char(KEYSEP), and num2char(LISTSEP), respectively.
-//	These separation characters are chosen because they are not included in the legend string.
-//---------------------------------------------------------------------------------------------------
-Static Function setData(String grfName, String ctrlName, String imgName, STRUCT paramStruct &s)
+//	but ",", ":", and ";" are SIDAM_CHAR_ITEMSEP, SIDAM_CHAR_KEYSEP, and
+//	SIDAM_CHAR_LISTSEP, respectively. These separation characters are chosen
+//	because they are not included in the legend string.
+//------------------------------------------------------------------------------
+Static Function setData(String grfName, String ctrlName, String imgName,
+		STRUCT paramStruct &s)
+
 	if (strlen(ctrlName))
 		Wave w = ImageNameToWaveRef(StringFromList(0,grfName,"#"),imgName)
 	else
@@ -174,30 +202,32 @@ Static Function setData(String grfName, String ctrlName, String imgName, STRUCT 
 		return 0
 	endif
 
-	Make/N=5/W/U/FREE tw0 = {s.digit, s.unit, s.sign, s.prefix, s.layer}
-	Make/N=7/T/FREE tw1
+	Make/N=5/W/U/FREE tw0 = {s.digit, s.unit, s.sign, s.prefix, s.layer, s.style}
+	Make/N=8/T/FREE tw1
 	tw1[0] = {s.legendStr, s.legendName}
-	tw1[2,6] = num2istr(tw0[p-2])
-	String paramStr = join(tw1,num2char(ITEMSEP))
+	tw1[2,7] = num2istr(tw0[p-2])
+	String paramStr = join(tw1,SIDAM_CHAR_ITEMSEP)
 	
 	String dataStr
 	
 	if (strlen(ctrlName))
-		//	When the ctrlName is given, it's intended to save data as userData of the cancel button
-		//	to restore data used when the button is pressed
+		//	When the ctrlName is given, it's intended to save data as userData
+		//	of the cancel button to restore data used when the button is pressed
 		ControlInfo/W=$grfName $ctrlName
 		if (V_flag != 1)
 			Abort "A button must be passed to the ctrlName"
 		endif
 		dataStr = GetUserData(grfName,ctrlName,USERDATANAME)
 		Button $ctrlName win=$grfName, userData($USERDATANAME)=\
-		ReplaceStringByKey(imgName,dataStr,paramStr,num2char(KEYSEP),num2char(LISTSEP))
+			ReplaceStringByKey(imgName, dataStr, paramStr, SIDAM_CHAR_KEYSEP,\
+			                   SIDAM_CHAR_LISTSEP)
 
 	else
 		//	This function is mostly used to save data as userData of the window
 		dataStr = GetUserData(grfName,"",USERDATANAME)
 		SetWindow $grfName userData($USERDATANAME)=\
-		ReplaceStringByKey(imgName,dataStr,paramStr,num2char(KEYSEP),num2char(LISTSEP))
+			ReplaceStringByKey(imgName, dataStr, paramStr, SIDAM_CHAR_KEYSEP,\
+			                   SIDAM_CHAR_LISTSEP)
 	
 	endif
 End
@@ -218,7 +248,8 @@ Static Function updateLegend(String grfName, String imgName)
 	endif
 	
 	int layer = SIDAMGetLayerIndex(grfName)
-	if (s.layer == layer)	// if the present layer is the same as before, do nothing
+	// if the present layer is the same as before, do nothing
+	if (s.layer == layer)
 		return 0
 	endif
 	
@@ -227,17 +258,27 @@ Static Function updateLegend(String grfName, String imgName)
 		return 0
 	endif
 	
-	String formatStr = SelectString(s.sign, "%.*", "%+.*")
-	if (s.prefix)
-		formatStr += "W1P" + SelectString(s.unit, "", WaveUnits(w,2))
-	else
-		formatStr += "f" + SelectString(s.unit, "", WaveUnits(w,2))
-	endif
+	String formatStr = SelectString(s.sign, "%.*", "%+.*")\
+		+ SelectString(s.prefix, "f", "W0P") \
+		+ SelectString(s.unit && strlen(WaveUnits(w,2)), "", " "+WaveUnits(w,2))
 	String str
-	sprintf str, ReplaceString("${value}", s.legendStr, formatStr), s.digit, SIDAMIndexToScale(w,layer,2)
+	sprintf str, ReplaceString("${value}", s.legendStr, formatStr), \
+		s.digit, SIDAMIndexToScale(w,layer,2)
 	
-	TextBox/C/N=$s.legendName/W=$grfName str
-
+	switch (s.style)
+		case 1:	//	light background
+			TextBox/C/N=$s.legendName/F=2/D={1,1,3}/G=(0,0,0,0\
+				)/B=(65535,65535,65535,39321)/W=$grfName "\\K(0,0,0)"+str
+			break
+		case 2:	//	dark background
+			TextBox/C/N=$s.legendName/F=2/D={1,1,3}/G=(0,0,0,0\
+				)/B=(0,0,0,39321)/W=$grfName "\\K(65535,65535,65535)"+str
+			break
+		default:	//	no style
+			TextBox/C/N=$s.legendName/W=$grfName str
+			break
+	endswitch	
+	
 	s.layer = layer	//	record the present layer for next time
 	setData(grfName, "", imgName, s)
 	return 1
@@ -278,8 +319,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 	endif
 	
 	String imgName
-	for (i = 0, n = ItemsInList(dataStr,num2char(LISTSEP)); i < n; i++)
-		imgName = StringFromList(0,StringFromList(i,dataStr,num2char(LISTSEP)),num2char(KEYSEP))
+	for (i = 0, n = ItemsInList(dataStr,SIDAM_CHAR_LISTSEP); i < n; i++)
+		imgName = StringFromList(0,StringFromList(i,dataStr,SIDAM_CHAR_LISTSEP),\
+		                         SIDAM_CHAR_KEYSEP)
 		if (WhichListItem(imgName,listStr) < 0)
 			clearLegend(s.winName, imgName, force=1)
 		endif
@@ -289,20 +331,21 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 End
 
 Static Function clearLegend(String grfName, String imgName, [int force])
-	if (ParamIsDefault(force) && WaveDims(ImageNameToWaveref(grfName,imgName)) != 3)
-		return 0
+	if (ParamIsDefault(force) && \
+		WaveDims(ImageNameToWaveref(grfName,imgName)) != 3)
+			return 0
 	endif
 	
 	//	remove legend textbox
-	STRUCT paramStruct s
-	if (getData(grfName, "", imgName, s))
-		TextBox/W=$grfName/K/N=$s.legendName
+	String legendName = getLegendName(grfName, imgName)
+	if (strlen(legendName))
+		TextBox/W=$grfName/K/N=$legendName
 	endif
 	
 	//	remove data
 	String dataStr = GetUserData(grfName,"",USERDATANAME)
 	SetWindow $grfName userData($USERDATANAME)=\
-	RemoveByKey(imgName,dataStr,num2char(KEYSEP),num2char(LISTSEP))
+	RemoveByKey(imgName,dataStr,SIDAM_CHAR_KEYSEP,SIDAM_CHAR_LISTSEP)
 	
 	//	remove hook function
 	if (!strlen(GetUserData(grfName,"",USERDATANAME)))
@@ -311,7 +354,7 @@ Static Function clearLegend(String grfName, String imgName, [int force])
 End
 
 
-//=====================================================================================================
+//==============================================================================
 
 
 //-------------------------------------------------------------
@@ -323,28 +366,34 @@ Static Function pnl(String grfName)
 		return 0
 	endif
 	
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,255,200)/N=SIDAM_LA as "Layer annotation"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,255,230)/N=SIDAM_LA as "Layer annotation"
 	String pnlName = grfName + "#SIDAM_LA"
 	
 	SetWindow $pnlName hook(self)=SIDAMLayerAnnotation#pnlHook
 	
-	PopupMenu imageP title="image", pos={6,8}, size={240,19}, bodyWidth=205, win=$pnlName
-	PopupMenu imageP mode=1, value=#("SIDAMLayerAnnotation#ImageNameList3D(\""+grfName+"\")"), win=$pnlName
-	PopupMenu imageP proc=SIDAMLayerAnnotation#pnlPopup, win=$pnlName
+	PopupMenu imageP title="image", pos={6,8}, size={240,19}, bodyWidth=205\
+		, value=#("SIDAMLayerAnnotation#ImageNameList3D(\""+grfName+"\")")\
+		, mode=1, proc=SIDAMLayerAnnotation#pnlPopup, win=$pnlName
 		
-	SetVariable stringV title="text", pos={17,34}, size={229,18}, bodyWidth=205, win=$pnlName
-	SetVariable digitV title="digit", pos={13,59}, size={78,18}, bodyWidth=50, win=$pnlName
-	SetVariable digitV format="%d", limits={0,inf,1}, win=$pnlName
-	ModifyControlList "stringV;digitV", proc=SIDAMLayerAnnotation#pnlSetVar, win=$pnlName
+	SetVariable stringV title="text", pos={17,34}, size={229,18}, bodyWidth=205\
+		, proc=SIDAMLayerAnnotation#pnlSetVar, win=$pnlName
+	SetVariable digitV title="digit", pos={13,59}, size={78,18}, bodyWidth=50\
+		, proc=SIDAMLayerAnnotation#pnlSetVar, limits={0,inf,1}, format="%d"\
+		, win=$pnlName
 
-	CheckBox unitC title="add unit after ${value}", pos={42,89}, size={130,15}, win=$pnlName
-	CheckBox signC title="add \"+\" before ${value}", pos={42,114}, size={137,15}, win=$pnlName
-	CheckBox prefixC title="use \"k\" (1e3), \"m\" (1e-3), etc.", pos={42,139}, size={167,15}, win=$pnlName
-	ModifyControlList "unitC;signC;prefixC", proc=SIDAMLayerAnnotation#pnlCheck, win=$pnlName
-		
-	Button doB title="Do it", pos={7,170}, win=$pnlName
-	Button deleteB title="Delete", pos={77, 170}, win=$pnlName
-	Button cancelB title="Cancel", pos={186,170}, win=$pnlName
+	CheckBox unitC pos={42,89}, title="add unit after ${value}"\
+		, size={130,15}, proc=SIDAMLayerAnnotation#pnlCheck, win=$pnlName
+	CheckBox signC pos={42,113}, title="add \"+\" before ${value}"\
+		, size={137,15}, proc=SIDAMLayerAnnotation#pnlCheck, win=$pnlName
+	CheckBox prefixC pos={42,137}, title="use a prefix [e.g., k (1e3), m (1e-3)]"\
+		, size={167,15}, proc=SIDAMLayerAnnotation#pnlCheck, win=$pnlName
+	PopupMenu styleP title="style", pos={14,162}, size={167,19}, bodywidth=140, win=$pnlName
+	PopupMenu styleP value="no style;light background;dark background;", win=$pnlName
+	PopupMenu styleP proc=SIDAMLayerAnnotation#pnlPopup, win=$pnlName
+	
+	Button doB title="Do it", pos={7,195}, win=$pnlName
+	Button deleteB title="Delete", pos={77, 195}, win=$pnlName
+	Button cancelB title="Cancel", pos={186,195}, win=$pnlName
 	ModifyControlList "doB;deleteB;cancelB" size={60,22}, proc=SIDAMLayerAnnotation#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName) focusRing=0, win=$pnlName
@@ -392,7 +441,7 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	String grfName = StringFromList(0,s.win,"#")
 	ControlInfo/W=$s.win imageP
 	String imgName = S_Value
-
+	
 	STRUCT paramStruct ps	
 	getData(grfName, "", imgName, ps)
 	
@@ -434,10 +483,11 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			getData(ps.grfName, "", ps.imgName, ps)
 			restoreInitial(ps.grfName, "cancelB")
 			SIDAMLayerAnnotation(ps.legendStr, grfName=ps.grfName, imgName=ps.imgName,\
-				digit=ps.digit, unit=ps.unit, sign=ps.sign, prefix=ps.prefix)
+				digit=ps.digit, unit=ps.unit, sign=ps.sign, prefix=ps.prefix, \
+				style=ps.style)
 			printHistory(ps)
 			break
-
+			
 		case "deleteB":
 			restoreInitial(ps.grfName, "cancelB")
 			//	If the legend is removed by restoreInitial(), the main command does not
@@ -452,7 +502,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "cancelB":
 			restoreInitial(ps.grfName, "cancelB")
 			break
-
+			
 	endswitch
 	KillWindow $s.win
 End
@@ -485,10 +535,28 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 End
 
 Static Function pnlPopup(STRUCT WMPopupAction &s)
-	if (s.eventCode == 2)	// mouseup
-		restoreInitial(StringFromList(0,s.win,"#"), "cancelB")
-		reflectData(s.win, s.popStr)
+	if (s.eventCode != 2)	//	Handle mouseup
+		return 1
 	endif
+	
+	String grfName = StringFromList(0, s.win, "#")
+	
+	strswitch (s.ctrlName)
+		case "imageP":
+			restoreInitial(grfName, "cancelB")
+			reflectData(s.win, s.popStr)
+			break
+			
+		case "styleP":
+			ControlInfo/W=$s.win imageP
+			String imgName = S_Value
+			
+			STRUCT paramStruct ps
+			getData(grfName, "", imgName, ps)
+			ps.style = s.popNum - 1 
+			ps.layer = -1	//	force updating
+			setLegend(grfName, imgName, ps)
+	endswitch
 End
 
 //-------------------------------------------------------------
@@ -540,16 +608,18 @@ Static Function reflectData(String pnlName, String imgName)
 		s.digit = 0
 		s.unit = 1
 		s.sign = 1
-		s.prefix = 0
+		s.prefix = 1
 		s.layer = -1	//	force updating
+		s.style = 1
 		setLegend(grfName, imgName, s)
 	endif
-
+	
 	SetVariable stringV value=_STR:s.legendStr, win=$pnlName
 	SetVariable digitV value=_NUM:s.digit, win=$pnlName
 	CheckBox unitC value=s.unit, win=$pnlName
 	CheckBox signC value=s.sign, win=$pnlName
-	CheckBox prefixC value=s.prefix, win=$pnlName	
+	CheckBox prefixC value=s.prefix, win=$pnlName
+	PopupMenu styleP mode=s.style+1, win=$pnlName
 End
 
 Static Function printHistory(STRUCT paramStruct &s)
@@ -560,7 +630,8 @@ Static Function printHistory(STRUCT paramStruct &s)
 		paramStr += SelectString(s.digit!=0,"",",digit="+num2istr(s.digit))
 		paramStr += SelectString(s.unit!=0,",unit="+num2istr(s.unit),"")
 		paramStr += SelectString(s.sign!=0,",sign="+num2istr(s.sign),"")
-		paramStr += SelectString(s.prefix!=0,"",",prefix="+num2istr(s.prefix))
+		paramStr += SelectString(s.prefix!=0,",prefix="+num2istr(s.prefix),"")
+		paramStr += SelectString(s.style==1,",style="+num2istr(s.style),"")
 	endif
 	printf "%sSIDAMLayerAnnotation(\"%s\"%s)\r", PRESTR_CMD, s.legendStr, paramStr
 End
@@ -581,7 +652,7 @@ Static Function backCompFromLayerViewerAA(String grfName)
 	s.prefix = 0
 	s.layer = -1	//	force updating
 	setLegend(grfName, imgName, s)
-
+	
 	SetWindow $grfName hook(AA)=$""
 	SetWindow $grfName userData(AAstr)=""
 	SetWindow $grfName userData(AAdigit)=""

@@ -53,6 +53,13 @@ StrConstant SIDAM_WAVE_SELECTED = "SIDAM_selected"
 StrConstant SIDAM_WAVE_COLOR = "SIDAM_color"
 
 //------------------------------------------------------------------------------
+//	Special characters
+//------------------------------------------------------------------------------
+StrConstant SIDAM_CHAR_LISTSEP = "\u001D"
+StrConstant SIDAM_CHAR_KEYSEP = "\u001E"
+StrConstant SIDAM_CHAR_ITEMSEP = "\u001F"
+
+//------------------------------------------------------------------------------
 //	Constants used in Igor Pro
 //------------------------------------------------------------------------------
 Constant MAX_OBJ_NAME = 255
@@ -64,4 +71,3 @@ StrConstant PRESTR_CAUTION = "** "	//	prefix characters for cautions in the hist
 
 StrConstant MENU_COMPLEX1D = "real and imaginary;real only;imaginary only;magnitude;phase (radians)"
 StrConstant MENU_COMPLEX2D = "Magnitude;Real only;Imaginary only;Phase in radians"
-
