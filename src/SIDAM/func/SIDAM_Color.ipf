@@ -1408,7 +1408,7 @@ Static Function loadColorTableAll()
 	String key
 	Make/N=(2,ItemsInList(SIDAM_CTAB_PATH))/T/FREE groups	
 	for (j = 0; j < ItemsInList(SIDAM_CTAB); j++)
-		key = StringFromList(0, SIDAM_CTAB)
+		key = StringFromList(j, SIDAM_CTAB)
 		groups[][j] = {key, StringByKey(key, SIDAM_CTAB_PATH)}
 	endfor
 
