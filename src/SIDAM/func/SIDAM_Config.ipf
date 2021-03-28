@@ -33,8 +33,11 @@ Function/S SIDAMConfigKeys(String tableName)
 End
 
 //	Return contents of a table as a key:value; list
-Function/S SIDAMConfigItems(String tableName, [String listSep])
-	listSep = SelectString(ParamIsDefault(listSep), listSep, ";")
+Function/S SIDAMConfigItems(String tableName, [int usespecial])
+	usespecial = ParamIsDefault(usespecial) ? 0 : usespecial
+	
+	String listsep = SelectString(usespecial, ";", SIDAM_CHAR_ITEMSEP)
+	String keysep = SelectString(usespecial, ":", SIDAM_CHAR_KEYSEP)
 
 	Variable refNum
 	Open/R/Z refNum as SIDAMConfigPath()
@@ -50,7 +53,7 @@ Function/S SIDAMConfigItems(String tableName, [String listSep])
 		if (GrepString(line, "^\[.*?\]"))
 			break
 		elseif (strlen(line))
-			listStr += keyFromLine(line) + ":" + stringFromLine(line) + listSep
+			listStr += keyFromLine(line) + keysep + stringFromLine(line) + listsep
 		endif
 	while (1)
 	Close refNum
@@ -100,7 +103,7 @@ End
 //	Write configuration as constants
 Function SIDAMConfigToProc(Variable refNum)
 	fprintf refNum, "StrConstant SIDAM_CTAB = \"%s\"\r", SIDAMConfigKeys("[ctab]")
-	fprintf refNum, "StrConstant SIDAM_CTAB_PATH = \"%s\"\r", SIDAMConfigItems("[ctab]")
+	fprintf refNum, "StrConstant SIDAM_CTAB_PATH = \"%s\"\r", SIDAMConfigItems("[ctab]", usespecial=1)
 	
 	fprintf refNum, "StrConstant SIDAM_LOADER_FUNCTIONS = \"%s\"\r", SIDAMConfigItems("[loader.functions]")
 	

@@ -70,8 +70,8 @@ End
 
 Static Function appendIpf(Wave/T listw, String tableName)
 	String values = StringByKey( \
-		"path", SIDAMConfigItems(tableName, listSep=num2char(31)), \
-		":", num2char(31))
+		"path", SIDAMConfigItems(tableName, usespecial=1), \
+		SIDAM_CHAR_KEYSEP, SIDAM_CHAR_ITEMSEP)
 	int i
 	for (i = 0; i < ItemsInList(values); i++)
 		Wave/T/Z w1 = ipfList(StringFromList(i, values))

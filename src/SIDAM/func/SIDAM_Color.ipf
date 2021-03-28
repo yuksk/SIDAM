@@ -1406,10 +1406,11 @@ Static Function loadColorTableAll()
 
 	//	Read names of groups and paths to directories
 	String key
-	Make/N=(2,ItemsInList(SIDAM_CTAB_PATH))/T/FREE groups	
+	Make/N=(2,ItemsInList(SIDAM_CTAB))/T/FREE groups
 	for (j = 0; j < ItemsInList(SIDAM_CTAB); j++)
 		key = StringFromList(j, SIDAM_CTAB)
-		groups[][j] = {key, StringByKey(key, SIDAM_CTAB_PATH)}
+		groups[][j] = {key, StringByKey(key, SIDAM_CTAB_PATH, \
+			SIDAM_CHAR_KEYSEP, SIDAM_CHAR_ITEMSEP)}
 	endfor
 
 	//	Load ibw files of color table waves
