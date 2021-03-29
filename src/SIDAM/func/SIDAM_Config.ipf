@@ -14,17 +14,18 @@ Function/S SIDAMConfigKeys(String tableName)
 	Open/R/Z refNum as SIDAMConfigPath()
 	proceedToTable(refNum, tableName)
 	
-	String listStr = "", buffer, line
+	String listStr = "", buffer
 	do
 		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
+		removeReturn(buffer)
+		if (!strlen(buffer))	//	EOF, empty line
+			break
+		elseif (GrepString(buffer, "^\[.*?\]"))	//	next table
 			break
 		endif
-		line = removeComment(buffer)
-		if (GrepString(line, "^\[.*?\]"))
-			break
-		elseif (strlen(line))
-			listStr += keyFromLine(line) + ";"
+		removeComment(buffer)
+		if (strlen(buffer))
+			listStr += keyFromLine(buffer) + ";"
 		endif
 	while (1)
 	Close refNum
@@ -43,22 +44,27 @@ Function/S SIDAMConfigItems(String tableName, [int usespecial])
 	Open/R/Z refNum as SIDAMConfigPath()
 	proceedToTable(refNum, tableName)
 	
-	String listStr = "", buffer, line
+	String listStr = "", buffer
 	do
 		FReadLine refNum, buffer
-		if (!strlen(buffer) || !CmpStr(buffer, "\r"))	//	EOF or empty line
+		removeReturn(buffer)
+		if (!strlen(buffer))	//	EOF, empty line
+			break
+		elseif (GrepString(buffer, "^\[.*?\]"))	//	next table
 			break
 		endif
-		line = removeComment(buffer)
-		if (GrepString(line, "^\[.*?\]"))
-			break
-		elseif (strlen(line))
-			listStr += keyFromLine(line) + keysep + stringFromLine(line) + listsep
+		removeComment(buffer)
+		if (strlen(buffer))
+			listStr += keyFromLine(buffer) + keysep + stringFromLine(buffer) + listsep
 		endif
 	while (1)
 	Close refNum
 
 	return listStr
+End
+
+Static Function removeReturn(String &buffer)
+	buffer = RemoveEnding(RemoveEnding(buffer, num2char(10)), num2char(13))
 End
 
 //	Return a path to the config file.
@@ -102,37 +108,37 @@ End
 
 //	Write configuration as constants
 Function SIDAMConfigToProc(Variable refNum)
-	fprintf refNum, "StrConstant SIDAM_CTAB = \"%s\"\r", SIDAMConfigKeys("[ctab]")
-	fprintf refNum, "StrConstant SIDAM_CTAB_PATH = \"%s\"\r", SIDAMConfigItems("[ctab]", usespecial=1)
+	fprintf refNum, "StrConstant SIDAM_CTAB = \"%s\"\n", SIDAMConfigKeys("[ctab]")
+	fprintf refNum, "StrConstant SIDAM_CTAB_PATH = \"%s\"\n", SIDAMConfigItems("[ctab]", usespecial=1)
 	
-	fprintf refNum, "StrConstant SIDAM_LOADER_FUNCTIONS = \"%s\"\r", SIDAMConfigItems("[loader.functions]")
+	fprintf refNum, "StrConstant SIDAM_LOADER_FUNCTIONS = \"%s\"\n", SIDAMConfigItems("[loader.functions]")
 	
 	String items = SIDAMConfigItems("[window]")
-	fprintf refNum, "Constant SIDAM_WINDOW_WIDTH = %f\r", NumberByKey("width", items)
-	fprintf refNum, "Constant SIDAM_WINDOW_HEIGHT = %f\r", NumberByKey("height", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_WIDTH = \"%s\"\n", StringByKey("width", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_HEIGHT = \"%s\"\n", StringByKey("height", items)
 	
 	items = SIDAMConfigItems("[window.format]")
-	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_XY = \"%s\"\r", StringByKey("xy", items)
-	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_Z = \"%s\"\r", StringByKey("z", items)
-	fprintf refNum, "Constant SIDAM_WINDOW_FORMAT_SHOWUNIT = %d\r", NumberByKey("show_units", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_XY = \"%s\"\n", StringByKey("xy", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_Z = \"%s\"\n", StringByKey("z", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_FORMAT_SHOWUNIT = %d\n", NumberByKey("show_units", items)
 	
 	items = SIDAMConfigItems("[window.colors]")
 	Wave vw = arrayFromValue(StringByKey("line", items))
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_R = %d\r", vw[0]
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_G = %d\r", vw[1]
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE_B = %d\r", vw[2]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_R = %d\n", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_G = %d\n", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE_B = %d\n", vw[2]
 	Wave vw = arrayFromValue(StringByKey("line2", items))
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_R = %d\r", vw[0]
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_G = %d\r", vw[1]
-	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_B = %d\r", vw[2]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_R = %d\n", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_G = %d\n", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_LINE2_B = %d\n", vw[2]
 	Wave vw = arrayFromValue(StringByKey("note", items))
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_R = %d\r", vw[0]
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_G = %d\r", vw[1]
-	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_B = %d\r", vw[2]
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_R = %d\n", vw[0]
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_G = %d\n", vw[1]
+	fprintf refNum, "Constant SIDAM_WINDOW_NOTE_B = %d\n", vw[2]
 	
 	items = SIDAMConfigItems("[window.export]")
-	fprintf refNum, "StrConstant SIDAM_WINDOW_EXPORT_TRANSPARENT = \"%s\"\r", StringByKey("transparent", items)
-	fprintf refNum, "Constant SIDAM_WINDOW_EXPORT_RESOLUTION = %d\r", NumberByKey("resolution", items)
+	fprintf refNum, "StrConstant SIDAM_WINDOW_EXPORT_TRANSPARENT = \"%s\"\n", StringByKey("transparent", items)
+	fprintf refNum, "Constant SIDAM_WINDOW_EXPORT_RESOLUTION = %d\n", NumberByKey("resolution", items)
 	
 	items = SIDAMConfigItems("[nanonis]")
 	String nanonis_encoding = StringByKey("text_encoding", items)
@@ -140,15 +146,15 @@ Function SIDAMConfigToProc(Variable refNum)
 		DefaultTextEncoding
 		nanonis_encoding = TextEncodingName(V_defaultTextEncoding, 0)
 	endif
-	fprintf refNum, "StrConstant SIDAM_NANONIS_TEXTENCODING = \"%s\"\r", nanonis_encoding
-	fprintf refNum, "StrConstant SIDAM_NANONIS_LENGTHUNIT = \"%s\"\r", StringByKey("length_unit", items)
-	fprintf refNum, "Constant SIDAM_NANONIS_LENGTHSCALE = %f\r", NumberByKey("length_scale", items)
-	fprintf refNum, "StrConstant SIDAM_NANONIS_CURRENTUNIT = \"%s\"\r", StringByKey("current_unit", items)
-	fprintf refNum, "Constant SIDAM_NANONIS_CURRENTSCALE = %f\r", NumberByKey("current_scale", items)
-	fprintf refNum, "StrConstant SIDAM_NANONIS_VOLTAGEUNIT = \"%s\"\r", StringByKey("voltage_unit", items)
-	fprintf refNum, "Constant SIDAM_NANONIS_VOLTAGESCALE = %f\r", NumberByKey("voltage_scale", items)
-	fprintf refNum, "StrConstant SIDAM_NANONIS_CONDUCTANCEUNIT = \"%s\"\r", StringByKey("conductance_unit", items)
-	fprintf refNum, "Constant SIDAM_NANONIS_CONDUCTANCESCALE = %f\r", NumberByKey("conductance_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_TEXTENCODING = \"%s\"\n", nanonis_encoding
+	fprintf refNum, "StrConstant SIDAM_NANONIS_LENGTHUNIT = \"%s\"\n", StringByKey("length_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_LENGTHSCALE = %f\n", NumberByKey("length_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_CURRENTUNIT = \"%s\"\n", StringByKey("current_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_CURRENTSCALE = %f\n", NumberByKey("current_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_VOLTAGEUNIT = \"%s\"\n", StringByKey("voltage_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_VOLTAGESCALE = %f\n", NumberByKey("voltage_scale", items)
+	fprintf refNum, "StrConstant SIDAM_NANONIS_CONDUCTANCEUNIT = \"%s\"\n", StringByKey("conductance_unit", items)
+	fprintf refNum, "Constant SIDAM_NANONIS_CONDUCTANCESCALE = %f\n", NumberByKey("conductance_scale", items)
 End
 
 
@@ -202,9 +208,9 @@ Static Function proceedToTable(Variable refNum, String tableName)
 	while(1)
 End
 
-Static Function/S removeComment(String str)
+Static Function removeComment(String &str)
 	int i = strsearch(str, "#", 0)
-	return SelectString(i == -1, str[0, i-1], str)
+	str = SelectString(i == -1, str[0, i-1], str)
 End
 
 //------------------------------------------------------------------------------

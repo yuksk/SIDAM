@@ -195,8 +195,11 @@ Static Function/S displayNumericWaveLayer(Wave w)
 	String pnlName = S_name
 	AppendImage/W=$pnlName/G=1 w
 	ModifyImage/W=$pnlName $PossiblyQuoteName(NameOfWave(w)) ctabAutoscale=3
-	ModifyGraph/W=$pnlName width=SIDAM_WINDOW_WIDTH, height=SIDAM_WINDOW_HEIGHT
 	ModifyGraph/W=$pnlName standoff=0,tick=3,noLabel=2,axThick=0,margin=1
+	String cmdStr
+	sprintf cmdStr, "ModifyGraph/W=\"%s\" width=%s, height=%s"\
+		, pnlName, SIDAM_WINDOW_WIDTH, SIDAM_WINDOW_HEIGHT
+	Execute/Q cmdStr
 
 	SIDAMInfoBar(pnlName)
 	SetWindow $pnlName hide=0

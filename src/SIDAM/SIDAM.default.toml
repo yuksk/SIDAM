@@ -11,7 +11,10 @@
 # accordingly paths in the following.
 
 [window]
-# Width and height of an image window. The unit is points.
+# Width and height of an image window. The value is given to ModifyGraph.
+# For example, if you want to make the width "Auto", set width = 0.
+# If you want to show an image in a physically-correct ratio, set "Plan"
+# to either width or height, for example, height = "{Plan,1,left,bottom}".
 width = 200
 height = 200
 
