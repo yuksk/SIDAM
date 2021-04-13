@@ -15,7 +15,7 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant COORDINATESMENU = "x and y (rectangular);r and theta (polar);1/r and theta (polar, inverse magnitude);x' and y' (rectangular, including angle)"
+Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude);x' and y' (Cartesian, including angle)"
 Static StrConstant TITLEMENU = "Name of graph;Name of wave;Setpoint;Displayed size;Path of wave"
 
 
@@ -472,20 +472,26 @@ Static Function setpqzStr(String &pqs, String &zs,
 End
 
 Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
+	int mode = str2num(GetUserData(grfName,"","mode"))
 	int showunit = (SIDAM_WINDOW_FORMAT_SHOWUNIT & 1) && WaveExists(ms.w)
-	String pStr
+	int isSameUnit = WaveExists(ms.w) && !CmpStr(WaveUnits(ms.w,0), WaveUnits(ms.w,1))
+
+	String fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY \
+					+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
 	if (showunit)
-		pStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
-			+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 1) + ")"
-	else
-		pStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY \
-			+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
+		if (mode == 0 || mode == 3)
+			fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
+				+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 1) + ")"
+		elseif ((mode == 1 || mode == 2) && isSameUnit)
+			fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
+				+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
+		endif
 	endif
-	
-	strswitch (GetUserData(grfName,"","mode"))
+		
+	switch (mode)
 		default:
 			//	*** FALLTHROUGH ***
-		case "0":		//	x, y	(also for traces)
+		case 0:		//	x, y	(also for traces)
 			if (!WaveExists(ms.w))
 				xys = "(x:-, y:-)"
 			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
@@ -495,20 +501,20 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 				Sprintf xys, "(x:"+SIDAM_WINDOW_FORMAT_XY+", y:%s %s)" \
 					, ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
 			else
-				Sprintf xys, pStr, "x", ms.x, "y", ms.y
+				Sprintf xys, fStr, "x", ms.x, "y", ms.y
 			endif
 			break
-		case "1": 	//	r, theta
-			Sprintf xys, pStr\
+		case 1: 	//	r, theta
+			Sprintf xys, fStr\
 				, "r", sqrt(ms.x^2+ms.y^2) \
 				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
-		case "2": 	//	r^-1, theta-90
-			Sprintf xys, pStr\
+		case 2: 	//	r^-1, theta-90
+			Sprintf xys, fStr\
 				, "1/r", 1/sqrt(ms.x^2+ms.y^2)\
 				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
-		case "3":		//	x', y', angle is degree
+		case 3:		//	x', y', angle is degree
 			Variable angle = str2num(SIDAMGetSettings(ms.w,4)) / 180 * pi
 			if (numtype(angle))
 				xys = "(x':-, y':-)"
@@ -517,7 +523,7 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 				Variable cy = DimOffset(ms.w,1) + DimDelta(ms.w,1)*(DimSize(ms.w,1)-1)/2
 				Variable rx = (ms.x-cx)*cos(angle) - (ms.y-cy)*sin(angle) + cx
 				Variable ry = (ms.x-cx)*sin(angle) + (ms.y-cy)*cos(angle) + cy
-				Sprintf xys, pStr, "x'", rx, "y'", ry
+				Sprintf xys, fStr, "x'", rx, "y'", ry
 			endif
 			break
 	endswitch
