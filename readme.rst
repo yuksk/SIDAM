@@ -34,7 +34,7 @@ Here is a list of frequently used basic features:
 Requirement
 -----------
 
-Igor Pro 8 or later.
+Igor Pro 8 or 9.
 
 Install/Update/Uninstall
 ------------------------
