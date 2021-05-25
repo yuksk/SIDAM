@@ -107,7 +107,7 @@ Static Function/WAVE fn3D(Wave xw, Wave yw, int order)
 	return ww
 End
 
-ThreadSafe Function worker3D(Wave xw_rot, Wave yw_rot, 
+ThreadSafe Static Function worker3D(Wave xw_rot, Wave yw_rot, 
 	Wave xw, Wave yw, int order, Variable pp, Variable qq)
 
 	MatrixOP/FREE xw1d = beam(xw, pp, qq)
