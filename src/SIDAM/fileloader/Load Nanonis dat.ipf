@@ -125,7 +125,12 @@ Static Function LoadNanonisDatGetDataConvert(STRUCT header &s, Wave/WAVE ww)
 				SetScale/I x xw[0]*SIDAM_NANONIS_LENGTHSCALE\
 				             , xw[numpnts(xw)-1]*SIDAM_NANONIS_LENGTHSCALE\
 				             , SIDAM_NANONIS_LENGTHUNIT, ww[i]
-				LoadNanonisCommonConversion(ww[i])
+				if (strlen(s.modulated))
+					LoadNanonisCommonConversion(ww[i], driveamp=s.driveamp, \
+					                            modulated=s.modulated)
+				else
+					LoadNanonisCommonConversion(ww[i])
+				endif
 			endfor
 			break
 		case "Spectrum":
@@ -211,7 +216,7 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 	int isBias = GrepString(NameOfWave(w), "_Bias")
 	SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
 
-	if (isLockin)
+	if (isLockin && !ParamIsDefault(modulated) && !ParamIsDefault(driveamp))
 		int noLockInHeader = numtype(driveamp) == 2
 		int isBiasModulated = !CmpStr(modulated,"Bias (V)")
 		int isZModulated = !CmpStr(modulated,"Z (m)")
