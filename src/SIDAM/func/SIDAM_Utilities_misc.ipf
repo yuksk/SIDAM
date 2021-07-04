@@ -156,17 +156,24 @@ Static Function/S getSettingsAngle(DFREF dfr)
 		return num2str(angle)
 	endif
 	
-	//	以下、Nanonis対応
-	//	Nanonisでは時計回りを正として角度が記録されているので、正負を逆転して返す
-	SVAR/Z/SDFR=dfr grid = 'Grid settings'	//	Nanonis 3ds
+	//	For nanonis
+	//	Reverse the sign of angle because the angle is positive
+	//	for clockwise rotation.
+	//	Nanonis 3ds
+	SVAR/Z/SDFR=dfr grid = $SIDAMNumStrName("Grid settings", 1)
 	if (SVAR_Exists(grid))
 		Variable a = str2num(StringFromList(4, grid))
 		return num2str(-a)
 	endif
 	
-	NVAR/Z/SDFR=dfr anglesxm = 'angle (deg)'	//	Nanonis sxm
+	//	Nanonis sxm
+	NVAR/Z/SDFR=dfr anglesxm = angle_deg
 	if (NVAR_Exists(anglesxm))
 		return num2str(-anglesxm)
+	endif
+	NVAR/Z/SDFR=dfr anglesxmold = 'angle (deg)'
+	if (NVAR_Exists(anglesxmold))
+		return num2str(-anglesxmold)
 	endif
 	
 	return ""
@@ -201,5 +208,64 @@ Static Function/S getSettingsFormatStr(Variable var)
 			str = num2str(var)
 	endswitch
 	return str
+End
+
+
+//------------------------------------------------------------------------------
+//	Functions for absorbing a change of "Liberal object names" in Igor 9.
+//	In Igor 8, liberal object names are allowed for variables and strings
+//	although it is not written so in the manual. In Igor 9, they are not allowed.
+//------------------------------------------------------------------------------
+Function/S SIDAMNumStrName(String name, int isString)
+	int objectType = isString ? 4 : 3
+	#if IgorVersion() >= 9
+		return CreateDataObjectName(:, name, objectType, 0, 3)
+	#else
+		return SelectString(CheckName(name, objectType), name, CleanupName(name, 1))
+	#endif
+End
+
+Function/S SIDAMStrVarOrDefault(String name, String def)
+	if (strsearch(name, ":", 0) == -1)
+		return StrVarOrDefault(SIDAMNumStrName(name, 1), def)
+	endif
+	
+	DFREF dfrSav = GetDataFolderDFR()
+	if (movedf(name))
+		return def
+	endif
+		
+	name = ParseFilePath(0, name, ":", 1, 0)
+	name = ReplaceString("'", name, "")
+	String str = StrVarOrDefault(SIDAMNumStrName(name, 1), def)
+	SetDataFolder dfrSav
+	return str
+End
+
+Function SIDAMNumVarOrDefault(String name, Variable def)
+	if (strsearch(name, ":", 0) == -1)
+		return NumVarOrDefault(SIDAMNumStrName(name, 0), def)
+	endif
+	
+	DFREF dfrSav = GetDataFolderDFR()
+	if (movedf(name))
+		return def
+	endif
+	
+	name = ParseFilePath(0, name, ":", 1, 0)
+	name = ReplaceString("'", name, "")
+	Variable num = NumVarOrDefault(SIDAMNumStrName(name, 0), def)
+	SetDataFolder dfrSav
+	return num
+End
+
+Static Function movedf(String name)
+	String df = ParseFilePath(1, name, ":", 1, 0)
+	DFREF dfr = $ReplaceString("'", RemoveEnding(df, ":"), "")
+	if (!DataFolderRefStatus(dfr))
+		return 1
+	endif
+	SetDataFolder dfr
+	return 0
 End
 

@@ -130,6 +130,113 @@ Static Function isNanonis(DFREF dfr)
 	return SVAR_Exists(Experiment) || NVAR_Exists(NANONIS_VERSION)
 End
 
+#if IgorVersion() >= 9
+Static Function nanonisStyle(Wave/T params)
+
+	int i, j
+	String prefix, txt
+	Variable coef, v
+
+	Wave indexw = nanonisStyleSearch(params, "Setpoint")
+	if (numpnts(indexw))
+		params[0][indexw[0]] += " ("+params[1][indexw[1]]+")"
+	endif
+
+	for (i = 0; strlen(params[0][i]) > 0; i++)
+		if (strsearch(params[0][i],"acquisition_time",0) != -1)
+			v = str2num(params[1][i])
+			if (v < 180)
+				Sprintf txt "%.2f s", v
+			elseif (v < 3600)
+				Sprintf txt "%d m %d s", floor(v/60), mod(v,60)
+			else
+				Sprintf txt "%d h %d m %d s", floor(v/3600), floor(mod(v,3600)/60), mod(v,60)
+			endif
+			params[][i] = {"acquisition time", txt}
+
+		elseif (strsearch(params[0][i],"n_pixels",0) != -1 && \
+				strsearch(params[0][i+1],"n_lines",0) != -1)
+			InsertPoints/M=1 i+2, 1, params
+			params[0][i+2] = "number of pixels"
+			params[1][i+2] = params[1][i]+", "+params[1][i+1]
+			DeletePoints/M=1 i, 2, params
+
+		elseif (strsearch(params[0][i],"width_m",0) != -1 && \
+				strsearch(params[0][i+1],"height_m",0) != -1)
+			InsertPoints/M=1 i+2, 1, params
+			Sprintf txt, "%.2f, %.2f", str2num(params[1][i])*1e9,\
+				str2num(params[1][i+1])*1e9
+			params[][i+2] = {"size (nm)", txt}
+			DeletePoints/M=1 i, 2, params
+
+		elseif (strsearch(params[0][i],"center_x_m",0) != -1 && \
+				strsearch(params[0][i+1],"center_y_m",0) != -1)
+			InsertPoints/M=1 i+2, 1, params
+			Sprintf txt, "%.2f, %.2f", str2num(params[1][i])*1e9,\
+				str2num(params[1][i+1])*1e9
+			params[][i+2] = {"center (nm)", txt}
+			DeletePoints/M=1 i, 2, params
+
+		elseif (strsearch(params[0][i],"Grid_settings",0) != -1)
+			InsertPoints/M=1 i+1, 3, params
+			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(0,params[1][i]))*1e9,\
+				str2num(StringFromList(1,params[1][i]))*1e9
+			params[][i+1] = {"Grid center (nm)", txt}
+			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(2,params[1][i]))*1e9,\
+				str2num(StringFromList(3,params[1][i]))*1e9
+			params[][i+2] = {"Grid size (nm)", txt}
+			Sprintf txt, "%.2f", str2num(StringFromList(4,params[1][i]))
+			params[][i+3] = {"Grid angle (deg)", txt}
+			DeletePoints/M=1 i, 1, params
+			i += 2
+
+		elseif (strsearch(params[0][i],"Scanfield",0) != -1)
+			InsertPoints/M=1 i+1, 3, params
+			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(0,params[1][i]))*1e9, \
+				str2num(StringFromList(1,params[1][i]))*1e9
+			params[][i+1] = {"Scanfield center (nm)", txt}
+			Sprintf txt, "%.2f, %.2f", 	str2num(StringFromList(2,params[1][i]))*1e9,\
+				str2num(StringFromList(3,params[1][i]))*1e9
+			params[][i+2] = {"Scanfield size (nm)", txt}
+			Sprintf txt, "%.2f", str2num(StringFromList(4,params[1][i]))
+			params[][i+3] = {"Scanfield angle (deg)", txt}
+			DeletePoints/M=1 i, 1, params
+			i += 2
+
+		elseif (strsearch(params[0][i],"P gain",0) != -1)
+			params[0][i] = "P gain (m)"
+
+		elseif (strsearch(params[0][i],"I gain",0) != -1)
+			params[0][i] = "I gain (m/s)"
+
+		endif
+	endfor
+
+	Make/T/N=(2,11)/FREE uw
+	uw[][0] = {"_V_m_2_","V/m^2"}
+	uw[][1] = {"_m_s_","m/s"}
+	uw[][2] = {"_m_V_","m/V"}
+	uw[][3] = {"_A_V_","A/V"}
+	uw[][4] = {"_V_V_","V/V"}
+	uw[][5] = {"_m_","m"}
+	uw[][6] = {"_A_","A"}
+	uw[][7] = {"_V_","V"}
+	uw[][8] = {"_s_","s"}
+	uw[][9] = {"_Hz_","Hz"}
+	uw[][10] = {"_deg_","deg"}
+	for (i = 0; strlen(params[0][i]) > 0; i++)
+		for (j = 0; j < DimSize(uw, 1); j++)
+			if (strsearch(params[0][i],uw[0][j],0) == -1)
+				continue
+			endif
+			[prefix, coef] = nanonisStylePrefix(str2num(params[1][i]))
+			params[0][i] = ReplaceString(uw[0][j],params[0][i],"("+prefix+uw[1][j]+")")
+			params[1][i] = num2str(str2num(params[1][i])*10^coef)
+		endfor
+		params[0][i] = ReplaceString("_",params[0][i]," ")
+	endfor
+End
+#else
 Static Function nanonisStyle(Wave/T params)
 
 	int i, j
@@ -224,6 +331,7 @@ Static Function nanonisStyle(Wave/T params)
 		endfor
 	endfor
 End
+#endif
 
 Static Function[String prefix, Variable coef] nanonisStylePrefix(Variable var)
 	int exponent = floor(log(abs(var)))

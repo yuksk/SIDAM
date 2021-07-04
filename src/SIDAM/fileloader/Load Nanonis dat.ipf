@@ -33,7 +33,7 @@ End
 //	the structure "s".
 Static Function LoadNanonisDatGetHeader(String pathStr, STRUCT header &s)
 	LoadNanonisCommonGetHeader(pathStr)
-	
+
 	SVAR Experiment
 	s.type = Experiment
 	strswitch (s.type)
@@ -298,11 +298,11 @@ Function LoadNanonisCommonVariableString(String name, String str)
 	//	1. A character except numbers (including the infinity) is included.
 	//	2. Two periods or more are included.
 	//	3. Empty
-	if (GrepString(LowerStr(value),"[^0-9e+-.(inf)]") || ItemsInList(value,".") > 2 || !strlen(value))
-		name = SelectString(CheckName(name, 4), name, CleanupName(name, 1))
-		String/G $name = value
+	int isString = GrepString(LowerStr(value),"[^0-9e+-.(inf)]") \
+		|| ItemsInList(value,".") > 2 || !strlen(value)
+	if (isString)
+		String/G $SIDAMNumStrName(name, isString) = value
 	else
-		name = SelectString(CheckName(name, 3), name, CleanupName(name, 1))
-		Variable/G $name = str2num(value)
+		Variable/G $SIDAMNumStrName(name, isString) = str2num(value)
 	endif
 End

@@ -207,6 +207,39 @@ End
 
 //	Convert the raw variables to those used in Scan Inspector.
 //	The variables are saved to the structure for the data reading function.
+#if IgorVersion() >= 9
+Static Function SXMHeaderCvt(STRUCT header &s)
+	SVAR REC_DATE, REC_TIME
+	String dd, mm, yy
+	sscanf REC_DATE, "%2s.%2s.%4s", dd, mm, yy
+	String/G start_time = yy+"/"+mm+"/"+dd+" "+REC_TIME
+	
+	NVAR ACQ_TIME;	Variable/G acquisition_time_s = ACQ_TIME
+	
+	SVAR SCAN_PIXELS, SCAN_RANGE, SCAN_OFFSET
+	Variable/G n_pixels, n_lines
+	sscanf SCAN_PIXELS, "%d%d", n_pixels, n_lines
+	Variable/G width_m, height_m
+	sscanf SCAN_RANGE, "%f%f", width_m, height_m
+	Variable/G center_x_m, center_y_m	
+	sscanf SCAN_OFFSET, "%f%f", center_x_m, center_y_m
+	
+	NVAR SCAN_ANGLE;	Variable/G angle_deg = SCAN_ANGLE
+	SVAR SCAN_DIR;	String/G direction = SCAN_DIR
+	NVAR BIAS;	Variable/G bias_V = BIAS
+	
+	KillStrings REC_DATE, REC_TIME, SCAN_PIXELS, SCAN_RANGE, SCAN_OFFSET,SCAN_DIR
+	KillVariables ACQ_TIME, SCAN_ANGLE, BIAS
+	
+	s.xpnts = n_pixels
+	s.ypnts = n_lines
+	s.xscale = width_m * SIDAM_NANONIS_LENGTHSCALE
+	s.yscale = height_m * SIDAM_NANONIS_LENGTHSCALE
+	s.xcenter = center_x_m * SIDAM_NANONIS_LENGTHSCALE
+	s.ycenter = center_y_m * SIDAM_NANONIS_LENGTHSCALE
+	s.direction = stringmatch(direction, "down")
+End
+#else
 Static Function SXMHeaderCvt(STRUCT header &s)
 	SVAR REC_DATE, REC_TIME
 	String dd, mm, yy
@@ -238,6 +271,7 @@ Static Function SXMHeaderCvt(STRUCT header &s)
 	s.ycenter = 'center y (m)' * SIDAM_NANONIS_LENGTHSCALE
 	s.direction = stringmatch(direction, "down")
 End
+#endif
 
 Static Function NSPHeaderCvt(STRUCT header &s)
 	NVAR DATASIZEROWS, DATASIZECOLS, DELTA_f
