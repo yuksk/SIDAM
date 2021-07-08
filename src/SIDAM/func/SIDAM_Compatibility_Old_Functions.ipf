@@ -136,11 +136,6 @@ Function KMScalebar([String grfName,String anchor,int size,
 End
 
 //	v8.11.0 ----------------------------------------------------------------------
-Function KMGetSettings(Wave/Z w, int kind)
-	deprecatedCaution("SIDAMGetSettings")
-	SIDAMGetsettings(w, kind)
-End
-
 Function KMTabControlProc(STRUCT WMTabControlAction &s)
 	deprecatedCaution("SIDAMTabControlProc")
 	SIDAMTabControlProc(s)

@@ -16,7 +16,7 @@
 #endif
 
 Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude);x' and y' (Cartesian, including angle)"
-Static StrConstant TITLEMENU = "Name of graph;Name of wave;Setpoint;Displayed size;Path of wave"
+Static StrConstant TITLEMENU = "Name of graph;Name of wave;Displayed size;Path of wave"
 
 
 //@
@@ -195,7 +195,7 @@ Static Function/S menuR(int menuitem)
 			String menuStr = SIDAMAddCheckmark(mode, COORDINATESMENU)
 			
 			Wave/Z w = SIDAMImageWaveRef(grfName)
-			if (!WaveExists(w) || numtype(str2num(SIDAMGetSettings(w,4))))
+			if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
 				//	wave not exists (1D) or the angle setting is not found
 				menuStr = RemoveListItem(3, menuStr)
 			endif
@@ -515,7 +515,7 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
 			break
 		case 3:		//	x', y', angle is degree
-			Variable angle = str2num(SIDAMGetSettings(ms.w,4)) / 180 * pi
+			Variable angle = SIDAMGetSettingsAngle(ms.w) / 180 * pi
 			if (numtype(angle))
 				xys = "(x':-, y':-)"
 			else
@@ -713,7 +713,7 @@ Static Function changeCoordinateSetting(int mode)
 	
 	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
 	Wave/Z w = SIDAMImageWaveRef(grfName)
-	if (!WaveExists(w) || numtype(str2num(SIDAMGetSettings(w,4))))
+	if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
 		//	1D wave or the angle setting is not found.
 		maxMode -= 1
 	endif
@@ -758,16 +758,13 @@ Static Function changeWindowTitle(int mode)
 			titleStr = NameOfWave(w)
 			break
 		case 2:
-			titleStr = SIDAMGetSettings(w,1) + ", " + SIDAMGetSettings(w,2)
-			break
-		case 3:
 			String xaxis = StringByKey("XAXIS",ImageInfo(grfName,"",0))
 			String yaxis = StringByKey("YAXIS",ImageInfo(grfName,"",0))
 			GetAxis/Q/W=$grfName $xaxis ;	Variable width = V_max - V_min
 			GetAxis/Q/W=$grfName $yaxis ;	Variable height = V_max - V_min
 			Sprintf titleStr, "%.2f %s ﾗ %.2f %s", width, WaveUnits(w,0), height, WaveUnits(w,1)
 			break
-		case 4:
+		case 3:
 			titleStr = GetWavesDataFolder(w,2)
 			break
 		default:

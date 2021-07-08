@@ -65,95 +65,21 @@ Function/S SIDAMAddCheckmark(Variable num, String menuStr)
 End
 
 //------------------------------------------------------------------------------
-//	Return a value from the settings data folder
+//	Return the angle in the setting folder
 //------------------------------------------------------------------------------
-Function/S SIDAMGetSettings(Wave/Z w, int kind)
-	
+Function SIDAMGetSettingsAngle(Wave/Z w)
 	if (!WaveExists(w))
-		return ""
+		return nan
 	endif
 	
 	DFREF dfr = GetWavesDataFolderDFR(w):$SIDAM_DF_SETTINGS
 	if (!DataFolderRefStatus(dfr))
-		return ""
+		return nan
 	endif
-	
-	switch (kind)
-		case 1:	//	bias
-			return getSettingsBias(dfr)
-		case 2:	//	current
-			return getSettingsCurrent(dfr)
-		case 3:	//	comment
-			return getSettingsComment(dfr)
-		case 4:	//	angle
-			return getSettingsAngle(dfr)
-	endswitch
-End
-
-Static Function/S getSettingsBias(DFREF dfr)
-	
-	NVAR/Z/SDFR=dfr bias
-	if (NVAR_Exists(bias))
-		return num2str(bias)
-	endif
-	
-	//	Nanonis
-	NVAR/Z/SDFR=dfr 'bias (V)'
-	if (NVAR_Exists('bias (V)'))
-		return getSettingsFormatStr('bias (V)') + "V"
-	endif
-	if (DataFolderRefStatus(dfr:Bias))
-		NVAR/Z/SDFR=dfr:Bias 'Bias (V)'
-		if (NVAR_Exists('Bias (V)'))
-			return getSettingsFormatStr('Bias (V)') + "V"
-		endif
-	endif
-	
-	return ""
-End
-
-Static Function/S getSettingsCurrent(DFREF dfr)
-	
-	NVAR/Z/SDFR=dfr current
-	if (NVAR_Exists(current))
-		return num2str(current)
-	endif
-	
-	//	Nanonis
-	if (DataFolderRefStatus(dfr:'Z-CONTROLLER'))
-		SVAR/Z/SDFR=dfr:'Z-CONTROLLER' Setpoint
-		if (SVAR_Exists(Setpoint))
-			return Setpoint
-		endif
-		NVAR/Z/SDFR=dfr:'Z-CONTROLLER' OverwrittenSetpoint = Setpoint
-		if (NVAR_Exists(OverwrittenSetpoint))
-			return getSettingsFormatStr(OverwrittenSetpoint) + "A"
-		endif
-	elseif (DataFolderRefStatus(dfr:Current))
-		NVAR/Z/SDFR=dfr:Current 'Current (A)'
-		return getSettingsFormatStr('Current (A)') + "A"
-	endif
-	
-	return ""
-End
-
-Static Function/S getSettingsComment(DFREF dfr)
-	
-	SVAR/Z/SDFR=dfr text, comment
-	if (SVAR_Exists(text))
-		return text
-	elseif (SVAR_Exists(comment))	//	Nanonis
-		return comment
-	else
-		return ""
-	endif
-End
-
-Static Function/S getSettingsAngle(DFREF dfr)
-	
+			
 	NVAR/Z/SDFR=dfr angle		//	RHK SM2
 	if (NVAR_Exists(angle))
-		return num2str(angle)
+		return angle
 	endif
 	
 	//	For nanonis
@@ -162,54 +88,21 @@ Static Function/S getSettingsAngle(DFREF dfr)
 	//	Nanonis 3ds
 	SVAR/Z/SDFR=dfr grid = $SIDAMNumStrName("Grid settings", 1)
 	if (SVAR_Exists(grid))
-		Variable a = str2num(StringFromList(4, grid))
-		return num2str(-a)
+		return -str2num(StringFromList(4, grid))
 	endif
 	
 	//	Nanonis sxm
 	NVAR/Z/SDFR=dfr anglesxm = angle_deg
 	if (NVAR_Exists(anglesxm))
-		return num2str(-anglesxm)
+		return -anglesxm
 	endif
 	NVAR/Z/SDFR=dfr anglesxmold = 'angle (deg)'
 	if (NVAR_Exists(anglesxmold))
-		return num2str(-anglesxmold)
+		return -anglesxmold
 	endif
 	
-	return ""
+	return nan
 End
-
-Static Function/S getSettingsFormatStr(Variable var)
-	
-	String str
-	switch (floor((log(abs(var))+1)/3))
-		case 1:
-			sprintf str, "%.2f k", var*1e-3
-			break
-		case 0:
-			sprintf str, "%.2f ", var
-			break
-		case -1:
-			sprintf str, "%.2f m", var*1e3
-			break
-		case -2:
-			sprintf str, "%.2f u", var*1e6
-			break
-		case -3:
-			sprintf str, "%.2f n", var*1e9
-			break
-		case -4:
-			sprintf str, "%.2f p", var*1e12
-			break
-		case -5:
-			sprintf str, "%.2f f", var*1e15
-			break
-		default:
-			str = num2str(var)
-	endswitch
-	return str
-End
-
 
 //------------------------------------------------------------------------------
 //	Functions for absorbing a change of "Liberal object names" in Igor 9.
