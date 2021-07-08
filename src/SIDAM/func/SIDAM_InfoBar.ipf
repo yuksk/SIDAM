@@ -762,7 +762,7 @@ Static Function changeWindowTitle(int mode)
 			String yaxis = StringByKey("YAXIS",ImageInfo(grfName,"",0))
 			GetAxis/Q/W=$grfName $xaxis ;	Variable width = V_max - V_min
 			GetAxis/Q/W=$grfName $yaxis ;	Variable height = V_max - V_min
-			Sprintf titleStr, "%.2f %s ﾗ %.2f %s", width, WaveUnits(w,0), height, WaveUnits(w,1)
+			Sprintf titleStr, "%.2f %s \u00D7 %.2f %s", width, WaveUnits(w,0), height, WaveUnits(w,1)
 			break
 		case 3:
 			titleStr = GetWavesDataFolder(w,2)
