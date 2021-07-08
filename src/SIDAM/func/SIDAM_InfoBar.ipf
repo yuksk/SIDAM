@@ -209,7 +209,7 @@ Static Function/S menuR(int menuitem)
 			
 			return menuStr
 			
-		case 1:	//	window titile
+		case 1:	//	window title
 			mode = str2num(GetUserData(grfName,"","title"))
 			return SIDAMAddCheckmark(mode, TITLEMENU)
 		
