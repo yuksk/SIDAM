@@ -213,6 +213,7 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 	String modulated])
 
 	int isLockin = GrepString(NameOfWave(w),"_LI([RXY]|phi|_Demod)_")
+	int isCurrent = GrepString(NameOfWave(w), "_Current_")
 	int isBias = GrepString(NameOfWave(w), "_Bias")
 	SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
 
@@ -243,7 +244,7 @@ Function LoadNanonisCommonConversion(Wave w, [Variable driveamp,
 		FastOP w = (SIDAM_NANONIS_VOLTAGESCALE) * w
 		SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_VOLTAGEUNIT, w
 
-	else
+	elseif (isCurrent)
 		FastOP w = (SIDAM_NANONIS_CURRENTSCALE) * w
 		SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_CURRENTUNIT, w
 	endif
