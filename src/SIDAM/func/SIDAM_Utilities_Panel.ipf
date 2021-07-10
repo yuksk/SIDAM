@@ -8,20 +8,30 @@
 #pragma hide = 1
 #endif
 
-//******************************************************************************
-///	Show a panel at the center of Igor window or screen
-///	@param title		Title of the panel
-///	@param width		Width of the panel
-///	@param height	Height of the panel
-///	@param float		Set !0 to make the panel floating.
-///						The default value is 0.
-///	@param resizable	Set !0 to make the panel resizable.
-///						The default value is 0.
-///	@return	Name of the created panel
-//******************************************************************************
+//@
+//	Create a panel at the center of Igor window or screen.
+//
+//	Parameters
+//	---------
+//	title : string
+//		The title of the panel.
+//	width : variable
+//		The width of the panel.
+//	height	: variable
+//		The height of the panel.
+//	float : int, default 0
+//		Set !0 to make the panel floating.
+//	resizable	: int, default 0
+//		Set !0 to make the panel resizable.
+//
+//	Returns
+//	-------
+//	string
+//		The name of the created panel
+//@
 Function/S SIDAMNewPanel(String title, Variable width, Variable height,
-	[int float, int resizable])	//	tested
-
+	[int float, int resizable])
+	
 	float = ParamIsDefault(float) ? 0 : float
 	resizable = ParamIsDefault(resizable) ? 0 : resizable
 
@@ -46,11 +56,21 @@ Function/S SIDAMNewPanel(String title, Variable width, Variable height,
 End
 
 
-///******************************************************************************
-///	Returns 0 if the window does not exists, !0 otherwise
-///	@param pnlName	name of graph/panel
-///******************************************************************************
-Function SIDAMWindowExists(String pnlName)		//	tested
+//@
+//	Returns a non-zero value if specified graph or panel exist,
+//	and 0 otherwise. 
+//
+//	Parameters
+//	----------
+//	pnlName : string
+//		The name of graph or panel. This can be a subwindow.
+//
+//	Returns
+//	-------
+//	variable
+//		0 if the window does not exists, !0 otherwise.
+//@
+Function SIDAMWindowExists(String pnlName)	
 	if (!strlen(pnlName))
 		return 0
 	endif
