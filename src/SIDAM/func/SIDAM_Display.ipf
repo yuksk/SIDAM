@@ -142,21 +142,23 @@ Static Function/S menu(int mode, String shortCutStr)
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
 	int n = SIDAMnumberOfSelectedWaves()
 
+	String prefix = ""
 	if (!isBrowserShown || !n)
-		return ""
+		prefix = "("
 	elseif (mode==1 && (n!=1 || WaveDims($GetBrowserSelection(0))!=2))
-		return ""
+		prefix = "("
 	elseif (mode==2 && !canBeDisplayedAsXYTrace($GetBrowserSelection(0)))
-		return ""
+		prefix = "("
 	endif
 
 	switch (mode)
 		case 0:
-			return "Display Selected Wave" + SelectString(n>1, "", "s") + shortCutStr
-		case 1:	//	display a 2D wave as traces
-			return "Display Selected Wave as 1d-traces" + shortCutStr
+			return prefix + "Display Selected Wave" + SelectString(n>1, "", "s") \
+				+ shortCutStr
+		case 1:
+			return prefix + "Display Selected Wave as 1d-traces" + shortCutStr
 		case 2:
-			return "Append Selected Wave as xy-trace" + shortCutStr
+			return prefix + "Append Selected Wave as xy-trace" + shortCutStr
 	endswitch
 End
 

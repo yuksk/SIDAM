@@ -68,6 +68,9 @@ Menu "SIDAM", dynamic
 
 	Submenu "Misc"
 		"Open configuration file", /Q, OpenNoteBook/ENCG=1/Z SIDAMConfigPath()
+	End
+	
+	Submenu "Help"
 		"Browse command help", /Q, SIDAMBrowseHelp("commands")
 		"Browse cheet sheet of shortcuts", /Q, SIDAMBrowseHelp("shortcuts")
 		
