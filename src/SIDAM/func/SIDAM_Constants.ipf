@@ -43,7 +43,12 @@ StrConstant SIDAM_FOLDER_HELP = "help"
 StrConstant SIDAM_FILE_CONFIG = "SIDAM.toml"
 StrConstant SIDAM_FILE_CONFIG_DEFAULT = "SIDAM.default.toml"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
-StrConstant SIDAM_FILE_SHORTCUTS = "help:shortcuts.md"
+
+//------------------------------------------------------------------------------
+//	URLs
+//------------------------------------------------------------------------------
+StrConstant SIDAM_URL_SHORTCUTS = "https://github.com/yuksk/SIDAM/blob/main/src/SIDAM/help/shortcuts.md#readme"
+StrConstant SIDAM_URL_COMMANDS = "https://yuksk.github.io/SIDAM/commands.html"
 
 //------------------------------------------------------------------------------
 //	Temporary waves

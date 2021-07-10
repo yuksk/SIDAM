@@ -66,16 +66,15 @@ Static Function hookParent(STRUCT WMWinHookStruct &s)
 End
 
 
-Function/S SIDAMBrowseShortcuts()
-	String pathStr = SIDAMPath() + SIDAM_FILE_SHORTCUTS
-	int isWindows = strsearch(StringByKey("OS",IgorInfo(3)), "windows", 0, 2) != -1
-	int isMac = strsearch(StringByKey("OS",IgorInfo(3)), "macintosh", 0, 2) != -1
-	if (isWindows)
-		BrowseURL "file:///"+ParseFilePath(5,pathStr,"\\",0,0)
-	endif
-	if (isMac)
-		BrowseURL ParseFilePath(5,pathStr,"/",0,0)
-	endif
+Function/S SIDAMBrowseHelp(String kind)
+	strswitch(kind)
+		case "shortcuts":
+			BrowseURL SIDAM_URL_SHORTCUTS
+			break
+		case "commands":
+			BrowseURL SIDAM_URL_COMMANDS
+			break
+	endswitch
 End
 
 Function SIDAMAbout()
