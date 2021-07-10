@@ -30,7 +30,7 @@ def _construct_reST(groups: list[str]) -> dict[str, str]:
     # clean up the parameter string
     funcparams = re.sub(r'(\n|\t)', ' ', funcparams)
     funcparams = re.sub(r'\s+', ' ', funcparams)
-    funcparams = re.sub(r'(wave(/\w+)*|string|variable|int)\s+', '',
+    funcparams = re.sub(r'(wave(/\w+)*|string|variable|int|STRUCT \w+)\s+', '',
             funcparams, flags=re.I)
     doc.append(f'.. function:: {funcname}({funcparams})')
 
