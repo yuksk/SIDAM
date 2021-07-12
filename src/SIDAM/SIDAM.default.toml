@@ -67,8 +67,6 @@ path = ":fileloader"
 dat = "LoadNanonisDat"
 # Nanonis 3ds
 3ds = "LoadNanonis3ds"
-# SM2
-sm2 = "LoadRHKSM2"
 
 [nanonis]
 # The text encoding used when nanonis files were saved.
