@@ -356,7 +356,7 @@ Static Function/WAVE SXMData(String pathStr, STRUCT header &s)
 				SetScale d, WaveMin(lw), WaveMax(lw), SIDAM_NANONIS_CURRENTUNIT, lw
 				break
 			default:
-				SetScale d, WaveMin(lw), WaveMax(lw), "", lw
+				SetScale d, WaveMin(lw), WaveMax(lw), WaveUnits(lw, -1), lw
 		endswitch
 	endfor
 	
