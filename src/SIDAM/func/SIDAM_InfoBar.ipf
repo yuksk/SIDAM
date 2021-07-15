@@ -487,7 +487,8 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 				+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
 		endif
 	endif
-		
+	
+	Variable mag
 	switch (mode)
 		default:
 			//	*** FALLTHROUGH ***
@@ -505,14 +506,14 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 			endif
 			break
 		case 1: 	//	r, theta
+			mag = sqrt(ms.x^2+ms.y^2)
 			Sprintf xys, fStr\
-				, "r", sqrt(ms.x^2+ms.y^2) \
-				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+				, "r", mag, "t", acos(ms.x/mag)*180/pi*sign(ms.y)
 			break
-		case 2: 	//	r^-1, theta-90
+		case 2: 	//	r^-1, theta
+			mag = sqrt(ms.x^2+ms.y^2)
 			Sprintf xys, fStr\
-				, "1/r", 1/sqrt(ms.x^2+ms.y^2)\
-				, "t", acos(ms.x/sqrt(ms.x^2+ms.y^2))*180/pi
+				, "1/r", 1/mag, "t", acos(ms.x/mag)*180/pi*sign(ms.y)
 			break
 		case 3:		//	x', y', angle is degree
 			Variable angle = SIDAMGetSettingsAngle(ms.w) / 180 * pi
