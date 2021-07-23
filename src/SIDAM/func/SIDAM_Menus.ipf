@@ -72,7 +72,7 @@ Menu "SIDAM", dynamic
 	
 	Submenu "Help"
 		"Browse command help", /Q, SIDAMBrowseHelp("commands")
-		"Browse cheet sheet of shortcuts", /Q, SIDAMBrowseHelp("shortcuts")
+		"Browse cheat sheet of shortcuts", /Q, SIDAMBrowseHelp("shortcuts")
 		
 		"-"
 		
