@@ -241,9 +241,18 @@ End
 
 //	scaling and note
 Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw)
-
-	Variable distance = sqrt((s.p1-s.p2)^2*DimDelta(s.w,0)^2+(s.q1-s.q2)^2*DimDelta(s.w,1)^2)
-	SetScale/I x 0, distance, WaveUnits(s.w,0), linew, sdevw
+	
+	if (s.p1 == s.p2)
+		Setscale/I x IndexToScale(s.w,s.q1,1), IndexToScale(s.w,s.q2,1)\
+			, WaveUnits(s.w,1), linew, sdevw
+	elseif (s.q1 == s.q2)
+		Setscale/I x IndexToScale(s.w,s.p1,0), IndexToScale(s.w,s.p2,0)\
+			, WaveUnits(s.w,0), linew, sdevw
+	else
+		Variable distance = sqrt((s.p1-s.p2)^2*DimDelta(s.w,0)^2+(s.q1-s.q2)^2*DimDelta(s.w,1)^2)
+		SetScale/I x 0, distance, WaveUnits(s.w,0), linew, sdevw
+	endif
+	
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), linew, sdevw
 	if (WaveDims(s.w)==3)
 		SetScale/P y DimOffset(s.w,2), DimDelta(s.w,2), WaveUnits(s.w,2), linew, sdevw
@@ -321,6 +330,7 @@ Static Function pnl(String grfName, String imgName)
 	//	Get line profiles for the default values
 	pnlUpdateLineProfile(pnlName)
 	pnlUpdateTextmarker(pnlName)
+	pnlUpdatePos(pnlName)
 
 	//	For the waterfall plot
 	if (WaveDims(w)==2)
@@ -330,7 +340,7 @@ Static Function pnl(String grfName, String imgName)
 	else
 		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
 	endif
-	pnlModifyGraph(pnlName+"#line")
+	pnlStyle(pnlName+"#line")
 	pnlUpdateColor(pnlName)
 
 	//	For the image plot
@@ -341,7 +351,7 @@ Static Function pnl(String grfName, String imgName)
 		else
 			AppendImage/W=$pnlName#image $PNL_W
 		endif
-		pnlModifyGraph(pnlName+"#image")
+		pnlStyle(pnlName+"#image")
 	endif
 	SetActiveSubWindow $pnlName
 
@@ -353,22 +363,13 @@ Static Function pnl(String grfName, String imgName)
 	SetDataFolder dfrSav
 End
 
-Static Function pnlModifyGraph(String plotArea)
+Static Function pnlStyle(String plotArea)
 
 	ModifyGraph/W=$plotArea margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
 	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
 	ModifyGraph/W=$plotArea rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 	Label/W=$plotArea bottom "Scaling Distance (\\u\M)"
 	Label/W=$plotArea left "\\u"
-
-	SetDrawLayer/W=$plotArea ProgBack
-	SetDrawEnv/W=$plotArea textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B), fstyle=2, fsize=10
-	SetDrawEnv/W=$plotArea xcoord=rel, ycoord=rel
-	DrawText/W=$plotArea 0.03,0.99,"pos 1"
-	SetDrawLayer/W=$plotArea ProgBack
-	SetDrawEnv/W=$plotArea textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B), fstyle=2, fsize=10
-	SetDrawEnv/W=$plotArea xcoord=rel,ycoord=rel, textxjust=2
-	DrawText/W=$plotArea 0.97,0.99,"pos 2"
 
 	String pnlName = StringFromList(0,plotArea,"#")
 	int is3D = WaveDims($GetUserData(pnlName,"","src")) == 3
@@ -382,6 +383,27 @@ Static Function pnlModifyGraph(String plotArea)
 		Wave/SDFR=$GetUserData(pnlName,"","dfTmp") clrw = $PNL_C
 		ModifyGraph/W=$plotArea zColor={clrw,*,*,directRGB,0}
 	endif
+End
+
+Static Function pnlUpdatePos(String pnlName)
+	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") w = $PNL_W
+	String strL = SelectString(DimDelta(w,0)>0, "pos 2", "pos 1")
+	String strR = SelectString(DimDelta(w,0)>0, "pos 1", "pos 2")
+
+	SetDrawLayer/W=$pnlName ProgBack
+	DrawAction/L=ProgBack/W=$pnlName getgroup=$KEY, delete
+	SetDrawEnv/W=$pnlName gname=$KEY, gstart
+	
+	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, fstyle=2, fsize=10
+	DrawText/W=$pnlName 0.03, 0.99, strL
+	
+	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, textxjust=2, fstyle=2, fsize=10
+	DrawText/W=$pnlName 0.97, 0.99, strR
+	
+	SetDrawEnv/W=$pnlName gstop
+	SetDrawLayer/W=$pnlName UserFront
 End
 
 //	Get line profiles
@@ -445,6 +467,7 @@ Static Function pnlHookArrows(String pnlName)
 	pnlUpdateLineProfile(pnlName)
 	pnlUpdateTextmarker(pnlName)
 	pnlUpdateColor(pnlName)
+	pnlUpdatePos(pnlName)
 End
 
 //	Hook function for the parent window
@@ -470,6 +493,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 			pnlUpdateLineProfile(pnlName)
 			pnlUpdateTextmarker(pnlName)
 			pnlUpdateColor(pnlName)
+			pnlUpdatePos(pnlName)
 			DoUpdate/W=$pnlName
 			DoUpdate/W=$s.winName
 			return 0
@@ -504,6 +528,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	pnlUpdateLineProfile(s.win)
 	pnlUpdateTextmarker(s.win)
 	pnlUpdateColor(s.win)
+	pnlUpdatePos(s.win)
 End
 
 
@@ -542,6 +567,7 @@ Static Function panelMenuDo(int mode)
 			pnlUpdateLineProfile(pnlName)
 			pnlUpdateTextmarker(pnlName)
 			pnlUpdateColor(pnlName)
+			pnlUpdatePos(pnlName)
 			break
 
 		case 1:	//	dim
@@ -563,6 +589,7 @@ Static Function panelMenuDo(int mode)
 			pnlUpdateLineProfile(pnlName)
 			pnlUpdateTextmarker(pnlName)
 			pnlUpdateColor(pnlName)
+			pnlUpdatePos(pnlName)
 			break
 
 		case 4:	//	Highlight
