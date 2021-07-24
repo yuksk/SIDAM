@@ -78,6 +78,11 @@ End
 
 Static Function hook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
+		case 0: 	//	activate
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			break
+			
 		case 2:		//	kill:
 			SIDAMSync#reset(s.winName, SYNCKEY)
 			break
@@ -87,6 +92,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			if (strlen(GetRTStackInfo(2)))
 				break
 			endif
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			
 			STRUCT SIDAMAxisRange axis0
 			SIDAMGetAxis(s.winName, topName(s.winName), axis0)
 			STRUCT SIDAMAxisRange axis1

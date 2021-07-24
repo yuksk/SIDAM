@@ -91,6 +91,11 @@ End
 
 Static Function hook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
+		case 0: 	//	activate
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			break
+			
 		case 2:	//	kill
 			SIDAMSync#reset(s.winName, SYNCKEY+";"+SYNCKEY+"mode")
 			break
@@ -101,6 +106,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 				SIDAMSync#reset(s.winName, SYNCKEY)
 				break
 			endif
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			
 			STRUCT SIDAMCursorPos pos
 			SIDAMGetCursor(s.cursorName, s.winName, pos)
 			String win, syncWinList = SIDAMSync#getList(s.winName, SYNCKEY), fnName

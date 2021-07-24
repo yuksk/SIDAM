@@ -85,6 +85,11 @@ End
 
 Static Function hook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
+		case 0: 	//	activate
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			break
+			
 		case 2:		//	kill:
 			SIDAMSync#reset(s.winName, SYNCKEY)
 			break
@@ -94,6 +99,9 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			if (strlen(GetRTStackInfo(2)))
 				break
 			endif
+			//	In case a window(s) in the list had been closed before compiling
+			SIDAMSync#updateList(s.winName, SYNCKEY)
+			
 			String win, list = SIDAMSync#getList(s.winName, SYNCKEY), fnName
 			int i, n = ItemsInList(list), plane = SIDAMGetLayerIndex(s.winName)
 			for (i = 0; i < n; i++)

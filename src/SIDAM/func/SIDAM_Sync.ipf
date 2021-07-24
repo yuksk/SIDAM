@@ -89,12 +89,6 @@ Static Function/S getList(String grfName, String key, [int all])
 	String dataStr = GetUserData(grfName,"",key)
 	String listStr = StringByKey("list",dataStr,":",",")
 	
-	//	When called from updateList(), do not run updateList() to
-	//	avoid a loop
-	if (!CmpStr(GetRTStackInfo(2),"updateList"))
-		updateList(grfName, key)
-	endif
-	
 	return SelectString(all,RemoveFromList(grfName, listStr),listStr)
 End
 
