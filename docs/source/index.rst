@@ -1,9 +1,7 @@
-.. include:: ../../readme.rst
-   :end-before: Documents
+SIDAM Documents
+---------------
 
 .. toctree::
-   :caption: Contents
-   :maxdepth: 2
 
    Command help <commands.rst>
 
