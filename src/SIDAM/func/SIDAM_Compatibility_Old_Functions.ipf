@@ -8,7 +8,6 @@
 #include "SIDAM_Trace"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_misc"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
