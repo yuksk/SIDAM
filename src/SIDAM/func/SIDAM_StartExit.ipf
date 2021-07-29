@@ -25,14 +25,18 @@ Function SIDAMStart()
 	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
 End
 
+#if IgorVersion() >= 9
 Function SIDAMSource()
-	//	Unless SIDAM_dummy, which does not exist, is inserted and deleted,
-	//	the compile somehow does not start.
-	Execute/P/Q/Z "INSERTINCLUDE \"SIDAM_dummy\""	
 	Execute/P/Q "SIDAMStartExit#createProcFile()"
-	Execute/P/Q/Z "DELETEINCLUDE \"SIDAM_dummy\""	
+	Execute/P "RELOAD CHANGED PROCS "
 	Execute/P "COMPILEPROCEDURES "
 End
+#else
+Function SIDAMSource()
+	Execute/P/Q "SIDAMStartExit#createProcFile()"
+	Execute/P "COMPILEPROCEDURES "
+End
+#endif
 
 Static Function createProcFile()
 	//	Make a list of ipf files
