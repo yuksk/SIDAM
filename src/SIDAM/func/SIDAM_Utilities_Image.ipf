@@ -469,9 +469,8 @@ End
 
 //******************************************************************************
 //	Return the marquee position as a wave
-//	The values in the returned wave are indicies (mode=0) or scaling coordinates (mode=1)
 //******************************************************************************
-Function/WAVE SIDAMGetMarquee(int mode)
+Function/WAVE SIDAMGetMarquee()
 	String grfName = WinName(0,1)
 	String imgName = StringFromList(0,ImageNameList(grfName,";"))
 	Wave/Z w = ImageNameToWaveRef(grfName, imgName)
@@ -485,14 +484,15 @@ Function/WAVE SIDAMGetMarquee(int mode)
 		return $""
 	endif
 
-	if (mode)
-		Make/FREE rtnw = {{V_left,V_bottom},{V_right,V_top}}
-	else
-		Variable ox = DimOffset(w,0), oy = DimOffset(w,1)
-		Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
-		Make/FREE rtnw = {{round((V_left-ox)/dx), round((V_bottom-oy)/dy)},{round((V_right-ox)/dx), round((V_top-oy)/dy)}}
-	endif
-
+	Variable ox = DimOffset(w,0), oy = DimOffset(w,1)
+	Variable dx = DimDelta(w,0), dy = DimDelta(w,1)
+	Make/D/N=(4,2)/FREE rtnw 
+	rtnw[][0] = {round((V_left-ox)/dx), round((V_bottom-oy)/dy), V_left,V_bottom}
+	rtnw[][1] = {round((V_right-ox)/dx), round((V_top-oy)/dy), V_right,V_top}
+	SetDimLabel 0, 0, p, rtnw
+	SetDimLabel 0, 1, q, rtnw
+	SetDimLabel 0, 2, x, rtnw
+	SetDimLabel 0, 3, y, rtnw
 	return rtnw
 End
 

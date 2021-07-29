@@ -32,15 +32,15 @@
 //@
 Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	
-	Wave mw = SIDAMGetMarquee(0)
+	Wave mw = SIDAMGetMarquee()
 	if (!WaveExists(mw))
 		Duplicate/FREE w, tw
 	elseif (WaveDims(w)==3)
 		//	Use the displayed layer for a 3D wave
-		Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]][SIDAMGetLayerIndex(WinName(0,1))]/FREE w, tw
+		Duplicate/R=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]][SIDAMGetLayerIndex(WinName(0,1))]/FREE w, tw
 		Redimension/N=(-1,-1) tw
 	else
-		Duplicate/R=[mw[0][0],mw[0][1]][mw[1][0],mw[1][1]]/FREE w, tw
+		Duplicate/R=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]]/FREE w, tw
 	endif
 	
 	DFREF dfrSav = GetDataFolderDFR()

@@ -230,7 +230,8 @@ End
 Static Function marqueeDo()
 	STRUCT paramStruct s
 	Wave s.w = SIDAMImageWaveRef(WinName(0,1,1))
-	Wave s.roi = SIDAMGetMarquee(0)
+	Wave s.roi = SIDAMGetMarquee()
+	DeletePoints/M=0 FindDimLabel(s.roi,0,"x"), 2, s.roi
 	s.degree = 1
 	s.result = NameOfWave(s.w)
 	printf "%s%s\r" PRESTR_CMD, echoStr(s)
