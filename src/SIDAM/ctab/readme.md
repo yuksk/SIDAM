@@ -1,8 +1,8 @@
 # Color tables
 
-Color table waves for SIDAM are in this folder. If you want to add
-your own color table waves, put them here and modify the configuration file.
-See also `SIDAM.default.toml`.
+Color table waves for SIDAM are in this folder. If you want to add your own
+color table waves, put them here (or somewhere you prefer) and modify the
+configuration file. See also `SIDAM.default.toml`.
 
 ## Imported color tables
 

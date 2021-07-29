@@ -15,10 +15,18 @@ Function/WAVE dataloadingfunction(String str)
 End
 ```
 
-Save your function in a procedure file and place the file in this folder.
+Save your function in a procedure file.
 
-### 2. Modify SIDAM.toml
+### 2 Place your procedure file
 
-The main routine to load a data file selects a data loading function based
-on the extension of the file. Relationship between extensions and data loading
-functions are written in `SIDAM.toml`. See `SIDAM.default.toml` for details.
+You can add your procedure file here. Instead, you can put your procedure file
+at any location. If you do so, you need to specify the folder where you put
+your procedure file in the configuration file. See below.
+
+### 3. Modify the configuration file
+
+The main routine to load a data file selects a loading function based on the
+extension of the data file. You need to register your function in the
+configuration file. Also, if you put your procedure file at any place not here,
+you need to specify the folder in the configuration file. `SIDAM.default.toml`
+for details.

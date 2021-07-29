@@ -37,7 +37,7 @@ line2 = [65535, 32639, 3598]
 note = [11308, 41120, 11308]
 
 [window.export]
-# Make the background transparent, "graph", "window", or "both".
+# Make the background transparent, "graph", "window", "both", or "none".
 transparent = "both"
 # Image resolution. If this is an integer n from 1 to 8, the actual
 # resolution is n*72. Otherwise, this number is directly used.
