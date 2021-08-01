@@ -246,15 +246,15 @@ Static Function updateLegend(String grfName, String imgName)
 	if (!getData(grfName, "", imgName, s))
 		return 0
 	endif
-	
-	int layer = SIDAMGetLayerIndex(grfName)
-	// if the present layer is the same as before, do nothing
-	if (s.layer == layer)
+
+	Wave w = ImageNameToWaveRef(grfName,imgName)	
+	if (WaveDims(w) != 3)
 		return 0
 	endif
 	
-	Wave w = ImageNameToWaveRef(grfName,imgName)
-	if (WaveDims(w) != 3)
+	int layer = SIDAMGetLayerIndex(grfName, w=w)
+	// if the present layer is the same as before, do nothing
+	if (s.layer == layer)
 		return 0
 	endif
 	
