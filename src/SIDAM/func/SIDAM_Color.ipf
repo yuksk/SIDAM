@@ -260,7 +260,7 @@ Static Function applyColorTable(STRUCT paramStruct &s, int i)
 	Variable zmin, zmax
 	Variable flag = SIDAM_GetColorTableMinMax(s.grfName, imgName, zmin, zmax, allowNaN=1)
 	if (GetRTError(1) || flag)
-		printf "%sSIDAMCOlor gave error: present z-range can not be obtained.\r", PRESTR_CAUTION
+		printf "%sSIDAMColor gave error: present z-range can not be obtained.\r", PRESTR_CAUTION
 		printf "%sA color index wave may be used.\r", PRESTR_CAUTION
 		return 1
 	endif
