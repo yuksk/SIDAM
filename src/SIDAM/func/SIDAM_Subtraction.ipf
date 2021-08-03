@@ -214,7 +214,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 	endswitch
 
 	Sprintf paramStr, "Duplicate/O SIDAMSubtraction(%s), %s%s"\
-		, paramStr, GetWavesDataFolder(s.w, 1), s.result
+		, paramStr, GetWavesDataFolder(s.w, 1), PossiblyQuoteName(s.result)
 
 	return paramStr
 End
