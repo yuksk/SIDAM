@@ -275,7 +275,7 @@ Static Function/WAVE symmetrize(Wave w, Wave q1w, Wave q2w, int sym,
 	endswitch
 	
 	String noteStr
-	Sprintf noteStr, "%s\rm1:%.4f;m2:%.4e;m3:%.4f;q1w:%s;q2w:%s;sym:%d;shear:%d;endeffect:%d;", note(w), m1, m2, m3, SIDAMWaveToString(q1w,noquote=1), SIDAMWaveToString(q2w,noquote=1),sym,shear,endeffect
+	Sprintf noteStr, "%s;m1:%.4f;m2:%.4e;m3:%.4f;q1w:%s;q2w:%s;sym:%d;shear:%d;endeffect:%d;", note(w), m1, m2, m3, SIDAMWaveToString(q1w,noquote=1), SIDAMWaveToString(q2w,noquote=1),sym,shear,endeffect
 	Note w0, noteStr
 	
 	SIDAMCopyBias(w, w0)
