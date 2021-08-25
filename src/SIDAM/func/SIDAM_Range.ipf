@@ -151,6 +151,7 @@ Static Function applyZRange(String grfName, String imgName, Variable zmin, Varia
 	else
 		ModifyImage/W=$grfName $imgName ctab={zmin,zmax,$ctab,rev}
 	endif
+	DoUpdate/W=$grfName
 End
 
 //-------------------------------------------------------------
@@ -403,6 +404,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		SetWindow $s.winName hook(SIDAMRange)=$""
 	endif
 
+	SetWindow $s.winName userData(pauseHook)=""
 	return 0
 End
 
