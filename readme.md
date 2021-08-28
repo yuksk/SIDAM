@@ -86,9 +86,13 @@ analysis available for the data shown in the window.
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/lineprofile.gif" width="290px" height="160px" alt="lineprofile">
 
 ### Synchronize layer, axis range, cursor
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/synclayer.gif" width="253px" height="160px" alt="synclayer">
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/syncaxisrange.gif" width="255px" height="160px" alt="syncaxisrange">
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/synclayer.gif" width="253px" height="160px" alt="synclayer">  
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/syncaxisrange.gif" width="255px" height="160px" alt="syncaxisrange">  
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/synccursor.gif" width="253px" height="160px" alt="synccursor">
+
+### Position recorder
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/position_recorder.gif" width="249px" height="149px" alt="synclayer">
+
 
 Data: BiTeI, https://doi.org/10.1103/PhysRevB.91.245312
 
