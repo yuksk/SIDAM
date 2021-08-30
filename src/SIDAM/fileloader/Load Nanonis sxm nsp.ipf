@@ -165,6 +165,7 @@ Static Function SXMHeaderMC(Variable refNum)
 	
 	//	The labels of multipass-config are saved to the dimension labels
 	FReadLine refNum, buffer
+	buffer = RemoveEnding(buffer, "\r")
 	n = ItemsInList(buffer, "\t")
 	Make/N=(n) $"Multipass-Config"/WAVE=w
 	for (i = 0; i < n; i += 1)
