@@ -65,6 +65,8 @@ Static Function pnl(String grfName)
 	CheckBox displayC title="display", pos={87,168}, value=1, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+	
+	SetActiveSubwindow $grfName
 End
 
 //-------------------------------------------------------------

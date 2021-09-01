@@ -469,7 +469,7 @@ Static Function pnl(String grfName)
 	
 	ctrlDisable(pnlName)
 	
-	SetActiveSubwindow ##
+	SetActiveSubwindow $grfName
 End
 
 //******************************************************************************

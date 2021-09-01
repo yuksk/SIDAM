@@ -173,6 +173,8 @@ Static Function pnl(String grfName)
 	Button cancelB title="Cancel", pos={201,268}, size={70,22}, proc=SIDAMSync#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function pnlCheck(STRUCT WMCheckboxAction &s)

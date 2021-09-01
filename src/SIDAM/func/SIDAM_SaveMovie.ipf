@@ -65,6 +65,8 @@ Static Function pnl(String grfName)
 	Button closeB title="Close", pos={245,243}, size={70,20}, proc=SIDAMSaveCommon#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 //******************************************************************************

@@ -453,6 +453,7 @@ Static Function pnl(String grfName)
 	SetActiveSubwindow ##
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
 
+	SetActiveSubwindow $grfName
 End
 
 //-----------------------------------------------------------------------

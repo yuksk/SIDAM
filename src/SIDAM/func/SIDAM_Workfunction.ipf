@@ -347,6 +347,8 @@ Static Function pnl()
 	ModifyControlList "startC;endC;fitC;fixC" proc=SIDAMWorkfunction#pnlCheckBox, win=$pnlName
 	ModifyControlList "doB;cancelB" size={60,22}, proc=SIDAMWorkfunction#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 //--------------------------------------------------

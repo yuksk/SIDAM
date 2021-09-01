@@ -35,6 +35,8 @@ Function SIDAMShowParameters()
 
 	GetWindow $grfName wsizeDC
 	MoveSubWindow/W=$grfName#$pnlName fnum=(0,0,tabSize*2*screenresolution/72,V_bottom-V_top)
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function/S rightclickMenu()

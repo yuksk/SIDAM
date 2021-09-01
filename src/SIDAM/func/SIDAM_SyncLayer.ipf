@@ -147,4 +147,6 @@ Static Function pnl(String LVName)
 	Button cancelB title="Cancel", pos={201,228}, win=$pnlName
 	ModifyControlList "doB;cancelB", size={70,22}, proc=SIDAMSync#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+	
+	SetActiveSubwindow $LVName
 End

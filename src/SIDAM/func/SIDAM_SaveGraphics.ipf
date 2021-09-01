@@ -99,6 +99,8 @@ Static Function pnl(String grfName)
 	ModifyControlList ControlNameList(pnlName,";","format_*_rC"), proc=SIDAMSaveGraphics#pnlCheckFormat, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*_rC") mode=1, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 //******************************************************************************

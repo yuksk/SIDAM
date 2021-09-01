@@ -325,6 +325,8 @@ Static Function pnl(String grfName)
 	//	Items which must be here at the last after all things are done.
 	PopupMenu imageP proc=SIDAMRange#pnlPopup,value=#"SIDAMRange#imageListForImageP()",win=$pnlName
 	resetPnlCtrls(pnlName)
+	
+	SetActiveSubwindow $grfName
 End
 
 Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variable zmax)

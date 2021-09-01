@@ -308,6 +308,8 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "doB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 //******************************************************************************

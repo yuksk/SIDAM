@@ -402,6 +402,8 @@ Static Function pnl(String grfName)
 	
 	ControlInfo/W=$pnlName imageP
 	reflectData(pnlName, S_Value)
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function/S ImageNameList3D(String grfName)

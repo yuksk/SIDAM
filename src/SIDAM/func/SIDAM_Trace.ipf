@@ -298,6 +298,8 @@ Static Function pnl(String grfName)
 		str += RemoveEnding(StringByKey("rgb(x)=",TraceInfo(grfName,StringFromList(i,trcList),0),"(")) + ";"
 	endfor
 	SetWindow $pnlName userData(initclr)=str
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function/WAVE initOffset(String grfName)

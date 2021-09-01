@@ -348,6 +348,8 @@ Static Function pnl(String grfName)
 
 	changeDisables(pnlName)
 	pnlSetWindowWave(pnlName, StringFromList(ps.fourier[2]-1,allWindows()))
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function/S allOutputs()

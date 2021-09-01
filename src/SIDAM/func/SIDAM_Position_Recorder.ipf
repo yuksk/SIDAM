@@ -81,6 +81,8 @@ Static Function pnl(String grfName)
 	ModifyControlList "existingP;newP" title="", size={140,19}, bodyWidth=140, proc=SIDAMPositionRecorder#pnlPopup, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*B") proc=SIDAMPositionRecorder#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	SetActiveSubwindow $grfName
 End
 
 Static Function/S popupStr()
