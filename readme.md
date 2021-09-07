@@ -1,17 +1,14 @@
 # SIDAM
 
-*SIDAM* is a **S**pectroscopic **I**maging **D**ata **A**nalysis
-**M**acro written in Igor Pro and designed so that you can easily
-perform basic analyses and can concentrate on searching for something new.
-
-You can use *SIDAM* via both GUI and CLI. Everything can be done from the menus
-and subsequent panels so you do not have to remember each command. At the same
-time, you can also do the same thing by calling commands, making it easy to repeat
-analyses and incorporate SIDAM functions into your own scripts.
+*SIDAM* (**S**pectroscopic **I**maging **D**ata **A**nalysis **M**acro) is
+a software for data analysis of scanning tunneling spectroscopy.
+Compared with other software for SPM data analysis such as WSxM, SPIP, or
+Gwyddion, SIDAM is developed especially for 3D data (positions and energy) of
+spectroscopic imaging.
 
 Frequently used basic features:
 
-- Flexible interactive viewer (see also [Screen shots](#screen-shots))
+- Flexible interactive viewers (see also [gif movies](#screen-shots))
 - Background subtraction
 - Fourier analysis
   - Fourier transform
@@ -21,6 +18,12 @@ Frequently used basic features:
 - Histogram
 - Work function
 
+*SIDAM* is written in Igor Pro, so you can fully use the powerful visualization
+of Igor Pro to make figures for your papers and talks. Moreover, SIDAM is
+designed for both GUI and CLI. You can do everything from the menus and do not
+have to remember commands. However, you can also do the same things by calling
+commands, making it easy to repeat analyses and incorporate *SIDAM* functions
+into your scripts.
 
 ## Requirement
 
@@ -69,7 +72,7 @@ the Data Browser.
 Right-click the control bar shown in a window and you will find menu items of
 analysis available for the data shown in the window.
 
-## Screen shots
+## Gif movies
 
 ### Color tables
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/color.png" width="441px" height="262px" alt="autorange">
