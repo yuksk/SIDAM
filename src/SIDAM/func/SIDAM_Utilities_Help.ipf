@@ -68,11 +68,14 @@ End
 
 Function/S SIDAMBrowseHelp(String kind)
 	strswitch(kind)
-		case "shortcuts":
-			BrowseURL SIDAM_URL_SHORTCUTS
-			break
+		case "home":
+			BrowseURL SIDAM_URL_HOME
+			break			
 		case "commands":
 			BrowseURL SIDAM_URL_COMMANDS
+			break
+		case "shortcuts":
+			BrowseURL SIDAM_URL_SHORTCUTS
 			break
 	endswitch
 End

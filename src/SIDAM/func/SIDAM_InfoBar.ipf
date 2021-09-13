@@ -20,10 +20,9 @@ Static StrConstant TITLEMENU = "Name of graph;Name of wave;Displayed size;Path o
 
 
 //@
-//	Show the information bar
+//	Show the information bar.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	grfName : string
 //		The name of window to show the information bar.
 //@

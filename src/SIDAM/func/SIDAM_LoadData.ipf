@@ -12,20 +12,18 @@
 
 
 //@
-//	Load data files
+//	Load data files.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	pathStr : string
 //		Path to a file or a directory. When a path to a directory is given,
 //		files under the directory are loaded recursively.
-//	history : int
-//		0 or !0. Set !0 to print this command in the history.
+//	history : int {0 or !0}
+//		Set !0 to print this command in the history.
 //
-//	Returns
-//	-------
+//	## Returns
 //	wave
-//		Loaded wave
+//		Loaded wave.
 //@
 Function/WAVE SIDAMLoadData(String pathStr, [int history])
 

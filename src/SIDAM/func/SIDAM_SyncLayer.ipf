@@ -13,10 +13,9 @@
 Static StrConstant SYNCKEY = "sync"
 
 //@
-//	Synchronize the layer shown in windows
+//	Synchronize the layer shown in windows.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	syncWinList : string
 //		The list of windows to be synchronized. If a window(s) that is
 //		not synchronized, it is synchronized with the remaining windows.

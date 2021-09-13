@@ -498,14 +498,13 @@ End
 
 
 //@
-//	Copy the window to the clipboard with transparent background
+//	Copy the window to the clipboard with transparent background.
 //
 //	If an image is included in the window, copy as PNG
 //	Otherwise copy as SVG.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1)`
 //		The name of window
 //	size : variable
 //		The size of copied image
@@ -561,17 +560,15 @@ End
 
 
 //@
-//	Get the index of a 3D wave shown in a window
+//	Get the index of a 3D wave shown in a window.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	grfName : string
 //		The name of window
 //	w : wave, default wave of the top image
 //		The 3D wave to get the index.
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
 //		The index of displayed layer. If no 3D wave is shown,
 //		nan is returned.
@@ -588,10 +585,9 @@ Function SIDAMGetLayerIndex(String grfName, [Wave/Z w])
 End
 
 //@
-//	Set the index of a 3D wave shown in a window
+//	Set the index of a 3D wave shown in a window.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	grfName : string
 //		The name of window
 //	index : int
@@ -599,10 +595,10 @@ End
 //	w : wave, default wave of the top image
 //		The 3D wave to set the index.
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0 if the index is correctly set. 1 if no 3D wave is shown.
+//		* 0: The index is correctly set.
+//		* 1: No 3D wave is shown.
 //@
 Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
 	if (ParamIsDefault(w))

@@ -1,0 +1,17 @@
+top:
+  - title: Getting started
+    url: /
+  - title: Command help
+    url: /commands/
+  - title: Shortcuts
+    url: /shortcuts/
+
+commands:
+  - title: Getting started
+    url: /
+  - title: Command help
+    url: /commands/
+    children:
+#%commands%
+  - title: Shortcuts
+    url: /shortcuts/

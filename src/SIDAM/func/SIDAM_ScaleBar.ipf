@@ -32,13 +32,12 @@ Static StrConstant NICEVALUES = "1;2;3;5"	//	Definition of "nice" values
 Static StrConstant NAME = "SIDAMScalebar"
 
 //@
-//	Show a scale bar
+//	Show a scale bar.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1)`
 //		The name of a window.
-//	anchor : string, {"LB", "LT", "RB", "RT"}
+//	anchor : string, {"LB", "LT", "RB", or "RT"}
 //		The position of the scale bar. If empty, delete the scale bar.
 //	size : int
 //		The font size (pt).
@@ -46,9 +45,8 @@ Static StrConstant NAME = "SIDAMScalebar"
 //		The foreground color.
 //	bgRGBA : wave
 //		The background color.
-//	prefix: int, default 1
+//	prefix: int {0 or !0}, default 1
 //		Set !0 to use a prefix such as k and m.
-//
 //@
 Function SIDAMScalebar([String grfName, String anchor, int size,
 	Wave fgRGBA, Wave bgRGBA, int prefix])

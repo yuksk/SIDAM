@@ -8,7 +8,7 @@ spectroscopic imaging.
 
 Frequently used basic features:
 
-- Flexible interactive viewers (see also [gif movies](#screen-shots))
+- Flexible interactive viewers (see also [gif movies](#Gif-movies))
 - Background subtraction
 - Fourier analysis
   - Fourier transform
@@ -37,14 +37,14 @@ After cloning or downloading the macro files, copy them to the designated folder
 
     SIDAM/
     ├ LICENSE
-    ├ readme.rst
+    ├ readme.md
     ├ docs/
     ├ script/
     └ src/
         ├ SIDAM.ipf -> Copy to Igor Procedures
         └ SIDAM/    -> Copy to User Procedures
 
-Copy *src/SIDAM.ipf* and *src/SIDAM* to the Igor Procedures folder and the
+Copy `src/SIDAM.ipf` and `src/SIDAM` to the Igor Procedures folder and the
 User Procedures folder, respectively. If you don't know where the folders are,
 choose *Menubar > Help > Show Igor Pro User Files* in Igor Pro.
 
@@ -75,29 +75,43 @@ analysis available for the data shown in the window.
 ## Gif movies
 
 ### Color tables
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/color.png" width="441px" height="262px" alt="autorange">
+More than 200 color tables imported from outside and made originally.
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/color.png" width="441px" height="262px" alt="autorange">
 
 ### Auto color range adjustment
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/autorange.gif" width="179px" height="160px" alt="autorange">
+The color range is adjusted to statistical values such as 3&#963; below and above the average of the shown image.
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/autorange.gif" width="179px" height="160px" alt="autorange">
 
 ### Spectrum viewer
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/spectrum.gif" width="382px" height="160px" alt="spectrum">
+Interactive viewer of a spectrum or specta.
+Positions of spectra can be acquired from any image, e.g., a simultaneous topograph.
 
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/linespectra.gif" width="290px" height="289px" alt="linespectra">
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/spectrum.gif" width="382px" height="160px" alt="spectrum">
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/linespectra.gif" width="290px" height="289px" alt="linespectra">
 
 ### Line profile
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/lineprofile.gif" width="290px" height="160px" alt="lineprofile">
+Line profiles for 2D and 3D waves.
+Both of waterfall and intensity plots are available for 3D waves.
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/lineprofile.gif" width="290px" height="160px" alt="lineprofile">
 
 ### Synchronize layer, axis range, cursor
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/synclayer.gif" width="253px" height="160px" alt="synclayer">  
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/syncaxisrange.gif" width="255px" height="160px" alt="syncaxisrange">  
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/synccursor.gif" width="253px" height="160px" alt="synccursor">
+Synchronize the layer index, ranges of axes, and cursor positions of multiple images.
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/synclayer.gif" width="253px" height="160px" alt="synclayer">  
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/syncaxisrange.gif" width="255px" height="160px" alt="syncaxisrange">  
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/synccursor.gif" width="253px" height="160px" alt="synccursor">
 
 ### Position recorder
-<img src="https://raw.githubusercontent.com/yuksk/SIDAM/gh-pages/docs/img/position_recorder.gif" width="249px" height="149px" alt="synclayer">
+Record positions you click in a wave. For example, if you click at impurities, the dimension of resultant wave gives the number of impurities.
+
+<img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/position_recorder.gif" width="249px" height="149px" alt="synclayer">
 
 
 Data: BiTeI, https://doi.org/10.1103/PhysRevB.91.245312
 
-## Documents
-The command help is available at https://yuksk.github.io/SIDAM/index.html
+## Document
+https://yuksk.github.io/SIDAM/

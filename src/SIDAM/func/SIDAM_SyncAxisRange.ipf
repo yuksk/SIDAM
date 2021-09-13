@@ -13,10 +13,9 @@
 Static StrConstant SYNCKEY = "syncaxisrange"
 
 //@
-//	Synchronize the axis range of windows
+//	Synchronize the axis range of windows.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	syncWinList : string
 //		The list of windows to be synchronized. If a window(s) that is
 //		not synchronized, it is synchronized with the remaining windows.

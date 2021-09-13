@@ -1,0 +1,52 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+@charset "utf-8";
+
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes"; // main partials
+
+.page__content p {
+	margin: 0 0 1em;
+}
+
+.function_definition {
+	background-color: #ff9;
+	font-family: Monaco, Consolas, "Lucida Console", monospace;
+	font-weight: bold;
+	padding: 3px;
+}
+
+.function_variables {
+	font-style: italic;
+}
+
+.shortcuts_key {
+	border: solid 1px #999;
+	border-radius: 4px;
+	font-family: Monaco,Consolas,"Lucida Console",monospace;
+	margin: 0 4px;
+	padding: 1px 4px;
+}
+
+article {
+  font-size: 16px;
+}
+
+body {
+	line-height: 1.4;
+}
+
+p > code,
+a > code,
+li > code,
+figcaption > code,
+td > code {
+	background-color: #f2f3f3;
+	font-size: 1em;
+}
+
+table {
+	font-size: 1em;
+}

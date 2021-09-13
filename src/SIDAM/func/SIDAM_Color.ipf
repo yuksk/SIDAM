@@ -19,44 +19,33 @@
 //@
 //	Set a color table to a image or a list of images.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1,1)`
 //		The name of a window.
-//	imgList : string, default ``ImageNameList(WinName(0,1,1),";")``
+//	imgList : string, default `ImageNameList(WinName(0,1,1),";")`
 //		The list of images. A single image is also accepted.
 //	ctable : string
 //		The name of a color table or path to a color table wave.
 //		Unless specified, the present value is used.
-//	rev : int
-//		0 or !0. Set !0 to reverse the color table.
+//	rev : int {0 or !0}
+//		Set !0 to reverse the color table.
 //		Unless specified, the present value is used.
-//	log : int
-//		0 or !0. Set !0 to use logarithmically-spaced colors.
+//	log : int {0 or !0}
+//		Set !0 to use logarithmically-spaced colors.
 //		Unless specified, the present value is used.
-//	minRGB : wave
-//		Set the color for values less than the minimum value of the range.
+//	minRGB, maxRGB : wave
+//		Set the color for values less than the minimum/maximum value of the range.
 //		Unless specified, the present value is used.
+//		- {0} : use the color for the minimum/maximum value of the range.
+//		- {NaN} : transparent.
+//		- {r,g,b} : specify the color.
+//	history : int {0 or !0}, default 0
+//		Set !0 to print this command in the history.
 //
-//			* {0} : use the color for the minimum value of the range.
-//			* {NaN} : transparent.
-//			* {r,g,b} : specify the color.
-//
-//	maxRGB : wave
-//		Set the color for values less than the maximum value of the range.
-//		Unless specified, the present value is used.
-//
-//			* {0} : use the color for the minimum value of the range.
-//			* {NaN} : transparent.
-//			* {r,g,b} : specify the color.
-//
-//	history : int, default 0
-//		0 or !0. Set !0 to print this command in the history.
-//
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0 for normal exit, !0 for any error in input parameters
+//		* 0: Normal exit
+//		* !0: Any error in input parameters
 //@
 Function SIDAMColor([String grfName, String imgList, String ctable, int rev,
 	int log, Wave minRGB, Wave maxRGB, int history])

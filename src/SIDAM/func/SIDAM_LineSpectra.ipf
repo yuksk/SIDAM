@@ -30,38 +30,32 @@ Static StrConstant PNL_T = "LineSpectraT"
 Static StrConstant KEY = "SIDAMLineSpectra"
 
 //@
-//	Get spectra along a trajectory line
+//	Get spectra along a trajectory line.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
-//		The 3D input wave
-//	p1 : variable
-//	q1 : variable
-//		The position of the starting point (pixel)
-//	p2 : variable
-//	q2 : variable
-//		The position of the ending point (pixel)
-//	mode : int, default 0
+//		The 3D input wave.
+//	p1, q1 : variable
+//		The position of the starting point (pixel).
+//	p2, q2 : variable
+//		The position of the ending point (pixel).
+//	mode : int {0 -- 2}, default 0
 //		How to get spectra.
-//
-//			0. Take spectra from all the pixels on the trajectory line
-//			1. Take a value at a pixel in either x or y direction
-//				(depending on the angle of the trajectory line) and
-//				interpolate in the other direction.
-//			2. Use ``ImageLineProfile`` of Igor Pro.
-//
-//	output : int, default 0
-//		0 or !0. Set !0 to save waves of positions.
+//		* 0: Take spectra from all the pixels on the trajectory line
+//		* 1: Take a value at a pixel in either x or y direction
+//			(depending on the angle of the trajectory line) and
+//			interpolate in the other direction.
+//		* 2: Use ``ImageLineProfile`` of Igor Pro.
+//	output : int {0 or !0}, default 0
+//		Set !0 to save waves of positions.
 //	basename : string, default ""
 //		Name of the line profile wave and basename of additional waves
 //		(when the output != 0). If this is specified, output waves are
 //		save in the data folder where the input wave is.
 //
-//	Returns
-//	-------
+//	## Returns
 //	wave
-//		Spectra along the trajectory line
+//		Spectra along the trajectory line.
 //@
 Function/WAVE SIDAMLineSpectra(Wave/Z w, Variable p1, Variable q1,
 	Variable p2,	Variable q2, [int mode, int output, String basename])

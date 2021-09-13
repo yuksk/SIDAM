@@ -11,20 +11,17 @@
 #endif
 
 //@
-//	Set offsets of traces
+//	Set offsets of traces.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1,1)`
 //		The name of window.
-//	xoffset : variable
-//		The offset value in the x direction.
-//	yoffset : variable
-//		The offset value in the y direction.
-//	fill : int
-//		0 or 0!. Set !0 to eliminate hidden lines.
+//	xoffset, yoffset : variable
+//		The offset value in the x- and y-direction, respectively.
+//	fill : int {0 or !0}
+//		Set !0 to eliminate hidden lines.
 //@
-Function SIDAMTraceOffset([String grfName,	 Variable xoffset,
+Function SIDAMTraceOffset([String grfName, Variable xoffset,
 	Variable yoffset, int fill])
 	
 	STRUCT paramStructO s
@@ -148,11 +145,10 @@ End
 
 
 //@
-//	Set a color(s) of traces
+//	Set a color(s) of traces.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1,1)`
 //		The name of window.
 //	clrTab : string, default ""
 //		Name of a color table.

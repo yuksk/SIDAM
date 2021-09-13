@@ -11,23 +11,21 @@
 //@
 //	Create a panel at the center of Igor window or screen.
 //
-//	Parameters
-//	---------
+//	## Parameters
 //	title : string
 //		The title of the panel.
 //	width : variable
 //		The width of the panel.
-//	height	: variable
+//	height : variable
 //		The height of the panel.
-//	float : int, default 0
+//	float : int {0 or !0}, default 0
 //		Set !0 to make the panel floating.
-//	resizable	: int, default 0
+//	resizable : int {0 or !0}, default 0
 //		Set !0 to make the panel resizable.
 //
-//	Returns
-//	-------
+//	## Returns
 //	string
-//		The name of the created panel
+//		The name of the created panel.
 //@
 Function/S SIDAMNewPanel(String title, Variable width, Variable height,
 	[int float, int resizable])
@@ -58,19 +56,18 @@ End
 
 //@
 //	Returns a non-zero value if specified graph or panel exist,
-//	and 0 otherwise. 
+//	and 0 otherwise.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	pnlName : string
 //		The name of graph or panel. This can be a subwindow.
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0 if the window does not exists, !0 otherwise.
+//		* 0: The window does not exists
+//		* !0: Otherwise.
 //@
-Function SIDAMWindowExists(String pnlName)	
+Function SIDAMWindowExists(String pnlName)
 	if (!strlen(pnlName))
 		return 0
 	endif

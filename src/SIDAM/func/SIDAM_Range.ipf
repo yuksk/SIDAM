@@ -16,24 +16,21 @@
 #include <WMImageInfo>
 
 //@
-//	Set a range of a color scale used for a image(s)
+//	Set a range of a color scale used for a image(s).
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1,1)`
 //		The name of window.
-//	imgList : string, default ``ImageNameList(grfName,";")``
+//	imgList : string, default `ImageNameList(grfName,";")`
 //		The list of images.
-//	zminmode : int, default 1
+//	zminmode : int {0 -- 4}, default 1
 //		The z mode for min.
-//
-//			0. auto
-//			1. fix
-//			2. sigma
-//			3. cut
-//			4. logsigma
-//
-//	zmaxmode : int, default 1
+//		* 0: auto
+//		* 1: fix
+//		* 2: sigma
+//		* 3: cut
+//		* 4: logsigma
+//	zmaxmode : int {0 -- 4}, default 1
 //		The z mode for max. The numbers are the same as those for the zminmode.
 //	zmin : variable
 //		The minimum value of the range.

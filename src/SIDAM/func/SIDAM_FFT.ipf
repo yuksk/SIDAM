@@ -32,30 +32,26 @@ Static StrConstant SUFFIX = "_FFT"
 //	Compute the discrite Fourier transform of the input wave.
 //	When the input wave is 3D, the histogram is generated layer by layer.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		The input wave, 2D or 3D.
-//	win : 	string, default "none"
+//	win : string, default "none"
 //		An image window function.
-//	out : int, default 3
+//	out : int {1 -- 6}, default 3
 //		The Output mode of FFT.
-//
-//			1. complex
-//			2. real
-//			3. magnitude
-//			4. magnitude squared
-//			5. phase
-//			6. imaginary
-//
-//	subtract : int, default 0
+//		1. complex
+//		2. real
+//		3. magnitude
+//		4. magnitude squared
+//		5. phase
+//		6. imaginary
+//	subtract : int {0 or !0}, default 0
 //		Set !0 to subtract the average before FFT. For a 3D wave,
 //		the average of each layer is subtracted.
 //
-//	Returns
-//	-------
+//	## Returns
 //	wave
-//		Fourier-transformed wave
+//		Fourier-transformed wave.
 //@
 Function/WAVE SIDAMFFT(Wave/Z w, [String win, int out, int subtract])
 

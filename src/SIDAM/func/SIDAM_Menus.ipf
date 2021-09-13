@@ -71,11 +71,11 @@ Menu "SIDAM", dynamic
 	End
 	
 	Submenu "Help"
+		"SIDAM home page", /Q, SIDAMBrowseHelp("home")
+		"-"
 		"Browse command help", /Q, SIDAMBrowseHelp("commands")
 		"Browse cheat sheet of shortcuts", /Q, SIDAMBrowseHelp("shortcuts")
-		
 		"-"
-		
 		"About SIDAM...", /Q, SIDAMAbout()
 	End
 

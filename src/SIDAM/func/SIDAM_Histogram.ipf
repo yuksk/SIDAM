@@ -19,30 +19,31 @@ Static StrConstant SUFFIX = "_h"	//	suffix for the result wave
 //	Generate a histogram of the input wave.
 //	When the input wave is 3D, the histogram is generated layer by layer.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		The input wave, 2D or 3D.
-//	startz : 	variable, default ``WaveMin(w)``
+//	startz : variable, default `WaveMin(w)`
 //		The start value of a histogram.
-//	endz : variable, default ``WaveMax(w)``
+//	endz : variable, default `WaveMax(w)`
 //		The end value of a histogram.
 //	deltaz : variable
-//		The width of a bin. Unless given, ``endz`` is used.
-//	bins :	int, default 64
+//		The width of a bin. Unless given, `endz` is used.
+//	bins : int, default 64
 //		The number of bins.
-//	cumulative : int, default 0
+//	cumulative : int {0 or !0}, default 0
 //		Set !0 for a cumulative histogram.
-//	normalize : int, default 1
+//	normalize : int {0 or !0}, default 1
 //		Set !0 to normalize a histogram.
-//	cmplxmode : int, default 0
+//	cmplxmode : int {0 -- 3}, default 0
 //		Select a mode for a complex input wave.
-//		0 for amplitude, 1 for real, 2 for imaginary, 3 for phase.
+//		* 0: Amplitude
+//		* 1: Real
+//		* 2: Imaginary
+//		* 3: Phase.
 //
-//	Returns
-//	-------
+//	## Returns
 //	wave
-//		Histogram wave
+//		Histogram wave.
 //@
 Function/WAVE SIDAMHistogram(Wave/Z w, [Variable startz, Variable endz,
 	Variable deltaz, int bins, int cumulative, int normalize, int cmplxmode])

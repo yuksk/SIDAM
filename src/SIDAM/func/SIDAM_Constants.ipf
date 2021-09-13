@@ -46,8 +46,9 @@ StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
 //------------------------------------------------------------------------------
 //	URLs
 //------------------------------------------------------------------------------
-StrConstant SIDAM_URL_SHORTCUTS = "https://github.com/yuksk/SIDAM/blob/main/src/SIDAM/help/shortcuts.md#readme"
-StrConstant SIDAM_URL_COMMANDS = "https://yuksk.github.io/SIDAM/commands.html"
+StrConstant SIDAM_URL_HOME = "https://github.com/yuksk/SIDAM"
+StrConstant SIDAM_URL_COMMANDS = "https://yuksk.github.io/SIDAM/commands/"
+StrConstant SIDAM_URL_SHORTCUTS = "https://yuksk.github.io/SIDAM/shortcuts/"
 
 //------------------------------------------------------------------------------
 //	Temporary waves

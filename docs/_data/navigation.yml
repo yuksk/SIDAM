@@ -1,0 +1,97 @@
+top:
+  - title: Getting started
+    url: /
+  - title: Command help
+    url: /commands/
+  - title: Shortcuts
+    url: /shortcuts/
+
+commands:
+  - title: Getting started
+    url: /
+  - title: Command help
+    url: /commands/
+    children:
+      - title: "SIDAMColor"
+        url: /commands/SIDAMColor/
+      - title: "SIDAMCopyBias"
+        url: /commands/SIDAMCopyBias/
+      - title: "SIDAMCorrelation"
+        url: /commands/SIDAMCorrelation/
+      - title: "SIDAMDisplay"
+        url: /commands/SIDAMDisplay/
+      - title: "SIDAMExportGraphicsTransparent"
+        url: /commands/SIDAMExportGraphicsTransparent/
+      - title: "SIDAMFFT"
+        url: /commands/SIDAMFFT/
+      - title: "SIDAMFilter"
+        url: /commands/SIDAMFilter/
+      - title: "SIDAMFourierSym"
+        url: /commands/SIDAMFourierSym/
+      - title: "SIDAMGetBias"
+        url: /commands/SIDAMGetBias/
+      - title: "SIDAMGetLayerIndex"
+        url: /commands/SIDAMGetLayerIndex/
+      - title: "SIDAMHistogram"
+        url: /commands/SIDAMHistogram/
+      - title: "SIDAMIndexToScale"
+        url: /commands/SIDAMIndexToScale/
+      - title: "SIDAMInfoBar"
+        url: /commands/SIDAMInfoBar/
+      - title: "SIDAMLayerAnnotation"
+        url: /commands/SIDAMLayerAnnotation/
+      - title: "SIDAMLineProfile"
+        url: /commands/SIDAMLineProfile/
+      - title: "SIDAMLineSpectra"
+        url: /commands/SIDAMLineSpectra/
+      - title: "SIDAMLoadData"
+        url: /commands/SIDAMLoadData/
+      - title: "SIDAMNewPanel"
+        url: /commands/SIDAMNewPanel/
+      - title: "SIDAMPeakPos"
+        url: /commands/SIDAMPeakPos/
+      - title: "SIDAMPhaseAdjust"
+        url: /commands/SIDAMPhaseAdjust/
+      - title: "SIDAMPositionRecorder"
+        url: /commands/SIDAMPositionRecorder/
+      - title: "SIDAMRange"
+        url: /commands/SIDAMRange/
+      - title: "SIDAMScaleToIndex"
+        url: /commands/SIDAMScaleToIndex/
+      - title: "SIDAMScalebar"
+        url: /commands/SIDAMScalebar/
+      - title: "SIDAMSetBias"
+        url: /commands/SIDAMSetBias/
+      - title: "SIDAMSetLayerIndex"
+        url: /commands/SIDAMSetLayerIndex/
+      - title: "SIDAMSubtraction"
+        url: /commands/SIDAMSubtraction/
+      - title: "SIDAMSyncAxisRange"
+        url: /commands/SIDAMSyncAxisRange/
+      - title: "SIDAMSyncCursor"
+        url: /commands/SIDAMSyncCursor/
+      - title: "SIDAMSyncLayer"
+        url: /commands/SIDAMSyncLayer/
+      - title: "SIDAMTraceColor"
+        url: /commands/SIDAMTraceColor/
+      - title: "SIDAMTraceOffset"
+        url: /commands/SIDAMTraceOffset/
+      - title: "SIDAMWindowExists"
+        url: /commands/SIDAMWindowExists/
+      - title: "SIDAMWorkfunction"
+        url: /commands/SIDAMWorkfunction/
+      - title: "SIDAM_ColorTableForImage"
+        url: /commands/SIDAM_ColorTableForImage/
+      - title: "SIDAM_ColorTableLog"
+        url: /commands/SIDAM_ColorTableLog/
+      - title: "SIDAM_GetColorTableMinMax"
+        url: /commands/SIDAM_GetColorTableMinMax/
+      - title: "SIDAM_ImageColorRGBMode"
+        url: /commands/SIDAM_ImageColorRGBMode/
+      - title: "SIDAM_ImageColorRGBValues"
+        url: /commands/SIDAM_ImageColorRGBValues/
+      - title: "SIDAMisUnevenlySpacedBias"
+        url: /commands/SIDAMisUnevenlySpacedBias/
+
+  - title: Shortcuts
+    url: /shortcuts/

@@ -11,17 +11,16 @@
 //@
 //	Set information of unevenly spaced biases
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		A 3D wave
 //	biasw : wave
 //		A 1D numeric wave containing bias values
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0: Successfully copied, !0: Error
+//		* 0: Successfully copied
+//		* !0: Error
 //@
 Function SIDAMSetBias(Wave/Z w, Wave/Z biasw)
 	if (!WaveExists(w) || !WaveExists(biasw))
@@ -46,20 +45,16 @@ End
 //@
 //	Return a wave of unevenly-spaced bias values
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		A 3D wave having unevenly-spaced bias info
-//	dim : int
-//		1 or 2.
+//	dim : int, {1 or 2}
+//		1. The returned wave contains unevely spaced biases as they are.
+//			This is used as an x wave to display a trace.
+//		2. The returned wave contains average two neighboring layers.
+//			This is used as an x wave or a y wave to display an image.
 //
-//			1. The returned wave contains unevely spaced biases as they are.
-//				This is used as an x wave to display a trace.
-//			2. The returned wave contains average two neighboring layers.
-//				This is used as an x wave or a y wave to display an image.
-//
-//	Returns
-//	-------
+//	## Returns
 //	wave
 //		a 1D wave, or a null wave for any error
 //@
@@ -85,17 +80,16 @@ End
 //@
 //	Copy unevevly-spaced bias info from one to another
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	srcw : wave
 //		A source 3D wave
 //	destw : wave
 //		A destination 3D wave
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0: Successfully copied, 1: Error
+//		* 0: Successfully copied
+//		* 1: Error
 //@
 Function SIDAMCopyBias(Wave/Z srcw, Wave/Z destw)
 	if (SIDAMisUnevenlySpacedBias(srcw) != 1 || DimSize(srcw,2)!=DimSize(destw,2))
@@ -111,15 +105,15 @@ End
 //@
 //	Return if a 3D wave has unevenly-spaced biases info
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		A 3D wave
 //
-//	Returns
-// -------
+//	## Returns
 //	variable
-//		0 for false, 1 for true, and -1 for error
+//		* 0: False
+//		* 1: True
+//		* -1: Error
 //@
 Function SIDAMisUnevenlySpacedBias(Wave/Z w)
 	if (!WaveExists(w))
@@ -132,19 +126,21 @@ Function SIDAMisUnevenlySpacedBias(Wave/Z w)
 End
 
 //@
-//	Extension of ``ScaleToIndex()`` that includes unevenly-spaced bias
+//	Extension of `ScaleToIndex()` that includes unevenly-spaced bias
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
-//		A wave
+//		The input wave
 //	value : int
 //		A scaled coordinate value
-//	dim : int
-//		A dimension number from 0 to 3
+//	dim : int {0 -- 3}
+//		Specify the dimension.
+//		* 0: Rows
+//		* 1: Columns
+//		* 2: Layers
+//		* 3: Chunks
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
 //		The index value
 //@
@@ -166,19 +162,21 @@ Function SIDAMScaleToIndex(Wave/Z w, Variable value, int dim)
 End
 
 //@
-//	Extension of ``IndexToScale()`` that includes unevenly-spaced bias
+//	Extension of `IndexToScale()` that includes unevenly-spaced bias
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
-//		A wave
+//		The input wave
 //	index : int
-//		A index number
-//	dim : int
-//		A dimension number from 0 to 3
+//		An index number
+//	dim : int {0 -- 3}
+//		Specify the dimension.
+//		* 0: Rows
+//		* 1: Columns
+//		* 2: Layers
+//		* 3: Chunks
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
 //		The scaled coordinate value
 //@

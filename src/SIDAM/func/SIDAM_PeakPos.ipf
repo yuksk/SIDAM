@@ -9,26 +9,27 @@
 #endif
 
 //@
-//	Find a peak position by fitting
+//	Find a peak position by fitting.
 //
-//	Parameters
-//	----------
+//	## Parameters
 //	w : wave
 //		The input wave. If a marquee is shown, use the area specified
 //		by the marquee. If not, use the whole wave.
-//	fitfn : int
-//		The fitting function, 0: asymGauss2D, 1: asymLor2D
+//	fitfn : int {0 or 1}
+//		The fitting function.
+//		* 0: asymGauss2D
+//		* 1: asymLor2D
 //
-//	Returns
-//	-------
+//	## Returns
 //	wave
-//		The fitting results are given as follows.
-//
-//			* offset : returnwave[%offset]
-//			* amplitude : returnwave[%amplitude]
-//			* peak position : returnwave[%xcenter], returnwave[%ycenter]
-//			* peak width : returnwave[%xwidthpos], returnwave[%xwidthneg], returnwave[%ywidthpos], returnwave[%ywidthneg]
-//			* peak angle : returnwave[%angle]
+//		A 1D numeric wave is saved in the datafolder where `w` is, and wave reference
+//		to the saved wave is returned.
+//		The values of fitting results are given as follows.
+//		- offset : `wave[%offset]`
+//		- amplitude : `wave[%amplitude]`
+//		- peak position : `wave[%xcenter]`, `wave[%ycenter]`
+//		- peak width : `wave[%xwidthpos]`, `wave[%xwidthneg]`, `wave[%ywidthpos]`, `wave[%ywidthneg]`
+//		- peak angle : `wave[%angle]`
 //@
 Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	

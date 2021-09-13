@@ -13,15 +13,14 @@
 //@
 //	Show a panel to record positions.
 //
-//	Parameters
-//	----------
-//	grfName : string, default ``WinName(0,1,1)``
+//	## Parameters
+//	grfName : string, default `WinName(0,1,1)`
 //		The name of window.
 //
-//	Returns
-//	-------
+//	## Returns
 //	variable
-//		0 for normal exit, !0 for any error in input parameters
+//		* 0: Normal exit
+//		* !0 Error in input parameters
 //@
 Function SIDAMPositionRecorder(String grfName)
 	grfName = SelectString(strlen(grfName),WinName(0,1,1),grfName)
