@@ -104,6 +104,16 @@ Function SIDAMWindowHookClose(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 
+	// s.winName can be the parent window even if this function is called
+	// from a hook function attached to a subwindow. This happens, for example,
+	// when you click the title bar of a subwindow after clicking inside of
+	// a parent window. In this case, do nothing to prevent closing the parent
+	// window.
+	GetWindow $s.winName exterior
+	if (V_Value != 1)
+		return 0
+	endif
+
 	SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 	if (isEscPressed)
 		KillWindow $s.winName

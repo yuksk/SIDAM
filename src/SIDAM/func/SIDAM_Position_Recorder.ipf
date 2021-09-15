@@ -55,10 +55,11 @@ End
 Static Constant PNLWIDTH = 235
 Static Constant PNLHEIGHT = 110
 Static Constant PNLOFFSET = 140
+Static StrConstant PNAME = "PositionRecorder"
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=PositionRecorder
-	String pnlName = grfName + "#PositionRecorder"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
+	String pnlName = grfName + "#" + PNAME
 
 	SetWindow $pnlName hook(self)=SIDAMPositionRecorder#pnlHook, activeChildFrame=0
 
@@ -110,7 +111,9 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
 				pnlHookClose(s)
-				KillWindow $s.winName
+				//	s.winName can be the parent panel or the child panel.
+				String pnlName = StringFromList(0,s.winName,"#") + "#" + PNAME			
+				KillWindow $pnlName
 			endif
 			break
 		case 14:	//	subwindowkill
@@ -142,7 +145,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 
-	String pnlName = s.winName+"#PositionRecorder"
+	String pnlName = s.winName+"#"+PNAME
 
 	STRUCT SIDAMMousePos ms
 	ControlInfo/w=$pnlName gridC

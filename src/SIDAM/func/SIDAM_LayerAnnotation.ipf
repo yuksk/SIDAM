@@ -360,14 +360,15 @@ End
 //-------------------------------------------------------------
 //	Show panel to set parameters
 //-------------------------------------------------------------
+Static StrConstant PNAME = "SIDAM_LA"
 Static Function pnl(String grfName)
 	
-	if (SIDAMWindowExists(grfName+"#SIDAM_LA"))
+	if (SIDAMWindowExists(grfName+"#"+PNAME))
 		return 0
 	endif
 	
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,255,230)/N=SIDAM_LA as "Layer annotation"
-	String pnlName = grfName + "#SIDAM_LA"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,255,230)/N=$PNAME as "Layer annotation"
+	String pnlName = grfName + "#" + PNAME
 	
 	SetWindow $pnlName hook(self)=SIDAMLayerAnnotation#pnlHook
 	
@@ -418,17 +419,21 @@ Static Function/S ImageNameList3D(String grfName)
 End
 
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
+	//	s.winName can be the parent panel or the child panel.
+	String grfName = StringFromList(0,s.winName,"#")
+	String pnlName = grfName + "#" + PNAME
+	
 	//	When the close button is pressed
 	//	(When the panel is closed by pnlButton(), restoreInitial() here is not necessary.)
 	if (s.eventCode == 17 && !strlen(GetRTStackInfo(2)))		
-		restoreInitial(StringFromList(0,s.winName,"#"), "cancelB")
-		
+		restoreInitial(grfName, "cancelB")
+	
 	//	When the esc key is pressed
 	elseif ((s.eventCode == 11 && s.keycode == 27))
-		restoreInitial(StringFromList(0,s.winName,"#"), "cancelB")
-		KillWindow $s.winName
-		
+		restoreInitial(grfName, "cancelB")
+		KillWindow $pnlName
 	endif
+
 	return 0
 End
 
@@ -572,7 +577,7 @@ Static Function saveInitial(String grfName, String ctrlName)
 	for (i = 0; i < ItemsInList(listStr); i++)
 		imgName = StringFromList(i,listStr)
 		if (getData(grfName, "", imgName, s))
-			setData(grfName+"#SIDAM_LA", ctrlName, imgName, s)
+			setData(grfName+"#"+PNAME, ctrlName, imgName, s)
 		endif
 	endfor
 End
@@ -587,7 +592,7 @@ Static Function restoreInitial(String grfName, String ctrlName)
 	
 	for (i = 0; i < ItemsInList(listStr); i++)
 		imgName = StringFromList(i,listStr)
-		if (getData(grfName+"#SIDAM_LA", ctrlName, imgName, s))
+		if (getData(grfName+"#"+PNAME, ctrlName, imgName, s))
 			s.layer = -1	//	force updating
 			setLegend(grfName, imgName, s)
 		else

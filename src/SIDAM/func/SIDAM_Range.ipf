@@ -223,10 +223,11 @@ Static Constant PNLWIDTH = 262
 Static Constant BINS = 48		//	Number of bins of a histogram
 Static StrConstant HIST = "SIDAMRange_hist"			//	Name of a histogram wave
 Static StrConstant HISTCLR = "SIDAMRange_histclr"	//	Name of a color histogram wave
+Static StrConstant PNAME = "Range"
 
 Static Function pnl(String grfName)
 
-	if (SIDAMWindowExists(grfName+"#Range"))
+	if (SIDAMWindowExists(grfName+"#"+PNAME))
 		return 0
 	endif
 
@@ -237,8 +238,8 @@ Static Function pnl(String grfName)
 
 	String dfTmp = pnlInit(grfName, imgName, zmin, zmax)
 
-	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=Range
-	String pnlName = StringFromList(0, grfName, "#") + "#Range"
+	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
+	String pnlName = StringFromList(0, grfName, "#") + "#" + PNAME
 
 	//	Controls
 	PopupMenu imageP title="image",pos={3,7},size={218,19},bodyWidth=180,win=$pnlName
@@ -474,7 +475,7 @@ End
 
 Static Function pnlHookParentUpdatePanel(String grfName)
 
-	String pnlName = grfName + "#Range"
+	String pnlName = grfName + "#" + PNAME
 	if (!SIDAMWindowExists(pnlName))
 		return 0
 	endif
@@ -525,8 +526,10 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 
 		case 11:	//	keyboard
 			if (s.keycode == 27)		//	27: esc
-				pnlHookClose(s.winName)
-				KillWindow $s.winName
+				//	s.winName can be a subwindow of the range panel.
+				String pnlName = StringFromList(0,s.winName,"#")+ "#" + PNAME
+				pnlHookClose(pnlName)
+				KillWindow $pnlName
 			endif
 			break
 
@@ -714,7 +717,7 @@ End
 //******************************************************************************
 //	Menu contents of imageP
 Static Function/S imageListForImageP()
-	String pnlName = GetUserData(WinName(0,1)+"#Range","","grf")
+	String pnlName = GetUserData(WinName(0,1)+"#"+PNAME,"","grf")
 	return ImageNameList(pnlName, ";")
 End
 
