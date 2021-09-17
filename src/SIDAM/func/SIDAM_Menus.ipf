@@ -77,6 +77,7 @@ Menu "SIDAM", dynamic
 		"Browse cheat sheet of shortcuts", /Q, SIDAMBrowseHelp("shortcuts")
 		"-"
 		"About SIDAM...", /Q, SIDAMAbout()
+		"Update for SIDAM...", /Q, SIDAMCheckUpdate()
 	End
 
 	Submenu "Developer"

@@ -85,3 +85,45 @@ Function SIDAMAbout()
 	Sprintf promptStr, "SIDAM v%d.%d.%d", SIDAM_VERSION_MAJOR, SIDAM_VERSION_MINOR, SIDAM_VERSION_PATCH
 	DoAlert 0, promptStr
 End
+
+Function SIDAMCheckUpdate()
+	Variable new = existsNew()
+	if (numtype(new))
+		// error
+		DoAlert 0, "No version infomation is available (error)."
+	elseif (new)
+		// new
+		DoAlert 1, "A new version of SIDAM is available. " \
+			+ "Do you want to open the homepage of SIDAM?"
+		if (V_flag == 1)
+			BrowseURL SIDAM_URL_HOME
+		endif
+	else
+		// latest
+		DoAlert 0, "You are using the latest version of SIDAM."
+	endif
+End
+
+Static Function existsNew()
+	String response = FetchURL(SIDAM_URL_API_RELEASE)
+	
+	//	Get the latest tag name
+	int i0 = strsearch(response, "tag_name", 0)
+	if (i0 < 0)
+		return NaN
+	endif
+	
+	int i1 = strsearch(response, ",", i0)
+	String verStr = response[i0+12,i1-2]	// e.g., 9.6.0
+	int major, minor, patch
+	sscanf verStr, "%d.%d.%d", major, minor, patch
+	if (major > SIDAM_VERSION_MAJOR)
+		return 1
+	elseif (minor > SIDAM_VERSION_MINOR)
+		return 2
+	elseif (patch > SIDAM_VERSION_PATCH)
+		return 3
+	else
+		return 0
+	endif
+End
