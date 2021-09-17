@@ -15,15 +15,9 @@
 !/src/SIDAM/ctab/SIDAM
 !/src/SIDAM/ctab/readme.md
 
-# extension
-!/src/SIDAM/extension/readme.md
-!/src/SIDAM/extension/SIDAM_PhaseAdjust.ipf
-
 # fileloader
 !/src/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
 !/src/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
 !/src/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
-!/src/SIDAM/fileloader/Load\ RHK\ SM2.ipf
-!/src/SIDAM/fileloader/Load\ Topometrix.ipf
 !/src/SIDAM/fileloader/readme.md
 
