@@ -99,17 +99,16 @@ Static Function/WAVE ipfList(String folderpath)
 			+ folderpath[1,strlen(folderpath)-1]
 	endif
 	if (V_flag)	//	the folder is not found
+		print folderpath + " is not found."
 		return $""
 	endif
 
 	String listStr = IndexedFile($pathName,-1,".ipf")
-	//	List shortcut files as well
-	listStr += IndexedFile($pathName,-1,".lnk")
 	Make/FREE/T/N=(ItemsInList(listStr)) w
 	if (isAbs)
-		w = ParseFilePath(2, folderpath, ":", 0, 0) + RemoveEnding(StringFromList(p,listStr),".lnk")
+		w = ParseFilePath(2, folderpath, ":", 0, 0) + StringFromList(p,listStr)
 	else
-		w = RemoveEnding(StringFromList(p,listStr),".lnk")
+		w = StringFromList(p,listStr)
 	endif
 	
 	String dirListStr = IndexedDir($pathName,-1,0)

@@ -26,22 +26,40 @@ End
 //------------------------------------------------------------------------------
 //	Return path to the SIDAM directory
 //------------------------------------------------------------------------------
+//	GetFileFolderInfo returns S_aliasPath even if the path does not explicitly
+//	ends with ".lnk" in Igor 9, although does not return in Igor 8.
+#if IgorVersion() >= 9
 Function/S SIDAMPath()
-	//	path to User Procedures
-	String userpath = SpecialDirPath("Igor Pro User Files", 0, 0, 0) + "User Procedures:"
-
-	GetFileFolderInfo/Q/Z (userpath+SIDAM_FOLDER_MAIN+":")
-	if(!V_Flag)
-		return S_path
+	String path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
+		+ "User Procedures:"+SIDAM_FOLDER_MAIN
+	GetFileFolderInfo/Q/Z path
+	//	S_path is the path if exist or empty if not.
+	path = SelectString(V_isAliasShortcut, S_path, S_aliasPath)
+	
+	if (!strlen(path))
+		Abort "SIDAM folder is not found."
 	endif
 
-	GetFileFolderInfo/Q/Z (userpath+SIDAM_FOLDER_MAIN+".lnk")
-	if(V_isAliasShortcut)
+	return path
+End
+#else
+Function/S SIDAMPath()
+	String path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
+		+ "User Procedures:"+SIDAM_FOLDER_MAIN
+
+	GetFileFolderInfo/Q/Z path
+	if (!V_Flag)
+		return path
+	endif
+	
+	GetFileFolderInfo/Q/Z path+".lnk"	//	shortcut
+	if (!V_Flag && V_isAliasShortcut)
 		return S_aliasPath
 	endif
-
+	
 	Abort "SIDAM folder is not found."
 End
+#endif
 
 //------------------------------------------------------------------------------
 //	Add the check mark to num-th item of menuStr and return it
