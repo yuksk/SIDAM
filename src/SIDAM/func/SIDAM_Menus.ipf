@@ -67,7 +67,7 @@ Menu "SIDAM", dynamic
 	"-"
 
 	Submenu "Misc"
-		"Open configuration file", /Q, OpenNoteBook/ENCG=1/Z SIDAMConfigPath()
+		"Open configuration file", /Q, OpenNoteBook/ENCG=1/Z SIDAMConfigPath(0)
 	End
 	
 	Submenu "Help"

@@ -1413,8 +1413,7 @@ Static Function loadColorTableAll()
 			if (CmpStr(path[0], ":"))
 				absPath = path
 			else
-				absPath = ParseFilePath(1, SIDAMConfigPath(), ":", 1, 0) \
-					+ path[1,strlen(path)-1]
+				absPath = SIDAMConfigPath(1) + path[1,strlen(path)-1]
 			endif
 			//	Datafolder under which ibw files are loaded
 			dfStr = SIDAM_DF_CTAB + groups[0][i]

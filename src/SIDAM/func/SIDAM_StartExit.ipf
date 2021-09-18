@@ -95,8 +95,7 @@ Static Function/WAVE ipfList(String folderpath)
 	if (isAbs)
 		NewPath/O/Q/Z $pathName, folderpath
 	else
-		NewPath/O/Q/Z $pathName, ParseFilePath(1, SIDAMConfigPath(), ":", 1, 0)\
-			+ folderpath[1,strlen(folderpath)-1]
+		NewPath/O/Q/Z $pathName, SIDAMConfigPath(1) + folderpath[1,strlen(folderpath)-1]
 	endif
 	if (V_flag)	//	the folder is not found
 		print folderpath + " is not found."

@@ -11,7 +11,7 @@
 //	Return keys of a table as a list
 Function/S SIDAMConfigKeys(String tableName)
 	Variable refNum
-	Open/R/Z refNum as SIDAMConfigPath()
+	Open/R/Z refNum as SIDAMConfigPath(0)
 	proceedToTable(refNum, tableName)
 	
 	String listStr = "", buffer
@@ -41,7 +41,7 @@ Function/S SIDAMConfigItems(String tableName, [int usespecial])
 	String keysep = SelectString(usespecial, ":", SIDAM_CHAR_KEYSEP)
 
 	Variable refNum
-	Open/R/Z refNum as SIDAMConfigPath()
+	Open/R/Z refNum as SIDAMConfigPath(0)
 	proceedToTable(refNum, tableName)
 	
 	String listStr = "", buffer
@@ -67,31 +67,30 @@ Static Function removeReturn(String &buffer)
 	buffer = RemoveEnding(RemoveEnding(buffer, num2char(10)), num2char(13))
 End
 
-//	Return a path to the config file.
+//	Return a path to the config file (mode=0) or a folder containing
+//	the config file (mode=1)
+//
 //	The config file is searched in the following order.
 //	1. User Procedures:SIDAM.toml
 //	2. User Procedures:SIDAM:SIDAM.toml
 //	3. User Procedures:SIDAM:SIDAM.default.toml
-Function/S SIDAMConfigPath()
+Function/S SIDAMConfigPath(int mode)
 	Variable refNum
 	String path
 	
 	path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
-		+ "User Procedures:" + SIDAM_FILE_CONFIG
-	if (isConfigExist(path))
-		return path
+		+ "User Procedures:"
+	if (isConfigExist(path+SIDAM_FILE_CONFIG))
+		return path + SelectString(mode, SIDAM_FILE_CONFIG, "")
 	endif
 	
-	path = SIDAMPath()+SIDAM_FILE_CONFIG
-	if (isConfigExist(path))
-		return path
+	path = SIDAMPath()
+	if (isConfigExist(path+SIDAM_FILE_CONFIG))
+		return path + SelectString(mode, SIDAM_FILE_CONFIG, "")
+	elseif (isConfigExist(path+SIDAM_FILE_CONFIG_DEFAULT))
+		return path + SelectString(mode, SIDAM_FILE_CONFIG_DEFAULT, "")
 	endif
 	
-	path = SIDAMPath()+SIDAM_FILE_CONFIG_DEFAULT
-	if (isConfigExist(path))
-		return path
-	endif
-
 	Abort "The config file not found."
 End
 
