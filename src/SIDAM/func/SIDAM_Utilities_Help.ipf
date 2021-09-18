@@ -19,30 +19,27 @@ Function SIDAMOpenHelpNote(
 	if (!SIDAMWindowExists(pnlName))
 		return 2
 	endif
-	String helpWinName = GetUserData(pnlName,"","KMOpenHelpNote")
+	String helpWinName = GetUserData(pnlName,"","SIDAMOpenHelpNote")
 	if (SIDAMWindowExists(helpWinName))
 		DoWindow/F $helpWinName
 		return -1
 	endif
 	
 	//	Open a help file
-	NewPath/O/Q/Z KMHelp, SIDAMPath() + SIDAM_FOLDER_HELP
-	OpenNoteBook/K=1/P=KMHelp/R/Z (noteFileName+".ifn")
-	if (V_flag)
-		OpenNoteBook/K=1/P=KMHelp/R/Z (noteFileName+".ifn.lnk")		//	for shortcuts
-	endif
+	NewPath/O/Q/Z SIDAMHelp, SIDAMPath() + SIDAM_FOLDER_HELP
+	OpenNoteBook/K=1/P=SIDAMHelp/R/Z (noteFileName+".ifn")
 	if (V_flag)
 		return 3	//	file not found
 	endif
-	KillPath/Z KMHelp
+	KillPath/Z SIDAMHelp
 	
 	//	Set a title, hook functions, and user data.
 	String noteName = WinName(0,16)
 	DoWindow/T $noteName, title
 	SetWindow $noteName hook(self)=SIDAMUtilHelp#hook
 	SetWindow $noteName userData(parent)=pnlName
-	SetWindow $pnlName hook(KMOpenHelpNote)=SIDAMUtilHelp#hookParent
-	SetWindow $pnlName userData(KMOpenHelpNote)=noteName
+	SetWindow $pnlName hook(SIDAMOpenHelpNote)=SIDAMUtilHelp#hookParent
+	SetWindow $pnlName userData(SIDAMOpenHelpNote)=noteName
 End
 
 Static Function hook(STRUCT WMWinHookStruct &s)
@@ -52,15 +49,15 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 
 	String parent = GetUserData(s.winName,"","parent")
 	if(SIDAMWindowExists(parent))
-		SetWindow $parent hook(KMOpenHelpNote)=$""
-		SetWindow $parent userData(KMOpenHelpNote)=""
+		SetWindow $parent hook(SIDAMOpenHelpNote)=$""
+		SetWindow $parent userData(SIDAMOpenHelpNote)=""
 	endif
 	return 0
 End
 
 Static Function hookParent(STRUCT WMWinHookStruct &s)
 	if (s.eventCode == 17)	//	killVote
-		KillWindow/Z $GetUserData(s.winName,"","KMOpenHelpNote")
+		KillWindow/Z $GetUserData(s.winName,"","SIDAMOpenHelpNote")
 	endif
 	return 0
 End
