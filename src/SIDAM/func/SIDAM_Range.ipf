@@ -140,11 +140,11 @@ Static Function applyZRange(String grfName, String imgName, Variable zmin, Varia
 	String ctab = SIDAM_ColorTableForImage(grfName, imgName)
 	Variable rev = WM_ColorTableReversed(grfName, imgName)
 	if (numtype(zmin)==2 && numtype(zmax)==2)
-		ModifyImage/W=$grfName $imgName ctab={*,*,$ctab,rev}
+		ModifyImage/W=$grfName $imgName ctab={*,*,$ctab,rev}, ctabAutoscale=3
 	elseif (numtype(zmin)==2)
-		ModifyImage/W=$grfName $imgName ctab={*,zmax,$ctab,rev}
+		ModifyImage/W=$grfName $imgName ctab={*,zmax,$ctab,rev}, ctabAutoscale=3
 	elseif (numtype(zmax)==2)
-		ModifyImage/W=$grfName $imgName ctab={zmin,*,$ctab,rev}
+		ModifyImage/W=$grfName $imgName ctab={zmin,*,$ctab,rev}, ctabAutoscale=3
 	else
 		ModifyImage/W=$grfName $imgName ctab={zmin,zmax,$ctab,rev}
 	endif
