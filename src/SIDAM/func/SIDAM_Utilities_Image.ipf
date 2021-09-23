@@ -609,5 +609,6 @@ Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
 	endif
 	
 	ModifyImage/W=$grfName $NameOfWave(w) plane=limit(round(index), 0, DimSize(w,2)-1)
+	DoUpdate/W=$grfName
 	return 0
 End

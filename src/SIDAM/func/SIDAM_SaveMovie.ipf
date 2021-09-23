@@ -84,21 +84,26 @@ Static Function saveMovie(String pnlName)
 	//	Execute NewMovie with flags specified in the panel
 	String cmd
 	sprintf cmd, "%s as \"%s\"", createCmdStr(pnlName), fileName
-	Execute/Z cmd
+	Execute/P/Q cmd
 		
 	//	Add movie frames
 	//	lw[0]: start layer, lw[1]: end layer, lw[2]: present layer
+	// The following commands need to be put into the queue so that each layer
+	// is saved after any modifications such as adjusting the z range. This is
+	// required in Igor 9 where modified events are sent to a window only when
+	// Igor's main outer loop runs.
 	Wave lw = SIDAMSaveCommon#getLayers(pnlName)
 	String grfName = StringFromList(0,pnlName,"#")
 	int i
 	for (i = lw[0]; i <= lw[1]; i++)
-		SIDAMSetLayerIndex(grfName, i)
-		DoUpdate/W=$grfName
-		AddMovieFrame
+		sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d)", grfName, i
+		Execute/P/Q cmd
+		Execute/P/Q "AddMovieFrame"
 	endfor
 	
-	CloseMovie
-	SIDAMSetLayerIndex(grfName, lw[2])
+	Execute/P/Q "CloseMovie"
+	sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d)", grfName, lw[2]
+	Execute/P/Q cmd
 End
 //-------------------------------------------------------------
 //	return the command string from the items chosen in the panel

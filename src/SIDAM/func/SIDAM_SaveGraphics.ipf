@@ -11,10 +11,6 @@
 #pragma hide = 1
 #endif
 
-//	When uncommented, the command string to save graphics is displayed in the history window
-//	instead of saving graphics.
-//#define DEBUG
-
 // The disable state of the controls in this list depends on the format of graphics
 Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embedC;exceptC;resolutionP;dpiP"
 
@@ -165,26 +161,29 @@ Static Function saveGraphics(String pnlName)
 	String cmd
 	int i
 	
-	//	Save graphics
+	// Save graphics
+	// The following commands need to be put into the queue so that each layer
+	// is saved after any modifications such as adjusting the z range. This is
+	// required in Igor 9 where modified events are sent to a window only when
+	// Igor's main outer loop runs.
 	DoWindow/F $parentWin
 	for (i = lw[0]; i <= lw[1]; i++)
+		sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d)", parentWin, i
+		Execute/P/Q cmd
+		
 		if (suffix == 1)			//	index only
 			sprintf cmd, "%s as \"%s"+digitStr+"%s\"", cmdStr, basename, i, extStr
 		elseif (suffix == 2)	//	value only
 			sprintf cmd, "%s as \"%s%g%s\"", cmdStr, basename, SIDAMIndexToScale(w,i,2), extStr
 		else						//	index and value
-			sprintf cmd, "%s as \"%s"+digitStr+"_%g%s\"", cmdStr, basename, i, SIDAMIndexToScale(w,i,2), extStr
+			sprintf cmd, "%s as \"%s"+digitStr+"_%g%s\"", cmdStr, basename, i, \
+				SIDAMIndexToScale(w,i,2), extStr
 		endif
-		ModifyImage/W=$parentWin $NameOfWave(w) plane=i
-		DoUpdate/W=$parentWin
-		#ifdef DEBUG
-			print cmd
-		#else
-			Execute/Z cmd
-		#endif
+		Execute/P/Q cmd
 	endfor
 	
-	SIDAMSetLayerIndex(parentWin, lw[2])
+	sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d)", parentWin, lw[2]
+	Execute/P/Q cmd
 End
 //-------------------------------------------------------------
 //	return the command string and the extension created from
