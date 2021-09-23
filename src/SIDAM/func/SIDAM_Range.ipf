@@ -23,21 +23,23 @@
 //		The name of window.
 //	imgList : string, default `ImageNameList(grfName,";")`
 //		The list of images.
-//	zminmode : int {0 -- 4}, default 1
-//		The z mode for min.
-//		* 0: auto
-//		* 1: fix
-//		* 2: sigma
-//		* 3: cut
-//		* 4: logsigma
-//	zmaxmode : int {0 -- 4}, default 1
-//		The z mode for max. The numbers are the same as those for the zminmode.
-//	zmin : variable
-//		The minimum value of the range.
-//		When the zmaxmode is 2 or 3, this is a parameter of the mode.
-//	zmax : variable
-//		The maximum value of the range.
-//		When the zminmode is 2 or 3, this is a parameter of the mode.
+//	zminmode, zmaxmode : int {0 -- 4}, default 1
+//		How to set the minimum and maximum of z range.
+//		* 0: auto. Use the minimum or the maximum of the current area and plane.
+// 			This is equivalent to `ModifyImage ctabAutoscale=3`.
+//		* 1: fix. Use a fixed value. The value is given by `zmin` and `zmax`.
+//		* 2: sigma. Use _n_&#963; below (`zminmode`) or above (`zmaxmode`) the average,
+//			where &#963; is the standard deviation. The average and the standard deviation
+//			are calculated for the current area and plane. _n_ is given by `zmin` and `zmax`.
+//		* 3: cut. Use _n_% from the minimum (`zminmode`) or maximum (`zmaxmode`) of
+//			the cumulative histogram which is calculated for the current area and plane.
+//			_n_ is given by `zmin` and `zmax`.
+//		* 4: logsigma. Similar to `sigma`, but use logarithmic values of an image to
+//			calculate the average and the standard deviation. This option is useful when
+//			values in an image span in a wide range over a few orders like an FFT image.
+//	zmin, zmax : variable
+//		The minimum and maximum value of the range.
+//		The meaning of value depends on `zminmode` and `zmaxmode`.
 //@
 Function SIDAMRange([String grfName, String imgList, Variable zmin,
 	Variable zmax, int zminmode, int zmaxmode])
