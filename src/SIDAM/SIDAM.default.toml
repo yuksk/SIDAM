@@ -1,8 +1,7 @@
-# This is the configuration file of SIDAM. If you want to modify
-# configurations, it is recommended to save a copy of this file as
-# "SIDAM.toml" and modify it. You can place "SIDAM.toml" at the User
-# Procedures folder or here. You need to call SIDAMsource() and compile
-# to reflect the modifications.
+# This is the configuration file of SIDAM. To modify configurations,
+# save a copy of this file as "SIDAM.toml" and modify it. You can place
+# "SIDAM.toml" at the User Procedures folder or here. You need to call
+# SIDAMsource() to reflect the modifications.
 
 # In the following, both an absolute path and a relative pass are
 # accepted as a path. A relative path starts with ":" and is specified

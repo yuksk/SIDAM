@@ -26,15 +26,9 @@ End
 //------------------------------------------------------------------------------
 //	Return path to the SIDAM directory
 //------------------------------------------------------------------------------
-//	GetFileFolderInfo returns S_aliasPath even if the path does not explicitly
-//	ends with ".lnk" in Igor 9, although does not return in Igor 8.
-#if IgorVersion() >= 9
 Function/S SIDAMPath()
-	String path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
-		+ "User Procedures:"+SIDAM_FOLDER_MAIN
-	GetFileFolderInfo/Q/Z path
-	//	S_path is the path if exist or empty if not.
-	path = SelectString(V_isAliasShortcut, S_path, S_aliasPath)
+	String path = SIDAMResolvePath(SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
+		+ "User Procedures:"+SIDAM_FOLDER_MAIN)
 	
 	if (!strlen(path))
 		Abort "SIDAM folder is not found."
@@ -42,11 +36,19 @@ Function/S SIDAMPath()
 
 	return path
 End
-#else
-Function/S SIDAMPath()
-	String path = SpecialDirPath("Igor Pro User Files", 0, 0, 0) \
-		+ "User Procedures:"+SIDAM_FOLDER_MAIN
 
+//------------------------------------------------------------------------------
+//	Return the full path.
+//------------------------------------------------------------------------------
+//	GetFileFolderInfo returns S_aliasPath even if the path does not explicitly
+//	ends with ".lnk" in Igor 9, although does not return in Igor 8.
+#if IgorVersion() >= 9
+Function/S SIDAMResolvePath(String path)
+	GetFileFolderInfo/Q/Z path
+	return SelectString(V_isAliasShortcut, S_path, S_aliasPath)
+End
+#else
+Function/S SIDAMResolvePath(String path)
 	GetFileFolderInfo/Q/Z path
 	if (V_isFile)
 		return path
@@ -59,7 +61,7 @@ Function/S SIDAMPath()
 		return S_aliasPath
 	endif
 	
-	Abort "SIDAM folder is not found."
+	return ""
 End
 #endif
 

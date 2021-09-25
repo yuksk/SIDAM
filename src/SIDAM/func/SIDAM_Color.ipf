@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMColor
 
-#include "SIDAM_Config"
 #include "SIDAM_Preference"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_ImageInfo"
@@ -1402,20 +1401,13 @@ Static Function loadColorTableAll()
 	for (i = 0; i < DimSize(groups,1); i++)
 		for (j = 0; j < ItemsInList(groups[1][i]); j++)
 			path = StringFromList(j,groups[1][i])
-			//	If the folder path starts with ":", regard it as a relative path
-			//	from the folder where the config file is, otherwise an absolute path.
-			if (CmpStr(path[0], ":"))
-				absPath = path
-			else
-				absPath = SIDAMConfigPath(1) + path[1,strlen(path)-1]
-			endif
 			//	Datafolder under which ibw files are loaded
 			dfStr = SIDAM_DF_CTAB + groups[0][i]
 			//	If more than 1 groups are shown in a group
 			if (ItemsInList(groups[1][i]) > 1)
 				dfStr += ":"+ParseFilePath(0,path,":",1,0)
 			endif
-			loadColorTableIbwFiles(dfStr,absPath)
+			loadColorTableIbwFiles(dfStr,path)
 		endfor
 	endfor
 End
