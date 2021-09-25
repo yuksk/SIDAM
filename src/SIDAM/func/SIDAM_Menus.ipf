@@ -155,7 +155,7 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		SIDAMMenus#menu("Layer Annotation...",dim=3), /Q, SIDAMLayerAnnotation#menuDo()
 		//	Show/Hide Axis
 		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
-		help = {"Show/Hide axes of the graph."}
+		help = {"Show/Hide labels of the graph."}
 	End
 
 	SubMenu "\\M0Save/Export Graphics"

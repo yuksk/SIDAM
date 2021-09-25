@@ -22,6 +22,7 @@ EndStructure
 Static Structure windowS
 	String width
 	String height
+	Variable axthick
 	STRUCT windowformatS format
 	STRUCT windowcolorsS colors
 	STRUCT windowexportS export
@@ -114,6 +115,7 @@ Function readConfig(STRUCT SIDAMConfigStruct &s, int kind)
 	String str = configItems(refNum, "[window]")
 	s.window.width = strOverwrite(s.window.width, StringByKey("width", str))
 	s.window.height = strOverwrite(s.window.height, StringByKey("height", str))
+	s.window.axthick = numOverwrite(s.window.axthick, NumberByKey("axthick", str))
 
 	str = configItems(refNum, "[window.format]")
 	s.window.format.xy = strOverwrite(s.window.format.xy, StringByKey("xy", str))

@@ -126,6 +126,7 @@ Static Function writeConstants(Variable refNum, STRUCT 	SIDAMConfigStruct &s)
 	
 	fprintf refNum, "StrConstant SIDAM_WINDOW_WIDTH = \"%s\"\n", s.window.width
 	fprintf refNum, "StrConstant SIDAM_WINDOW_HEIGHT = \"%s\"\n", s.window.height
+	fprintf refNum, "Constant SIDAM_WINDOW_AXTHICK = %f\n", s.window.axthick
 
 	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_XY = \"%s\"\n", s.window.format.xy
 	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_Z = \"%s\"\n", s.window.format.z

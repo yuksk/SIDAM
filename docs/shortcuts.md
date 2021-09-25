@@ -22,8 +22,8 @@ The cheat sheet of shortcuts.
 | <span class="shortcuts_key">Page Up</span> <span class="shortcuts_key">Page Down</span> | Increase and decrease layer index (3D) |
 | <span class="shortcuts_key">Esc</span> | Close info bar (1D/2D/3D) |
 | <span class="shortcuts_key">1</span> <span class="shortcuts_key">2</span> <span class="shortcuts_key">3</span> | Expansion |
-| <span class="shortcuts_key">A</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">a</span>) | Toggle <span class="shortcuts_hint">a</span>xis |
 | <span class="shortcuts_key">C</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">c</span>) | Change mouse <span class="shortcuts_hint">c</span>oordinate system |
+| <span class="shortcuts_key">L</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">a</span>) | Toggle <span class="shortcuts_hint">l</span>abel |
 | <span class="shortcuts_key">T</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">t</span>) | Change <span class="shortcuts_hint">t</span>itle of window |
 | <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
 | <span class="shortcuts_key">a</span> | Modify <span class="shortcuts_hint">A</span>xis... |

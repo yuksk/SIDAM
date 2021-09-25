@@ -16,6 +16,8 @@
 # to either width or height, for example, height = "{Plan,1,left,bottom}".
 width = 200
 height = 200
+# Thickness of axes of an image window.
+axthick = 0
 
 # Format strings used to show the coordinates in the info bar.
 # "W0P" instead of "f" or "e" may be better when the unit of a wave

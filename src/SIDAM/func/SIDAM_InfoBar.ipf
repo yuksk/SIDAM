@@ -212,8 +212,8 @@ Static Function/S menuR(int menuitem)
 			mode = str2num(GetUserData(grfName,"","title"))
 			return SIDAMAddCheckmark(mode, TITLEMENU)
 		
-		case 2:	//	axis
-			return SelectString(getAxThick(grfName),"Show","Hide") + " Axis"
+		case 2:	//	label
+			return SelectString(getTick(grfName)==3,"Hide","Show") + " Label"
 			
 		case 3:	//	complex (2D/3D)
 			if (isContainedComplexWave(grfName,2))
@@ -234,10 +234,10 @@ Static Function/S menuR(int menuitem)
 	endswitch
 End
 
-Static Function getAxThick(String grfName)
+Static Function getTick(String grfName)
 	STRUCT SIDAMWindowInfo s
 	SIDAMGetWindow(grfName, s)
-	return s.axThick
+	return s.tick
 End
 
 Static Function isContainedComplexWave(String grfName, int dim)
@@ -275,7 +275,7 @@ Static Function/S menuRDo(int mode)
 			break
 			
 		case 2:	//	axis
-			toggleAxis(WinName(0,1))
+			toggleLabel(WinName(0,1))
 			break
 			
 		case 3:	//	complex 2D/3D
@@ -660,13 +660,13 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 51:		//	3
 			ModifyGraph/W=$s.winName expand=s.keycode-48
 			return 1
-		case 65:		//	A (shift + a)
-			toggleAxis(s.winName)
-			return 1
 		case 67:		//	C (shift + c)
 			mode = str2num(GetUserData(s.winName,"","mode"))
 			changeCoordinateSetting(mode+1)
 			SIDAMInfobarUpdatePos(s)
+			return 1
+		case 76:		//	L (shift + l)
+			toggleLabel(s.winName)
 			return 1
 		case 84:		//	T (shift + t)
 			int titleMode = str2num(GetUserData(s.winName,"","title"))
@@ -701,7 +701,7 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 			DoIgorMenu "Graph", "Modify Trace Appearance"
 			return 1
 	endswitch
-	
+
 	return 0
 End
 
@@ -776,13 +776,13 @@ Static Function changeWindowTitle(int mode)
 	DoWindow/T $grfName, titleStr	
 End
 
-//	Show or hide the axes
-Static Function toggleAxis(String grfName)
-	if (getAxThick(grfName))
-		ModifyGraph/W=$grfName margin=1, noLabel=2, axThick=0
-	else
+//	Show or hide the axis labels
+Static Function toggleLabel(String grfName)
+	if (getTick(grfName)==3)	//	show
 		ModifyGraph/W=$grfName margin(left)=44, margin(bottom)=36, margin(top)=8, margin(right)=8
-		ModifyGraph/W=$grfName tick=0, noLabel=0, axThick=1, btLen=5
+		ModifyGraph/W=$grfName tick=0, noLabel=0, axThick=1
+	else	//	hide
+		ModifyGraph/W=$grfName margin=1, tick=3, noLabel=2, axThick=SIDAM_WINDOW_AXTHICK
 	endif
 End
 

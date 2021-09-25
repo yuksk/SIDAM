@@ -20,6 +20,7 @@ Structure SIDAMWindowInfo
 	float height
 	String heightStr
 	float axThick
+	uchar tick
 	float expand
 	STRUCT RectF margin
 	String labelLeft
@@ -30,6 +31,7 @@ Function SIDAMGetWindow(String grfName, STRUCT SIDAMWindowInfo &s)
 	String recStr = getRecStr(grfName)
 
 	s.axThick = getValueFromRecStr(recStr, "axThick", 1)
+	s.tick = getValueFromRecStr(recStr, "tick", 0)
 
 	GetWindow $grfName psize
 	s.width = V_right - V_left
