@@ -173,7 +173,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 					return 0
 				endif
 				pnlHookArrows(s)
-			elseif (s.keycode >= 97)
+			elseif (s.keycode==88 || s.keycode >= 97)
 				SIDAMInfobarKeyboardShortcuts(s)
 			endif
 			return 1

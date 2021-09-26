@@ -406,7 +406,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 			SIDAMClickCheckBox(pnlName,"p"+num2istr(s.keycode-48)+"C")
 			return 1
 
-		case 120:	//	x
+		case 88:	//	X (shift + x)
 			int isComplex = WaveType($GetUserData(pnlName,"","src")) & 0x01
 			if (!isComplex)
 				return 1
