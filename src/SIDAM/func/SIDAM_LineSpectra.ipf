@@ -434,6 +434,7 @@ Static Function pnl(String LVName)
 		AppendImage/W=$pnlName#image $PNL_W
 	endif
 	pnlModifyGraph(pnlName+"#image")
+	SetActiveSubWindow $pnlName
 
 	pnlSetParent(LVName,pnlName)
 
