@@ -22,16 +22,16 @@ The cheat sheet of shortcuts.
 | <span class="shortcuts_key">Page Up</span> <span class="shortcuts_key">Page Down</span> | Increase and decrease layer index (3D) |
 | <span class="shortcuts_key">Esc</span> | Close info bar (1D/2D/3D) |
 | <span class="shortcuts_key">1</span> <span class="shortcuts_key">2</span> <span class="shortcuts_key">3</span> | Expansion |
-| <span class="shortcuts_key">A</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">a</span>) | Toggle axis |
-| <span class="shortcuts_key">C</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">c</span>) | Change mouse coordinate system |
-| <span class="shortcuts_key">T</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">t</span>) | Change title of window |
-| <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change complex mode |
-| <span class="shortcuts_key">a</span> | Modify Axis... |
+| <span class="shortcuts_key">A</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">a</span>) | Toggle <span class="shortcuts_hint">a</span>xis |
+| <span class="shortcuts_key">C</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">c</span>) | Change mouse <span class="shortcuts_hint">c</span>oordinate system |
+| <span class="shortcuts_key">T</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">t</span>) | Change <span class="shortcuts_hint">t</span>itle of window |
+| <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
+| <span class="shortcuts_key">a</span> | Modify <span class="shortcuts_hint">A</span>xis... |
 | <span class="shortcuts_key">c</span> | Export Graphics (Transparent) |
-| <span class="shortcuts_key">g</span> | Modify Graph... |
-| <span class="shortcuts_key">i</span> | Modify Image Appearance... |
-| <span class="shortcuts_key">s</span> | Save Graphic... |
-| <span class="shortcuts_key">t</span> | Modify Trace Appearance... |
+| <span class="shortcuts_key">g</span> | Modify <span class="shortcuts_hint">G</span>raph... |
+| <span class="shortcuts_key">i</span> | Modify <span class="shortcuts_hint">I</span>mage Appearance... |
+| <span class="shortcuts_key">s</span> | <span class="shortcuts_hint">S</span>ave Graphic... |
+| <span class="shortcuts_key">t</span> | Modify <span class="shortcuts_hint">T</span>race Appearance... |
 | <span class="shortcuts_key">mouse wheel</span> | Change layer index (3D) |
 | <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">mouse wheel</span> | Zoom in and out |
 | <span class="shortcuts_key">Shift</span> | Suppress updating mouse coordinates |
@@ -47,15 +47,21 @@ The cheat sheet of shortcuts.
 | key | function |
 |:---|:---|
 | <span class="shortcuts_key">Shift</span> | Suppress live update |
+| <span class="shortcuts_key">Esc</span> | Close the panel |
 | <span class="shortcuts_key">&#8592;</span> <span class="shortcuts_key">&#8593;</span> <span class="shortcuts_key">&#8594;</span> <span class="shortcuts_key">&#8595;</span> | Change locations |
+| <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
+| <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
 
 ## Line Spectra, Line Profile
 
 | key | function |
 |:---|:---|
-| <span class="shortcuts_key">Space</span> | Toggle 1D and 2D |
 | <span class="shortcuts_key">Shift</span> | Suppress live update |
+| <span class="shortcuts_key">Space</span> | Toggle 1D and 2D |
+| <span class="shortcuts_key">Esc</span> | Close the panel |
 | <span class="shortcuts_key">&#8592;</span> <span class="shortcuts_key">&#8593;</span> <span class="shortcuts_key">&#8594;</span> <span class="shortcuts_key">&#8595;</span> | Change locations |
+| <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
+| <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
 
 ## Position Recorder
 
