@@ -169,6 +169,9 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 				KillWindow $s.winName
 			elseif (s.keycode >= 28 && s.keycode <= 31)	//	arrows
+				if (strlen(SIDAMActiveCursors(s.winName)))
+					return 0
+				endif
 				pnlHookArrows(s)
 			elseif (s.keycode >= 97)
 				SIDAMInfobarKeyboardShortcuts(s)

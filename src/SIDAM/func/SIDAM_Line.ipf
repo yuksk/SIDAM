@@ -379,13 +379,19 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 		case 29:		//	right
 		case 30:		//	up
 		case 31:		//	down
-			keyArrows(s)
-			switch (whoCalled(s.winName))
+			int ismoved = keyArrows(s)
+			if (!ismoved)
+				return 0
+			endif
+			// Igor 8: s.winName is always "Graph0".
+			// Igor 9: s.winName is either "Graph0", "Graph0#line", or "Graph0#image".
+			String pnlName = StringFromList(0, s.winName, "#")
+			switch (whoCalled(pnlName))
 				case 0:
-					SIDAMLineProfile#pnlHookArrows(s.winName)
+					SIDAMLineProfile#pnlHookArrows(pnlName)
 					break
 				case 1:
-					SIDAMLineSpectra#pnlHookArrows(s.winName)
+					SIDAMLineSpectra#pnlHookArrows(pnlName)
 					break
 			endswitch
 			return 1
@@ -436,17 +442,22 @@ End
 //	Helper of pnlHookKeyboard, arrows
 //-------------------------------------------------------------
 Static Function keyArrows(STRUCT WMWinHookStruct &s)
-	//	Do nothing if a cursor is displayed and active
-	int i
-	String infoStr
-	for (i = 65; i <= 74; i++)
-		infoStr = CsrInfo($num2char(i), s.winName+"#line")
-		if (strlen(infoStr) && strsearch(infoStr,"/A=0",0) == -1)
+	// Igor 8: s.winName is always "Graph0".
+	// Igor 9: s.winName is either "Graph0", "Graph0#line", or "Graph0#image".
+	#if IgorVersion() < 9
+		GetWindow $s.winName, activeSW
+		if (strlen(SIDAMActiveCursors(S_Value)))
 			return 0
 		endif
-	endfor
-
-	Wave cvw = SIDAMGetCtrlValues(s.winName,"p1C;p1V;q1V;p2C;p2V;q2V")
+	#else
+		if (strlen(SIDAMActiveCursors(s.winName)))
+			return 0
+		endif
+	#endif
+	
+	//	The following needs to be done for "Graph0".
+	String pnlName = StringFromList(0, s.winName, "#")
+	Wave cvw = SIDAMGetCtrlValues(pnlName,"p1C;p1V;q1V;p2C;p2V;q2V")
 
 	//	Do nothing if neither 1 nor 2 is checked
 	if (!cvw[%p1C] && !cvw[%p2C])
@@ -457,20 +468,22 @@ Static Function keyArrows(STRUCT WMWinHookStruct &s)
 	int isUp = s.keycode == 30, isDown = s.keycode == 31
 	int step = (s.eventMod & 2) ? 10 : 1	//	if the shift key is pressed, move 10 times faster
 	int direction = (isLeft || isDown) ? -1 : 1
-	int pinc = getIncrement(s.winName, "p1V") * step * direction 
-	int qinc = getIncrement(s.winName, "q1V") * step * direction 
-	Wave w = $GetUserData(s.winName,"","src")
+	int pinc = getIncrement(pnlName, "p1V") * step * direction 
+	int qinc = getIncrement(pnlName, "q1V") * step * direction 
+	Wave w = $GetUserData(pnlName,"","src")
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 
 	if (isLeft || isRight)
-		SetVariable p1V value=_NUM:limit(cvw[%p1V]+pinc*cvw[%p1C], 0, nx-1), win=$s.winName
-		SetVariable p2V value=_NUM:limit(cvw[%p2V]+pinc*cvw[%p2C], 0, nx-1), win=$s.winName
+		SetVariable p1V value=_NUM:limit(cvw[%p1V]+pinc*cvw[%p1C], 0, nx-1), win=$pnlName
+		SetVariable p2V value=_NUM:limit(cvw[%p2V]+pinc*cvw[%p2C], 0, nx-1), win=$pnlName
 	elseif (isUp || isDown)
-		SetVariable q1V value=_NUM:limit(cvw[%q1V]+qinc*cvw[%p1C], 0, ny-1), win=$s.winName
-		SetVariable q2V value=_NUM:limit(cvw[%q2V]+qinc*cvw[%p2C], 0, ny-1), win=$s.winName
+		SetVariable q1V value=_NUM:limit(cvw[%q1V]+qinc*cvw[%p1C], 0, ny-1), win=$pnlName
+		SetVariable q2V value=_NUM:limit(cvw[%q2V]+qinc*cvw[%p2C], 0, ny-1), win=$pnlName
 	endif
 
-	pnlSetDistanceAngle(s.winName)
+	pnlSetDistanceAngle(pnlName)
+	
+	return 1
 End
 
 Static Function getIncrement(String pnlName, String ctrlName)

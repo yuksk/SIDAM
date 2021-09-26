@@ -428,6 +428,19 @@ Function SIDAMMoveCursor(String csrName, String grfName, int mode,
 	endif
 End
 
+Function/S SIDAMActiveCursors(String grfName)
+	String list = "ABCDEFGHIJ", active = "", info
+	int i, n
+	for (i = 0, n = strlen(list); i < n; i++)
+		info = CsrInfo($(list[i]), grfName)
+		if (!strlen(info) || strsearch(info, "A=0", 0)!=-1)
+			continue
+		endif
+		active += list[i]
+	endfor
+	return active
+End
+
 
 //******************************************************************************
 //	Get the range of displayed axes by giving an image or a trace
