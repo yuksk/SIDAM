@@ -12,7 +12,7 @@
 
 
 Static Function/S menu()
-	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
 	endif
@@ -32,7 +32,7 @@ Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,320,270)
 	RenameWindow $grfName#$S_name, SaveMovie
 	String pnlName = grfName + "#SaveMovie"
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
 	//	layer
 	GroupBox layerG title="Layer", pos={5,4}, size={310,50}, win=$pnlName

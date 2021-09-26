@@ -29,7 +29,7 @@ Static Function pnl(String LVName)
 	endif
 
 	String pnlName = UniqueName("Graph",6,0)
-	Wave srcw =  SIDAMImageWaveRef(LVName)
+	Wave srcw =  SIDAMImageNameToWaveRef(LVName)
 
 	//	Prepare a wave for horizontal axis in a temporary folder
 	//	if the 3D wave is in Nanonis MLS mode
@@ -85,7 +85,7 @@ Static Function isDisplayed(String LVName)
 		endif
 		trcName = StringFromList(0,TraceNameList(pnlName,";",1))
 		Wave tracew = TraceNameToWaveRef(pnlName,trcName)
-		Wave imgw = SIDAMImageWaveRef(LVName)
+		Wave imgw = SIDAMImageNameToWaveRef(LVName)
 		if (WaveRefsEqual(tracew,imgw))
 			DoWindow/F $pnlName
 			return 1

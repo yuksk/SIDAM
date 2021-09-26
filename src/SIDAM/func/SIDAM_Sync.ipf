@@ -201,9 +201,9 @@ Static Function/S pnlList(String grfName, String key)
 	//	Remove a window if the number of layers is different
 	//	in the case of synclayer
 	if (!CmpStr(key, "sync"))
-		Wave srcw =  SIDAMImageWaveRef(grfName)
+		Wave srcw =  SIDAMImageNameToWaveRef(grfName)
 		for (i = ItemsInList(listStr)-1; i >= 0; i--)
-			Wave/Z w = SIDAMImageWaveRef(StringFromList(i, listStr))
+			Wave/Z w = SIDAMImageNameToWaveRef(StringFromList(i, listStr))
 			if (WaveDims(w) != 3 || DimSize(srcw,2) != DimSize(w,2))
 				listStr = RemoveListItem(i, listStr)
 			endif

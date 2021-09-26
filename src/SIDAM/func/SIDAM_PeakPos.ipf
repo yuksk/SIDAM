@@ -105,7 +105,7 @@ End
 
 Static Function marqueeDo(int mode)
 	String grfName = WinName(0,1)
-	Wave iw = SIDAMImageWaveRef(grfName)
+	Wave iw = SIDAMImageNameToWaveRef(grfName)
 	try
 		Wave posw = SIDAMPeakPos(iw, mode)
 	catch
@@ -139,7 +139,7 @@ Static Function marqueeDo(int mode)
 End
 
 Static Function/S marqueeMenu(int mode)
-	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))	
+	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))	
 	
 	int isComplex = WaveType(w) & 0x01
 	if (!WaveExists(w) || isComplex)

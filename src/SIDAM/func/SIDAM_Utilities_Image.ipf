@@ -134,24 +134,24 @@ Static Function/S getStrFromRecStr(String recStr, String key, String defaultStr)
 	endif
 End
 
-
-//******************************************************************************
-///	SIDAMImageWaveRef
-///	@param grfName
-///		Name of a window.
-///	@param imgName [optional]
-///		Name of an image. The default is the top image of grfName.
-///		If this is given, SIDAMImageWaveRef works as ImageNameToWaveRef 
-///	@param displayed
-///		0 or !0. Set !0 to return a 2D free wave corresponding to the displayed
-///		state (region, plane, imCmplxMode). 
-///	@return
-///		A wave displayed as the top image of grfName, or a free wave which is
-///		a part of a wave displayed as the top image of grfName
-//******************************************************************************
-
-Function/WAVE SIDAMImageWaveRef(String grfName, [String imgName, Variable displayed])
-
+//@
+//	Extension of `ImageNameToWaveRef()`
+//
+//	## Parameters
+//	grfName : string
+//		Name of a window.
+//	imgName : string, default `StringFromList(0, ImageNameList(grfName, ";"))`
+//		Name of an image. The default is the top image in the window.
+//		If this is given, this function works as `ImageNameToWaveRef()`. 
+//	displayed : int {0, !0}
+//		Set !0 to return a 2D free wave of the displaye area, plane, and imCmplxMode.
+//
+//	## Returns
+//	wave
+//		A wave reference to an image in the window, or a free wave which is
+//		a part of a wave shown in the window.
+//@
+Function/WAVE SIDAMImageNameToWaveRef(String grfName, [String imgName, int displayed])
 	if (ParamIsDefault(imgName))
 		imgName = StringFromList(0, ImageNameList(grfName, ";"))
 	endif
@@ -594,7 +594,7 @@ End
 //@
 Function SIDAMGetLayerIndex(String grfName, [Wave/Z w])
 	if (ParamIsDefault(w))
-		Wave/Z w =  SIDAMImageWaveRef(grfName)
+		Wave/Z w =  SIDAMImageNameToWaveRef(grfName)
 	endif
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return NaN
@@ -621,7 +621,7 @@ End
 //@
 Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
 	if (ParamIsDefault(w))
-		Wave/Z w =  SIDAMImageWaveRef(grfName)
+		Wave/Z w =  SIDAMImageNameToWaveRef(grfName)
 	endif
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return 1

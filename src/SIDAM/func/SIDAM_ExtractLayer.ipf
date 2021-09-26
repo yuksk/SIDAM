@@ -20,7 +20,7 @@
 //	Menu items
 //-------------------------------------------------------------
 Static Function/S menu()
-	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return ""
 	endif
@@ -40,7 +40,7 @@ Static Function pnl(String grfName)
 		return 0
 	endif
 	
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	int plane = SIDAMGetLayerIndex(grfName)
 
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,290,195)
@@ -103,7 +103,7 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	TitleBox resultT title=SelectString(WhichListItem(s.ctrlName,"thisC;fromC;"),"output name:","basename"), win=$s.win
 	
 	String parentWin = StringFromList(0, s.win, "#")
-	Wave w = SIDAMImageWaveRef(parentWin)
+	Wave w = SIDAMImageNameToWaveRef(parentWin)
 	int plane = SIDAMGetLayerIndex(parentWin)
 	
 	String name = NameOfWave(w)+"_r"
@@ -158,7 +158,7 @@ End
 Static Function pnlSave(String pnlName)
 	
 	String grfName = StringFromList(0, pnlName, "#")
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
 	ControlInfo/W=$pnlName resultV
 	String result = S_value
@@ -200,7 +200,7 @@ Static Function pnlDisplay(Wave extw, String LVName)
 	String grfName = SIDAMDisplay(extw, history=1)
 	
 	//	Copy the z range
-	Wave srcw = SIDAMImageWaveRef(LVName)
+	Wave srcw = SIDAMImageNameToWaveRef(LVName)
 	Variable zmin, zmax
 	SIDAM_GetColorTableMinMax(LVName, NameOfWave(srcw),zmin,zmax,allowNaN=1)
 	SIDAMRange(grfName=grfName,imgList=NameOfWave(extw),zmin=zmin,zmax=zmax)

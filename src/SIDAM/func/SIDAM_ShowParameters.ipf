@@ -49,7 +49,7 @@ Static Function/S rightclickMenu()
 End
 
 Static Function/DF getSIDAMSettingDFR(String grfName)
-	Wave/Z srcw = SIDAMImageWaveRef(grfName)
+	Wave/Z srcw = SIDAMImageNameToWaveRef(grfName)
 	if (!WaveExists(srcw))
 		Wave/Z srcw = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif

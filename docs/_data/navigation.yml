@@ -34,6 +34,8 @@ commands:
         url: /commands/SIDAMGetLayerIndex/
       - title: "SIDAMHistogram"
         url: /commands/SIDAMHistogram/
+      - title: "SIDAMImageNameToWaveRef"
+        url: /commands/SIDAMImageNameToWaveRef/
       - title: "SIDAMIndexToScale"
         url: /commands/SIDAMIndexToScale/
       - title: "SIDAMInfoBar"

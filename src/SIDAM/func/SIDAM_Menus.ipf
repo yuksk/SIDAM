@@ -233,7 +233,7 @@ Static Function/S menu(String str, [int noComplex, int dim, int forfft])
 	if (!strlen(grfName))
 		return "(" + str
 	endif
-	Wave/Z w = SIDAMImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	if (!WaveExists(w))
 		return "(" + str
 	endif

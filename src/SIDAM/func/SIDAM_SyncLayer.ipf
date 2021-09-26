@@ -62,7 +62,7 @@ Static Function validate(STRUCT paramStruct &s)
 			s.errMsg += "the window list contains a window not found."
 			return 1
 		endif
-		Wave/Z w = SIDAMImageWaveRef(grfName)
+		Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 		if (!WaveExists(w) || WaveDims(w)!=3)
 			s.errMsg += "the window list must contain only LayerViewer."
 			return 1

@@ -334,7 +334,7 @@ End
 Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variable zmax)
 
 	String dfTmp = SIDAMNewDF(StringFromList(0, grfName, "#"),"Range")
-	Wave w = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
+	Wave w = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
 	Duplicate SIDAMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, \
 		bins=BINS) $(dfTmp+HIST)/WAVE=hw
 	Duplicate hw $(dfTmp+HISTCLR)/WAVE=rangew
@@ -484,7 +484,7 @@ Static Function pnlHookParentUpdatePanel(String grfName)
 	//	If the wave selected in the panel is removed from the graph,
 	//	select a new wave in the popupmenu.
 	ControlInfo/W=$pnlName imageP
-	Wave/Z w = SIDAMImageWaveRef(grfName, imgName=S_Value)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName, imgName=S_Value)
 	if (!WaveExists(w))
 		//	This does not work correctly for the panel of Line Profile and
 		//	Line Spectra. But the wave should not be removed from the panel,
@@ -844,7 +844,7 @@ Static Function updatePnlHistogram(String pnlName, int mode)
 	ControlInfo/W=$pnlName imageP
 	String imgName = S_Value
 	String grfName = GetUserData(pnlName, "", "grf")
-	Wave w = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
+	Wave w = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
 
 	Variable z0, z1, zmin, zmax
 	if ( mode == 0 )
@@ -941,7 +941,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 	int m0, Variable v0, int m1, Variable v1)
 
 	if (m0 >= 2 || m1 >= 2)		//	sigma, cut, logsigma
-		Wave tw = SIDAMImageWaveRef(grfName, imgName=imgName, displayed=1)
+		Wave tw = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
 		if (m0 == 2 || m1 == 2)	//	sigma
 			WaveStats/Q tw
 			Variable avg = V_avg, sdev = V_sdev

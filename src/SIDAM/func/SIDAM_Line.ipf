@@ -588,7 +588,7 @@ End
 //	Determine the step size of setvariable, used only for distanceV at present.
 Static Function pnlSetVarIncrement(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(grfName,NameOfWave(w),s)
 	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
@@ -693,7 +693,7 @@ Static Function/S menuTarget()
 
 	for (i = 0, n = ItemsInList(allList); i < n; i += 1)
 		win = StringFromList(i, allList)
-		Wave/Z imgw = SIDAMImageWaveRef(win)
+		Wave/Z imgw = SIDAMImageNameToWaveRef(win)
 		if (!WaveExists(imgw) || DimSize(srcw,0) != DimSize(imgw,0) \
 			|| DimSize(srcw,1) != DimSize(imgw,1))
 				continue

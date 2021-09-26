@@ -298,7 +298,7 @@ Static Function pnl(String grfName, String imgName)
 	Make/N=(1,3)/O $PNL_C
 	Make/T/N=2/O $PNL_T = {"1","2"}
 
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	int i
 
 	NewPanel/K=1/W=(0,0,315,340) as "Line Profile"
@@ -434,7 +434,7 @@ End
 //	layer when a 3D wave is shown.
 Static Function pnlUpdateColor(String pnlName)
 	String grfName = StringFromList(0,GetUserData(pnlName,"","parent"))
-	if (WaveDims(SIDAMImageWaveRef(grfName))==2)
+	if (WaveDims(SIDAMImageNameToWaveRef(grfName))==2)
 		return 0
 	elseif (CmpStr(GetUserData(pnlName,"","highlight"),"1"))
 		return 0
@@ -673,7 +673,7 @@ Static Function outputPnlSetVar(STRUCT WMSetVariableAction &s)
 	endif
 
 	String grfName = GetUserData(StringFromList(0, s.win, "#"),"","parent")
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	int maxlength = (WaveDims(w)==3) ? MAX_OBJ_NAME-3 : MAX_OBJ_NAME
 	int isProperLength = !SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=maxlength)
 	Button doB disable=(!isProperLength)*2, win=$s.win

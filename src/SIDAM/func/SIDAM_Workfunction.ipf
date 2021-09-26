@@ -299,7 +299,7 @@ Static Constant PNLHEIGHT = 155
 Static Function pnl()
 	String grfName = WinName(0,1)
 
-	Wave/Z w = SIDAMImageWaveRef(grfName)	//	for a 3D wave
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)	//	for a 3D wave
 	if (!WaveExists(w))		//	for a 1D wave
 		Wave w = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif

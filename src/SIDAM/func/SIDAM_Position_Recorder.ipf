@@ -267,7 +267,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 				mode = getMode(w)
 			else
 				DFREF dfr = GetDataFolderDFR()
-				SetDataFolder GetWavesDataFolderDFR(SIDAMImageWaveRef(grfName))
+				SetDataFolder GetWavesDataFolderDFR(SIDAMImageNameToWaveRef(grfName))
 				Make/N=0 $UniqueName("pos",1,0)/WAVE=w
 				SetDataFolder dfr
 				PopupMenu newP userData(wave)=GetWavesDataFolder(w,2), win=$s.win

@@ -286,7 +286,7 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 
 	SetActiveSubWindow $StringFromList(0,grfName,"#")
 	
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
 	//	If the anchor is empty, px=0 and py=1, that is LB.
 	int px = s.anchor[0]==82		//	L:0, R:1

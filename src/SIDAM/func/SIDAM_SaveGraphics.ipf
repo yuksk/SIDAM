@@ -18,7 +18,7 @@ Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embe
 Static Function/S menu()
 	int isWindows = stringmatch(IgorInfo(2),"Windows")
 	
-	Wave/Z w = SIDAMImageWaveRef(WinName(0,1))
+	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""
 	endif
@@ -39,7 +39,7 @@ Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,390,390)
 	RenameWindow $grfName#$S_name, SaveGraphics
 	String pnlName = grfName + "#SaveGraphics"
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
 	//	layer
 	GroupBox layerG title="Layer", pos={5,4}, size={380,50}, win=$pnlName
@@ -142,7 +142,7 @@ End
 //******************************************************************************
 Static Function saveGraphics(String pnlName)
 	String parentWin = StringFromList(0, pnlName, "#")
-	Wave w = SIDAMImageWaveRef(parentWin)
+	Wave w = SIDAMImageNameToWaveRef(parentWin)
 	
 	//	collect information from the panel
 	String cmdExtStr = createCmdExtStr(pnlName)

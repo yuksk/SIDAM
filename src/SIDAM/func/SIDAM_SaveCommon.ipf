@@ -158,7 +158,7 @@ Static Function/WAVE getLayers(String pnlName)
 	
 	ControlInfo/W=$pnlName all_rC
 	if (V_Value)
-		Wave w = SIDAMImageWaveRef(grfName)
+		Wave w = SIDAMImageNameToWaveRef(grfName)
 		Make/W/U/FREE rtnw = {0, DimSize(w,2)-1, initIndex}
 	else
 		Wave cw = SIDAMGetCtrlValues(pnlName,"from_f_V;to_f_V")

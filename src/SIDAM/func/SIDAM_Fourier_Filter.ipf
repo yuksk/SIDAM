@@ -288,7 +288,7 @@ ThreadSafe Static Function/WAVE makeMaskHelper(Wave maskw, Wave lw, int index)
 End
 
 Static Function menuDo()
-	pnl(SIDAMImageWaveRef(WinName(0,1)), WinName(0,1))
+	pnl(SIDAMImageNameToWaveRef(WinName(0,1)), WinName(0,1))
 End
 
 

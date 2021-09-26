@@ -385,7 +385,7 @@ Static Function pnl(String LVName)
 		return 0
 	endif
 
-	Wave w = SIDAMImageWaveRef(LVName)
+	Wave w = SIDAMImageNameToWaveRef(LVName)
 	int i
 
 	NewPanel/K=1/W=(0,0,315,340) as NameOfWave(w)

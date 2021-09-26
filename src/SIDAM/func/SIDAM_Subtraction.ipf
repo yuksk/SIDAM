@@ -217,7 +217,7 @@ End
 
 Static Function menuDo()
 	String grfName = WinName(0,4311,1)
-	Wave/Z w = SIDAMImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	if (WaveExists(w))
 		pnl(w, grfName)
 	endif
@@ -225,7 +225,7 @@ End
 
 Static Function marqueeDo()
 	STRUCT paramStruct s
-	Wave s.w = SIDAMImageWaveRef(WinName(0,1,1))
+	Wave s.w = SIDAMImageNameToWaveRef(WinName(0,1,1))
 	Wave s.roi = SIDAMGetMarquee()
 	DeletePoints/M=0 FindDimLabel(s.roi,0,"x"), 2, s.roi
 	s.degree = 1
@@ -235,7 +235,7 @@ Static Function marqueeDo()
 End
 
 Static Function/S marqueeMenu()
-	Wave/Z w = SIDAMImageWaveRef(WinName(0,1,1))
+	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1,1))
 	if (WaveExists(w) && WaveDims(w) == 2)
 		return "plane subtraction about this region"
 	else

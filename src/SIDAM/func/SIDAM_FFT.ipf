@@ -278,7 +278,7 @@ End
 //******************************************************************************
 Static Function pnl(String grfName)
 
-	Wave w = SIDAMImageWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,300,370)/N=FFT
 	String pnlName = grfName+ "#FFT"
 

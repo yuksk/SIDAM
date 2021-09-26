@@ -364,7 +364,7 @@ End
 //==============================================================================
 
 Static Function menuDo()
-	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
+	pnl(SIDAMImageNameToWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 Static Function marqueeDo()
@@ -374,7 +374,7 @@ Static Function marqueeDo()
 	
 	//	Get the peak position
 	String grfName = WinName(0,1)
-	Wave iw = SIDAMImageWaveRef(grfName)
+	Wave iw = SIDAMImageNameToWaveRef(grfName)
 	Wave posw = SIDAMPeakPos(iw, 1)	//	asymmetric Lorentz2D	
 
 	//	Pass the position to the panel

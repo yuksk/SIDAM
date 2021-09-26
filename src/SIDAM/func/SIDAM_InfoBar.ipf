@@ -43,7 +43,7 @@ Function SIDAMInfoBar(String grfName)
 	//	0: name of graph, 1: name of wave, 2: setpoint, 3: displayed size
 	SetWindow $grfName userData(title)="1"
 	
-	Wave/Z w = SIDAMImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	int isNoimage = !WaveExists(w)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
@@ -130,7 +130,7 @@ Static Function setLimits(String pnlName, String indexCtrl, String valueCtrl)
 	
 	int dim
 	if (!CmpStr(indexCtrl, "indexV"))
-		Wave w = SIDAMImageWaveRef(pnlName)
+		Wave w = SIDAMImageNameToWaveRef(pnlName)
 		dim = 2
 	else
 		Wave w = topTraceWaveRef(pnlName)
@@ -193,7 +193,7 @@ Static Function/S menuR(int menuitem)
 			mode = str2num(GetUserData(grfName,"","mode"))
 			String menuStr = SIDAMAddCheckmark(mode, COORDINATESMENU)
 			
-			Wave/Z w = SIDAMImageWaveRef(grfName)
+			Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 			if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
 				//	wave not exists (1D) or the angle setting is not found
 				menuStr = RemoveListItem(3, menuStr)
@@ -301,7 +301,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			return 0
 	endswitch
 	
-	Wave/Z w = SIDAMImageWaveRef(s.winName)
+	Wave/Z w = SIDAMImageNameToWaveRef(s.winName)
 	int is1D = !WaveExists(w) && strlen(TraceNameList(s.winName,";",1))
 	int is2D = WaveExists(w) && WaveDims(w)==2 
 	int is3D = WaveExists(w) && WaveDims(w)==3
@@ -620,7 +620,7 @@ End
 //	This is used in the external files (SIDAM_SpectrumViewer)
 Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 	
-	Wave/Z w = SIDAMImageWaveRef(s.winName)
+	Wave/Z w = SIDAMImageNameToWaveRef(s.winName)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
 	
@@ -712,7 +712,7 @@ Static Function changeCoordinateSetting(int mode)
 	String grfName = WinName(0,1)
 	
 	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
-	Wave/Z w = SIDAMImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
 		//	1D wave or the angle setting is not found.
 		maxMode -= 1
@@ -743,7 +743,7 @@ End
 Static Function changeWindowTitle(int mode)
 	
 	String grfName = WinName(0,1), titleStr
-	Wave/Z w = SIDAMImageWaveRef(grfName)
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	if (!WaveExists(w))	//	1D wave for example
 		return 0
 	elseif (numtype(mode) == 2)
@@ -816,7 +816,7 @@ Static Function pnlSetvalue(STRUCT WMSetVariableAction &s)
 	strswitch (s.ctrlName)
 		case "indexV":
 		case "energyV":
-			Wave w = SIDAMImageWaveRef(s.win)
+			Wave w = SIDAMImageNameToWaveRef(s.win)
 			names = "indexV;energyV"
 			dim = 2
 			break

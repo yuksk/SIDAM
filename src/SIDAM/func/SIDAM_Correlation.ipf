@@ -110,7 +110,7 @@ Static Function/S echoStr(Wave w1, Wave w2, int subtract, int normalize,
 End
 
 Static Function menuDo()
-	pnl(SIDAMImageWaveRef(WinName(0,1)),WinName(0,1))
+	pnl(SIDAMImageNameToWaveRef(WinName(0,1)),WinName(0,1))
 End
 
 
