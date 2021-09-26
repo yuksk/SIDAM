@@ -368,11 +368,15 @@ End
 //	Helper of the panel hook function, keyboard
 //-------------------------------------------------------------
 Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
+	// Igor 8: s.winName is always "Graph0".
+	// Igor 9: s.winName is either "Graph0", "Graph0#line", or "Graph0#image".
+	String pnlName = StringFromList(0, s.winName, "#")
+
 	switch (s.keycode)
 		case 27:	//	esc
 			changeIgorMenuMode(1)
-			SIDAMKillDataFolder($GetUserData(s.winName,"","dfTmp"))
-			KillWindow $s.winName
+			SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
+			KillWindow $pnlName
 			return 0
 
 		case 28:		//	left
@@ -383,9 +387,6 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 			if (!ismoved)
 				return 0
 			endif
-			// Igor 8: s.winName is always "Graph0".
-			// Igor 9: s.winName is either "Graph0", "Graph0#line", or "Graph0#image".
-			String pnlName = StringFromList(0, s.winName, "#")
 			switch (whoCalled(pnlName))
 				case 0:
 					SIDAMLineProfile#pnlHookArrows(pnlName)
@@ -397,43 +398,41 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 			return 1
 
 		case 32:	//	space
-			keySpace(s)
+			keySpace(pnlName)
 			return 1
 
 		case 49:	//	1
 		case 50:	//	2
-			SIDAMClickCheckBox(s.winName,"p"+num2istr(s.keycode-48)+"C")
+			SIDAMClickCheckBox(pnlName,"p"+num2istr(s.keycode-48)+"C")
 			return 1
 
 		case 120:	//	x
-			int isComplex = WaveType($GetUserData(s.winName,"","src")) & 0x01
-			int dim = str2num(GetUserData(s.winName,"","dim"))
-			int cmplxMode
+			int isComplex = WaveType($GetUserData(pnlName,"","src")) & 0x01
 			if (!isComplex)
 				return 1
-			elseif (dim==2)
-				cmplxMode = NumberByKey("imCmplxMode",ImageInfo(s.winName+"#image", "", 0),"=")
-			else
-				cmplxMode = NumberByKey("cmplxMode(x)",TraceInfo(s.winName+"#line", "", 0),"=")
 			endif
-			changeComplex(s.winName, ++cmplxMode)
+			int dim = str2num(GetUserData(pnlName,"","dim"))
+			int cmplxMode = dim==2 \
+				? NumberByKey("imCmplxMode",ImageInfo(pnlName+"#image", "", 0),"=")\
+				: NumberByKey("cmplxMode(x)",TraceInfo(pnlName+"#line", "", 0),"=")
+			changeComplex(pnlName, ++cmplxMode)
 			return 1
 	endswitch
 
 	switch (s.specialKeyCode)
 		case 4:	//	F4
-			if (str2num(GetUserData(s.winName,"","dim"))==2)
-				SIDAMRange(grfName=s.winName+"#image")
+			if (str2num(GetUserData(pnlName,"","dim"))==2)
+				SIDAMRange(grfName=pnlName+"#image")
 				return 1
 			endif
-			return 0
+			break
 
 		case 5:	//	F5
-			if (str2num(GetUserData(s.winName,"","dim"))==2)
-				SIDAMColor(grfName=s.winName+"#image")
+			if (str2num(GetUserData(pnlName,"","dim"))==2)
+				SIDAMColor(grfName=pnlName+"#image")
 				return 1
 			endif
-			return 0
+			break
 	endswitch
 
 	return 0
@@ -496,32 +495,13 @@ End
 //-------------------------------------------------------------
 //	Helper of pnlHookKeyboard, space
 //-------------------------------------------------------------
-Static Function keySpace(STRUCT WMWinHookStruct &s)
-	Variable dim = str2num(GetUserData(s.winName,"","dim"))		//	nan for 2D LineProfile
+Static Function keySpace(String pnlName)
+	Variable dim = str2num(GetUserData(pnlName,"","dim"))		//	nan for 2D LineProfile
 	if (dim == 1)
-		pnlChangeDim(s.winName, 2)
+		pnlChangeDim(pnlName, 2)
 	elseif (dim == 2)
-		pnlChangeDim(s.winName, 1)
+		pnlChangeDim(pnlName, 1)
 	endif
-	return 0
-End
-//-------------------------------------------------------------
-//	Helper of pnlHookKeyboard, function keys
-//-------------------------------------------------------------
-Static Function keySpecial(STRUCT WMWinHookStruct &s)
-	NVAR/SDFR=$GetUserData(s.winName,"","dfTmp") dim
-	if (dim != 2)
-		return 0
-	endif
-
-	switch (s.specialKeyCode)
-		case 4:	//	F4
-			SIDAMRange(grfName=s.winName+"#image")
-			break
-		case 5:	//	F5
-			SIDAMColor(grfName=s.winName+"#image")
-			break
-	endswitch
 	return 0
 End
 //-------------------------------------------------------------
