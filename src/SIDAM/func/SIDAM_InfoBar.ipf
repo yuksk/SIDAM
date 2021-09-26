@@ -4,7 +4,9 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
+#include "SIDAM_LayerAnnotation"
 #include "SIDAM_Range"
+#include "SIDAM_ScaleBar"
 #include "SIDAM_Subtraction"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Image"
@@ -659,6 +661,16 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 50:		//	2
 		case 51:		//	3
 			ModifyGraph/W=$s.winName expand=s.keycode-48
+			return 1
+		case 65:		//	A (shift + a)
+			if (is3D)
+				SIDAMLayerAnnotation#menuDo()
+			endif
+			return 1
+		case 66:		//	B (shift + b)
+			if (is2D || is3D)
+				SIDAMScaleBar#menuDo()
+			endif
 			return 1
 		case 67:		//	C (shift + c)
 			mode = str2num(GetUserData(s.winName,"","mode"))
