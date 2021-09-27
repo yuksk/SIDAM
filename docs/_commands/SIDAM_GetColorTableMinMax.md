@@ -13,11 +13,8 @@ The name of window
 **imgName :** ***string***  
 The name of an image.
 
-**zmin :** ***variable***  
-The minimum value of ctab is returned.
-
-**zmax :** ***variable***  
-The maximum value of ctab is returned.
+**zmin, zmax :** ***variable***  
+The minimum and maximum values of ctab are returned.
 
 **allowNaN :** ***int {0 or !0}, default 0***  
 When `allowNaN` = 0, `zmin` and `zmax` are always numeric as

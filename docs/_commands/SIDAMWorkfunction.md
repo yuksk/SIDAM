@@ -29,7 +29,7 @@ where the input wave is.
 For 1D input wave, a numeric wave is returned.
 For 3D input wave, a wave reference wave is returned.
 In both cases, the result can be referred as follows.
-* work function : `returnwave[%workfunction]`
-* current amplitude : `returnwave[%amplitude]`
-* current offset : `returnwave[%offset]`
-* chi-squared : `returnwave[%chisq]`
+* work function : `wave[%workfunction]`
+* current amplitude : `wave[%amplitude]`
+* current offset : `wave[%offset]`
+* chi-squared : `wave[%chisq]`

@@ -23,7 +23,7 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;"
 //		The roi (region of interest) wave. This has the same number of
 //		rows and columns as the input wave and specifies a region of
 //		interst. Set the pixels to be included in the calculation to 1.
-//		Alternatively, a 2x2 wave specifying the corners of a rectanglar
+//		Alternatively, a 2&#215;2 wave specifying the corners of a rectanglar
 //		roi can be also used.
 //	mode : int {0 -- 3}, default 0
 //		The subtract mode.
@@ -34,14 +34,10 @@ Static StrConstant MODE = "Plane;Line;Layer;Phase;"
 //	degree : int, default = 1 for `mode` = 0, 0 for `mode` = 1
 //		The degree of a subtracted plane/lines.
 //	direction : int {0 or 1}, default 0
-//		The direction of subtraction for `mode` = 1.
-//		* 0: x
-//		* 1: y
+//		The direction of subtraction for `mode` = 1. 0 for x and 1 for y.
 //	method : int {0 or 1}, default 0
-//		This is used for mode=1 to specify what to be subtracted
-//		from each line.
-//		* 0: average
-//		* 1: median
+//		Specify what to be subtracted from each line for `mode` = 1.
+//		0 for average and 1 for median.
 //	index : int, default 0
 //		The layer index for `mode` = 2 and 3
 //
