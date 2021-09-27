@@ -40,7 +40,7 @@ The cheat sheet of shortcuts.
 
 | key | function |
 |:---|:---|
-| <span class="shortcuts_key">F3</span> | Display a graph if a wave is selected, or open a preview panel if no wave is selected |
+| <span class="shortcuts_key">F3</span> | Display a graph if a wave is selected |
 
 ## Point Spectrum
 
