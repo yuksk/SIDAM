@@ -353,7 +353,9 @@ Static Function pnl(String grfName)
 
 	//	Controls (top)
 	PopupMenu imageP pos={7,7},size={235,19},bodyWidth=200,title="image",win=$pnlName
-	PopupMenu imageP proc=SIDAMColor#pnlPopup,value=#"SIDAMColor#imagePvalue()",win=$pnlName
+	String cmdStr = "PopupMenu imageP proc=SIDAMColor#pnlPopup,value="
+	sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
+	Execute/Q cmdStr
 	CheckBox allC pos={258,9},title=" all",value=0,win=$pnlName
 	Button doB pos={310,6},size={70,22},title="Do It",proc=SIDAMColor#pnlButton,win=$pnlName
 	Button cancelB pos={386,6},size={70,22},title="Cancel",proc=SIDAMColor#pnlButton,win=$pnlName
@@ -989,14 +991,6 @@ End
 //******************************************************************************
 //	Helper funcitons for control
 //******************************************************************************
-//-------------------------------------------------------------
-//	Returns string for imageP
-//-------------------------------------------------------------
-Static Function/S imagePvalue()
-	String pnlName = GetUserData(WinName(0,1)+"#Color","","grf")
-	return ImageNameList(pnlName, ";")
-End
-
 //-------------------------------------------------------------
 //	Return a list of images to be modified, depending on
 //	the status of allC

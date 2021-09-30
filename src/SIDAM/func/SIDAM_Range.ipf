@@ -323,7 +323,9 @@ Static Function pnl(String grfName)
 	SetWindow $pnlName userData($MODEKEY)=GetUserData(grfName,"",MODEKEY)
 
 	//	Items which must be here at the last after all things are done.
-	PopupMenu imageP proc=SIDAMRange#pnlPopup,value=#"SIDAMRange#imageListForImageP()",win=$pnlName
+	String cmdStr = "PopupMenu imageP proc=SIDAMRange#pnlPopup,mode=1,value="
+	sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
+	Execute/Q cmdStr
 	resetPnlCtrls(pnlName)
 	
 	SetActiveSubwindow $grfName
@@ -484,9 +486,14 @@ Static Function pnlHookParentUpdatePanel(String grfName)
 	ControlInfo/W=$pnlName imageP
 	Wave/Z w = SIDAMImageWaveRef(grfName, imgName=S_Value)
 	if (!WaveExists(w))
-		PopupMenu imageP value=#"SIDAMRange#imageListForImageP()", mode=1, win=$pnlName
+		//	This does not work correctly for the panel of Line Profile and
+		//	Line Spectra. But the wave should not be removed from the panel,
+		//	so ignore these cases.
+		String cmdStr = "PopupMenu imageP proc=SIDAMRange#pnlPopup,mode=1,value="
+		sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
+		Execute/Q cmdStr		
 	endif
-
+	
 	//	If only one image is shown in the graph, allC is unnecessary.
 	if (ItemsInList(ImageNameList(grfName,";")) < 2)
 		CheckBox allC value=0, disable=1, win=$pnlName
@@ -714,12 +721,6 @@ End
 //******************************************************************************
 //	Helper functions of controls
 //******************************************************************************
-//	Menu contents of imageP
-Static Function/S imageListForImageP()
-	String pnlName = GetUserData(WinName(0,1)+"#"+PNAME,"","grf")
-	return ImageNameList(pnlName, ";")
-End
-
 Static Function revertZmode(String pnlName)
 
 	String grfName = GetUserData(pnlName,"","grf")

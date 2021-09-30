@@ -31,8 +31,8 @@ Static Function pnlCtrls(String pnlName)
 
 	//	Use a guide for a 2D image when line profiles of 2D waves are displayed
 	//	because waterfall plot is not used
-	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
-	DefineGuide/W=$pnlName KMFT={FT, height}
+	Variable height = WaveDims(w)==2 ? CTRLHEIGHT2D : CTRLHEIGHT1D
+	DefineGuide/W=$pnlName SIDAMFT={FT, height}
 
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)
@@ -75,7 +75,7 @@ Static Function drawCtrlBack(String pnlName)
 	SetDrawLayer/W=$pnlName ProgBack
 	SetDrawEnv/W=$pnlName gname=ctrlback, gstart
 	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=abs, fillfgc=(58e3,58e3,58e3), linefgc=(58e3,58e3,58e3), linethick=1
-	DrawRect/W=$pnlName 0,CTRLHEIGHT2D*72/screenresolution,1,CTRLHEIGHT1D*72/screenresolution
+	DrawRect/W=$pnlName 0,CTRLHEIGHT2D,1,CTRLHEIGHT1D
 	SetDrawEnv/W=$pnlName gstop
 	SetDrawLayer/W=$pnlName UserFront
 End
@@ -86,7 +86,7 @@ Static Function pnlChangeDim(String pnlName, int dim)
 	SetWindow $pnlName userData(dim)=num2istr(dim)
 
 	int hideLine = (WaveDims(w)==3 && dim==2) ? 1 : 0
-	Variable height = hideLine ? CTRLHEIGHT2D*72/screenresolution : CTRLHEIGHT1D*72/screenresolution
+	Variable height = hideLine ? CTRLHEIGHT2D : CTRLHEIGHT1D
 
 	if (hideLine)
 		DrawAction/L=ProgBack/W=$pnlName getgroup=ctrlback, delete
@@ -94,7 +94,7 @@ Static Function pnlChangeDim(String pnlName, int dim)
 		drawCtrlBack(pnlName)
 	endif
 
-	DefineGuide/W=$pnlName KMFT={FT, height}
+	DefineGuide/W=$pnlName SIDAMFT={FT, height}
 	SetWindow $pnlName#line hide=hideLine
 	SetWindow $pnlname#image hide=!hideLine
 	DoUpdate/W=$pnlname
@@ -300,10 +300,10 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			//	Show the contextmenu for right-clicking in the control bar.
 			//	GuideInfo below will give an error if the graph region is clicked.
 			//	To prevent this error, confirm the presence of the guide before GuideInfo.
-			if (strsearch(GuideNameList(s.winName,""),"KMFT",0) == -1)
+			if (strsearch(GuideNameList(s.winName,""),"SIDAMFT",0) == -1)
 				return 0
 			endif
-			Variable ctrlbarHeight = NumberByKey("POSITION",GuideInfo(s.winName, "KMFT"))*screenresolution/72
+			Variable ctrlbarHeight = NumberByKey("POSITION",GuideInfo(s.winName, "SIDAMFT"))
 			int inCtrlbar = s.mouseLoc.v < ctrlbarHeight
 			int isRightClick = s.eventMod & 16
 			if (!inCtrlbar || !isRightClick)
@@ -620,7 +620,7 @@ Static Function/S menu(int mode)
 		return ""
 	endif
 
-	String pnlName = WinName(0,1)
+	String pnlName = WinName(0,64)
 	Variable dim = str2num(GetUserData(pnlName,"","dim"))	//	nan for 2D
 
 	switch (mode)

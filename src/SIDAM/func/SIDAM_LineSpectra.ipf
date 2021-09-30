@@ -388,7 +388,7 @@ Static Function pnl(String LVName)
 	Wave w = SIDAMImageWaveRef(LVName)
 	int i
 
-	Display/K=1/W=(0,0,315*72/screenresolution,340*72/screenresolution) as NameOfWave(w)
+	NewPanel/K=1/W=(0,0,315,340) as NameOfWave(w)
 	String pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName
 
@@ -420,14 +420,14 @@ Static Function pnl(String LVName)
 
 	//	For the waterfall plot
 	if (SIDAMisUnevenlySpacedBias(w))
-		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {$PNL_B1,*}
+		Newwaterfall/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {$PNL_B1,*}
 	else
-		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
+		Newwaterfall/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
 	endif
 	pnlModifyGraph(pnlName+"#line")
 
 	//	For the image plot
-	Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
+	Display/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
 	if (SIDAMisUnevenlySpacedBias(w))
 		AppendImage/W=$pnlName#image $PNL_W vs {$PNL_B2, *}
 	else
@@ -470,8 +470,8 @@ Static Function pnlResetParent(String prtName, String chdName)
 End
 
 Static Function pnlModifyGraph(String pnlName)
-	ModifyGraph/W=$pnlName margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
-	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
+	ModifyGraph/W=$pnlName margin(top)=10,margin(right)=10,margin(bottom)=40,margin(left)=48
+	ModifyGraph/W=$pnlName tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=12
 	ModifyGraph/W=$pnlName rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 	Label/W=$pnlName bottom "\\u"
 	Label/W=$pnlName left "\\u"
@@ -648,10 +648,10 @@ Menu "SIDAMLineSpectraMenu", dynamic, contextualmenu
 		SIDAMLine#menu(3), SIDAMLineSpectra#panelMenuDo(3)
 		SIDAMLine#menu(4), SIDAMLineSpectra#panelMenuDo(4)
 	End
-	"Save...", SIDAMLineSpectra#outputPnl(WinName(0,1))
+	"Save...", SIDAMLineSpectra#outputPnl(WinName(0,64))
 	"-"
-	SIDAMLine#menu(7),/Q, SIDAMRange(grfName=WinName(0,1)+"#image")
-	SIDAMLine#menu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
+	SIDAMLine#menu(7),/Q, SIDAMRange(grfName=WinName(0,64)+"#image")
+	SIDAMLine#menu(8),/Q, SIDAMColor(grfName=WinName(0,64)+"#image")
 End
 
 Static Function/S panelMenu()
@@ -661,13 +661,13 @@ Static Function/S panelMenu()
 		return ""
 	endif
 
-	String pnlName = WinName(0,1)
+	String pnlName = WinName(0,64)
 	int mode = str2num(GetUserData(pnlName,"","mode"))
 	return SIDAMAddCheckmark(mode, "Raw data;Interpolate;ImageLineProfile")
 End
 
 Static Function panelMenuDo(int kind)
-	String pnlName = WinName(0,1)
+	String pnlName = WinName(0,64)
 	String grfName = GetUserData(pnlName,"","parent")
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 

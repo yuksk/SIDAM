@@ -301,7 +301,7 @@ Static Function pnl(String grfName, String imgName)
 	Wave w = SIDAMImageWaveRef(grfName)
 	int i
 
-	Display/K=1/W=(0,0,315*72/screenresolution,340*72/screenresolution) as "Line Profile"
+	NewPanel/K=1/W=(0,0,315,340) as "Line Profile"
 	String pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 
@@ -326,22 +326,22 @@ Static Function pnl(String grfName, String imgName)
 	//	Get line profiles for the default values
 	pnlUpdateLineProfile(pnlName)
 	pnlUpdateTextmarker(pnlName)
-	pnlUpdatePos(pnlName)
 
 	//	For the waterfall plot
 	if (WaveDims(w)==2)
-		Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
+		Display/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
 	elseif (SIDAMisUnevenlySpacedBias(w))
-		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {*, $PNL_B1}
+		Newwaterfall/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W vs {*, $PNL_B1}
 	else
-		Newwaterfall/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
+		Newwaterfall/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=line $PNL_W
 	endif
 	pnlStyle(pnlName+"#line")
+	pnlUpdatePos(pnlName+"#line")
 	pnlUpdateColor(pnlName)
-
+	
 	//	For the image plot
 	if (WaveDims(w)==3)
-		Display/FG=(FL,KMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
+		Display/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
 		if (SIDAMisUnevenlySpacedBias(w))
 			AppendImage/W=$pnlName#image $PNL_W vs {*, $PNL_B2}
 		else
@@ -361,8 +361,8 @@ End
 
 Static Function pnlStyle(String plotArea)
 
-	ModifyGraph/W=$plotArea margin(top)=8,margin(right)=8,margin(bottom)=36,margin(left)=44
-	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=10
+	ModifyGraph/W=$plotArea margin(top)=10,margin(right)=10,margin(bottom)=40,margin(left)=48
+	ModifyGraph/W=$plotArea tick=0,btlen=5,mirror=0,lblMargin=2, gfSize=12
 	ModifyGraph/W=$plotArea rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 	Label/W=$plotArea bottom "Scaling Distance (\\u\M)"
 	Label/W=$plotArea left "\\u"
@@ -382,7 +382,7 @@ Static Function pnlStyle(String plotArea)
 End
 
 Static Function pnlUpdatePos(String pnlName)
-	Wave/SDFR=$GetUserData(pnlName,"","dfTmp") w = $PNL_W
+	Wave/SDFR=$GetUserData(StringFromList(0,pnlName,"#"),"","dfTmp") w = $PNL_W
 	String strL = SelectString(DimDelta(w,0)>0, "pos 2", "pos 1")
 	String strR = SelectString(DimDelta(w,0)>0, "pos 1", "pos 2")
 
@@ -391,11 +391,11 @@ Static Function pnlUpdatePos(String pnlName)
 	SetDrawEnv/W=$pnlName gname=$KEY, gstart
 	
 	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
-	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, fstyle=2, fsize=10
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, fstyle=2, fsize=12
 	DrawText/W=$pnlName 0.03, 0.99, strL
 	
 	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
-	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, textxjust=2, fstyle=2, fsize=10
+	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, textxjust=2, fstyle=2, fsize=12
 	DrawText/W=$pnlName 0.97, 0.99, strR
 	
 	SetDrawEnv/W=$pnlName gstop
@@ -545,14 +545,14 @@ Menu "SIDAMLineProfileMenu", dynamic, contextualmenu
 		SIDAMLine#menu(3), SIDAMLineProfile#panelMenuDo(3)
 		SIDAMLine#menu(4), SIDAMLineProfile#panelMenuDo(4)
 	End
-	"Save...", SIDAMLineProfile#outputPnl(WinName(0,1))
+	"Save...", SIDAMLineProfile#outputPnl(WinName(0,64))
 	"-"
-	SIDAMLine#menu(7),/Q, SIDAMRange(grfName=WinName(0,1)+"#image")
-	SIDAMLine#menu(8),/Q, SIDAMColor(grfName=WinName(0,1)+"#image")
+	SIDAMLine#menu(7),/Q, SIDAMRange(grfName=WinName(0,64)+"#image")
+	SIDAMLine#menu(8),/Q, SIDAMColor(grfName=WinName(0,64)+"#image")
 End
 
 Static Function panelMenuDo(int mode)
-	String pnlName = WinName(0,1)
+	String pnlName = WinName(0,64)
 	int grid = str2num(GetUserData(pnlName,"","grid"))
 
 	switch (mode)
