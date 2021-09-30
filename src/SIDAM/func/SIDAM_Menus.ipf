@@ -60,7 +60,7 @@ Menu "SIDAM", dynamic
 		SIDAMDisplay#menu(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
 		help = {"Display a 2D wave as xy-traces"}
 		
-		SIDAMInfoBar#menu()+"/F8", /Q, SIDAMInfoBar("")
+		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
 
@@ -114,16 +114,106 @@ End
 
 
 //******************************************************************************
-//	Definition of right-click menu for 2D/3D waves
+//	conditional menu
 //******************************************************************************
-Menu "SIDAMMenu2D3D", dynamic, contextualmenu
+Static Function/S menu(String str, [int noComplex, int dim, int forfft])
+	noComplex = ParamIsDefault(noComplex) ? 0 : noComplex
+
+	String grfName = WinName(0,1)
+	if (!strlen(grfName))
+		return "(" + str
+	endif
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
+	if (!WaveExists(w))
+		return "(" + str
+	endif
+
+	//	return empty for 2D waves
+	if (!ParamIsDefault(dim) && dim==3 && WaveDims(w)!=3)
+		return ""
+	endif
+
+	//	gray out for complex waves
+	if (noComplex)
+		return SelectString((WaveType(w) & 0x01), "", "(") + str
+	endif
+
+	//	gray out for waves which are not for FFT
+	if (!ParamIsDefault(forfft) && forfft)
+		//	When a big wave is contained an experiment file, SIDAMValidateWaveforFFT may
+		// make the menu responce slow. Therefore, use SIDAMValidateWaveforFFT only if
+		//	the wave in a window has been modified since the last menu call.
+		Variable grfTime = str2num(GetUserData(grfName, "", "modtime"))
+		Variable wTime = NumberByKey("MODTIME", WaveInfo(w, 0))
+		Variable fftavailable = str2num(GetUserData(grfName, "", "fftavailable"))
+		int noRecord = numtype(grfTime) || numtype(fftavailable)
+		int isModified = wTime > grfTime
+		if (isModified || noRecord)
+			fftavailable = !SIDAMValidateWaveforFFT(w)
+			SetWindow $grfName userData(modtime)=num2istr(wTime)
+			SetWindow $grfName userData(fftavailable)=num2istr(fftavailable)
+		endif
+		return SelectString(fftavailable, "(", "") + str
+	endif
+
+	return str
+End
+
+//******************************************************************************
+//	Show a custom control for the menu
+//******************************************************************************
+Function SIDAMMenuCtrl(String pnlName, String menuName)
+	CustomControl menuCC title="\u2630", pos={2,2}, size={18,18}, frame=0, win=$pnlName
+	CustomControl menuCC userData(menu)=menuName, win=$pnlName
+	CustomControl menuCC proc=SIDAMMenus#ctrlAction, focusRing=0, win=$pnlName
+End
+
+Static Function ctrlAction(STRUCT WMCustomControlAction &s)
+	if (s.eventCode != 1)
+		return 0
+	endif
+
+	strswitch (s.ctrlName)
+		case "menuCC":
+			if (!strlen(GetUserData(s.win, s.ctrlName, "on")))
+				CustomControl $s.ctrlName frame=3, userData(on)="1", win=$s.win
+				ControlInfo/W=$s.win kwControlBar
+				Variable barHeight = V_Height
+				ControlInfo/W=$s.win $s.ctrlName
+				//	When the menu control is shown in Line Profile or Line Spectra
+				//	barHeight = 0 and it's okay.
+				PopupContextualMenu/N/C=(V_left, V_top+V_Height-barHeight) GetUserData(s.win, s.ctrlName, "menu")
+			endif
+			CustomControl $s.ctrlName frame=0, userData(on)="", win=$s.win
+			break
+	endswitch
+End
+
+//******************************************************************************
+//	Definition of graph marquee menu
+//******************************************************************************
+Menu "GraphMarquee", dynamic
+	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
+	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
+	Submenu "Get peak"
+		SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
+		SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
+	End
+End
+
+//******************************************************************************
+//	Definitions of menus in panels
+//******************************************************************************
+//	If SIDAMInfobarMenu2D3D and SIDAMInfobarMenu1D are written in
+//	SIDAMInfobar.ipf, the order of menu items is somehow screwed up
+Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	//	Range
 	SubMenu "Range"
 		help = {"Adjust of z range of images in the active graph."}
 		"Manual.../F4",/Q, SIDAMRange()
 		"-"
-		SIDAMRange#menu(2), /Q, SIDAMRange#menuDo(2)
-		SIDAMRange#menu(3), /Q, SIDAMRange#menuDo(3)
+		SIDAMRange#menuItem(2), /Q, SIDAMRange#menuDo(2)
+		SIDAMRange#menuItem(3), /Q, SIDAMRange#menuDo(3)
 	End
 
 	"Color Table.../F5",/Q, SIDAMColor()
@@ -137,31 +227,31 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 		SIDAMMenus#menu("Sync Axis Range..."), /Q, SIDAMSyncAxisRange#menuDo()
 		help = {"Syncronize axis range"}
 		//	Sync Cursors
-		SIDAMSyncCursor#menu(), /Q, SIDAMSyncCursor#menuDo()
+		SIDAMSyncCursor#menuItem(), /Q, SIDAMSyncCursor#menuDo()
 		help = {"Synchronize cursor positions in graphs showing images"}
 	End
 
 	SubMenu "Window"
 		SubMenu "Coordinates"
-			SIDAMInfoBar#menuR(0), /Q,  SIDAMInfoBar#menuRDo(0)
+			SIDAMInfoBar#menuItem(0), /Q,  SIDAMInfoBar#menuDo(0)
 		End
 		SubMenu "Title"
-			SIDAMInfoBar#menuR(1), /Q,  SIDAMInfoBar#menuRDo(1)
+			SIDAMInfoBar#menuItem(1), /Q,  SIDAMInfoBar#menuDo(1)
 		End
 		SubMenu "Complex"
-			SIDAMInfoBar#menuR(3), /Q,  SIDAMInfoBar#menuRDo(3)
+			SIDAMInfoBar#menuItem(3), /Q,  SIDAMInfoBar#menuDo(3)
 		End
 		"Scale Bar...", /Q, SIDAMScaleBar#menuDo()
 		SIDAMMenus#menu("Layer Annotation...",dim=3), /Q, SIDAMLayerAnnotation#menuDo()
 		//	Show/Hide Axis
-		SIDAMInfoBar#menuR(2), /Q, SIDAMInfoBar#menuRDo(2)
+		SIDAMInfoBar#menuItem(2), /Q, SIDAMInfoBar#menuDo(2)
 		help = {"Show/Hide labels of the graph."}
 	End
 
 	SubMenu "\\M0Save/Export Graphics"
 		"Save Graphics...", DoIgorMenu "File", "Save Graphics"
-		SIDAMSaveGraphics#menu(), /Q, SIDAMSaveGraphics#menuDo()
-		SIDAMSaveMovie#menu(), /Q, SIDAMSaveMovie#menuDo()
+		SIDAMSaveGraphics#menuItem(), /Q, SIDAMSaveGraphics#menuDo()
+		SIDAMSaveMovie#menuItem(), /Q, SIDAMSaveMovie#menuDo()
 
 		"-"
 
@@ -209,9 +299,9 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"Position Recorder", /Q, SIDAMPositionRecorder("")
 	//	Extract Layers of LayerViewer
-	SIDAMExtractLayer#menu(), /Q, SIDAMExtractLayer#menuDo()
+	SIDAMExtractLayer#menuItem(), /Q, SIDAMExtractLayer#menuDo()
 	//	"Data Parameters"
-	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
+	SIDAMShowParameters#menuItem(), /Q, SIDAMShowParameters()
 
 
 	"-"
@@ -223,57 +313,8 @@ Menu "SIDAMMenu2D3D", dynamic, contextualmenu
 
 	"Close Infobar", /Q, SIDAMInfoBar(WinName(0,1))
 End
-//-------------------------------------------------------------
-//	conditional menu
-//-------------------------------------------------------------
-Static Function/S menu(String str, [int noComplex, int dim, int forfft])
-	noComplex = ParamIsDefault(noComplex) ? 0 : noComplex
 
-	String grfName = WinName(0,1)
-	if (!strlen(grfName))
-		return "(" + str
-	endif
-	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
-	if (!WaveExists(w))
-		return "(" + str
-	endif
-
-	//	return empty for 2D waves
-	if (!ParamIsDefault(dim) && dim==3 && WaveDims(w)!=3)
-		return ""
-	endif
-
-	//	gray out for complex waves
-	if (noComplex)
-		return SelectString((WaveType(w) & 0x01), "", "(") + str
-	endif
-
-	//	gray out for waves which are not for FFT
-	if (!ParamIsDefault(forfft) && forfft)
-		//	When a big wave is contained an experiment file, SIDAMValidateWaveforFFT may
-		// make the menu responce slow. Therefore, use SIDAMValidateWaveforFFT only if
-		//	the wave in a window has been modified since the last menu call.
-		Variable grfTime = str2num(GetUserData(grfName, "", "modtime"))
-		Variable wTime = NumberByKey("MODTIME", WaveInfo(w, 0))
-		Variable fftavailable = str2num(GetUserData(grfName, "", "fftavailable"))
-		int noRecord = numtype(grfTime) || numtype(fftavailable)
-		int isModified = wTime > grfTime
-		if (isModified || noRecord)
-			fftavailable = !SIDAMValidateWaveforFFT(w)
-			SetWindow $grfName userData(modtime)=num2istr(wTime)
-			SetWindow $grfName userData(fftavailable)=num2istr(fftavailable)
-		endif
-		return SelectString(fftavailable, "(", "") + str
-	endif
-
-	return str
-End
-
-
-//******************************************************************************
-//	Definition of right-click menu for 1D waves
-//******************************************************************************
-Menu "SIDAMMenu1D", dynamic, contextualmenu
+Menu "SIDAMInfobarMenu1D", dynamic, contextualmenu
 	//	Trace
 	"Offset and Color...", /Q, SIDAMTrace#menuDo()
 	help = {"Set offset of traces in the top graph."}
@@ -286,10 +327,10 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	SubMenu "Window"
 		SubMenu "Coordinates"
-			SIDAMInfoBar#menuR(0), /Q,  SIDAMInfoBar#menuRDo(0)
+			SIDAMInfoBar#menuItem(0), /Q,  SIDAMInfoBar#menuDo(0)
 		End
 		SubMenu "Complex"
-			SIDAMInfoBar#menuR(4), /Q,  SIDAMInfoBar#menuRDo(4)
+			SIDAMInfoBar#menuItem(4), /Q,  SIDAMInfoBar#menuDo(4)
 		End
 	End
 
@@ -310,7 +351,7 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 	"-"
 
 	//	"Data Parameters"
-	SIDAMShowParameters#rightclickMenu(), /Q, SIDAMShowParameters()
+	SIDAMShowParameters#menuItem(), /Q, SIDAMShowParameters()
 
 	"-"
 
@@ -321,17 +362,3 @@ Menu "SIDAMMenu1D", dynamic, contextualmenu
 
 	"Close Infobar", /Q, SIDAMInfoBar(WinName(0,1))
 End
-
-
-//******************************************************************************
-//	Definition of graph marquee menu
-//******************************************************************************
-Menu "GraphMarquee", dynamic
-	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
-	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
-	Submenu "Get peak"
-		SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
-		SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
-	End
-End
-

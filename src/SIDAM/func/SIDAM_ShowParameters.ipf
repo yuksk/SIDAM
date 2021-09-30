@@ -39,7 +39,7 @@ Function SIDAMShowParameters()
 	SetActiveSubwindow $grfName
 End
 
-Static Function/S rightclickMenu()
+Static Function/S menuItem()
 	String grfName = WinName(0,1)
 	if (!strlen(grfName))
 		return ""

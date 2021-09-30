@@ -301,7 +301,7 @@ Static Function pnl(String grfName, String imgName)
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	int i
 
-	NewPanel/K=1/W=(0,0,315,340) as "Line Profile"
+	NewPanel/K=1/W=(0,0,288,340) as "Line Profile"
 	String pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 
@@ -317,8 +317,8 @@ Static Function pnl(String grfName, String imgName)
 		SetWindow $pnlName userData(highlight)="1"
 	endif
 
-	SIDAMLine#pnlCtrls(pnlName)
-	SetVariable widthV title="width", pos={208,4}, size={101,15}, format="%.2f", win=$pnlName
+	SIDAMLine#pnlCtrls(pnlName, "SIDAMLineProfileMenu")
+	SetVariable widthV title="w:", pos={195,4}, size={86,18}, format="%.2f", win=$pnlName
 	SetVariable widthV limits={0,inf,0.1}, value=_NUM:0, bodyWidth=70, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V;distanceV;angleV;widthV" proc=SIDAMLineProfile#pnlSetVar, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
@@ -529,7 +529,7 @@ End
 
 
 //******************************************************************************
-//	Menu for right-clike
+//	Menu
 //******************************************************************************
 Menu "SIDAMLineProfileMenu", dynamic, contextualmenu
 	SubMenu "Positions"

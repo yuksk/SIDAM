@@ -388,7 +388,7 @@ Static Function pnl(String LVName)
 	Wave w = SIDAMImageNameToWaveRef(LVName)
 	int i
 
-	NewPanel/K=1/W=(0,0,315,340) as NameOfWave(w)
+	NewPanel/K=1/W=(0,0,288,340) as NameOfWave(w)
 	String pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName
 
@@ -410,7 +410,7 @@ Static Function pnl(String LVName)
 	SetWindow $pnlName userData(key)=KEY
 	SetWindow $pnlName userData(dfTmp)=dfTmp
 
-	SIDAMLine#pnlCtrls(pnlName)
+	SIDAMLine#pnlCtrls(pnlName, "SIDAMLineSpectraMenu")
 	ModifyControlList "p1V;q1V;p2V;q2V;distanceV;angleV" proc=SIDAMLineSpectra#pnlSetVar, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
@@ -626,7 +626,7 @@ End
 
 
 //******************************************************************************
-//	Menu for right-clike
+//	Menu
 //******************************************************************************
 Menu "SIDAMLineSpectraMenu", dynamic, contextualmenu
 	SubMenu "Positions"
@@ -655,8 +655,8 @@ Menu "SIDAMLineSpectraMenu", dynamic, contextualmenu
 End
 
 Static Function/S panelMenu()
-	//	Do nothing unless called from pnlHook() in SIDAM_Line.ipf
-	String calling = "pnlHook,SIDAM_Line.ipf"
+	//	Do nothing unless called from ctrlAction in SIDAM_Menus.ipf
+	String calling = "ctrlAction,SIDAM_Menus.ipf"
 	if (strsearch(GetRTStackInfo(3),calling,0))
 		return ""
 	endif

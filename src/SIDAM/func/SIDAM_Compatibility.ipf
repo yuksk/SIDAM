@@ -142,5 +142,17 @@ Static Function updateWindow()
 		if (abs(V_flag) == 5)
 			SetVariable energyV proc=SIDAMInfoBar#pnlSetvalue, win=$grfName
 		endif
+
+		//	If the menu icon is not shown, close the infobar and open again
+		//	to show the menu icon.
+		ControlInfo/W=$grfName menuCC
+		int isNoIcon = !V_flag
+		ControlInfo/W=$grfName xyT
+		int isInfobar = V_flag == 10
+		if (isInfobar && isNoIcon)
+			SIDAMInfoBar(grfName)
+			SIDAMInfoBar(grfName)
+		endif
+
 	endfor
 End

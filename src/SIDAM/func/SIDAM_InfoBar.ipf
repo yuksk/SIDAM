@@ -5,6 +5,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
 #include "SIDAM_LayerAnnotation"
+#include "SIDAM_Menus"
 #include "SIDAM_Range"
 #include "SIDAM_ScaleBar"
 #include "SIDAM_Subtraction"
@@ -70,18 +71,19 @@ Function SIDAMInfoBar(String grfName)
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder GetWavesDataFolderDFR(w)
 
+	SIDAMMenuCtrl(grfName,SelectString(is2D||is3D, "SIDAMInfobarMenu1D", "SIDAMInfobarMenu2D3D"))
+	
 	if (isNoimage)
-		TitleBox xyT pos={4,ctrlHeight-18}, frame=0, win=$grfName
+		TitleBox xyT pos={isTrace2D?4:23,ctrlHeight-18}, frame=0, win=$grfName
 	else
-		//	To adjust the position, empty title must be given
-		TitleBox pqT title=" ", frame=0, win=$grfName
+		TitleBox pqT pos={is3D?4:23,5}, frame=0, win=$grfName
 		TitleBox xyT frame=0, win=$grfName
 		TitleBox zT frame=0, win=$grfName
 	endif
 
 	if (is3D)
 		int layer = SIDAMGetLayerIndex(grfName)
-		SetVariable indexV title="index:", pos={3,5}, size={96,18}, win=$grfName
+		SetVariable indexV title="index:", pos={23,5}, size={96,18}, win=$grfName
 		SetVariable indexV value=_NUM:layer, format="%d", win=$grfName
 		SetVariable energyV title="value:", value=_NUM:SIDAMIndexToScale(w,layer,2), win=$grfName
 		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, win=$grfName
@@ -94,7 +96,7 @@ Function SIDAMInfoBar(String grfName)
 		int pq = tracepq(grfName)
 		int index = getTraceIndex(grfName)
 		SetVariable pqV title=SelectString(pq,"p:","q:"), win=$grfName
-		SetVariable pqV pos={3,5}, value=_NUM:index, format="%d", win=$grfName
+		SetVariable pqV pos={23,5}, size={74,18}, value=_NUM:index, format="%d", win=$grfName
 		SetVariable xyV title=SelectString(pq,"x:","y:"), win=$grfName
 		SetVariable xyV value=_NUM:IndexToScale(w,index,pq), win=$grfName
 		ModifyControlList "pqV;xyV" bodyWidth=60, focusRing=0, win=$grfName
@@ -171,19 +173,16 @@ Static Function closeInfoBar(String pnlName)
 End
 
 //-------------------------------------------------------------
-//	Menu items
+//	Menu
 //-------------------------------------------------------------
-Static Function/S menu()
+Static Function/S mainMenuItem()
 	return SelectString(canInfoBarShown(WinName(0,1,1)), "(", "")+"Information Bar"
 End
 
-Static Function/S menuR(int menuitem)
+Static Function/S menuItem(int menuitem)
 	
 	String grfName = WinName(0,1)
 	if (!strlen(grfName))
-		return ""
-	elseif (strsearch(GetRTStackInfo(3),"hook,SIDAM_InfoBar.ipf",0) == -1)
-		//	Unless called by a right-click
 		return ""
 	endif
 	
@@ -265,7 +264,7 @@ Static Function isContainedComplexWave(String grfName, int dim)
 	return WaveMax(tw)
 End
 
-Static Function/S menuRDo(int mode)
+Static Function/S menuDo(int mode)
 	GetLastUserMenuInfo
 	switch (mode)
 		case 0:	//	coordinates
@@ -324,19 +323,6 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 	int plane
 
 	switch (s.eventCode)
-			
-		case 3:	//	mousedown
-			GetWindow $s.winName, wsizeDC
-			if (s.mouseLoc.v < V_top && s.eventMod & 16)
-				//	right click in the control bar
-				if (is1D)
-					PopupContextualMenu/N/ASYN "SIDAMMenu1D"
-				elseif (is2D || is3D)
-					PopupContextualMenu/N/ASYN "SIDAMMenu2D3D"
-				endif
-				return 1
-			endif
-			return 0
 			
 		case 4:	//	mouse move
 			if (!(s.eventMod&0x02))	//	unless the shift key is pressed
@@ -867,7 +853,6 @@ Static Function pnlSetvalue(STRUCT WMSetVariableAction &s)
 			break
 	endswitch
 End
-
 
 //-------------------------------------------------------------
 //	Trace utilities

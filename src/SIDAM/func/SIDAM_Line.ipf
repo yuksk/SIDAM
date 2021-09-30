@@ -5,6 +5,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_LineProfile"
 #include "SIDAM_LineSpectra"
+#include "SIDAM_Menus"
 #include "SIDAM_Range"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -23,7 +24,7 @@ Static Constant CTRLHEIGHT2D = 70
 //	Panel controls
 //==============================================================================
 //	Create the panel controls
-Static Function pnlCtrls(String pnlName)
+Static Function pnlCtrls(String pnlName, String menuName)
 
 	Wave w = $GetUserData(pnlName,"","src")
 	int nx = DimSize(w,0), ny = DimSize(w,1)
@@ -44,24 +45,26 @@ Static Function pnlCtrls(String pnlName)
 	Variable distance = sqrt((p1-p2)^2*dx^2+(q1-q2)^2*dy^2)
 	Variable angle = atan2((q2-q1)*dy,(p2-p1)*dx)/pi*180
 
-	CheckBox p1C title="start (1)", pos={11,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
+	SIDAMMenuCtrl(pnlName, menuName)
+
+	CheckBox p1C title="start (1)", pos={31,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p1V title="p1:", pos={12,25}, value=_NUM:p1, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q1V title="q1:", pos={12,46}, value=_NUM:q1, limits={0,ny-1,1}, win=$pnlName
 
-	CheckBox p2C title="end (2)", pos={97,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
+	CheckBox p2C title="end (2)", pos={119,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p2V title="p2:", pos={101,25}, value=_NUM:p2, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q2V title="q2:", pos={101,46}, value=_NUM:q2, limits={0,ny-1,1}, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" size={73,16}, bodyWidth=55, format="%d", win=$pnlName
 
-	SetVariable distanceV title="distance:", pos={188,25}, size={121,16}, value=_NUM:distance, bodyWidth=70, win=$pnlName
-	SetVariable angleV title="angle:", pos={206,46}, size={103,15}, value=_NUM:angle, bodyWidth=70, win=$pnlName
+	SetVariable distanceV title="\u2113:", pos={192,25}, size={89,18}, value=_NUM:distance, bodyWidth=70, win=$pnlName
+	SetVariable angleV title="\u03b8:", pos={197,46}, size={84,18}, value=_NUM:angle, bodyWidth=70, win=$pnlName
 	pnlSetVarIncrement(pnlName)
 
 	if (WaveDims(w) == 3)
 		TitleBox waterT title="waterfall", pos={11,76}, frame=0, win=$pnlName
 		SetVariable axlenV title="axlen:", pos={69,74}, size={90,18}, bodyWidth=55, win=$pnlName
 		SetVariable axlenV value=_NUM:0.5, limits={0.1,0.9,0.01}, proc=SIDAMLine#pnlSetVarAxlen, win=$pnlName
-		CheckBox hiddenC title="hidden", pos={173,76}, value=0, proc=SIDAMLine#pnlCheck, win=$pnlName
+		CheckBox hiddenC title="hidden", pos={173,75}, value=0, proc=SIDAMLine#pnlCheck, win=$pnlName
 		drawCtrlBack(pnlName)
 	endif
 
@@ -295,23 +298,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			//	is left here instead being moved to the parent hook function.
 			SIDAMKillDataFolder($GetUserData(s.winName,"","dfTmp"))
 			return 0
-
-		case 3:	//	mousedown
-			//	Show the contextmenu for right-clicking in the control bar.
-			//	GuideInfo below will give an error if the graph region is clicked.
-			//	To prevent this error, confirm the presence of the guide before GuideInfo.
-			if (strsearch(GuideNameList(s.winName,""),"SIDAMFT",0) == -1)
-				return 0
-			endif
-			Variable ctrlbarHeight = NumberByKey("POSITION",GuideInfo(s.winName, "SIDAMFT"))
-			int inCtrlbar = s.mouseLoc.v < ctrlbarHeight
-			int isRightClick = s.eventMod & 16
-			if (!inCtrlbar || !isRightClick)
-				return 0
-			endif
-			String menuNames = "SIDAMLineProfileMenu;SIDAMLineSpectraMenu;"
-			PopupContextualMenu/N StringFromList(whoCalled(s.winName),menuNames)
-			return 1
 
 		case 11:	//	keyboard
 			return pnlHookKeyboard(s)
@@ -610,17 +596,15 @@ Static Function pnlSetVarAxlen(STRUCT WMSetVariableAction &s)
 End
 
 //==============================================================================
-//	for right-click
+//	for menu
 //==============================================================================
 //	menu items
 Static Function/S menu(int mode)
-	//	Quit unless called from pnlHook()
-	String calling = "pnlHook,SIDAM_Line.ipf"
-	if (strsearch(GetRTStackInfo(3),calling,0))
+	String pnlName = WinName(0,64)
+	if (!strlen(pnlName))
 		return ""
 	endif
-
-	String pnlName = WinName(0,64)
+	
 	Variable dim = str2num(GetUserData(pnlName,"","dim"))	//	nan for 2D
 
 	switch (mode)

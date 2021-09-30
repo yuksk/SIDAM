@@ -4,6 +4,7 @@
 
 #include "SIDAM_InfoBar"
 #include "SIDAM_Line"
+#include "SIDAM_Menus"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -53,8 +54,10 @@ Static Function pnl(String LVName)
 	ModifyGraph/W=$pnlName rgb=(SIDAM_WINDOW_LINE_R, SIDAM_WINDOW_LINE_G, SIDAM_WINDOW_LINE_B)
 
 	ControlBar 48
-	SetVariable pV title="p:", pos={5,6}, value=_NUM:0, win=$pnlName
-	SetVariable qV title="q:", pos={85,6}, value=_NUM:0, win=$pnlName
+	SIDAMMenuCtrl(pnlName, "SIDAMSpectrumViewerMenu")
+				
+	SetVariable pV title="p:", pos={25,6}, value=_NUM:0, win=$pnlName
+	SetVariable qV title="q:", pos={105,6}, value=_NUM:0, win=$pnlName
 	TitleBox xyT pos={4,30}, frame=0, win=$pnlName
 
 	ModifyControlList "pV;qV" size={72,15}, proc=SIDAMSpectrumViewer#pnlSetVar, win=$pnlName
@@ -145,17 +148,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 		case 2:	//	kill
 			SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 			return 0
-
-		case 3:	//	mousedown
-			GetWindow $s.winName, wsizeDC
-			int isOutOfBar = s.mouseLoc.v > V_top
-			int isRightClick = s.eventMod & 16
-			if (isOutOfBar)
-				return 0
-			elseif (isRightClick)
-				PopupContextualMenu/N "KMSpectrumViewerMenu"
-			endif
-			return 1
 
 		case 4:	//	mouse move
 			int isShiftPressed = s.eventMod & 0x02
@@ -371,9 +363,9 @@ Static Function pnlUpdateSpec(String pnlName, Variable posp, Variable posq)
 End
 
 //-------------------------------------------------------------
-//	Menu items of right-clicking
+//	Menu
 //-------------------------------------------------------------
-Menu "KMSpectrumViewerMenu", dynamic, contextualmenu
+Menu "SIDAMSpectrumViewerMenu", dynamic, contextualmenu
 	SubMenu "Live Update"
 		SIDAMSpectrumViewer#changeLiveMenu(), SIDAMSpectrumViewer#changeLive()
 	End
