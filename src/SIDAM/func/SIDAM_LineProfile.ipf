@@ -3,6 +3,7 @@
 #pragma ModuleName = SIDAMLineProfile
 
 #include "SIDAM_Color"
+#include "SIDAM_Help"
 #include "SIDAM_Line"
 #include "SIDAM_Range"
 #include "SIDAM_Utilities_Bias"
@@ -320,6 +321,8 @@ Static Function pnl(String grfName, String imgName)
 	SIDAMLine#pnlCtrls(pnlName, "SIDAMLineProfileMenu")
 	SetVariable widthV title="w:", pos={195,4}, size={86,18}, format="%.2f", win=$pnlName
 	SetVariable widthV limits={0,inf,0.1}, value=_NUM:0, bodyWidth=70, win=$pnlName
+	SIDAMApplyHelpStrings(pnlName, "widthV", "Enter the width in pixels in a direction "\
+		+ "perpendicular to the path. See the help of ImageLineProfile for the details.")
 	ModifyControlList "p1V;q1V;p2V;q2V;distanceV;angleV;widthV" proc=SIDAMLineProfile#pnlSetVar, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 

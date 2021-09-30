@@ -2,6 +2,7 @@
 #pragma rtGlobals = 3
 #pragma ModuleName = SIDAMRange
 
+#include "SIDAM_Help"
 #include "SIDAM_Histogram"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -31,9 +32,8 @@
 //		* 2: sigma. Use _n_&#963; below (`zminmode`) or above (`zmaxmode`) the average,
 //			where &#963; is the standard deviation. The average and the standard deviation
 //			are calculated for the current area and plane. _n_ is given by `zmin` and `zmax`.
-//		* 3: cut. Use _n_% from the minimum (`zminmode`) or maximum (`zmaxmode`) of
-//			the cumulative histogram which is calculated for the current area and plane.
-//			_n_ is given by `zmin` and `zmax`.
+//		* 3: cut. Use the value corresponding to _x_% of the cumulative histogram which
+//			is calculated for the current area and plane. _x_ is given by `zmin` and `zmax`.
 //		* 4: logsigma. Similar to `sigma`, but use logarithmic values of an image to
 //			calculate the average and the standard deviation. This option is useful when
 //			values in an image span in a wide range over a few orders like an FFT image.
@@ -215,7 +215,7 @@ End
 //==============================================================================
 Static Constant CTRLHEIGHT = 175
 Static Constant BOTTOMHEIGHT = 30
-Static Constant PNLHEIGHT = 335
+Static Constant PNLHEIGHT = 338
 Static Constant PNLWIDTH = 262
 
 Static Constant BINS = 48		//	Number of bins of a histogram
@@ -242,7 +242,7 @@ Static Function pnl(String grfName)
 	//	Controls
 	PopupMenu imageP title="image",pos={3,7},size={218,19},bodyWidth=180,win=$pnlName
 	CheckBox allC title="all",pos={233,9},proc=SIDAMRange#pnlCheck,win=$pnlName
-
+	
 	GroupBox zminG pos={4,30},size={128,141},title="first Z",fColor=(65280,32768,32768),win=$pnlName
 
 	CheckBox zminC      pos={9,53}, title="", win=$pnlName
@@ -255,7 +255,7 @@ Static Function pnl(String grfName)
 	SetVariable zminSigmaV pos={47,98},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
 	SetVariable zminCutV   pos={47,121},value=_NUM:0.5,limits={0,100,0.1},win=$pnlName
 	SetVariable zminLogsigmaV pos={47,144},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
-
+	
 	TitleBox zminSigmaT pos={111,99}, title="\u03c3",win=$pnlName
 	TitleBox zminCutT   pos={111,122},title="%",win=$pnlName
 	TitleBox zminLogigmaT pos={111,145}, title="\u03c3",win=$pnlName
@@ -272,7 +272,7 @@ Static Function pnl(String grfName)
 	SetVariable zmaxSigmaV pos={177,98},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
 	SetVariable zmaxCutV   pos={177,121},value=_NUM:99.5,limits={0,100,0.1},win=$pnlName
 	SetVariable zmaxLogsigmaV pos={177,144},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
-
+	
 	TitleBox zmaxSigmaT pos={241,99},title="\u03c3",win=$pnlName
 	TitleBox zmaxCutT   pos={241,122},title="%",win=$pnlName
 	TitleBox zmaxLogigmaT pos={241,145},title="\u03c3",win=$pnlName
@@ -280,8 +280,9 @@ Static Function pnl(String grfName)
 	PopupMenu adjustP pos={5,312}, size={75,19}, bodyWidth=75, win=$pnlName
 	PopupMenu adjustP mode=0, value="present z;full z", win=$pnlName
 	PopupMenu adjustP title="histogram", proc=SIDAMRange#pnlPopup, win=$pnlName
-	Button doB pos={118,312}, title="Do It", win=$pnlName
-	Button cancelB pos={195,312}, title="Cancel", win=$pnlName
+
+	Button doB pos={118,310}, title="Do It", win=$pnlName
+	Button cancelB pos={195,310}, title="Cancel", win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","zm*C") mode=1, proc=SIDAMRange#pnlCheck, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","zm*V") size={60,18}, bodyWidth=60, proc=SIDAMRange#pnlSetVar, win=$pnlName
@@ -326,20 +327,84 @@ Static Function pnl(String grfName)
 	sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
 	Execute/Q cmdStr
 	resetPnlCtrls(pnlName)
-	
+
+	pnlHelp(pnlName)
+
 	SetActiveSubwindow $grfName
 End
 
 Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variable zmax)
-
 	String dfTmp = SIDAMNewDF(StringFromList(0, grfName, "#"),"Range")
 	Wave w = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
 	Duplicate SIDAMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, \
 		bins=BINS) $(dfTmp+HIST)/WAVE=hw
 	Duplicate hw $(dfTmp+HISTCLR)/WAVE=rangew
 	rangew = x
-
 	return dfTmp
+End
+
+Static Function pnlHelp(String pnlName)
+	Make/T/N=(2,32)/FREE helpw
+	
+	String helpstr_first = " is assigned to the first color of the color table you choose."
+	String helpstr_last = " is assigned to the last color of the color table you choose."
+	String helpstr_box = " is the value in the box on the right."
+	String helpstr_avgsdev = " \u03bc and \u03c3 are the average and the standard "\
+		+ "deviation, respectively, calculated for the current area of the selected image."
+	String helpstr_hist = " The histogram is calculated for the current area of the selected image."
+	String helpstr_logavgsdev = " \u03bc and \u03c3 are the average and the standard "\
+		+ "deviation, respectively, calculated for logarithmic values of the current "\
+		+ "area of the selected image. This option is useful when values in an image "\
+		+ "span in a wide range over a few orders like an FFT image"
+	int n
+
+	helpw[][n++] = {"imageP","Choose an image to set the z range."}
+	helpw[][n++] = {"allC", "Check to apply a common z range to all images in the graph."}
+	
+	helpw[][n++] = {"zminC", "When selected, the value in the box on the right" + helpstr_first}
+	helpw[][n++] = {"zminAutoC", "When selected, the minimum z value of the current "\
+	               + "area of the selected image" + helpstr_first + " This is equivalent to "\
+	               + "ModifyImage ctabAutoscale=3."}
+	helpw[][n++] = {"zminSigmaC", "When selected, \u03bc+n\u03c3" + helpstr_first\
+	               + " n" + helpstr_box + helpstr_avgsdev}
+	helpw[][n++] = {"zminCutC", "When selected, the value that corresponds to x% of the "\
+	               + " cumulative histogram" + helpstr_first + " x " + helpstr_box + helpstr_hist}
+	helpw[][n++] = {"zminLogsigmaC", "When selected, \u03bc+n\u03c3" + helpstr_first\
+	               + " n" + helpstr_box + helpstr_logavgsdev}
+		
+	helpw[][n++] = {"zminV", "Enter a value that" + helpstr_first}
+	helpw[][n++] = {"zminSigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
+	               + helpstr_first + helpstr_avgsdev}
+	helpw[][n++] = {"zminCutV", "Enter a value for x where the value corresponding to "\
+	               + "x% of the cumulative histogram" + helpstr_first + helpstr_hist}
+	helpw[][n++] = {"zminLogsigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
+	               + helpstr_first + helpstr_logavgsdev}
+
+	helpw[][n++] = {"zmaxC", "When selected, the value in the box on the right" + helpstr_last}
+	helpw[][n++] = {"zmaxAutoC", "When selected, the maximum z value of the displayed "\
+	               + "area of selected image" + helpstr_last + " This is equivalent to "\
+	               + "ModifyImage ctabAutoscale=3."}
+	helpw[][n++] = {"zmaxSigmaC", "When selected, \u03bc+n\u03c3" + helpstr_last\
+	               + " n" + helpstr_box + helpstr_avgsdev}
+	helpw[][n++] = {"zmaxCutC", "When selected, the value that corresponds to x% of the "\
+	               + " cumulative histogram" + helpstr_last + " x " + helpstr_box + helpstr_hist}
+	helpw[][n++] = {"zmaxLogsigmaC", "When selected, \u03bc+n\u03c3" + helpstr_last\
+	               + " n" + helpstr_box + helpstr_logavgsdev}
+
+	helpw[][n++] = {"zmaxV", "Enter a value that" + helpstr_last}
+	helpw[][n++] = {"zmaxSigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
+	               + helpstr_last + helpstr_avgsdev}
+	helpw[][n++] = {"zmaxCutV", "Enter a value for x where x% from the maximum of the "\
+	               + "cumulative histogram" + helpstr_last + helpstr_hist}
+	helpw[][n++] = {"zmaxCutV", "Enter a value for x where the value corresponding to "\
+	               + "x% of the cumulative histogram" + helpstr_last + helpstr_hist}
+	helpw[][n++] = {"zmaxLogsigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
+	               + helpstr_last + helpstr_logavgsdev}
+
+	helpw[][n++] = {"adjustP", "Choose a z range to which the histogram is adjusted."}	
+
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
 End
 
 //******************************************************************************

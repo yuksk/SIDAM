@@ -3,10 +3,9 @@
 #pragma ModuleName=SIDAMHistogram
 
 #include "SIDAM_Display"
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_Panel"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -252,40 +251,67 @@ End
 //******************************************************************************
 //	Display a panel
 //******************************************************************************
-Static Function pnl(Wave w, String grfName	)
-	
-	String pnlName = SIDAMNewPanel("Histogram ("+NameOfWave(w)+")",350,200)
-	AutoPositionWindow/E/M=0/R=$grfName $pnlName
+Static Function pnl(Wave w, String grfName)
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,340,220)/N=Histogram
+	String pnlName = grfName + "#Histogram"
 	SetWindow $pnlName userData(grf)=grfName
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	
 	Wave minmaxw = getMinMax(w, GetUserData(pnlName,"","grf"))
 	
-	SetVariable resultV title="output name:", pos={10,10}, size={329,16}, frame=1, bodyWidth=260, win=$pnlName
-	SetVariable resultV value=_STR:NameOfWave(w)+SUFFIX, proc=SIDAMHistogram#pnlSetVar, win=$pnlName
+	SetVariable sourceV title="source wave: ", pos={6,6}, size={325,18}, win=$pnlName
+	SetVariable sourceV bodyWidth=250, noedit=1, frame=0, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
+	SetVariable resultV title="output name:", pos={6,32}, size={325,18}, win=$pnlName
+	SetVariable resultV bodyWidth=250, value=_STR:NameOfWave(w)+SUFFIX, win=$pnlName
+	SetVariable resultV frame=1, proc=SIDAMHistogram#pnlSetVar, win=$pnlName
+
+	PopupMenu modeP title="mode", pos={9,70}, size={152,20}, bodyWidth=120, win=$pnlName 
+	PopupMenu modeP value="start and end;start and delta", mode=1, win=$pnlName
+	PopupMenu modeP proc=SIDAMHistogram#pnlPopup, win=$pnlName
 	
-	PopupMenu modeP title="mode", pos={9,44}, size={152,20}, bodyWidth=120, win=$pnlName 
-	PopupMenu modeP value="start and end;start and delta", mode=1, proc=SIDAMHistogram#pnlPopup, win=$pnlName
-	SetVariable z1V title="start", pos={13,78}, size={148,15}, value=_STR:num2str(minmaxw[0]), win=$pnlName
-	SetVariable z2V title="end", pos={19,104}, size={142,15}, value=_STR:num2str(minmaxw[1]), win=$pnlName
-	SetVariable binsV title="bins", pos={16,130}, size={145,15}, value=_STR:num2str(DEFALUT_BINS), win=$pnlName
-	ModifyControlList "z1V;z2V;binsV" bodyWidth=120, proc=SIDAMHistogram#pnlSetVar, valueColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), fColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
-	CheckBox auto1C title="auto", pos={169,79}, value=1, win=$pnlName
-	CheckBox auto2C title="auto", pos={169,105}, value=1, win=$pnlName
-	CheckBox autobinC title="auto", pos={169,131}, value=1, win=$pnlName
+	SetVariable z1V title="start", pos={13,104}, size={148,15}, win=$pnlName
+	SetVariable z1V value=_STR:num2str(minmaxw[0]), win=$pnlName
+	SetVariable z2V title="end", pos={19,130}, size={142,15}, win=$pnlName
+	SetVariable z2V value=_STR:num2str(minmaxw[1]), win=$pnlName
+	SetVariable binsV title="bins", pos={16,156}, size={145,15}, win=$pnlName
+	SetVariable binsV value=_STR:num2str(DEFALUT_BINS), win=$pnlName
+
+	ModifyControlList "z1V;z2V;binsV" bodyWidth=120, proc=SIDAMHistogram#pnlSetVar, win=$pnlName
+	ModifyControlList "z1V;z2V;binsV" valueColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
+	ModifyControlList "z1V;z2V;binsV" fColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
+	CheckBox auto1C title="auto", pos={169,105}, value=1, win=$pnlName
+	CheckBox auto2C title="auto", pos={169,131}, value=1, win=$pnlName
 	
-	CheckBox normalizeC title="normalize", pos={250,46}, value=1, win=$pnlName
-	CheckBox cumulativeC title="cumulative", pos={250,72}, value=0, win=$pnlName
+	CheckBox normalizeC title="normalize", pos={250,72}, value=1, win=$pnlName
+	CheckBox cumulativeC title="cumulative", pos={250,98}, value=0, win=$pnlName
 	
-	Button doB title="Do It", pos={5,165}, size={60,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
-	CheckBox displayC title="display", pos={75,168}, value=1, win=$pnlName
-	PopupMenu toP title="To", pos={140,165}, size={50,20}, bodyWidth=50, win=$pnlName
+	Button doB title="Do It", pos={8,191}, size={70,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
+	CheckBox displayC title="display", pos={95,193}, value=1, win=$pnlName
+	PopupMenu toP title="To", pos={165,191}, size={60,20}, bodyWidth=60, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMHistogram#pnlPopup, win=$pnlName
-	Button helpB title="Help", pos={215,165}, size={60,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={285,165}, size={60,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
+	Button cancelB title="Cancel", pos={260,191}, size={70,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
-	
+
+	String helpstr_blue = " of the histogram. You can enter a formula in a box of "\
+		+ "blue letters."
+	Make/T/N=(2,10)/FREE helpw
+	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][1] = {"modeP", "Select a mode to specify a z range of the histogram."}
+	helpw[][2] = {"z1V", "Enter the first value"	+ helpstr_blue}
+	helpw[][3] = {"z2V", "Enter the last value (end) or the spacing (delta)"\
+		+ helpstr_blue}
+	helpw[][4] = {"binsV", "Enter the number of bins" + helpstr_blue}
+	helpw[][5] = {"auto1C", "Check to use the minimum z value of the source wave "\
+		+ "for the first value of the histogram."}
+	helpw[][6] = {"auto2C", "Check to use the maximum z value of the source wave "\
+		+ "for the last value of the histogram."}
+	helpw[][7] = {"displayC", "Check to display the output wave."}
+	helpw[][8] = {"normalizeC", "Check to normalize the histogram."}
+	helpw[][9] = {"cumulativeC", "Check to generate a cumulative histogram."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+											
 	pnlDisable(pnlName)
 End
 
@@ -302,22 +328,24 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	strswitch (s.ctrlName)
 	case "modeP":
 		SetVariable z2V title=SelectString(s.popNum-1, "end", "delta"), win=$s.win
+		CheckBox auto2C disable=s.popNum==2, win=$s.win
 		break
 	case "toP":
 		String grfName = GetUserData(s.win,"","grf")
 		STRUCT paramStruct cs
-		Wave cs.w = $GetUserData(s.win, "", "src")
+		ControlInfo/W=$s.win sourceV
+		Wave cs.w = $S_Value
 		Wave cvw = SIDAMGetCtrlValues(s.win,\
-			"modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC")
+			"modeP;z1V;z2V;binsV;auto1C;auto2C;normalizeC;cumulativeC")
 		Wave minmaxw = getMinMax(cs.w,grfName)
 		//	When the mode is "start and delta" and auto2C is checked,
 		//	set the mode to "start and end"
-		cs.mode = (cvw[0]==2 && cvw[5]) ? 1 : cvw[0] - 1
-		cs.initialz = cvw[4] ? minmaxw[0] : cvw[1]
-		cs.finalz = cvw[5] ? minmaxw[1] : cvw[2]
-		cs.bins = cvw[6] ? DEFALUT_BINS : cvw[3]
-		cs.normalize = cvw[7]
-		cs.cumulative = cvw[8]
+		cs.mode = (cvw[%modeP]==2 && cvw[%auto2C]) ? 1 : cvw[%modeP] - 1
+		cs.initialz = cvw[%auto1C] ? minmaxw[0] : cvw[%z1V]
+		cs.finalz = cvw[%auto2C] ? minmaxw[1] : cvw[%z2V]
+		cs.bins = cvw[%binsV]
+		cs.normalize = cvw[%normalizeC]
+		cs.cumulative = cvw[%cumulativeC]
 		cs.cmplxmode = NumberByKey("imCmplxMode",ImageInfo(grfName,"", 0),"=")
 		ControlInfo/W=$s.win resultV
 		cs.result = S_Value
@@ -349,9 +377,7 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 			endif
 			break
 		case "binsV":
-			if (!SIDAMValidateSetVariableString(s.win,s.ctrlName,1))
-				CheckBox autobinC value=0, win=$s.win
-			endif
+			SIDAMValidateSetVariableString(s.win,s.ctrlName,1)
 			break
 	endswitch
 	pnlDisable(s.win)
@@ -370,9 +396,6 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			//  *** FALLTHROUGH ***
 		case "cancelB":
 			KillWindow $s.win
-			break
-		case "helpB":
-			SIDAMOpenHelpNote("histogram",s.win,"Histogram")
 			break
 	endswitch
 	
@@ -399,31 +422,32 @@ End
 Static Function pnlDo(String pnlName)
 	
 	String grfName = GetUserData(pnlName,"","grf")
-	Wave w = $GetUserData(pnlName,"","src")
+	ControlInfo/W=$pnlName sourceV
+	Wave w = $S_Value
 	Wave cvw = SIDAMGetCtrlValues(pnlName,\
-		"modeP;z1V;z2V;binsV;auto1C;auto2C;autobinC;normalizeC;cumulativeC;displayC")
+		"modeP;z1V;z2V;binsV;auto1C;auto2C;normalizeC;cumulativeC;displayC")
 	
 	Wave minmaxw = getMinMax(w,grfName)
-	if (cvw[4] == 1)	//	auto1C
-		cvw[1] = minmaxw[0]	//	z1V
+	if (cvw[%auto1C] == 1)
+		cvw[%z1V] = minmaxw[0]
 	endif
-	if (cvw[5] == 1)	//	auto2C
-		cvw[0] = 1			//	modeP, start and end
-		cvw[2] = minmaxw[1]	//	z2V
+	if (cvw[%auto2C] == 1)
+		cvw[%modeP] = 1			//	modeP, start and end
+		cvw[%z2V] = minmaxw[1]
 	endif
 	
 	STRUCT paramStruct s
 	Wave s.w = w
-	s.initialz = cvw[1]
-	s.finalz = cvw[2]
-	s.bins = cvw[6]==1 ? DEFALUT_BINS : cvw[3] // if autobinC is checked, use the default value
-	s.normalize = cvw[7]
-	s.cumulative = cvw[8]
+	s.initialz = cvw[%z1V]
+	s.finalz = cvw[%z2V]
+	s.bins = cvw[%binsV]
+	s.normalize = cvw[%normalizeC]
+	s.cumulative = cvw[%cumulativeC]
 	s.cmplxmode = strlen(grfName) ? NumberByKey("imCmplxMode",ImageInfo(grfName,"", 0),"=") : 0
 	ControlInfo/W=$pnlName resultV
 	s.result = S_Value
 
-	if (cvw[0] == 1)	//	start and end
+	if (cvw[%modeP] == 1)	//	start and end
 		Wave hw = SIDAMHistogram(w, startz=s.initialz, endz=s.finalz, bins=s.bins, \
 			normalize=s.normalize,	cumulative=s.cumulative, cmplxmode=s.cmplxmode)
 	else				//	start and delta
@@ -435,7 +459,7 @@ Static Function pnlDo(String pnlName)
 	DFREF dfr = GetWavesDataFolderDFR(w)
 	Duplicate/O hw dfr:$s.result/WAVE=resw
 	
-	if (cvw[9])
+	if (cvw[%displayC])
 		SIDAMDisplay(dfr:$S_Value, history=1)
 	endif
 End

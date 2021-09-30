@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMWorkfunction
 
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -57,8 +58,9 @@ Function/WAVE SIDAMWorkfunction(Wave/Z w, [int startp, int endp,
 	s.endp = ParamIsDefault(endp) ? DimSize(w,WaveDims(w)-1)-1 : endp
 	s.offset = ParamIsDefault(offset) ? inf : offset
 
-	if (validate(s))
-		print s.errMsg
+	int error = validate(s)
+	if (error)
+		print PRESTR_CAUTION + "SIDAMWorkfunction gave error: " + errormsg(error, s.w)
 		return $""
 	endif
 
@@ -85,38 +87,41 @@ End
 
 Static Function validate(STRUCT paramStruct &s)
 
-	s.errMsg = PRESTR_CAUTION + "SIDAMWorkfunction gave error: "
-
 	if (!WaveExists(s.w))
-		s.errMsg += "wave not found."
 		return 1
 	elseif (WaveDims(s.w) != 1 && WaveDims(s.w) != 3)
-		s.errMsg += "dimension of the input wave must be 1 or 3."
-		return 1
-	endif
-
-	int dim = WaveDims(s.w)
-	if (s.startp < 0 || s.startp > DimSize(s.w, dim-1) - 1)
-		s.errMsg += "startp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
-		return 1
-	endif
-
-	if (s.endp < 0 || s.endp > DimSize(s.w, dim-1)-1)
-		s.errMsg += "endp must be an integer between 0 and "+num2str(DimSize(s.w, dim-1) - 1)
-		return 1
-	endif
-
-	if (abs(s.startp - s.endp) < 2)
-		s.errMsg += "you must have at least as many data point as fit parameters."
-		return 1
+		return 2
+	elseif ((WaveType(s.w,1) != 1) || (WaveType(s.w) & 0x01))
+		return 3
+	elseif (s.startp < 0 || s.startp > DimSize(s.w, WaveDims(s.w)-1) - 1)
+		return 4
+	elseif (s.endp < 0 || s.endp > DimSize(s.w, WaveDims(s.w)-1)-1)
+		return 5
+	elseif (abs(s.startp - s.endp) < 2)
+		return 6
+	elseif (WhichListItem(WaveUnits(s.w,WaveDims(s.w)-1)"m;nm;\u00c5") == -1)
+		return 7
 	endif
 
 	return 0
 End
 
+Static Function/S errormsg(int num, Wave w)
+	Make/T/FREE msgw = {\
+		"The input wave is not found.",\
+		"The dimension of the input wave must be 1 or 3.",\
+		"The input wave must be real.",\
+		"The startp must be an integer between 0 and "+num2str(DimSize(w, WaveDims(w)-1)-1),\
+		"The endp must be an integer between 0 and "+num2str(DimSize(w, WaveDims(w)-1)-1),\
+		"You must have at least as many data point as fit parameters.",\
+		"The unit in the " + SelectString(WaveDims(w)-1,"x","z") + " direction "\
+			+ "must be either m, nm, or \u00c5 (\\u00c5)"\
+	}
+	return msgw[num-1]
+End
+
 Static Structure paramStruct
 	Wave	w
-	String	errMsg
 	uint16	startp
 	uint16	endp
 	Variable	offset
@@ -285,8 +290,6 @@ Static Function convCoef(Wave w)
 		case "\u00c5":	//	angstrom
 			scale = 1e10
 			break
-		default:
-			Abort "The unit in the z direction must be either m, nm, or \u00c5 (\\u00c5)"
 	endswitch
 	return (HBAR * scale)^2 / (8 * MASS * CHARGE)
 End
@@ -294,8 +297,8 @@ End
 //-------------------------------------------------------------
 //	Panel
 //-------------------------------------------------------------
-Static Constant PNLWIDTH = 335
-Static Constant PNLHEIGHT = 155
+Static Constant PNLWIDTH = 315
+Static Constant PNLHEIGHT = 175
 Static Function pnl()
 	String grfName = WinName(0,1)
 
@@ -308,44 +311,84 @@ Static Function pnl()
 	String pnlName = StringFromList(0, grfName, "#") + "#WorkFunction"
 
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	int dim = WaveDims(w)
 
-	SetVariable basenameV title="basename:", pos={10,10}, size={315,16}, win=$pnlName
-	SetVariable basenameV frame=1, bodyWidth=255, proc=SIDAMWorkfunction#PnlSetVar, win=$pnlName
+	SetVariable sourceV title="source wave: ", pos={6,6}, size={300,18}, win=$pnlName
+	SetVariable sourceV bodyWidth=225, noedit=1, frame=0, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
+	SetVariable basenameV title="basename:", pos={18,32}, win=$pnlName
+	SetVariable basenameV size={285,16}, frame=1, bodyWidth=225, win=$pnlName
+	SetVariable basenameV proc=SIDAMWorkfunction#PnlSetVar, win=$pnlName
 	if (dim == 1)
 		SetVariable basenameV disable=2, value=_STR:"", win=$pnlName
 	else
 		SetVariable basenameV value=_STR:NameOfWave(w), win=$pnlName
 	endif
 
-	GroupBox rangeG title="fitting range", pos={9,40}, size={155,75}, win=$pnlName
-	SetVariable startpV title="start:", pos={18,64}, size={85,15}, win=$pnlName
+	GroupBox rangeG title="fitting range", pos={9,60}, size={155,75}, win=$pnlName
+	SetVariable startpV title="start:", pos={18,84}, size={85,15}, win=$pnlName
 	SetVariable startpV value=_NUM:0, limits={0,DimSize(w,dim-1)-4,1}, disable=2, win=$pnlName
 	SetVariable startpV userData(max)=num2str(DimSize(w,dim-1)-4), win=$pnlName
-	SetVariable endpV title="end:", pos={21,89}, size={82,18}, win=$pnlName
+	SetVariable endpV title="end:", pos={21,109}, size={82,18}, win=$pnlName
 	SetVariable endpV value=_NUM:DimSize(w,dim-1)-1, limits={3,DimSize(w,dim-1)-1,1}, disable=2, win=$pnlName
 	SetVariable endpV userData(max)=num2str(DimSize(w,dim-1)-1), win=$pnlName
-	CheckBox startC title="auto", pos={113,65}, value=1, win=$pnlName
-	CheckBox endC title="auto", pos={113,90}, value=1, win=$pnlName
+	CheckBox startC title="auto", pos={113,85}, value=1, win=$pnlName
+	CheckBox endC title="auto", pos={113,110}, value=1, win=$pnlName
 
-	GroupBox offsetG title="current offset", pos={172,40}, size={155,75}, win=$pnlName
-	CheckBox fitC title="fit", pos={182,65}, mode=1, value=1, win=$pnlName
-	CheckBox fixC title="fixed (nA):", pos={182,90}, mode=1, value=0, win=$pnlName
-	SetVariable offsetV title=" ", pos={259,89}, size={55,18}, win=$pnlName
+	GroupBox offsetG title="current offset", pos={172,60}, size={135,75}, win=$pnlName
+	CheckBox fitC title="fit", pos={182,85}, mode=1, value=1, win=$pnlName
+	CheckBox fixC title="fixed:", pos={182,110}, mode=1, value=0, win=$pnlName
+	SetVariable offsetV title="", pos={240,109}, size={55,18}, win=$pnlName
 	SetVariable offsetV limits={-10,10,0.001}, value=_NUM:0, win=$pnlName
 
-	Button doB title="Do It", pos={8,125}, win=$pnlName
-	PopupMenu toP title="To", pos={90,126}, size={50,20}, bodyWidth=50, win=$pnlName
+	Button doB title="Do It", pos={8,145}, win=$pnlName
+	PopupMenu toP title="To", pos={110,146}, bodyWidth=60, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMWorkfunction#pnlPopup, win=$pnlName
-	Button cancelB title="Cancel", pos={267,125}, win=$pnlName
+	Button cancelB title="Cancel", pos={236,145}, win=$pnlName
 
 	ModifyControlList "startpV;endpV;offsetV" bodyWidth=55, proc=SIDAMWorkfunction#pnlSetVar, win=$pnlName
 	ModifyControlList "startC;endC;fitC;fixC" proc=SIDAMWorkfunction#pnlCheckBox, win=$pnlName
-	ModifyControlList "doB;cancelB" size={60,22}, proc=SIDAMWorkfunction#pnlButton, win=$pnlName
+	ModifyControlList "doB;cancelB" size={70,20}, proc=SIDAMWorkfunction#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
+	Make/T/N=(2,8)/FREE helpw
+	helpw[][0] = {"basenameV", "Enter the basename of output waves. The output "\
+		+ "waves are saved in the same datafolder where the source wave is."}
+	helpw[][1] = {"startpV", "Enter the first index of the range for fitting."}
+	helpw[][2] = {"endpV", "Enter the last index of the range for fitting."}
+	helpw[][3] = {"startC", "Check to use the first index of the input wave as "\
+		+ "the first index of the range for fitting."}
+	helpw[][4] = {"endC", "Check to use the last index of the input wave as "\
+		+ "the last index of the range for fitting."}
+	helpw[][5] = {"fitC", "Check to fit the current offset."}
+	helpw[][6] = {"fixC", "Check to use a fixed value for the current offset."}
+	helpw[][7] = {"offsetV", "Enter a value for the fixed current offset."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
+	pnlValidateWave(pnlName)
+	
 	SetActiveSubwindow $grfName
+End
+
+Static Function pnlValidateWave(String pnlName)
+	STRUCT paramStruct s
+	ControlInfo/W=$pnlName sourceV
+	Wave s.w = $S_Value
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "startpV;endpV;fitC;offsetV")
+	s.startp = cvw[%startpV]
+	s.endp = cvw[%endpV]
+	s.offset = cvw[%fitC] ? inf : cvw[%offsetV]
+	
+	int error = validate(s)
+	if (!error)
+		return 0
+	endif
+	String msg = errormsg(error, s.w)
+	SetVariable basenameV title="error: ", noedit=1, frame=0, win=$pnlName
+	SetVariable basenameV fColor=(65535,0,0),valueColor=(65535,0,0), win=$pnlName
+	SetVariable basenameV value=_STR:msg, help={msg}, win=$pnlName
+	String ctrlList = "startpV;endpV;offsetV;startC;endC;fitC;fixC;doB;toP;rangeG;offsetG"
+	ModifyControlList ctrlList, disable=2, win=$pnlName
 End
 
 //--------------------------------------------------
@@ -354,11 +397,11 @@ End
 //	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode == 2)
+		Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;basenameV")
 		Wave cvw = SIDAMGetCtrlValues(s.win, "startpV;endpV;fitC;offsetV")
-		Variable offset = cvw[2] ? inf : cvw[3]
-		ControlInfo/W=$s.win basenameV
-		String paramStr = echoStr($GetUserData(s.win, "", "src"), \
-			cvw[0], cvw[1], offset, S_Value)
+		Variable offset = cvw[%fitC] ? inf : cvw[%offsetV]
+		String paramStr = echoStr($ctw[%sourceV], 	cvw[%startpV], cvw[%endpV], \
+			offset, ctw[%basenameV])
 		SIDAMPopupTo(s, paramStr)
 	endif
 End
@@ -372,7 +415,8 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 
 	strswitch (s.ctrlName)
 		case "basenameV":
-			int disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0,maxlength=31-MaxSuffixLength())*2
+			int disable = SIDAMValidateSetVariableString(s.win,s.ctrlName,0,\
+				maxlength=MAX_OBJ_NAME-MaxSuffixLength())*2
 			Button doB disable=disable, win=$s.win
 			PopupMenu toP disable=disable, win=$s.win
 			break
@@ -446,14 +490,14 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 End
 
 Static Function pnlButtonDo(String pnlName)
-	Wave w = $GetUserData(pnlName, "", "src")
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "sourceV;basenameV")
 	Wave cvw = SIDAMGetCtrlValues(pnlName, "startpV;endpV;fitC;offsetV")
-	Variable offset = cvw[2] ? inf : cvw[3]
-	ControlInfo/W=$pnlName basenameV
-	String basename = S_Value
+	Variable offset = cvw[%fitC] ? inf : cvw[%offsetV]
 	KillWindow $pnlName
-	printf "%s%s\r", PRESTR_CMD, echoStr(w,cvw[0],cvw[1],offset,basename)
-	SIDAMWorkfunction(w,startp=cvw[0],endp=cvw[1],offset=offset,basename=basename)
+	printf "%s%s\r", PRESTR_CMD, echoStr($ctw[%sourceV],cvw[%startpV],\
+		cvw[%endpV],offset,ctw[%basenameV])
+	SIDAMWorkfunction($ctw[%sourceV],startp=cvw[%startpV],endp=cvw[%endpV],\
+		offset=offset,basename=ctw[%basenameV])
 End
 
 Static Function getMax(String pnlName, String ctrlName)

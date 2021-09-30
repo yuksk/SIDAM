@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMSaveGraphics
 
+#include "SIDAM_Help"
 #include "SIDAM_SaveCommon"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -55,13 +56,13 @@ Static Function pnl(String grfName)
 	
 	CheckBox format_EMF_rC title="Enhanced Metafile", pos={20,85}, value=1, userData(value)="-2", win=$pnlName
 	CheckBox format_BMP_rC title="Bitmap", pos={20,85+20}, userData(value)="-4", win=$pnlName
-	CheckBox format_EPS_rC title="EPS File", pos={20,85+20*2}, userData(value)="-3", win=$pnlName
+	CheckBox format_EPS_rC title="EPS", pos={20,85+20*2}, userData(value)="-3", win=$pnlName
 	CheckBox format_PDF_rC title="PDF", pos={20,85+20*3}, userData(value)="-8", win=$pnlName
-	CheckBox format_PNG_rC title="PNG File", pos={20,85+20*4}, userData(value)="-5", win=$pnlName
-	CheckBox format_JPG_rC title="JPEG File", pos={20,85+20*5}, userData(value)="-6", win=$pnlName
-	CheckBox format_TIF_rC title="TIFF File", pos={20,85+20*6}, userData(value)="-7", win=$pnlName
+	CheckBox format_PNG_rC title="PNG", pos={20,85+20*4}, userData(value)="-5", win=$pnlName
+	CheckBox format_JPG_rC title="JPEG", pos={20,85+20*5}, userData(value)="-6", win=$pnlName
+	CheckBox format_TIF_rC title="TIFF", pos={20,85+20*6}, userData(value)="-7", win=$pnlName
 	CheckBox format_SVG_rC title="SVG", pos={20,85+20*7}, userData(value)="-9", win=$pnlName
-	
+
 	CheckBox colorC title="Color", pos={175,85}, value=1, win=$pnlName
 	CheckBox rgb_rC title="RGB", pos={240,85}, value=1, userData(format)="EPS;PDF;TIF", proc=SIDAMSaveCommon#pnlCheck, win=$pnlName
 	CheckBox cmyk_rC title="CMYK", pos={288,85}, userData(format)="EPS;PDF;TIF", proc=SIDAMSaveCommon#pnlCheck, win=$pnlName
@@ -75,7 +76,7 @@ Static Function pnl(String grfName)
 	PopupMenu dpiP pos={325,145}, size={50,20}, bodyWidth=50, win=$pnlName
 	PopupMenu dpiP value="72;75;96;100;120;150;200;300;400;500;600;750;800;1000;1200;1500;2000;2400;2500;3000;3500;3600;4000;4500;4800"
 	PopupMenu dpiP mode=1, popvalue="72", userData(format)="BMP;PNG;JPG;TIF", win=$pnlName
-	
+
 	//	file
 	GroupBox fileG title="File:", pos={5,260}, size={380,96}, win=$pnlName
 	SetVariable filenameV title="Basename:", pos={12,281}, size={190,18}, bodyWidth=130, win=$pnlName
@@ -96,6 +97,28 @@ Static Function pnl(String grfName)
 	ModifyControlList ControlNameList(pnlName,";","*_rC") mode=1, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
+	Make/T/N=(2,18)/FREE helpw
+	helpw[][0] = {"all_rC", "Check to save all layers."}
+	helpw[][1] = {"select_rC", "Check to specify a range of layers to be saved."}
+	helpw[][2] = {"from_f_V", "Enter the first index of layers to be saved."}
+	helpw[][3] = {"to_f_V", "Enter the last index of layers to be saved."}
+	helpw[][4] = {"group0", "Select the format of the saved file."}
+	helpw[][5] = {"colorC", "Check to save the file in color."}
+	helpw[][6] = {"rgb_rC", "Check to save the file in RGB color."}
+	helpw[][7] = {"cmyk_rC", "Check to save the file in CMYK color."}
+	helpw[][8] = {"transC", "Check to make white background area transparent."}
+	helpw[][9] = {"dontembedC", "Check to embed all fonts except for standard fonts."}
+	helpw[][10] = {"embedC", "Check to embed all fonts."}
+	helpw[][11] = {"exceptC", "Check to embed all fonts except for standard fonts."}
+	helpw[][12] = {"resolutionP", "Select the image resolution in an integer multiple "\
+		+ "of the screen resolution."}
+	helpw[][13] = {"dpiP", "Select the image resolution in DPI."}
+	helpw[][14] = {"filenameV", "Enter the base name of image files."}
+	helpw[][15] = {"suffixP", "Select a suffix of names of image files."}
+	helpw[][16] = {"pathP", "Select a path where the image files are saved."}
+	helpw[][17] = {"overwriteC", "Check to overwrite the image files if already exists."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
 	SetActiveSubwindow $grfName
 End
 

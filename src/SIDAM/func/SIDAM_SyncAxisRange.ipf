@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName= SIDAMSyncAxisRange
 
+#include "SIDAM_Help"
 #include "SIDAM_Sync"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -128,7 +129,7 @@ Static Function/S topName(String grfName)
 End
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,255) as "Syncronize Axis Range"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,235) as "Syncronize Axis Range"
 	RenameWindow $grfName#$S_name, syncaxisrange
 	String pnlName = grfName + "#syncaxisrange"
 	
@@ -141,14 +142,17 @@ Static Function pnl(String grfName)
 	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName 
 	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
 	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
-	
-	Button selectB title="Select / Deselect all", pos={10,172}, size={120,22}, proc=SIDAMSync#pnlButton, win=$pnlName
-	Titlebox selectT title="You can also select a window by clicking it.", pos={10,200}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,228}, size={70,22}, win=$pnlName
+	SIDAMAPPlyHelpStrings(pnlName, "winL", "Select windows you want to "\
+		+ "synchronize axes. You can also select a window by clicking "\
+		+ "an actual window.")
+			
+	Button selectB title="Select / Deselect all", size={130,18}, win=$pnlName
+	Button selectB pos={10,171}, proc=SIDAMSync#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,203}, win=$pnlName
 	Button doB disable=(DimSize($(dfTmp+SIDAM_WAVE_SELECTED),0)==1)*2, win=$pnlName
-	Button doB userData(key)=SYNCKEY, userData(fn)="SIDAMSyncAxisRange", proc=SIDAMSync#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={201,228}, size={70,22}, proc=SIDAMSync#pnlButton, win=$pnlName
-	
+	Button doB userData(key)=SYNCKEY, userData(fn)="SIDAMSyncAxisRange", win=$pnlName
+	Button cancelB title="Cancel", pos={205,203}, win=$pnlName
+	ModifyControlList "doB;cancelB", size={70,20}, proc=SIDAMSync#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
 	SetActiveSubwindow $grfName

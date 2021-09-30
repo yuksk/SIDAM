@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMTraceOffset
 
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -170,6 +171,14 @@ Static Function pnl(String grfName)
 	ModifyControlList "reverseB;resetB;doB;cancelB" proc=SIDAMTraceOffset#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
+	Make/T/N=(2,5)/FREE helpw
+	helpw[][0] = {"xoffsetV", "Enter an offset value in the x direction."}
+	helpw[][1] = {"yoffsetV", "Enter an offset value in the x direction."}
+	helpw[][2] = {"resetB", "Press to make the offsets zero."}
+	helpw[][3] = {"fillC", "Check to remove hidden lines"}
+	helpw[][4] = {"reverseB", "Press to reverse the order of traces."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
 	SetActiveSubwindow $grfName
 End
 

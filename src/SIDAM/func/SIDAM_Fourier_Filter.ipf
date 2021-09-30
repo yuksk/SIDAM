@@ -4,9 +4,9 @@
 
 #include "SIDAM_Display"
 #include "SIDAM_FFT"
+#include "SIDAM_Help"
 #include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
 #include "SIDAM_Utilities_WaveDf"
@@ -371,11 +371,12 @@ Static Function pnl(Wave w, String grfName)
 	PopupMenu toP title="To", pos={160,93}, size={60,20}, bodyWidth=60, win=$pnlName#controls
 	PopupMenu toP disable=2, value="Cmd Line;Clip", win=$pnlName#controls
 	PopupMenu toP mode=0, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
-	Button helpB title="Help", pos={255,93}, size={60,20}, win=$pnlName#controls
 	Button closeB title="Close", pos={325,93}, size={60,20}, win=$pnlName#controls
 	
 	ModifyControlList ControlNameList(pnlName+"#controls",";","*B") proc=SIDAMFourierFilter#pnlButton, win=$pnlName#controls
 	ModifyControlList ControlNameList(pnlName+"#controls",";","*") focusRing=0, win=$pnlName#controls
+	
+	pnlHelp(pnlName)
 	
 	//	image area
 	DefineGuide/W=$pnlName IMGL={FL,9}, IMGT={FT,41}, IMGR={FL,309}, IMGB={FT,341}
@@ -454,6 +455,62 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	
 	SetDataFolder dfrSav
 	return dfTmp
+End
+
+Static Function pnlHelp(String pnlName)
+	Make/T/N=(2,8)/FREE helpw
+	int n = 0
+	helpw[][n++] = {"colorP", "Select the color of the mask."}
+	helpw[][n++] = {"opacityS", "Select the opacity of the mask."}	
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+
+	Redimension/N=(2,8) helpw
+	helpw = ""
+	n = 0
+	helpw[][n++] = {"addB", "Press to add a filter."}
+	helpw[][n++] = {"deleteB", "Press to delete a filter selected in the list."}
+	helpw[][n++] = {"passC", "Select to make a pass filter."}
+	helpw[][n++] = {"stopC", "Select to make a stop filter."}
+	helpw[][n++] = {"applyB", "Press to apply the filters in the list."}
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName+"#table", helpw)
+
+	SIDAMApplyHelpStrings(pnlName+"#table", "filL",\
+		"Enter parameters of a filter here. A filter is constructed by a sum of "\
+		+"Gaussians. The center of each Gaussian is given by a linear combination "\
+		+"of (p0, q0) and (p1, q1) in the unit of pixels. The linear combinations "\
+		+"are taken up to n0-th and n1-th order, respectively. The HWHM is also "\
+		+"in the unit of pixels.\\r\\r"\
+		+"Press \\\"Add\\\" on the right to add a filter, and a row is added to "\
+		+"the table. Click a cell to enter a number. You can also click the FFT "\
+		+"image on the left after selecting a cell.\\r\\r"\
+		+"Press \\\"Apply\\\" on the right after defining filters, and you will "\
+		+"get a filtered image in the filtered tab on the left and a masked FFT "\
+		+"image in the FFT tab.\\r\\r"\
+		+"Press \\\"Save\\\" below to save a wave of the filtered image.",\
+		oneline=100)
+
+	Redimension/N=(2,8) helpw
+	helpw = ""
+	n = 0
+	helpw[][n++] = {"nameV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][n++] = {"displayC", "Check to display the output wave."}
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName+"#controls", helpw)
+
+	SIDAMApplyHelpStrings(pnlName+"#controls", "endP",\
+		"The end effect is the same as used in Smooth.\\r"\
+		+"\\\"bounce\\\" uses w[i] in place of the missing w[-i] and w[n-i] "\
+		+"in place of the missing w[n+i].\\r"\
+		+"\\\"wrap\\\" uses w[n-i] in place of the mising w[-i] and vice-versa.\\r"\
+		+"\\\"zero\\\" uses 0 for any missing values.\\r"\
+		+"\\\"repeat\\\" uses w[0] in place of the missing w[-i] and w[n] in "\
+		+"place of the missing w[n+i].\\r\\r"\
+		+"The end effect is realized by simply expanding the original wave. "\
+		+"Therefore, end effects except for \\\"wrap\\\" take longer time.",\
+		oneline=100)
 End
 
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
@@ -649,10 +706,6 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "saveB":
 			pnlButtonSave(s, dfrTmp, listw)
 			break
-			
-		case "helpB":
-			SIDAMOpenHelpNote("filter", pnlName, "Fourier Filter")
-			break
 		
 		case "closeB":
 			KillWindow $pnlName
@@ -749,7 +802,7 @@ End
 
 //	0: all controls can be selected
 //	1: all except for "save" and "display" can be selected
-//	2: only "add", "help", and "close" can be selected
+//	2: only "add" and "close" can be selected
 //	3: no controls can be selected
 Static Function pnlUpdate(String subPnlName, int state)
 	String pnlName = StringFromList(0, subPnlName, "#")
@@ -770,7 +823,6 @@ Static Function pnlUpdate(String subPnlName, int state)
 	Button saveB disable=(state>=1)*2, win=$pnlName#controls
 	CheckBox displayC disable=(state>=1)*2, win=$pnlName#controls
 	PopupMenu toP disable=(state>=2)*2, win=$pnlName#controls
-	Button helpB disable=(state>=3)*2, win=$pnlName#controls
 	Button closeB disable=(state>=3)*2, win=$pnlName#controls
 	
 	ControlUpdate/A/W=$pnlName

@@ -3,6 +3,7 @@
 #pragma ModuleName=SIDAMFFT
 
 #include "SIDAM_Display"
+#include "SIDAM_Help"
 #include "SIDAM_Preference"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -344,9 +345,20 @@ Static Function pnl(String grfName)
 
 	SetActiveSubwindow $pnlName
 
+	Make/T/N=(2,5)/FREE helpw
+	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][1] = {"subtractC", "Check to subtract the average before calculating "\
+		+ "FFT. For 3D waves, the average of each layer is subtracted."}
+	helpw[][2] = {"outputP", "Select an output type."}
+	helpw[][3] = {"windowP", "Select an image window applied before calculating "\
+		+ "FFT. The window profile and image is shown below."}
+	helpw[][4] = {"displayC", "Check to display the output wave."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+
 	changeDisables(pnlName)
 	pnlSetWindowWave(pnlName, StringFromList(ps.fourier[2]-1,allWindows()))
-
+		
 	SetActiveSubwindow $grfName
 End
 

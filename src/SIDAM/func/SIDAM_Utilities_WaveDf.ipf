@@ -341,12 +341,12 @@ Function/S SIDAMValidateWaveforFFTMsg(int flag)
 
 	Make/T/FREE tw = {\
 		"",\
-		"wave not found.",\
-		"the dimension of input wave must be 2 or 3.",\
-		"the first dimension of input wave must be an even number.",\
-		"the minimum length of input wave is 4 points.",\
-		"the input wave must be real.",\
-		"the input wave must not contain NaNs or INFs."\
+		"The input wave not found.",\
+		"The dimension of input wave must be 2 or 3.",\
+		"The first dimension of input wave must be an even number.",\
+		"The minimum length of input wave is 4 points.",\
+		"The input wave must be real.",\
+		"The input wave must not contain NaNs or INFs."\
 	}
 	return tw[flag]
 End

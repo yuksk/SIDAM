@@ -4,6 +4,7 @@
 
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
+#include "SIDAM_Help"
 #include "SIDAM_LayerAnnotation"
 #include "SIDAM_Menus"
 #include "SIDAM_Range"
@@ -83,6 +84,8 @@ Function SIDAMInfoBar(String grfName)
 		ModifyControlList "indexV;energyV" bodyWidth=60, focusRing=0, win=$grfName
 		ModifyControlList "indexV;energyV" proc=SIDAMInfoBar#pnlSetvalue, win=$grfName
 		setLimits(grfName, "indexV", "energyV")
+		SIDAMApplyHelpStrings(grfName, "indexV", "Enter an index of a layer to show.")
+		SIDAMApplyHelpStrings(grfName, "energyV", "Enter a scaling value of a layer to show.")
 		ControlUpdate/W=$grfName indexV
 	endif
 
@@ -96,6 +99,10 @@ Function SIDAMInfoBar(String grfName)
 		ModifyControlList "pqV;xyV" bodyWidth=60, focusRing=0, win=$grfName
 		ModifyControlList "pqV;xyV" proc=SIDAMInfoBar#pnlSetvalue, win=$grfName
 		setLimits(grfName, "pqV", "xyV")
+		SIDAMApplyHelpStrings(grfName, "pqV", "Enter an index of a " \
+			+SelectString(pq,"row","column") + " to show.")
+		SIDAMApplyHelpStrings(grfName, "xyV", "Enter a scaling value of a " \
+			+SelectString(pq,"row","column") + " to show.")
 		ControlUpdate/W=$grfName pqV
 	endif
 	

@@ -5,6 +5,7 @@
 #include <PopupWaveSelector>
 
 #include "SIDAM_Display"
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -206,15 +207,29 @@ Static Function pnl(Wave w, String grfName)
 	CheckBox normalizeC title="normalize after computing", win=$pnlName
 	CheckBox normalizeC pos={20,118}, size={150,14}, value=1, win=$pnlName
 	
-	Button doB title="Do It", pos={8,152}, win=$pnlName
-	CheckBox displayC title="display", pos={79,153}, value=1, win=$pnlName
-	PopupMenu toP title="To", pos={145,152}, size={50,20}, bodyWidth=50, win=$pnlName
+	Button doB title="Do It", pos={8,150}, win=$pnlName
+	CheckBox displayC title="display", pos={79,151}, value=1, win=$pnlName
+	PopupMenu toP title="To", pos={145,150}, size={50,20}, bodyWidth=50, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, win=$pnlName
 	PopupMenu toP proc=SIDAMCorrelation#pnlPopup, win=$pnlName
-	Button cancelB title="Cancel", pos={252,152}, win=$pnlName
+	Button cancelB title="Cancel", pos={252,150}, win=$pnlName
 	
 	ModifyControlList "doB;cancelB" size={60,20}, proc=SIDAMCorrelation#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+
+	Make/T/N=(2,5)/FREE helpw
+	int n = 0
+	helpw[][n++] = {"destV", "Click to select the destination wave. When the "\
+		+ "destination wave is the same as the source wave, calculate the auto-"\
+		+ "correlation of the source wave."}
+	helpw[][n++] = {"resultV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][n++] = {"subtractC", "Check to subtract the average before calculating "\
+		+ "FFT. For 3D waves, the average of each layer is subtracted."}
+	helpw[][n++] = {"normalizeC", "Check to normalize the correlation wave so that "\
+		+ "the maximum of absolute value is 1."}
+	helpw[][n++] = {"displayC", "Check to display the output wave."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
 	
 	pnlDisable(pnlName)
 End

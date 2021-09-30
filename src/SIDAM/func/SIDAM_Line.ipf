@@ -3,6 +3,7 @@
 #pragma moduleName = SIDAMLine
 
 #include "SIDAM_Color"
+#include "SIDAM_Help"
 #include "SIDAM_LineProfile"
 #include "SIDAM_LineSpectra"
 #include "SIDAM_Menus"
@@ -50,14 +51,16 @@ Static Function pnlCtrls(String pnlName, String menuName)
 	CheckBox p1C title="start (1)", pos={31,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p1V title="p1:", pos={12,25}, value=_NUM:p1, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q1V title="q1:", pos={12,46}, value=_NUM:q1, limits={0,ny-1,1}, win=$pnlName
-
+	
 	CheckBox p2C title="end (2)", pos={119,5}, value=1, proc=SIDAMLine#pnlCheck, win=$pnlName
 	SetVariable p2V title="p2:", pos={101,25}, value=_NUM:p2, limits={0,nx-1,1}, win=$pnlName
 	SetVariable q2V title="q2:", pos={101,46}, value=_NUM:q2, limits={0,ny-1,1}, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" size={73,16}, bodyWidth=55, format="%d", win=$pnlName
 
 	SetVariable distanceV title="\u2113:", pos={192,25}, size={89,18}, value=_NUM:distance, bodyWidth=70, win=$pnlName
+	SetVariable distanceV help={"Distance between points 1 and 2."}
 	SetVariable angleV title="\u03b8:", pos={197,46}, size={84,18}, value=_NUM:angle, bodyWidth=70, win=$pnlName
+
 	pnlSetVarIncrement(pnlName)
 
 	if (WaveDims(w) == 3)
@@ -68,6 +71,21 @@ Static Function pnlCtrls(String pnlName, String menuName)
 		drawCtrlBack(pnlName)
 	endif
 
+	Make/T/N=(2,16)/FREE helpw
+	int n = 0
+	helpw[][n++] = {"p1C", "Check to move the point #1."}
+	helpw[][n++] = {"p1V", "Enter the row index of point #1."}
+	helpw[][n++] = {"q1V", "Enter the column index of point #1."}
+	helpw[][n++] = {"p2C", "Check to move point #2."}
+	helpw[][n++] = {"p2V", "Enter the row index of point #2."}
+	helpw[][n++] = {"q2V", "Enter the column index of point #2."}
+	helpw[][n++] = {"distanceV", "Enter a distance between points #1 and #2."}					
+	helpw[][n++] = {"angleV", "Enter an angle between positive x-axis and the path."}
+	helpw[][n++] = {"axlenV", "Enter a relative length of y-axis, between 0.1 and 0.9."}
+	helpw[][n++] = {"hiddenC", "Check to eliminate hidden lines."}			
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
 	SetWindow $pnlName activeChildFrame=0
 
 	changeIgorMenuMode(0)

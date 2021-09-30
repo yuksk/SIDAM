@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMColor
 
+#include "SIDAM_Help"
 #include "SIDAM_Preference"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_ImageInfo"
@@ -27,7 +28,7 @@
 //		The name of a color table or path to a color table wave.
 //		Unless specified, the present value is used.
 //	rev : int {0 or !0}
-//		Set !0 to reverse the color table.
+//		Set !0 to reverse the order of colors in the color table.
 //		Unless specified, the present value is used.
 //	log : int {0 or !0}
 //		Set !0 to use logarithmically-spaced colors.
@@ -356,6 +357,7 @@ Static Function pnl(String grfName)
 	sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
 	Execute/Q cmdStr
 	CheckBox allC pos={258,9},title=" all",value=0,win=$pnlName
+
 	Button doB pos={310,6},size={70,22},title="Do It",proc=SIDAMColor#pnlButton,win=$pnlName
 	Button cancelB pos={386,6},size={70,22},title="Cancel",proc=SIDAMColor#pnlButton,win=$pnlName
 
@@ -376,16 +378,16 @@ Static Function pnl(String grfName)
 	GroupBox op_beforeG size={leftMargin-35,colorBoxHeight},win=$pnlName
 	CheckBox op_beforeUseC pos={14,base+20},title=" Use First Color",mode=1,win=$pnlName
 	CheckBox op_beforeClrC pos={14,base+44},title="",mode=1,win=$pnlName
-	CheckBox op_beforeTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
 	PopupMenu op_beforeClrP pos={32,base+42},value=#"\"*COLORPOP*\"",win=$pnlName
+	CheckBox op_beforeTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
 
 	base += colorBoxHeight + 5
 	GroupBox op_lastG pos={5,base},title="After Last Color",win=$pnlName
 	GroupBox op_lastG size={leftMargin-35,colorBoxHeight},win=$pnlName
 	CheckBox op_lastUseC pos={14,base+20},title=" Use Last Color",mode=1,win=$pnlName
 	CheckBox op_lastClrC pos={14,base+44},title="",mode=1,win=$pnlName
-	CheckBox op_lastTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
 	PopupMenu op_lastClrP pos={32,base+42},value=#"\"*COLORPOP*\"",win=$pnlName
+	CheckBox op_lastTransC pos={14,base+66},title=" Transparent",mode=1,win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*C") proc=SIDAMColor#pnlCheckRadio, win=$pnlName
 	ModifyControlList "allC;op_revC;op_logC" proc=SIDAMColor#pnlCheck, win=$pnlName
@@ -409,7 +411,7 @@ Static Function pnl(String grfName)
 	TitleBox groupT pos={separatorWidth,30}, title=ctabgroup[activegroup], win=$pnlName
 	TitleBox groupT frame=0, fstyle=1, disable=prefs.color, win=$pnlName
 	SetDataFolder dfrSav
-
+	
 	int ctabLeftPos = isOpen ? leftMargin : separatorWidth
 	DefineGuide/W=$pnlname ctabL = {FL, ctabLeftPos}
 	DefineGuide/W=$pnlName ctabT = {FT, topMargin}
@@ -442,6 +444,8 @@ Static Function pnl(String grfName)
 	endfor
 	SetActiveSubwindow ##
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
+
+	pnlHelp(pnlName)
 
 	SetActiveSubwindow $grfName
 End
@@ -541,7 +545,9 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 		top = (ctabHeight+ctabMargin)*mod(i,ctabsInColumn)
 		CheckBox $checkboxName pos={left,top}, title=" "+titleName, win=$pnlName#$subPnlName
 		CheckBox $checkboxName proc=SIDAMColor#pnlCheckCtab, userData(ctabName)=ctabName, win=$pnlName#$subPnlName
-		CheckBox $checkboxName mode=1, help={titleName}, focusRing=0, win=$pnlName#$subPnlName
+		CheckBox $checkboxName mode=1,focusRing=0, win=$pnlName#$subPnlName
+		CheckBox $checkboxName help={"Click to use "+titleName+". You can also select "\
+			+ "a color table by pressing a arrow key."}, win=$pnlName#$subPnlName
 		CheckBox $checkboxName value=CmpStr(ctabName,selected)==0, win=$pnlName#$subPnlName
 	endfor
 End
@@ -612,6 +618,33 @@ Static Function/S checkBoxNameList(String pnlName)
 		list += ControlNameList(childPnlName,";","cb_*")
 	endfor
 	return list
+End
+
+Static Function pnlHelp(String pnlName)
+	Make/T/N=(2,16)/FREE helpw
+	String helpstr_first = "All z values before the first are assigned "
+	String helpstr_last = "All z values after the last are assigned "
+	String helpstr_pop = "the color selected from the popup to the right."
+	int n = 0
+
+	helpw[][n++] = {"imageP","Choose an image to apply a color table."}
+	helpw[][n++] = {"allC", "Check to apply a common color table to all images in the graph."}
+	helpw[][n++] = {"optionB", "Click to show or hide the items on the left."}
+	helpw[][n++] = {"op_revC", "Check to reverse the order of colors in the color table."}
+	helpw[][n++] = {"op_logC", "Check to use logarithmically-spaced colors."}	
+	helpw[][n++] = {"op_beforeUseC", helpstr_first + "the same color as the first z value."}
+	helpw[][n++] = {"op_beforeClrC", helpstr_first + helpstr_pop}
+	helpw[][n++] = {"op_beforeClrP", "Select a color to use for any z values before the first."}
+	helpw[][n++] = {"op_beforeTransC", "All z values before the first are transparent."}
+	helpw[][n++] = {"op_lastUseC", helpstr_last + "the same color as the last z value."}
+	helpw[][n++] = {"op_lastClrC", helpstr_last + helpstr_pop}
+	helpw[][n++] = {"op_lastClrP", "Select a color to use for any z values after the last."}
+	helpw[][n++] = {"op_lastTransC", "All z values after the last are transparent."}
+	helpw[][n++] = {"ctabgroupL", "Choose a group of color tables shown on the right. "\
+		+ "Groups can be changed by using the mouse wheel."}
+
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
 End
 
 //---------------------------------------------------------------------------

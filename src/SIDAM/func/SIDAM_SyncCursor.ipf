@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSyncCursor
 
+#include "SIDAM_Help"
 #include "SIDAM_Sync"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -148,7 +149,7 @@ End
 
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,295) as "Synchronize cursors"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,255) as "Synchronize cursors"
 	RenameWindow $grfName#$S_name, synccursor
 	String pnlName = grfName + "#synccursor"
 	
@@ -159,22 +160,28 @@ Static Function pnl(String grfName)
 	
 	Variable mode = str2num(GetUserData(grfName, "", SYNCKEY+"mode"))
 	mode = numtype(mode) ? 0 : mode
-	DrawText 10,31,"mode"
-	CheckBox pC title="p: put all cursors at [p,q]", pos={49,9}, mode=1, value=!mode, proc=SIDAMSyncCursor#pnlCheck, win=$pnlName
-	CheckBox xC title="x: put all cursors at (x,y)", pos={49,29}, mode=1, value=mode, proc=SIDAMSyncCursor#pnlCheck, win=$pnlName
-	
-	ListBox winL pos={5,52}, size={270,150}, frame=2, mode=4, win=$pnlName
+	TitleBox modeT title="mode", pos={6,8}, frame=0, win=$pnlName
+	CheckBox pC title="p", pos={50,8}, value=!mode, win=$pnlName
+	CheckBox xC title="x", pos={85,8}, value=mode, win=$pnlName
+	ModifyControlList "pC;xC", mode=1, proc=SIDAMSyncCursor#pnlCheck, win=$pnlName
+	SIDAMAPPlyHelpStrings(pnlName, "pC", "Put cursors at the same [p,q] in all windows.")
+	SIDAMAPPlyHelpStrings(pnlName, "xC", "Put cursors at the same (x,y) in all windows.")
+
+	ListBox winL pos={5,32}, size={270,150}, frame=2, mode=4, win=$pnlName
 	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName
 	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
 	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
+	SIDAMAPPlyHelpStrings(pnlName, "winL", "Select windows you want to "\
+		+ "synchronize cursors. You can also select a window by clicking "\
+		+ "an actual window.")
 	
-	Button selectB title="Select / Deselect all", pos={10,210}, size={120,22}, proc=SIDAMSync#pnlButton, win=$pnlName
-	Titlebox selectT title="You can also select a window by clicking it.", pos={10,240}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,268}, size={70,22}, win=$pnlName
+	Button selectB title="Select / Deselect all", size={130,18}, win=$pnlName
+	Button selectB pos={10,192}, proc=SIDAMSync#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,223}, win=$pnlName
 	Button doB disable=(DimSize($(dfTmp+SIDAM_WAVE_SELECTED),0)==1)*2, win=$pnlName
-	Button doB userData(key)=SYNCKEY, userData(fn)="SIDAMSyncCursor", proc=SIDAMSync#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={201,268}, size={70,22}, proc=SIDAMSync#pnlButton, win=$pnlName
-	
+	Button doB userData(key)=SYNCKEY, userData(fn)="SIDAMSyncCursor", win=$pnlName
+	Button cancelB title="Cancel", pos={201,223}, win=$pnlName
+	ModifyControlList "doB;cancelB", size={70,20}, proc=SIDAMSync#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
 	SetActiveSubwindow $grfName

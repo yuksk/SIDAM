@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMScaleBar
 
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -441,29 +442,41 @@ Static Function pnl(String grfName)
 	CheckBox prefixC value=s.prefix, proc=SIDAMScaleBar#pnlCheck, win=$pnlName
 	
 	GroupBox anchorG pos={5,58}, size={125,70}, title="Anchor", win=$pnlName	
-	CheckBox ltC pos={12,78}, title="LT", value=!CmpStr(anchor,"LT"), help={"Left bottom"}, win=$pnlName
-	CheckBox lbC pos={12,104}, title="LB", value=!CmpStr(anchor,"LB"), helP={"Left top"}, win=$pnlName
-	CheckBox rtC pos={89,78}, title="RT", value=!CmpStr(anchor,"RT"), side=1, helP={"Right top"}, win=$pnlName
-	CheckBox rbC pos={89,104}, title="RB", value=!CmpStr(anchor,"RB"), side=1, helP={"Right bottom"}, win=$pnlName
+	CheckBox ltC pos={12,78}, title="LT", value=!CmpStr(anchor,"LT"), win=$pnlName
+	CheckBox lbC pos={12,104}, title="LB", value=!CmpStr(anchor,"LB"), win=$pnlName
+	CheckBox rtC pos={89,78}, title="RT", value=!CmpStr(anchor,"RT"), side=1, win=$pnlName
+	CheckBox rbC pos={89,104}, title="RB", value=!CmpStr(anchor,"RB"), side=1, win=$pnlName
 	
 	GroupBox propG pos={5,136}, size={125,95}, title="Properties", win=$pnlName
-	SetVariable sizeV pos={18,157}, size={100,18}, title="Text size:", bodyWidth=40, format="%d", win=$pnlName
-	SetVariable sizeV value=_NUM:s.fontsize, limits={0,inf,0}, proc=SIDAMScaleBar#pnlSetVar, win=$pnlName
-	SetVariable sizeV help={"A value of 0 means the font size of the default font of the graph."}, win=$pnlName
+	SetVariable sizeV pos={18,157}, size={100,18}, title="Text size:", win=$pnlName
+	SetVariable sizeV bodyWidth=40, format="%d", limits={0,inf,0}, win=$pnlName
+	SetVariable sizeV value=_NUM:s.fontsize, proc=SIDAMScaleBar#pnlSetVar, win=$pnlName
 	PopupMenu fgRGBAP pos={24,180}, size={94,19}, win=$pnlName
 	PopupMenu fgRGBAP title="Fore color:", value=#"\"*COLORPOP*\"", win=$pnlName
 	PopupMenu fgRGBAP popColor=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha), win=$pnlName
-	PopupMenu fgRGBAP help={"Color for the scale bar"}, win=$pnlName
 	PopupMenu bgRGBAP pos={22,204}, size={96,19}, win=$pnlName
 	PopupMenu bgRGBAP title="Back color:", value=#"\"*COLORPOP*\"", win=$pnlName
 	PopupMenu bgRGBAP popColor=(s.bgRGBA.red,s.bgRGBA.green,s.bgRGBA.blue,s.bgRGBA.alpha), win=$pnlName
-	PopupMenu bgRGBAP help={"Color for the background of the scale bar"}, win=$pnlName
+
 	Button doB pos={5,240}, title="Do It", size={50,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
 	Button cancelB pos={70,240}, title="Cancel", size={60,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
 	
 	ModifyControlList "ltC;lbC;rtC;rbC" mode=1, proc=SIDAMScaleBar#pnlCheck, win=$pnlname
 	ModifyControlList "fgRGBAP;bgRGBAP" mode=1, bodyWidth=40, proc=SIDAMScaleBar#pnlPopup, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+	
+	Make/T/N=(2,9)/FREE helpw
+	String helpstr_check = "Check to show the scale bar at the "
+	helpw[][0] = {"showC", "Check to show and uncheck to remove the scale bar."}
+	helpw[][1] = {"prefixC", "Check to use a prefix such as n and \\u03bc."}
+	helpw[][2] = {"ltC", helpstr_check+"left-top corner."}
+	helpw[][3] = {"lbC", helpstr_check+"left-bottom corner."}
+	helpw[][4] = {"rtC", helpstr_check+"right-top corner."}
+	helpw[][5] = {"rbC", helpstr_check+"right-bottom corner."}
+	helpw[][6] = {"sizeV", "Enter the font size. When 0, the default font size is used."}
+	helpw[][7] = {"fgRGBAP", "Select the foreground color of the scale bar."}
+	helpw[][8] = {"bgRGBAP", "Select the background color of the scale bar."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
 	
 	ctrlDisable(pnlName)
 	

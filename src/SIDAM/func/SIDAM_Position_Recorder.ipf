@@ -3,7 +3,7 @@
 #pragma ModuleName=SIDAMPositionRecorder
 
 #include "SIDAM_Display"
-#include "SIDAM_Utilities_Help"
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Image"
 
 #ifndef SIDAMshowProc
@@ -52,8 +52,8 @@ End
 //	Display a panel
 //******************************************************************************
 Static Constant PNLWIDTH = 235
-Static Constant PNLHEIGHT = 110
-Static Constant PNLOFFSET = 140
+Static Constant PNLHEIGHT = 115
+Static Constant PNLOFFSET = 130
 Static StrConstant PNAME = "PositionRecorder"
 
 Static Function pnl(String grfName)
@@ -67,21 +67,31 @@ Static Function pnl(String grfName)
 	PopupMenu existingP pos={80,24}, mode=1, value= #"SIDAMPositionRecorder#popupStr()", win=$pnlName
 
 	CheckBox newC pos={15,52}, title="new:", value=0, win=$pnlName
-	PopupMenu newP pos={80,50}, value="_select a mode_;p and q;x and y", disable=1, win=$pnlName
+	PopupMenu newP pos={80,50}, value="_select a mode_;p and q;x and y", win=$pnlName
 
-	TitleBox pathT title="", pos={5,118}, frame=0, win=$pnlName
-	Checkbox gridC pos={189,118}, title="grid", value=1, win=$pnlName
+	TitleBox pathT title="", pos={5,110}, frame=0, win=$pnlName
+	Checkbox gridC pos={189,110}, title="grid", value=1, win=$pnlName
 
-	Button startB pos={7,85}, size={60,20}, title="Start", disable=2, win=$pnlName
-	Button finishB pos={75,85}, size={60,20}, title="Finish", disable=2, win=$pnlName
-	Button helpB pos={141,85}, size={18,20}, title="?", win=$pnlName
-	Button closeB pos={168,85}, size={60,20}, title="Close", win=$pnlName
+	Button startB pos={7,85}, title="Start", disable=2, win=$pnlName
+	Button finishB pos={75,85}, title="Finish", disable=2, win=$pnlName
+	Button closeB pos={168,85}, title="Close", win=$pnlName
 
 	ModifyControlList "existingC;newC" mode=1, proc=SIDAMPositionRecorder#pnlCheck, win=$pnlName
 	ModifyControlList "existingP;newP" title="", size={140,19}, bodyWidth=140, proc=SIDAMPositionRecorder#pnlPopup, win=$pnlName
-	ModifyControlList ControlNameList(pnlName,";","*B") proc=SIDAMPositionRecorder#pnlButton, win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","*B"\
+		) size={60,20}, proc=SIDAMPositionRecorder#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
+	Make/T/N=(2,7)/FREE helpw
+	helpw[][0] = {"existingC", "Check to save positions you click to an existing wave."}
+	helpw[][1] = {"newC", "Check to save positions you click to a new wave."}
+	helpw[][2] = {"existingP", "Select a wave to save positions."}
+	helpw[][3] = {"newP", "Select a mode how positions are saved."}
+	helpw[][4] = {"startB", "Press to start recording positions."}
+	helpw[][5] = {"finishB", "Press to stop recording positions."}
+	helpw[][6] = {"gridC", "Check to record grid points."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
 	SetActiveSubwindow $grfName
 End
 
@@ -297,10 +307,6 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KillWindow $(s.win+"#T0")
 			MoveSubwindow/W=$s.win fnum=(0,0,PNLWIDTH,PNLHEIGHT)
 			break
-
-		case "helpB":
-			SIDAMOpenHelpNote("positionrecorder", s.win, "Position Recorder")
-			return 0
 
 		case "closeB":
 			KillWindow $s.win

@@ -18,7 +18,7 @@ The name of a color table or path to a color table wave.
 Unless specified, the present value is used.
 
 **rev :** ***int {0 or !0}***  
-Set !0 to reverse the color table.
+Set !0 to reverse the order of colors in the color table.
 Unless specified, the present value is used.
 
 **log :** ***int {0 or !0}***  

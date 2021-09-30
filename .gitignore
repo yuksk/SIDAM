@@ -1,6 +1,5 @@
 /src/SIDAM/*
 !/src/SIDAM/func
-!/src/SIDAM/help
 !/src/SIDAM/SIDAM.default.toml
 
 # ctab

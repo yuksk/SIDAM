@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMLayerAnnotation
 
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -395,6 +396,30 @@ Static Function pnl(String grfName)
 	ModifyControlList "doB;deleteB;cancelB" size={60,22}, proc=SIDAMLayerAnnotation#pnlButton, win=$pnlName
 	
 	ModifyControlList ControlNameList(pnlName) focusRing=0, win=$pnlName
+
+	Make/T/N=(2,5)/FREE helpw
+	helpw[][0] = {"imageP", "Select an image of a 3D wave to show an annotation."}
+	helpw[][1] = {"digitV", "Enter the number of digits after the decimal point."}
+	helpw[][2] = {"unitC", "Check to insert the unit of data after the value."}
+	helpw[][3] = {"signC", "Check to add the plus sign before the value when "\
+		+ "the value is positive."} 
+	helpw[][4] = {"prefixC", "Check to use a prefix such as \\u03bc, m, k, or M."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelpStrings(pnlName, "stringV", "Enter the text of annotation. ${value} "\
+		+ "is replaced with the layer value.\\r\\r"\
+		+ "The text here is simply used as the text of the TextBox command except for " \
+		+ "the replacement of ${value}$. You can insert any codes to modify the " \
+		+ "annotation. For example, \\\f01 to make the font style bold." \
+		, oneline=80)
+	SIDAMApplyHelpStrings(pnlName, "styleP", "Select a style of the annotation.\\r\\r" \
+		+ "Each style uses to the following flags of the Textbox Command.\\r" \
+		+ "\\u2022 \\\"no style\\\"\\r" \
+		+ "No flags. Flags already applied including the Igor's default are kept.\\r" \
+		+ "\\u2022 \\\"light background\\\"\\r" \
+		+ "/F=2/D={1,1,3}/G=(0,0,0,0)/B=(65535,65535,65535,39321) \\\"\\\\K(0,0,0)\\\"+text\\r" \
+		+ "\\u2022 \\\"dark background\\\"\\r" \
+		+ "/F=2/D={1,1,3}/G=(0,0,0,0)/B=(0,0,0,39321) \\\"\\\\K(65535,65535,65535)\\\"+text" \
+		, oneline=80)
 	
 	saveInitial(grfName, "cancelB")
 	

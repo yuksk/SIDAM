@@ -21,9 +21,8 @@ This is equivalent to `ModifyImage ctabAutoscale=3`.
 * 2: sigma. Use _n_&#963; below (`zminmode`) or above (`zmaxmode`) the average,
 where &#963; is the standard deviation. The average and the standard deviation
 are calculated for the current area and plane. _n_ is given by `zmin` and `zmax`.
-* 3: cut. Use _n_% from the minimum (`zminmode`) or maximum (`zmaxmode`) of
-the cumulative histogram which is calculated for the current area and plane.
-_n_ is given by `zmin` and `zmax`.
+* 3: cut. Use the value corresponding to _x_% of the cumulative histogram which
+is calculated for the current area and plane. _x_ is given by `zmin` and `zmax`.
 * 4: logsigma. Similar to `sigma`, but use logarithmic values of an image to
 calculate the average and the standard deviation. This option is useful when
 values in an image span in a wide range over a few orders like an FFT image.

@@ -3,6 +3,7 @@
 #pragma ModuleName = SIDAMSubtraction
 
 #include "SIDAM_Display"
+#include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
@@ -249,21 +250,23 @@ End
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
 
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,195)/N=Subtraction
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,205)/N=Subtraction
 	String pnlName = grfName+"#Subtraction"
 
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	int isComplex = (WaveType(w) & 0x01)
 	int is2D = (WaveDims(w) == 2)
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 
-	SetVariable resultV title="output name:", pos={10,10}, size={308,16}, win=$pnlName
-	SetVariable resultV value=_STR:NameOfWave(w), bodyWidth=239, disable=2, win=$pnlName
+	SetVariable sourceV title="source wave:", pos={4,3}, size={312,18}, win=$pnlName
+	SetVariable sourceV bodyWidth=240, noedit=1, frame=0, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
+	SetVariable resultV title="output name:", pos={4,28}, size={315,16}, win=$pnlName
+	SetVariable resultV value=_STR:NameOfWave(w), bodyWidth=240, disable=2, win=$pnlName
 	SetVariable resultV frame=1, proc=SIDAMSubtraction#pnlSetVar, win=$pnlName
-	CheckBox owC title="overwrite source", pos={79,36}, value=1, win=$pnlName
+	CheckBox owC title="overwrite source", pos={80,54}, value=1, win=$pnlName
 	CheckBox owC proc=SIDAMSubtraction#pnlCheck, win=$pnlName
 
-	PopupMenu modeP title="mode:", pos={46,68}, size={114,21}, bodyWidth=80, win=$pnlName
+	PopupMenu modeP title="mode:", pos={44,82}, size={114,21}, bodyWidth=80, win=$pnlName
 	if (isComplex)
 		PopupMenu modeP mode=1, value="Layer;Phase", win=$pnlName
 	elseif (is2D)
@@ -271,41 +274,79 @@ Static Function pnl(Wave w, String grfName)
 	else
 		PopupMenu modeP mode=1, value="Plane;Line;Layer", win=$pnlName
 	endif
-	PopupMenu degreeP title="degree:", pos={193,68}, size={94,20}, bodyWidth=60, win=$pnlName
+	PopupMenu degreeP title="degree:", pos={185,82}, size={94,20}, bodyWidth=60, win=$pnlName
 	PopupMenu degreeP mode=2, value="0;1;2;3;4;5;6;7", disable=isComplex, win=$pnlName
-	PopupMenu directionP title="direction:", pos={32,99}, size={128,20}, win=$pnlName
+	PopupMenu directionP title="direction:", pos={25,111}, size={133,19}, win=$pnlName
 	PopupMenu directionP bodyWidth=80, mode=1, value="\u21c4;\u21c5", disable=1, win=$pnlName
-	PopupMenu methodP title="method:", pos={180,99},size={137,19}, disable=1, win=$pnlName
+	PopupMenu methodP title="method:", pos={172,111},size={137,19}, disable=1, win=$pnlName
 	PopupMenu methodP mode=1, value="least squares;median", bodyWidth=90, win=$pnlName
 
-	CheckBox roiC title="roi", pos={80,102}, disable=(!is2D||isComplex), win=$pnlName
+	CheckBox roiC title="roi", pos={80,114}, disable=(!is2D||isComplex), win=$pnlName
 	CheckBox roiC value=0, proc=SIDAMSubtraction#pnlCheck, win=$pnlName
-	SetVariable p1V title="p1:", pos={129,100}, value=_NUM:0, limits={0,nx-1,1},win=$pnlName
-	SetVariable q1V title="q1:", pos={129,122}, value=_NUM:0, limits={0,ny-1,1},win=$pnlName
-	SetVariable p2V title="p2:", pos={222,100}, value=_NUM:nx-1, limits={0,nx-1,1},win=$pnlName
-	SetVariable q2V title="q2:", pos={222,122}, value=_NUM:ny-1, limits={0,ny-1,1}, win=$pnlName
+	SetVariable p1V title="p1:", pos={129,114}, value=_NUM:0, limits={0,nx-1,1},win=$pnlName
+	SetVariable q1V title="q1:", pos={129,136}, value=_NUM:0, limits={0,ny-1,1},win=$pnlName
+	SetVariable p2V title="p2:", pos={222,114}, value=_NUM:nx-1, limits={0,nx-1,1},win=$pnlName
+	SetVariable q2V title="q2:", pos={222,136}, value=_NUM:ny-1, limits={0,ny-1,1}, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" size={73,16}, bodyWidth=55, disable=1, win=$pnlName
 
-	SetVariable indexV title="index:", pos={211,68}, size={92,16}, bodyWidth=60, win=$pnlName
+	SetVariable indexV title="index:", pos={185,82}, size={92,16}, bodyWidth=60, win=$pnlName
 	SetVariable indexV disable=!isComplex, proc=SIDAMSubtraction#pnlSetVar, win=$pnlName
 	SetVariable indexV value=_NUM:0, limits={0,DimSize(w,2)-1,1}, win=$pnlName
 	String titleStr
-	sprintf titleStr, "%.2f (%s)", DimOffset(w,2), WaveUnits(w,2)
-	TitleBox valueT title=titleStr, pos={211,97}, win=$pnlName
-	TitleBox valueT frame=0, disable=!isComplex, win=$pnlName
+	sprintf titleStr, "%.3e %s", DimOffset(w,2), WaveUnits(w,2)
+	SetVariable valueV title="value:", pos={182,110},size={115,18}, disable=1, win=$pnlName
+	SetVariable valueV bodyWidth=80, frame=0, noedit=1, value=_STR:titleStr, win=$pnlName
 
-	Button doB title="Do It", pos={9,165}, size={60,20}, win=$pnlName
-	CheckBox displayC title="display", pos={83,167}, value=0, win=$pnlName
-	PopupMenu toP title="To", pos={153,166}, size={50,20}, win=$pnlName
+	Button doB title="Do It", pos={9,175}, size={60,20}, win=$pnlName
+	CheckBox displayC title="display", pos={83,177}, value=0, win=$pnlName
+	PopupMenu toP title="To", pos={153,176}, size={50,20}, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, bodyWidth=50, win=$pnlName
-	Button cancelB title="Cancel", pos={257,165}, size={60,20}, win=$pnlName
+	Button cancelB title="Cancel", pos={257,175}, size={60,20}, win=$pnlName
 
 	ModifyControlList "degreeP;modeP;toP" proc=SIDAMSubtraction#pnlPopup, win=$pnlName
 	ModifyControlList "doB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
-
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
 
+	pnlHelp(pnlName)
+	
 	SetActiveSubwindow $grfName
+End
+
+Static Function pnlHelp(String pnlName)
+	Make/T/N=(2,11)/FREE helpw
+	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][1] = {"owC", "Check to overwrite the source wave by the subtracted wave."}
+	helpw[][2] = {"degreeP", "Select a degree of subtracted plane or lines."}
+	helpw[][3] = {"directionP", "Select a direction of line subtraction, row "\
+		+ "(\u21c4) or column (\u21c5)."}
+	helpw[][4] = {"roiC", "Check to set a region of interest of subtraction."}
+	helpw[][5] = {"p1V", "Enter a row index of a corner of ROI."}
+	helpw[][6] = {"q1V", "Enter a column index of a corner of ROI."}
+	helpw[][7] = {"p2V", "Enter a row index of a corner of ROI."}
+	helpw[][8] = {"q2V", "Enter a column index of a corner of ROI."}
+	helpw[][9] = {"indexV", "Enter an index of a layer to be subtracted."}
+	helpw[][10] = {"displayC", "Check to display the output wave."}
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
+	Redimension/N=(2,2) helpw
+	helpw = ""
+	helpw[][0] = {"modeP", "Select a subtraction mode.\\r"\
+		+ "Plane: Subtract a polynomial plane. Choose a degree from the menu on the right.\\r"\
+		+ "Line: Subtract a line from each row or column. Dependeing on the degree, "\
+		+ "a constant (0), a line (1), or a quadratic curve (2) is subtracted from "\
+		+ "each row or column, which can be selected from the popupmenu below.\\r"\
+		+ "Layer: Subtract a layer of the source wave. This is available for 3D waves.\\r"\
+		+ "Phase: Subtract the phase of a layer of the source wave. This is available "\
+		+ "for complex waves."}
+	helpw[][1] = {"methodP", "Select a method to determine coefficients of subtracted "\
+		+ "lines.\\r"\
+		+ "least squares: By least-squares polynomial fitting to each row or column.\\r"\
+		+ "median: By taking the median. 0th degree is the median of the height. "\
+		+ "1st and 2nd degrees are the medians of slopes and curvatures, respectively. "\
+		+ "The slopes and curvatures are caluculated from all combinations of 2 and 3 "\
+		+ "points, respectively."}	
+	SIDAMApplyHelpStringsWave(pnlName, helpw, oneline=100)
 End
 
 //******************************************************************************
@@ -376,11 +417,12 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 			break
 
 		case "indexV":
-			Wave w = $GetUserData(s.win, "", "src")
+			ControlInfo/W=$s.win sourceV
+			Wave w = $S_Value
 			SetVariable $s.ctrlName value=_NUM:round(s.dval), win=$s.win
 			String titleStr
-			sprintf titleStr, "%.2f (%s)", IndexToScale(w,s.dval,2), WaveUnits(w,2)
-			TitleBox valueT title=titleStr, win=$s.win
+			sprintf titleStr, "%.3e %s", IndexToScale(w,s.dval,2), WaveUnits(w,2)
+			SetVariable valueV value=_STR:titleStr, win=$s.win
 			break
 
 	endswitch
@@ -434,20 +476,18 @@ End
 //	Show/Hide controls
 Static Function pnlShowHideControls(String pnlName)
 
-	ControlInfo/W=$pnlName modeP ;	String modeStr = S_Value
-	int forPlane = !CmpStr(modeStr, "Plane")
-	int forLine = !CmpStr(modeStr, "Line")
-	int forComplex = (!CmpStr(modeStr, "Layer") || !CmpStr(modeStr, "Phase"))
-
-	Wave w = $GetUserData(pnlName, "", "src")
-	int is2dReal = WaveDims(w)==2 && !(WaveType(w) & 0x01)
-	ControlInfo/W=$pnlName degreeP
-	ControlInfo/W=$pnlName roiC ;		int forRoiNum = forPlane && V_value
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName,"sourceV;modeP")
+	int forPlane = !CmpStr(ctw[%modeP], "Plane")
+	int forLine = !CmpStr(ctw[%modeP], "Line")
+	int forComplex = (!CmpStr(ctw[%modeP], "Layer") || !CmpStr(ctw[%modeP], "Phase"))
+	int is2dReal = WaveDims($ctw[%sourceV])==2 && !(WaveType($ctw[%sourceV]) & 0x01)
+	ControlInfo/W=$pnlName roiC
+	int forRoiNum = forPlane && V_value
 
 	PopupMenu degreeP disable=!(forPlane || forLine), win=$pnlName
 	PopupMenu directionP disable=!forLine, win=$pnlName
 	PopupMenu methodP disable=!forLine, win=$pnlName
-	ModifyControlList "indexV;valueT" disable=!forComplex, win=$pnlName
+	ModifyControlList "indexV;valueV" disable=!forComplex, win=$pnlName
 	CheckBox roiC disable=!forPlane, win=$pnlName
 	ModifyControlList "p1V;q1V;p2V;q2V" disable=!forRoiNum, win=$pnlName
 End
@@ -455,9 +495,9 @@ End
 Static Function collectVariableFromPnl(String pnlName, STRUCT paramStruct &s)
 	Wave cvw = SIDAMGetCtrlValues(pnlName, "degreeP;directionP;indexV;"\
 		+"roiC;p1V;q1V;p2V;q2V;methodP;owC")
-	Wave/T ctw = SIDAMGetCtrlTexts(pnlName,"modeP;resultV")
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName,"sourceV;modeP;resultV")
 
-	Wave s.w = $GetUserData(pnlName, "", "src")
+	Wave s.w = $ctw[%sourceV]
 	s.mode = WhichListItem(ctw[%modeP],MODE)
 	s.degree = cvw[%degreeP]-1
 	s.direction = cvw[%directionP]-1

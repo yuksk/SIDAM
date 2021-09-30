@@ -3,10 +3,10 @@
 #pragma ModuleName = SIDAMFourierSym
 
 #include "SIDAM_Display"
+#include "SIDAM_Help"
 #include "SIDAM_PeakPos"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
 #include "SIDAM_Utilities_WaveDf"
@@ -60,8 +60,9 @@ Function/WAVE SIDAMFourierSym(Wave w, Wave q1w, Wave q2w, int sym,
 	s.shear = ParamIsDefault(shear) ? 0 : shear
 	s.endeffect = ParamIsDefault(endeffect) ? 2 : endeffect
 	
-	if (validate(s))
-		print s.errMsg
+	int error = validate(s)
+	if (error)
+		print PRESTR_CAUTION + "SIDAMFourierSym gave error: " + errormsg(error)
 		return $""
 	endif
 	
@@ -70,30 +71,34 @@ End
 
 Static Function validate(STRUCT paramStruct &s)
 
-	s.errMsg = PRESTR_CAUTION + "SIDAMFourierSym gave error: "
-	
 	int flag = SIDAMValidateWaveforFFT(s.w)
 	if (flag)
-		s.errMsg += SIDAMValidateWaveforFFTMsg(flag)
-		return 0
-	endif
-	
-	if (!WaveExists(s.q1w) || !WaveExists(s.q2w))
-		s.errMsg += "wave not found."
-		return 1
-	endif
-	
-	if (s.sym < 1 || s.sym > 5)
-		s.errMsg += "the parameter of symmetry must be from 1 to 5."
-		return 1
+		return flag
+	elseif (!WaveExists(s.w) || !WaveExists(s.q1w) || !WaveExists(s.q2w))
+		return 7
+	elseif (s.sym < 1 || s.sym > 5)
+		return 8
 	endif
 	
 	s.shear = s.shear ? 1 : 0
 	s.endeffect = limit(s.endeffect, 0, 3)
+	
+	return 0
+End
+
+Static Function/S errormsg(int error)
+	if (error < 7)
+		return SIDAMValidateWaveforFFTMsg(error)
+	endif
+	
+	Make/T/FREE msg = {\
+		"At least one of the input waves is not found.",\
+		"The parameter of symmetry must be from 1 to 5."\
+	}
+	return msg[error-7]
 End
 
 Static Structure paramStruct
-	String	errMsg
 	Wave	w
 	Wave	q1w
 	Wave	q2w
@@ -404,68 +409,72 @@ Static StrConstant SUFFIX = "_sym"
 Static StrConstant KEY = "SIDAMFourierSymPnl"
 
 Static Function pnl(Wave w, String grfName)
-	String pnlName = SIdAMNewPanel("Symmetrize FFT ("+NameOfWave(w)+")", 355, 250)
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,355,255)/N=Symmetrize
+	String pnlName = grfName+ "#Symmetrize"
 	SetWindow $pnlName hook(self)=SIDAMFourierSym#pnlHook
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
+	SetWindow $grfName hook($KEY)=SIDAMFourierSym#pnlHookParent, userData($KEY)=pnlName
+	
 	Variable nx = DimSize(w,0), ny = DimSize(w,1)
 	
-	SetVariable outputV title="output name", pos={8,9}, size={341,16}, bodyWidth=274, win=$pnlName
-	SetVariable outputV value= _STR:NameOfWave(w)+SUFFIX, proc=SIDAMFourierSym#pnlSetVar, win=$pnlName
-	PopupMenu symP title="symmetry", pos={21,39}, size={143,20}, bodyWidth=90, win=$pnlName
+	SetVariable sourceV title="source wave:", pos={6,5}, size={343,18}, win=$pnlName
+	SetVariable sourceV bodyWidth=274, noedit=1, frame=0, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
+	SetVariable outputV title="output name", pos={3,31}, size={346,18}, win=$pnlName
+	SetVariable outputV bodyWidth=274, value= _STR:NameOfWave(w)+SUFFIX, win=$pnlName
+	SetVariable outputV proc=SIDAMFourierSym#pnlSetVar, win=$pnlName
+	PopupMenu symP title="symmetry", pos={21,59}, size={143,20}, bodyWidth=90, win=$pnlName
 	PopupMenu symP mode=1, value= "2mm;3;3m;4;4mm", proc=SIDAMFourierSym#pnlPopup, win=$pnlName
-	PopupMenu shearP title="shear", pos={196,39}, size={101,20}, bodyWidth=70, mode=1, value="x;y", win=$pnlName
-	PopupMenu endeffectP title="end effects", pos={13,70}, size={151,20}, bodyWidth=90, win=$pnlName
-	PopupMenu endeffectP mode=3, value= "bounce;wrap;zero;repeat", proc=SIDAMFourierSym#pnlPopup, win=$pnlName
+	PopupMenu shearP title="shear", pos={196,59}, size={101,20},  win=$pnlName
+	PopupMenu shearP bodyWidth=70, mode=1, value="x;y", win=$pnlName
+	PopupMenu endeffectP title="end effects", pos={13,87}, size={151,20}, win=$pnlName
+	PopupMenu endeffectP bodyWidth=90, value= "bounce;wrap;zero;repeat", win=$pnlName
+	PopupMenu endeffectP mode=3, proc=SIDAMFourierSym#pnlPopup, win=$pnlName
 	
-	GroupBox v1G title="vector 1", pos={6,102}, size={169,103}, win=$pnlName
-	SetVariable p1V title="p", pos={17,124}, value=_STR:num2str(nx/2-1), win=$pnlName
-	SetVariable q1V title="q", pos={17,150}, value= _STR:num2str(ny/2), win=$pnlName
-	SetVariable a1V title="a", pos={17,176}, value= _STR:"0", win=$pnlName
+	GroupBox v1G title="vector 1", pos={6,115}, size={169,103}, win=$pnlName
+	SetVariable p1V title="p", pos={17,137}, value=_STR:num2str(nx/2-1), win=$pnlName
+	SetVariable q1V title="q", pos={17,163}, value= _STR:num2str(ny/2), win=$pnlName
+	SetVariable a1V title="a", pos={17,189}, value= _STR:"0", win=$pnlName
 	
-	GroupBox v2G title="vector 2", pos={180,102}, size={169,103}, win=$pnlName
-	SetVariable p2V title="p", pos={191,124}, value= _STR:num2str(nx/2-1), win=$pnlName
-	SetVariable q2V title="q", pos={191,150}, value= _STR:num2str(ny/2), win=$pnlName
-	SetVariable a2V title="a", pos={191,176}, value= _STR:"0", win=$pnlName
+	GroupBox v2G title="vector 2", pos={180,115}, size={169,103}, win=$pnlName
+	SetVariable p2V title="p", pos={191,137}, value= _STR:num2str(nx/2-1), win=$pnlName
+	SetVariable q2V title="q", pos={191,163}, value= _STR:num2str(ny/2), win=$pnlName
+	SetVariable a2V title="a", pos={191,189}, value= _STR:"0", win=$pnlName
 	
-	Button doB title="Do It", pos={5,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
-	CheckBox displayC title="display", pos={75,222}, size={54,14}, value=1, win=$pnlName
-	PopupMenu toP title="To", pos={140,219}, size={50,20}, bodyWidth=50, win=$pnlName
+	Button doB title="Do It", pos={5,226}, win=$pnlName
+	CheckBox displayC title="display", pos={80,229}, size={54,14}, value=1, win=$pnlName
+	PopupMenu toP title="To", pos={145,226}, size={50,20}, bodyWidth=50, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMFourierSym#pnlPopup, win=$pnlName
-	Button helpB title="Help", pos={220,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
-	Button cancelB title="Cancel", pos={290,219}, size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
+	Button cancelB title="Cancel", pos={290,226}, win=$pnlName
 	
 	String ctrlList = "p1V;q1V;a1V;p2V;q2V;a2V;"
 	ModifyControlList ctrlList size={150,16}, bodyWidth=140, proc=SIDAMFourierSym#pnlSetVar, win=$pnlName
 	ModifyControlList ctrlList valueColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
 	ModifyControlList ctrlList fColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
-	
+	ModifyControlList "doB;cancelB" size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
-	AutoPositionWindow/E/M=0/R=$grfName $pnlName
-	SetWindow $pnlName userData(parent)=grfName
-	SetWindow $grfName hook($KEY)=SIDAMFourierSym#pnlHookParent, userData($KEY)=pnlName
+	pnlHelp(pnlName)
+	pnlValidateWave(pnlName)
 End
 
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
-	switch (s.eventCode)
-		case 2:	//	kill
-			SetWindow $GetUserData(s.winName,"","parent") hook($KEY)=$"", userData($KEY)=""
+	strswitch (s.eventName)
+		case "kill":
+			SetWindow $StringFromList(0, s.winName, "#") hook($KEY)=$"", userData($KEY)=""
 			break
-		case 5:	//	mouseup
-			if (strlen(GetUserData(s.winName,"","parent")))
-				Variable v1Gsel = SIDAMPtInRect(s,"v1G")
-				Variable v2Gsel = SIDAMPtInRect(s,"v2G")
-				GroupBox v1G fstyle=v1Gsel, userData(selected)=num2str(v1Gsel), win=$s.winName
-				GroupBox v2G fstyle=v2Gsel, userData(selected)=num2str(v2Gsel), win=$s.winName
-				SetVariable p1V fstyle=v1Gsel, win=$s.winName
-				SetVariable q1V fstyle=v1Gsel, win=$s.winName
-				SetVariable p2V fstyle=v2Gsel, win=$s.winName
-				SetVariable q2V fstyle=v2Gsel, win=$s.winName
-			endif
+		case "mouseup":
+			Variable v1Gsel = SIDAMPtInRect(s,"v1G")
+			Variable v2Gsel = SIDAMPtInRect(s,"v2G")
+			GroupBox v1G fstyle=v1Gsel, userData(selected)=num2str(v1Gsel), win=$s.winName
+			GroupBox v2G fstyle=v2Gsel, userData(selected)=num2str(v2Gsel), win=$s.winName
+			SetVariable p1V fstyle=v1Gsel, win=$s.winName
+			SetVariable q1V fstyle=v1Gsel, win=$s.winName
+			SetVariable p2V fstyle=v2Gsel, win=$s.winName
+			SetVariable q2V fstyle=v2Gsel, win=$s.winName
 			break
-		case 11:	//	keyboard
+		case "keyboard":
 			if (s.keycode == 27)	//	esc
-				SetWindow $GetUserData(s.winName,"","parent") hook($KEY)=$"", userData($KEY)=""
+				SetWindow $StringFromList(0, s.winName, "#") hook($KEY)=$"", userData($KEY)=""
 				KillWindow $s.winName
 			endif
 			break
@@ -475,15 +484,12 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 End
 
 Static Function pnlHookParent(STRUCT WMWinHookStruct &s)	
-	switch (s.eventCode)
-		case 2:	//	killed
-			SetWindow $GetUserData(s.winName, "", KEY) userData(parent)=""
-			break
-		case 3:	//	mousedown
+	strswitch (s.eventName)
+		case "mousedown":
 			//	Record the eventMod used at the event of mouseup
 			SetWindow $s.winName userData(eventMod)=num2istr(s.eventMod)
 			break
-		case 5:	//	mouseup
+		case "mouseup":
 			//	The eventMode recorded at the event of mousedown
 			Variable eventMod = str2num(GetUserData(s.winName,"","eventMod"))
 			//	If the click is left click, put the numbers to the item
@@ -507,6 +513,70 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	return 0
 End
 
+Static Function pnlHelp(String pnlName)
+	String helpstr_group = "\\rBesides typing numbers, there are two ways "\
+		+ "to enter numbers.\\r"\
+		+ "(1) Click the group box and then click the FFT image on the left.\\r"\
+		+ "(2) Enclose a peak by click and drag, and you will find a menu "\
+		+ "item for fitting in the marguee menu."	
+	String helpstr_blue = " You can enter a formula in a box of blue letters."
+	String helpstr_eg = " For example, 3.5/2*sqrt(3)"
+	Make/T/N=(2,16)/FREE helpw
+	int n = 0
+	helpw[][n++] = {"outputV", "Enter the name of output wave. The output wave is "\
+		+ "saved in the same datafolder where the source wave is."}
+	helpw[][n++] = {"symP", "Select the symmetry of the Fourier pattern."}
+	helpw[][n++] = {"shearP", "Select the direction of shear. This is usually the "\
+		+ "direction of the fast scan."}
+	helpw[][n++] = {"p1V", "Enter the row index of the first peak."+helpstr_blue}
+	helpw[][n++] = {"q1V", "Enter the column index of the first peak."+helpstr_blue}
+	helpw[][n++] = {"a1V", "Enter the period corresponding to the first peak."\
+		+ helpstr_blue + helpstr_eg}
+	helpw[][n++] = {"p2V", "Enter the row index of the second peak."+helpstr_blue}
+	helpw[][n++] = {"q2V", "Enter the column index of the second peak."+helpstr_blue}	
+	helpw[][n++] = {"a2V", "Enter the period corresponding to the second peak."\
+		+ helpstr_blue + helpstr_eg}
+	helpw[][n++] = {"displayC", "Check to display the output wave."}
+	helpw[][n++] = {"v1G", "Enter numbers of the first peak."+helpstr_group}
+	helpw[][n++] = {"v2G", "Enter numbers of the second peak."+helpstr_group}	
+	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
+	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelpStrings(pnlName, "endeffectP", \
+		"The end effect is the same as used in Smooth.\\r"\
+		+ "\\\"bounce\\\" uses w[i] in place of the missing w[-i] and w[n-i] "\
+		+ "in place of the missing w[n+i].\\r"\
+		+ "\\\"wrap\\\" uses w[n-i] in place of the mising w[-i] and vice-versa.\\r"\
+		+ "\\\"zero\\\" uses 0 for any missing values.\\r"\
+		+ "\\\"repeat\\\" uses w[0] in place of the missing w[-i] and w[n] in "\
+		+ "place of the missing w[n+i]."\
+		, oneline=100)
+End
+
+Static Function pnlValidateWave(String pnlName)
+	STRUCT paramStruct s
+	ControlInfo/W=$pnlName sourceV
+	Wave s.w = $S_Value
+	Wave s.q1w = SIDAMGetCtrlValues(pnlName, "p1V;q1V;a1V")
+	Wave s.q2w = SIDAMGetCtrlValues(pnlName, "p2V;q2V;a2V")
+	Wave cvw = SIDAMGetCtrlValues(pnlName, "symP;shearP;endeffectP")
+	s.sym = cvw[%symP]
+	s.shear = cvw[%shearP]-1
+	s.endeffect=cvw[%endeffectP]-1
+	
+	int error = validate(s)
+	if (!error)
+		return 0
+	endif
+
+	String msg = errormsg(error)
+	SetVariable outputV title="error: ", noedit=1, frame=0, win=$pnlName
+	SetVariable outputV fColor=(65535,0,0),valueColor=(65535,0,0), win=$pnlName
+	SetVariable outputV value=_STR:msg, help={msg}, win=$pnlName
+
+	String ctrlList = "symP;shearP;endeffectP;v1G;p1V;q1V;a1V;v2G;p2V;q2V;a2V;doB;displayC;toP"
+	ModifyControlList ctrlList, disable=2, win=$pnlName
+End
+
 //-------------------------------------------------------------
 //	Controls
 //-------------------------------------------------------------
@@ -518,7 +588,6 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 		return 1
 	endif
 
-	Wave w = $GetUserData(s.win, "", "src")
 	strswitch (s.ctrlName)
 		case "outputV":
 			SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
@@ -567,13 +636,12 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			endif
 			break
 		case "toP":
-			Wave w = $GetUserData(s.win,"","src")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;outputV")
 			Wave cvw = SIDAMGetCtrlValues(s.win, "symP;shearP;endeffectP")
-			ControlInfo/W=$s.win outputV
-			String paramStr = echoStr(w,\
+			String paramStr = echoStr($ctw[%sourceV],\
 				SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V"), \
 				SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V"), \
-				cvw[0], cvw[1]-1, cvw[2]-1, S_value)
+				cvw[%symP], cvw[%shearP]-1, cvw[%endeffectP]-1, ctw[%outputV])
 			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
@@ -587,28 +655,24 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	
 	strswitch (s.ctrlName)
 		case "doB":
-			Wave w = $GetUserData(s.win,"","src")
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;outputV")
 			Wave cvw = SIDAMGetCtrlValues(s.win, "symP;shearP;endeffectP;displayC")
 			Wave q1w = SIDAMGetCtrlValues(s.win, "p1V;q1V;a1V")
 			Wave q2w = SIDAMGetCtrlValues(s.win, "p2V;q2V;a2V")
 			Wave/T q1tw = SIDAMGetCtrlTexts(s.win, "p1V;q1V;a1V")
 			Wave/T q2tw = SIDAMGetCtrlTexts(s.win, "p2V;q2V;a2V")
-			ControlInfo/W=$s.win outputV ;	String result = S_Value
 			KillWindow $s.win
-			printf "%s%s\r", PRESTR_CMD, echoStr(w, q1tw, q2tw, \
-				cvw[0], cvw[1]-1, cvw[2]-1, result)
+			printf "%s%s\r", PRESTR_CMD, echoStr($ctw[%sourceV], q1tw, q2tw, \
+				cvw[%symP], cvw[%shearP]-1, cvw[%endeffectP]-1, ctw[%outputV])
 			DFREF dfr = GetWavesDataFolderDFR(w)
-			Duplicate/O SIDAMFourierSym(w, q1w, q2w, cvw[0], shear=cvw[1]-1, \
-				endeffect=cvw[2]-1) dfr:$result/WAVE=resw
-			if (cvw[3])
+			Duplicate/O SIDAMFourierSym($ctw[%sourceV], q1w, q2w, cvw[%symP], \
+				shear=cvw[%shearP]-1, 	endeffect=cvw[%endeffectP]-1) dfr:$ctw[%outputV]/WAVE=resw
+			if (cvw[%displayC])
 				SIDAMDisplay(resw, history=1)
 			endif
 			break
 		case "cancelB":
 			KillWindow $s.win
-			break
-		case "helpB":
-			SIDAMOpenHelpNote("symmetrization",s.win,"Fourier Symmetrization")
 			break
 	endswitch
 End

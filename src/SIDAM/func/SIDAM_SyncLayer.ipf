@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSyncLayer
 
+#include "SIDAM_Help"
 #include "SIDAM_Sync"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Panel"
@@ -120,7 +121,7 @@ End
 
 
 Static Function pnl(String LVName)
-	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,255) as "Syncronize Layers"
+	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,235) as "Syncronize Layers"
 	RenameWindow $LVName#$S_name, synclayer
 	String pnlName = LVName + "#synclayer"
 	
@@ -133,14 +134,18 @@ Static Function pnl(String LVName)
 	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName
 	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
 	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
+	SIDAMAPPlyHelpStrings(pnlName, "winL", "Select windows you want to "\
+		+ "synchronize layers. You can also select a window by clicking "\
+		+ "an actual window. 3D waves with the same number of layers are "\
+		+ "listed here.")
 	
-	Button selectB title="Select / Deselect all", pos={10,172}, size={130,22}, proc=SIDAMSync#pnlButton, win=$pnlName
-	Titlebox selectT title="You can also select a window by clicking it.", pos={10,200}, frame=0, fColor=(21760,21760,21760), win=$pnlName
-	Button doB title="Do It", pos={10,228}, win=$pnlName
+	Button selectB title="Select / Deselect all", size={130,18}, win=$pnlName
+	Button selectB pos={10,171}, proc=SIDAMSync#pnlButton, win=$pnlName
+	Button doB title="Do It", pos={10,203}, win=$pnlName
 	Button doB disable=(DimSize($(dfTmp+SIDAM_WAVE_SELECTED),0)==1)*2, win=$pnlName
 	Button doB userData(key)=SYNCKEY, userData(fn)="SIDAMSyncLayer", win=$pnlName
-	Button cancelB title="Cancel", pos={201,228}, win=$pnlName
-	ModifyControlList "doB;cancelB", size={70,22}, proc=SIDAMSync#pnlButton, win=$pnlName
+	Button cancelB title="Cancel", pos={205,203}, win=$pnlName
+	ModifyControlList "doB;cancelB", size={70,20}, proc=SIDAMSync#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
 	SetActiveSubwindow $LVName
