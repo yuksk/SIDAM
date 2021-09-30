@@ -312,8 +312,8 @@ Static Function pnl(String grfName, String imgName)
 	SetWindow $pnlName userData(grid)="1"
 	SetWindow $pnlName userData(key)=KEY
 	SetWindow $pnlName userData(dfTmp)=dfTmp
-	SetWindow $pnlName userData(dim)="1"
 	if (WaveDims(w)==3)
+		SetWindow $pnlName userData(dim)="1"
 		SetWindow $pnlName userData(highlight)="1"
 	endif
 
