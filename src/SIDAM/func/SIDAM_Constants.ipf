@@ -68,8 +68,9 @@ StrConstant SIDAM_CHAR_ITEMSEP = "\u001F"
 //------------------------------------------------------------------------------
 //	Constants used in Igor Pro
 //------------------------------------------------------------------------------
+//	Explictly define some constants built-in to Igor
 Constant MAX_OBJ_NAME = 255
-Constant MAX_WIN_PATH = 2000
+Constant MAX_WIN_PATH = 400
 Constant MAXCMDLEN = 2500
 
 StrConstant PRESTR_CMD = "•"			//	prefix character for regular commands in the history window
