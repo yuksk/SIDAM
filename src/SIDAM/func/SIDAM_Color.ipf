@@ -674,10 +674,10 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 
 		case 11:	//	keyboard
+			//	s.winName can be a subwindow of the color panel.
+			String pnlName = StringFromList(0,s.winName,"#")+"#Color"
 			switch (s.keycode)
 				case 27:	//	esc
-					//	s.winName can be a subwindow of the color panel.
-					String pnlName = StringFromList(0,s.winName,"#")+"#Color"
 					pnlHookClose(pnlName)
 					KillWindow $pnlName
 					break
@@ -685,7 +685,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				case 29:	//	right
 				case 30:	//	up
 				case 31:	//	down
-					pnlHookArrows(s.winName, s.keycode)
+					pnlHookArrows(pnlName, s.keycode)
 					break
 			endswitch
 			break
