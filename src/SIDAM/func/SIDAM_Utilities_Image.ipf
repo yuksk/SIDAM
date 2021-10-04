@@ -429,6 +429,10 @@ Function SIDAMMoveCursor(String csrName, String grfName, int mode,
 End
 
 Function/S SIDAMActiveCursors(String grfName)
+	if (WinType(grfName) != 1)
+		return ""
+	endif
+	
 	String list = "ABCDEFGHIJ", active = "", info
 	int i, n
 	for (i = 0, n = strlen(list); i < n; i++)
