@@ -129,13 +129,17 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 End
 
 //	Show a cursor unless shown
-Static Function putCursor(grfName)
-	String grfName
-	
+Static Function putCursor(String grfName, String key)
 	if (strlen(CsrInfo(A, grfName)))
 		return 0
-	elseif (strlen(ImageNameList(grfName, ";")))
-		Cursor/P/F/I/W=$grfName A $StringFromList(0, ImageNameList(grfName, ";")) 0.5, 0.5
+	endif
+	
+	int mode = NumberByKey("mode", GetUserData(grfName, "", key), ":", ",")
+	String imgList = ImageNameList(grfName, ";")
+	if (strlen(imgList) && mode)
+		Cursor/P/F/I/W=$grfName A $StringFromList(0, imgList) 0.5, 0.5
+	elseif (strlen(imgList) && !mode)
+		Cursor/P/I/W=$grfName A $StringFromList(0, imgList) 0, 0
 	else
 		Cursor/P/F/W=$grfName A $StringFromList(0, TraceNameList(grfName, ";", 1)) 0.5, 0.5
 	endif

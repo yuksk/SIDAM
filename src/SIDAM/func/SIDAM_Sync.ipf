@@ -50,11 +50,11 @@ Static Function set(
 	if (set)
 		for (i = 0; i < n; i++)
 			win = StringFromList(i, syncWinList)
-			if (!paramIsDefault(call))
-				call(win)
-			endif
 			SetWindow $win, hook($key) = $fn
 			SetWindow $win, userData($key) = data
+			if (!paramIsDefault(call))
+				call(win,key)
+			endif
 		endfor
 	else
 		for (i = 0; i < n; i++)
@@ -63,7 +63,7 @@ Static Function set(
 	endif
 End
 
-Function SIDAMSyncproto(String str)
+Function SIDAMSyncproto(String win, String key)
 End
 
 Static Function reset(String grfName, String key)
