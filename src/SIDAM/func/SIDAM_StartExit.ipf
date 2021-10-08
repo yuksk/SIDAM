@@ -165,7 +165,7 @@ End
 //******************************************************************************
 //	Exit SIDAM
 //******************************************************************************
-Function sidamExit()
+Function SIDAMExit()
 	SetIgorHook/K BeforeFileOpenHook = SIDAMFileOpenHook
 	SetIgorHook/K AfterCompiledHook = SIDAMAfterCompiledHook
 	SetIgorHook/K BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
@@ -174,4 +174,20 @@ Function sidamExit()
 	Execute/P/Q/Z "COMPILEPROCEDURES "
 	Execute/P/Q/Z "BuildMenu \"All\""
 	KillPath/Z KMMain
+End
+
+Static Function/S mainMenuItem()
+	//	"Restart" when the shift key is pressed
+	return SelectString(GetKeyState(0) && 0x04, "Exit", "Restart") + " SIDAM"
+End
+
+Static Function mainMenuDo()
+	GetLastUserMenuInfo
+	int isRestart = !CmpStr(S_value, "Restart SIDAM")
+
+	SIDAMExit()
+
+	if (isRestart)
+		sidam()
+	endif
 End

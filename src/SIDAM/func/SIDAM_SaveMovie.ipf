@@ -11,7 +11,7 @@
 #endif
 
 
-Static Function/S menu()
+Static Function/S menuItem()
 	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))
 	if (!WaveExists(w))
 		return ""

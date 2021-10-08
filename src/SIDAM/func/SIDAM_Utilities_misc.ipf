@@ -6,7 +6,7 @@
 #pragma hide = 1
 #endif
 
-Static Function/S menu()
+Static Function/S mainMenuItem()
 	return SelectString(defined(SIDAMshowProc), "Show", "Hide")+" SIDAM Procedures"
 End
 

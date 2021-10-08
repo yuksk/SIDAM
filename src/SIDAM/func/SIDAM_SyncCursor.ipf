@@ -76,7 +76,7 @@ Static Structure paramStruct
 	String	list
 EndStructure
 
-Static Function/S menu()
+Static Function/S menuItem()
 	STRUCT paramStruct s
 	s.list = WinList("*",";","WIN:1")
 	s.mode = 0

@@ -15,7 +15,7 @@
 Static StrConstant FORMAT_DEPENDENT_CTRL = "rgb_rC;cmyk_rC;tranC;dontembedC;embedC;exceptC;resolutionP;dpiP"
 
 
-Static Function/S menu()
+Static Function/S menuItem()
 	int isWindows = stringmatch(IgorInfo(2),"Windows")
 	
 	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))

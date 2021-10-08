@@ -131,7 +131,7 @@ EndStructure
 //-------------------------------------------------------------
 //	Menu functions
 //-------------------------------------------------------------
-Static Function/S menu(int mode, String shortCutStr)
+Static Function/S mainMenuItem(int mode, String shortCutStr)
 
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
 	int n = SIDAMnumberOfSelectedWaves()
@@ -156,7 +156,7 @@ Static Function/S menu(int mode, String shortCutStr)
 	endswitch
 End
 
-Static Function menuDo()
+Static Function mainMenuDo()
 	Make/N=(SIDAMnumberOfSelectedWaves())/WAVE/FREE ww=$GetBrowserSelection(p)
 	SIDAMDisplay(ww,history=1)
 End

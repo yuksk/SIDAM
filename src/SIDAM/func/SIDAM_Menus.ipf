@@ -51,13 +51,13 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Display..."
-		SIDAMDisplay#menu(0,"/F3"), /Q, SIDAMDisplay#menuDo()
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
 		help = {"Display a wave(s)"}
 
-		SIDAMDisplay#menu(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
+		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
 		help = {"Display a 2D wave as 1d-traces"}
 
-		SIDAMDisplay#menu(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
 		help = {"Display a 2D wave as xy-traces"}
 		
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
@@ -67,8 +67,8 @@ Menu "SIDAM", dynamic
 	"-"
 
 	Submenu "Config"
-		"Open SIDAM config file", /Q, SIDAMConfig#menuDo(0)
-		SIDAMConfig#menu(), /Q, SIDAMConfig#menuDo(1)
+		"Open SIDAM config file", /Q, SIDAMConfig#mainMenuDo(0)
+		SIDAMConfig#mainMenuItem(), /Q, SIDAMConfig#mainMenuDo(1)
 	End
 	
 	Submenu "Help"
@@ -82,7 +82,7 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Developer"
-		SIDAMUtilMisc#menu(), /Q, SIDAMshowProcedures()
+		SIDAMUtilMisc#mainMenuItem(), /Q, SIDAMshowProcedures()
 		"List of Deprecated Functions", /Q, print SIDAMDeprecatedFunctions()
 		help = {"Show a list of deprecated functions in the history area"}
 	End
@@ -90,26 +90,7 @@ Menu "SIDAM", dynamic
 	"-"
 
 	//	Exit or Restart
-	SIDAMMenus#Exitmenu(), /Q, SIDAMMenus#Exit()
-End
-
-//-------------------------------------------------------------
-//	Exit or restart SIDAM
-//-------------------------------------------------------------
-Static Function/S Exitmenu()
-	//	"Restart" when the shift key is pressed
-	return SelectString(GetKeyState(0) && 0x04, "Exit", "Restart") + " SIDAM"
-End
-
-Static Function Exit()
-	GetLastUserMenuInfo
-	int isRestart = !CmpStr(S_value, "Restart SIDAM")
-
-	sidamExit()
-
-	if (isRestart)
-		sidam()
-	endif
+	SIDAMStartExit#mainMenuItem(), /Q, SIDAMStartExit#mainMenuDo()
 End
 
 

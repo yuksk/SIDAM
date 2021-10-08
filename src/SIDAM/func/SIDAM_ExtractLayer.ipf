@@ -19,7 +19,7 @@
 //-------------------------------------------------------------
 //	Menu items
 //-------------------------------------------------------------
-Static Function/S menu()
+Static Function/S menuItem()
 	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))
 	if (!WaveExists(w) || WaveDims(w) != 3)
 		return ""

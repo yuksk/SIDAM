@@ -156,8 +156,7 @@ End
 //-------------------------------------------------------------
 //	Menu functions
 //-------------------------------------------------------------
-Static Function/S menu(int mode)	//	mode 2: sigma, 3, cut
-
+Static Function/S menuItem(int mode)	//	mode 2: sigma, 3, cut
 	String grfName = WinName(0,1)
 	String menuStr = "3\u03c3;0.5%", checkmark = "!"+num2char(18)
 	return SelectString(isAllImagesInMode(grfName, mode), "",checkmark) + StringFromList(mode-2,menuStr)

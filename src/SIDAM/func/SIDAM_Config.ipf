@@ -72,11 +72,11 @@ Static Structure extensionS
 	String path
 EndStructure
 
-Static Function/S menu()
+Static Function/S mainMenuItem()
 	return SelectString(strlen(configFile(USER)), "", "Open user config file")
 End
 
-Static Function menuDo(int kind)
+Static Function mainMenuDo(int kind)
 	if (kind == 0)
 		OpenNoteBook/ENCG=1/K=1/R/Z configFile(kind)
 	elseif (kind == 1)
