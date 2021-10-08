@@ -173,7 +173,6 @@ Function SIDAMExit()
 	Execute/P/Q/Z "SetIgorOption poundUndefine=SIDAMshowProc"
 	Execute/P/Q/Z "COMPILEPROCEDURES "
 	Execute/P/Q/Z "BuildMenu \"All\""
-	KillPath/Z KMMain
 End
 
 Static Function/S mainMenuItem()

@@ -58,11 +58,3 @@ Function SIDAMBeforeExperimentSaveHook(refNum,filename,path,type,creator,kind)
 
 	return 0
 End
-
-
-//	Backward compatibility
-Function KMAfterCompiledHook()
-	SetIgorHook/K AfterCompiledHook = KMAfterCompiledHook
-	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
-	SIDAMAfterCompiledHook()
-End
