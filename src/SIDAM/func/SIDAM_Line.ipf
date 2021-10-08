@@ -142,12 +142,11 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 			endif
 
 			//	Update the text marker
-			GetWindow $s.win hook(self)
-			strswitch (StringFromList(0,S_Value,"#"))
-				case "KMLineSpectra":
+			strswitch (GetUserData(s.win, "", "key"))
+				case "SIDAMLineSpectra":
 					SIDAMLineSpectra#pnlUpdateTextmarker(s.win)
 					break
-				case "KMLineProfile":
+				case "SIDAMLineProfile":
 					SIDAMLineProfile#pnlUpdateTextmarker(s.win)
 					break
 			endswitch
