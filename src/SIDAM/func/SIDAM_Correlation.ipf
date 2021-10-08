@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMCorrelation
 
+#include <PopupWaveSelector>
+
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
@@ -161,50 +163,92 @@ End
 Static StrConstant SUFFIX = "_Corr"
 
 Static Function pnl(Wave w, String grfName)
-	String pnlName = SIDAMNewPanel("Correlation", 320, 260)
-	AutoPositionWindow/E/M=0/R=$grfName $pnlName
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,320,180)/N=Correlation
+	String pnlName = grfName+ "#Correlation"	
+
+	String dfTmp = SIDAMNewDF(pnlName,"CorrelationPnl")
+	SetWindow $pnlName hook(self)=SIDAMCorrelation#pnlHook
+	SetWindow $pnlName userData(dfTmp)=dfTmp, activeChildFrame=0
+	String/G $(dfTmp+"path")
+		
+	SetVariable sourceV title="source", pos={42,6}, frame=0, win=$pnlName
+	SetVariable sourceV size={269,18}, bodyWidth=230, noedit=1, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
+		
+	SetVariable destV title="destination", pos={18,33}, win=$pnlName
+	SetVariable destV size={278,18}, bodyWidth=215, win=$pnlName
 	
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
+	MakeSetVarIntoWSPopupButton(pnlName, "destV", "SIDAMCorrelation#pnlPutGlobalPath", \
+		dfTmp+"path", initialSelection=GetWavesDataFolder(w,2), \
+		options=PopupWS_OptionFloat)
+	String destBName = GetUserData(pnlName, "destV", "PopupWS_ButtonName")
+	Button $destBName userData(PopupWS_filterProc)="SIDAMCorrelation#pnlWaveFilter", win=$pnlName
+	//	Show the full path because the initialSelection in MakeSetVarIntoWSPopupButton
+	//	sets only the name of source wave.
+	SVAR destStr = $GetUserData(pnlName, destBName, "popupWSGString")
+	destStr = GetUserData(pnlName, destBName, "PopupWS_FullPath")
+
+	int nx = DimSize(w,0), ny = DimSize(w,1), nz = DimSize(w,2)
+	String optionStr = "TEXT:0,DF:0,WAVE:0,CMPLX:0,MAXCHUNKS:0"
+	sprintf optionStr, "%s,MINROWS:%d,MAXROWS:%d,MINCOLS:%d,MAXCOLS:%d", optionStr, nx, nx, ny, ny
+	if (WaveDims(w)==3)
+		sprintf optionStr, "%s,MINLAYERS:%d,MAXLAYERS:%d", optionStr, nz, nz
+	endif
+	Button $destBName userData(PopupWS_ListOptions)=optionStr, win=$pnlName
 	
-	GroupBox sourceG title="source", pos={5,5}, size={310,45}, win=$pnlName
-	TitleBox sourceT title=GetWavesDataFolder(w,2), pos={22,26}, frame=0, win=$pnlName
-	
-	GroupBox destG title="destination", pos={5,55}, size={310,80}, win=$pnlName
-	PopupMenu dfP title="datafolder:", pos={22,76}, size={186,20}, bodyWidth=130, win=$pnlName
-	PopupMenu dfP mode=1, value= #"\"same as source;current datafolder\"", win=$pnlName
-	PopupMenu waveP title="wave:", pos={22,104}, size={281,20}, bodyWidth=250, win=$pnlName
-	PopupMenu waveP userData(srcDf)=GetWavesDataFolder(w,1), win=$pnlName
-	//	To show the panel without delay, show the list with one candidate
-	PopupMenu waveP value=#("\"" + NameOfWave(w) + "\""), win=$pnlName
-	
-	SetVariable resultV title="output name:", frame=1, win=$pnlName
-	SetVariable resultV pos={22,150}, size={289,16}, bodyWidth=220, win=$pnlName
+	SetVariable resultV title="output name", frame=1, win=$pnlName
+	SetVariable resultV pos={12,60}, size={299,16}, bodyWidth=230, win=$pnlName
 	SetVariable resultV value=_STR:NameOfWave(w)+SUFFIX, win=$pnlName
 	SetVariable resultV proc=SIDAMCorrelation#pnlSetVar, win=$pnlName
 	
 	CheckBox subtractC title="subtract average before computing", win=$pnlName
-	CheckBox subtractC pos={20,181}, size={196,14}, value=1, win=$pnlName
+	CheckBox subtractC pos={20,96}, size={196,14}, value=1, win=$pnlName
 	CheckBox normalizeC title="normalize after computing", win=$pnlName
-	CheckBox normalizeC pos={20,203}, size={150,14}, value=1, win=$pnlName
+	CheckBox normalizeC pos={20,118}, size={150,14}, value=1, win=$pnlName
 	
-	Button doB title="Do It", pos={8,232}, win=$pnlName
-	CheckBox displayC title="display", pos={79,233}, value=1, win=$pnlName
-	PopupMenu toP title="To", pos={145,232}, size={50,20}, bodyWidth=50, win=$pnlName
+	Button doB title="Do It", pos={8,152}, win=$pnlName
+	CheckBox displayC title="display", pos={79,153}, value=1, win=$pnlName
+	PopupMenu toP title="To", pos={145,152}, size={50,20}, bodyWidth=50, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, win=$pnlName
-	Button cancelB title="Cancel", pos={252,232}, win=$pnlName
+	PopupMenu toP proc=SIDAMCorrelation#pnlPopup, win=$pnlName
+	Button cancelB title="Cancel", pos={252,152}, win=$pnlName
 	
 	ModifyControlList "doB;cancelB" size={60,20}, proc=SIDAMCorrelation#pnlButton, win=$pnlName
-	ModifyControlList "dfP;waveP;toP" proc=SIDAMCorrelation#pnlPopup, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
 	pnlDisable(pnlName)
-
-	//	Show the remaining candidates
-	DoUpdate/W=$pnlName
-	String listStr = pnlWaveList(pnlName, 1)
-	PopupMenu waveP value=#("\"" + listStr + "\""), win=$pnlName
-	PopupMenu waveP mode=WhichListItem(NameOfWave(w), listStr)+1, win=$pnlName
 End
+
+//******************************************************************************
+//	Hook
+//******************************************************************************
+Static Function pnlHook(STRUCT WMWinHookStruct &s)
+	strswitch (s.eventName)
+		case "mousedown":
+			//	Explicitly call PopupWaveSelectorPop because clicking the SetVariable
+			//	control does not work when the panel is shown a subwindow.
+			if (SIDAMPtInRect(s, "destV"))
+				PopupWaveSelectorPop(s.winName, GetUserData(s.winName, "destV", "PopupWS_ButtonName"))
+			endif
+			break
+		case "keyboard":	
+			if (s.keycode == 27) //	esc
+				pnlHookClose(s.winName)
+				KillWindow $s.winName
+			endif
+			break
+		case "killVote":	
+			pnlHookClose(s.winName)
+			break
+	endswitch
+End
+
+Static Function pnlHookClose(String pnlName)
+	KillWindow/Z popupWSPanel
+	SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
+	SIDAMKillDataFolder(root:Packages:WM_WaveSelectorList)
+End
+
 
 //******************************************************************************
 //	Controls
@@ -225,7 +269,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	endswitch
 End
 
-//	SetVariable
+//	SetVariable (resultV only)
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	//	Handle either mouse up or enter key
 	if (s.eventCode != 1 && s.eventCode != 2)
@@ -235,133 +279,71 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	pnlDisable(s.win)
 End
 
-//	Popup
+//	Popup (toP only)
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
 		return 1
 	endif
 	
-	strswitch (s.ctrlName)
-		case "dfP":
-			String listStr = pnlWaveList(s.win, s.popNum)
-			if (s.popNum == 1)		//	same as source
-				Wave w = $GetUserData(s.win,"","src")
-				PopupMenu waveP value=#("\""+NameOfWave(w)+"\""), mode=1, disable=0, win=$s.win
-				DoUpdate/W=$s.win
-				PopupMenu waveP userData(srcDf)=GetWavesDataFolder(w,1), win=$s.win
-				PopupMenu waveP value=#("\""+listStr+"\""), win=$s.win
-				PopupMenu waveP mode=WhichListItem(NameOfWave(w), listStr)+1, win=$s.win
-			elseif (strlen(listStr))	//	current datafolder, appropriate waves found
-				PopupMenu waveP userData(srcDf)=GetDataFolder(1), disable=0, win=$s.win
-				PopupMenu waveP value=#("\""+listStr+ "\""), mode=1, win=$s.win
-			else	//	current datafolder, no appropriate wave
-				PopupMenu waveP disable=2, value="_none_;", mode=1, win=$s.win
-			endif
-			pnlDisable(s.win)
-			break
-		case "waveP":
-			pnlDisable(s.win)
-			break
-		case "toP":
-			Wave w1 = $GetUserData(s.win, "", "src")
-			Wave w2 = pnlPopupWaveRef(s.win, "waveP")
-			Wave cvw = SIDAMGetCtrlValues(s.win, "subtractC;normalizeC")
-			ControlInfo/W=$s.win resultV
-			SIDAMPopupTo(s, echoStr(w1, w2, cvw[0], cvw[1], S_Value))
-			break
-	endswitch
+	Wave cvw = SIDAMGetCtrlValues(s.win, "subtractC;normalizeC")
+	Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;resultV")
+	Wave w1 = $ctw[%sourceV]
+	Wave w2 = $GetUserData(s.win,"destV","PopupWS_FullPath")
+	SIDAMPopupTo(s, echoStr(w1, w2, cvw[%subtractC], cvw[%normalizeC], \
+		ctw[%resultV]))
 End
 
 //******************************************************************************
 //	Helper funcitons for control
 //******************************************************************************
-//-------------------------------------------------------------
-//	Make a list for waveP
-//-------------------------------------------------------------
-Static Function/S pnlWaveList(String pnlName, int mode)
-	//	mode 1: same as source, 2: current datafolder
-	
-	Wave w1 = $GetUserData(pnlName, "", "src")
-	int nx = DimSize(w1,0), ny = DimSize(w1,1), nz = DimSize(w1,2), i
-	//	number of data points in the x direction must be even
-	//	the minimum data points is 4
-	if (mod(nx,2) || nx < 4 || ny < 4)
-		return ""
-	endif
-	
-	DFREF dfrSav = GetDataFolderDFR()
-	if (mode == 1)
-		SetDataFolder GetWavesDataFolderDFR(w1)
-	endif
-	
-	//	List waves that have the same dimensions as the source wave.
-	//	If the source wave is 3D, 2D waves that have the same dimensions
-	//	in x and y directions are also listed.
-	String str1, str2
-	sprintf str1, "MINROWS:%d,MAXROWS:%d,MINCOLS:%d,MAXCOLS:%d", nx, nx, ny, ny
-	str1 += ",MAXCHUNKS:0"
-	String rtnStr = WaveList("*",";",str1+",MAXLAYERS:0")
-	if (WaveDims(w1) == 3)
-		sprintf str2, ",MINLAYERS:%d,MAXLAYERS:%d", nz, nz
-		rtnStr += WaveList("*",";",str1+str2)
-	endif
-	
-	//	Remove waves containing NaN or INF
-	for (i = ItemsInList(rtnStr)-1; i >= 0; i--)
-		//	The following is faster than WaveStats
-		if (numtype(sum($StringFromList(i,rtnStr))))
-			rtnStr = RemoveListItem(i,rtnStr)
-		endif
-	endfor	
-
-	SetDataFolder dfrSav
-	return rtnStr
+Static Function pnlWaveFilter(String path, Variable ListContents)
+	return !SIDAMValidateWaveforFFT($path)
 End
 
+Static Function pnlPutGlobalPath(Variable event, String wavepath, 
+		String windowName, String ctrlName)
+	ControlInfo/W=$windowName $ctrlName
+	SVAR/SDFR=$S_DataFolder str = $S_Value
+	str = wavepath
+end
+
 Static Function pnlDisable(String pnlName)
-	Wave w1 = $GetUserData(pnlName, "", "src")
-	Wave/Z w2 = pnlPopupWaveRef(pnlName, "waveP")
-	if (!WaveExists(w2) || SIDAMValidateSetVariableString(pnlName,"resultV",0))
-		Button doB disable=2, win=$pnlName
-		PopupMenu toP disable=2, win=$pnlName
-		return 0
-	else
-		Button doB disable=0, win=$pnlName
-		PopupMenu toP disable=0, win=$pnlName
+	int disable = 0
+	
+	ControlInfo/W=$pnlName sourceV
+	int flag = SIDAMValidateWaveforFFT($S_Value)
+	if (flag)
+		String msg = SIDAMValidateWaveforFFTMsg(flag)
+		SetVariable resultV title="error", noedit=1, frame=0, win=$pnlName
+		SetVariable resultV fColor=(65535,0,0),valueColor=(65535,0,0), win=$pnlName
+		SetVariable resultV value=_STR:msg, help={msg}, win=$pnlName
+		SetVariable destV disable=2, win=$pnlName
+		String destBName = GetUserData(pnlName, "destV", "PopupWS_ButtonName")
+		Button $destBName disable=2, win=$pnlName
+		disable = 2
+	elseif (SIDAMValidateSetVariableString(pnlName,"resultV",0))
+		disable = 2
 	endif
+
+	Button doB disable=disable, win=$pnlName
+	PopupMenu toP disable=disable, win=$pnlName
 End
 
 Static Function pnlDo(String pnlName)
-	Wave w1 = $GetUserData(pnlName, "", "src")
-	Wave w2 = pnlPopupWaveRef(pnlName, "waveP")
-	DFREF dfr = $GetUserData(pnlName, "waveP", "srcDf")
 	Wave cvw = SIDAMGetCtrlValues(pnlName, "subtractC;normalizeC;displayC")
-	ControlInfo/W=$pnlName resultV
-	String result = S_Value
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "sourceV;resultV")
+	Wave w1 = $ctw[%sourceV]
+	Wave w2 = $GetUserData(pnlName,"destV","PopupWS_FullPath")
+	DFREF dfr = GetWavesDataFolderDFR(w1)
 
 	KillWindow $pnlName
 	
-	printf "%s%s\r", PRESTR_CMD, echoStr(w1, w2, cvw[0], cvw[1], result)
-	Duplicate/O SIDAMCorrelation(w1, dest=w2, subtract=cvw[0],\
-		normalize=cvw[1]), dfr:$result/WAVE=resw
+	printf "%s%s\r", PRESTR_CMD, echoStr(w1, w2, cvw[%subtractC], \
+		cvw[%normalizeC], ctw[%resultV])
+	Duplicate/O SIDAMCorrelation(w1, dest=w2, subtract=cvw[%subtractC],\
+		normalize=cvw[%normalizeC]), dfr:$ctw[%resultV]/WAVE=resw
 		
-	if (cvw[2])
+	if (cvw[%displayC])
 		SIDAMDisplay(resw, history=1)
-	endif
-End
-
-
-Static Function/WAVE pnlPopupWaveRef(String pnlName, String ctrlName)
-	ControlInfo/W=$pnlName $ctrlName
-	//	Nothing is selected
-	if (strlen(StringByKey("value",S_recreation,"=",",")) <= 9)
-		return $""
-	endif
-	
-	Wave/Z w = $(GetUserData(pnlName, ctrlName, "srcDf") + PossiblyQuoteName(S_Value))
-	if (WaveExists(w))
-		return w
-	else
-		return $""
 	endif
 End

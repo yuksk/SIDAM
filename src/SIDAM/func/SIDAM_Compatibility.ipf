@@ -154,5 +154,8 @@ Static Function updateWindow()
 			SIDAMInfoBar(grfName)
 		endif
 
+		//	Check of FFT availability
+		SetWindow $grfName userData(modtime)=""
+		SetWindow $grfName userData(fftavailable)=""
 	endfor
 End

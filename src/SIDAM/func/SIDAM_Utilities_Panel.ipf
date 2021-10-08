@@ -117,3 +117,12 @@ Function SIDAMWindowHookClose(STRUCT WMWinHookStruct &s)
 	endif
 	return 0
 End
+
+//******************************************************************************
+//	Return if the mouse cursor is on a control
+//******************************************************************************
+Function SIDAMPtInRect(STRUCT WMWinHookStruct &s, String ctrlName)
+	ControlInfo/W=$s.winName $ctrlName
+	return V_left <= s.mouseLoc.h && s.mouseLoc.h <= V_left+V_width \
+			&& V_top <= s.mouseLoc.v && s.mouseLoc.v <= V_top+V_Height
+End

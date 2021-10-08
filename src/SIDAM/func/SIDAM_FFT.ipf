@@ -279,12 +279,11 @@ End
 Static Function pnl(String grfName)
 
 	Wave w = SIDAMImageNameToWaveRef(grfName)
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,300,370)/N=FFT
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,300,400)/N=FFT
 	String pnlName = grfName+ "#FFT"
 
 	String dfTmp = SIDAMNewDF(pnlName,"FFTPnl")
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2)
 	SetWindow $pnlName userData(dfTmp)=dfTmp, activeChildFrame=0
 
 	STRUCT SIDAMPrefs ps
@@ -302,33 +301,36 @@ Static Function pnl(String grfName)
 	SetScale/I y 0, 1, "", winw
 
 	//	controls
+	SetVariable sourceV title="source wave:", pos={14,6}, size={272,18}, win=$pnlName
+	SetVariable sourceV bodyWidth=200, noedit=1, frame=0, win=$pnlName
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
 	SetVariable resultV title="output name:", frame=1, win=$pnlName
-	SetVariable resultV pos={19,10}, size={269,16}, bodyWidth=200, win=$pnlName
+	SetVariable resultV pos={13,30}, size={275,18}, bodyWidth=200, win=$pnlName
 	SetVariable resultV value=_STR:NameOfWave(w)+SUFFIX, win=$pnlName
 	SetVariable resultV proc=SIDAMFFT#pnlSetVar, win=$pnlName
 
 	CheckBox subtractC title="subtract average before computing", win=$pnlName
-	CheckBox subtractC pos={88,38}, value=ps.fourier[0], win=$pnlName
+	CheckBox subtractC pos={88,58}, value=ps.fourier[0], win=$pnlName
 
-	PopupMenu outputP title="output type:", pos={25,65}, win=$pnlName
+	PopupMenu outputP title="output type:", pos={25,85}, win=$pnlName
 	PopupMenu outputP size={263,19}, mode=ps.fourier[1], win=$pnlName
 	PopupMenu outputP bodyWidth=200, value=SIDAMFFT#allOutputs(), win=$pnlName
-	PopupMenu windowP title="window:", pos={46,94}, size={242,19}, win=$pnlName
+	PopupMenu windowP title="window:", pos={46,114}, size={242,19}, win=$pnlName
 	PopupMenu windowP bodyWidth=200,value=SIDAMFFT#allWindows(), win=$pnlName
 	PopupMenu windowP mode=ps.fourier[2], proc=SIDAMFFT#pnlPopup, win=$pnlName
 
-	Button doB title="Do It", pos={10,343}, win=$pnlName
-	CheckBox displayC title="display", pos={80,345}, value=1, win=$pnlName
-	PopupMenu toP title="To", pos={145,343}, size={50,20}, win=$pnlName
+	Button doB title="Do It", pos={10,363}, win=$pnlName
+	CheckBox displayC title="display", pos={80,365}, value=1, win=$pnlName
+	PopupMenu toP title="To", pos={145,363}, size={50,20}, win=$pnlName
 	PopupMenu toP bodyWidth=50, value="Cmd Line;Clip", win=$pnlName
 	PopupMenu toP mode=0, proc=SIDAMFFT#pnlPopup, win=$pnlName
-	Button cancelB title="Cancel", pos={228,343}, win=$pnlName
+	Button cancelB title="Cancel", pos={228,363}, win=$pnlName
 	ModifyControlList "doB;cancelB", size={60,20}, proc=SIDAMFFT#pnlButton, win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
 
 	//	show a window function
-	int left = 37, top = 127, width = 252
+	int left = 37, top = 147, width = 252
 	Display/W=(left,top,left+width,top+width*0.8)/HOST=$pnlName
 	AppendImage/W=$pnlName#G0 winw
 	AppendToGraph/W=$pnlName#G0/L=l2/B=b2/VERT winw[][DimSize(winw,1)/2]
@@ -396,26 +398,25 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 		case "toP":
 			Wave cvw = SIDAMGetCtrlValues(s.win, "outputP;subtractC")
-			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "windowP;resultV")
-			String paramStr = echoStr($GetUserData(s.win,"","src"),\
-				ctw[%windowP], cvw[%outputP], cvw[%subtractC], ctw[%resultV])
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;windowP;resultV")
+			String paramStr = echoStr($ctw[%sourceV], ctw[%windowP], \
+				cvw[%outputP], cvw[%subtractC], ctw[%resultV])
 			SIDAMPopupTo(s, paramStr)
 			break
 	endswitch
 End
 
 Static Function pnlDo(String pnlName)
-	Wave w = $GetUserData(pnlName,"","src")
 	Wave cvw = SIDAMGetCtrlValues(pnlName, "outputP;subtractC;displayC;windowP")
-	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "resultV;windowP")
+	Wave/T ctw = SIDAMGetCtrlTexts(pnlName, "sourceV;resultV;windowP")
 	KillWindow $pnlName
 
-	Wave/Z fftw = SIDAMFFT(w, win=ctw[%windowP], out=cvw[%outputP], \
-		subtract=cvw[%subtractC])
+	Wave/Z fftw = SIDAMFFT($ctw[%sourceV], win=ctw[%windowP], \
+		out=cvw[%outputP], subtract=cvw[%subtractC])
 	
-	printf "%s%s\r", PRESTR_CMD, echoStr(w, ctw[%windowP], cvw[%outputP]\
-		, cvw[%subtractC], ctw[%resultV])
-	DFREF dfr = GetWavesDataFolderDFR(w)
+	printf "%s%s\r", PRESTR_CMD, echoStr($ctw[%sourceV], ctw[%windowP], \
+		cvw[%outputP], cvw[%subtractC], ctw[%resultV])
+	DFREF dfr = GetWavesDataFolderDFR($ctw[%sourceV])
 	Duplicate/O fftw dfr:$ctw[%resultV]/WAVE=resw
 	
 	if (cvw[%displayC])
@@ -437,6 +438,18 @@ Static Function pnlSetWindowWave(String pnlName, String name)
 End
 
 Static Function changeDisables(String pnlName)
+	ControlInfo/W=$pnlName sourceV
+	int flag = SIDAMValidateWaveforFFT($S_Value)
+	ModifyControlList "subtractC;outputP;windowP;doB;toP;displayC" \
+		disable=(flag!=0)*2, win=$pnlName
+	if (flag)
+		String msg = SIDAMValidateWaveforFFTMsg(flag)
+		SetVariable resultV title="error: ", noedit=1, frame=0, win=$pnlName
+		SetVariable resultV fColor=(65535,0,0),valueColor=(65535,0,0), win=$pnlName
+		SetVariable resultV value=_STR:msg, help={msg}, win=$pnlName
+		return 0
+	endif
+	
 	int disable = SIDAMValidateSetVariableString(pnlName,"resultV",0)*2
 	Button doB disable=disable, win=$pnlName
 	PopupMenu toP disable=disable, win=$pnlName

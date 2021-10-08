@@ -33,7 +33,6 @@
 #include "SIDAM_Trace"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_WaveDf"
 #include "SIDAM_Utilities_misc"
 #include "SIDAM_Workfunction"
 
@@ -97,7 +96,7 @@ End
 //******************************************************************************
 //	conditional menu
 //******************************************************************************
-Static Function/S menu(String str, [int noComplex, int dim, int forfft])
+Static Function/S menu(String str, [int noComplex, int dim])
 	noComplex = ParamIsDefault(noComplex) ? 0 : noComplex
 
 	String grfName = WinName(0,1)
@@ -117,24 +116,6 @@ Static Function/S menu(String str, [int noComplex, int dim, int forfft])
 	//	gray out for complex waves
 	if (noComplex)
 		return SelectString((WaveType(w) & 0x01), "", "(") + str
-	endif
-
-	//	gray out for waves which are not for FFT
-	if (!ParamIsDefault(forfft) && forfft)
-		//	When a big wave is contained an experiment file, SIDAMValidateWaveforFFT may
-		// make the menu responce slow. Therefore, use SIDAMValidateWaveforFFT only if
-		//	the wave in a window has been modified since the last menu call.
-		Variable grfTime = str2num(GetUserData(grfName, "", "modtime"))
-		Variable wTime = NumberByKey("MODTIME", WaveInfo(w, 0))
-		Variable fftavailable = str2num(GetUserData(grfName, "", "fftavailable"))
-		int noRecord = numtype(grfTime) || numtype(fftavailable)
-		int isModified = wTime > grfTime
-		if (isModified || noRecord)
-			fftavailable = !SIDAMValidateWaveforFFT(w)
-			SetWindow $grfName userData(modtime)=num2istr(wTime)
-			SetWindow $grfName userData(fftavailable)=num2istr(fftavailable)
-		endif
-		return SelectString(fftavailable, "(", "") + str
 	endif
 
 	return str
@@ -257,12 +238,13 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	//	Histogram
 	SIDAMMenus#menu("Histogram..."),/Q, SIDAMHistogram#menuDo()
 	help = {"Compute the histogram of a source wave."}
+		
 	SubMenu "Fourier"
 		//	Fourier Transform
-		SIDAMMenus#menu("Fourier Transform...", forfft=1)+"/F7", /Q, SIDAMFFT#menuDo()
+		"Fourier Transform.../F7", /Q, SIDAMFFT#menuDo()
 		help = {"Compute a Fourier transform of a source wave."}
 		//	Fourier filter
-		SIDAMMenus#menu("Fourier Filter...", forfft=1), /Q, SIDAMFourierFilter#menuDo()
+		"Fourier Filter...", /Q, SIDAMFourierFilter#menuDo()
 		help = {"Apply a Fourier filter to a source wave"}
 		//	Fourier Symmetrization
 		SIDAMMenus#menu("Fourier Symmetrization...", noComplex=1), /Q, SIDAMFourierSym#menuDo()
@@ -270,7 +252,7 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	End
 
 	//	Correlation
-	SIDAMMenus#menu("Correlation...", forfft=1), /Q, SIDAMCorrelation#menuDo()
+	"Correlation...", /Q, SIDAMCorrelation#menuDo()
 	help = {"Compute a correlation function of a source wave(s)."}
 	//	Work Function
 	SIDAMMenus#menu("Work Function...", dim=3), /Q, SIDAMWorkfunction#menuDo()

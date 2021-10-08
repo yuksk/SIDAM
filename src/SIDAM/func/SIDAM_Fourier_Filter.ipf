@@ -297,68 +297,88 @@ End
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
 	
-	String pnlName = SIDAMNewPanel("Fourier filter ("+NameOfWave(w)+")",\
-		680, 370, resizable=1)	//	680=10+320+10+340, 370=40+320+10
+	String pnlName = SIDAMNewPanel("Fourier filter", 730, 380)
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 
 	String dfTmp = pnlInit(pnlName, w)
 	SetWindow $pnlName hook(self)=SIDAMFourierFilter#pnlHook
-	SetWindow $pnlName userData(dfTmp)=dfTmp
-	SetWindow $pnlName userData(src)=GetWavesDataFolder(w,2), activeChildFrame=0
+	SetWindow $pnlName userData(dfTmp)=dfTmp, activeChildFrame=0
 	
-	TabControl mTab pos={1,1}, size={338,368}, proc=SIDAMTabControlProc, win=$pnlName
-	TabControl mTab tabLabel(0)="original", tabLabel(1)="filtered", tabLabel(2)="FFT", value=2, win=$pnlName
+	TabControl mTab pos={1,1}, size={320,350}, proc=SIDAMTabControlProc, win=$pnlName
+	TabControl mTab tabLabel(0)="original", tabLabel(1)="filtered", win=$pnlName
+	TabControl mTab tabLabel(2)="FFT", value=2, focusRing=0, win=$pnlName
 	
 	TitleBox pqT pos={15,24}, frame=0, win=$pnlName
 	TitleBox xyT pos={15,24}, frame=0, win=$pnlName
 	TitleBox zT pos={15,24}, frame=0, win=$pnlName
-	
-	DefineGuide/W=$pnlName CTL={FR,-335}, CTT={FB,-220}
+
+	PopupMenu colorP title="mask color and opacity", pos={10,355}, win=$pnlName
+	PopupMenu colorP size={175,19}, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName
+	PopupMenu colorP mode=1, disable=2, popColor= (65535,65535,65535), win=$pnlName
+	PopupMenu colorP value= #"\"*COLORPOP*\"", focusRing=0, win=$pnlName
+	Slider opacityS pos={203,355}, size={100,19}, vert=0, win=$pnlName
+	Slider opacityS limits={0,255,1}, value=192, ticks=0, disable=2, win=$pnlName
+	Slider opacityS proc=SIDAMFourierFilter#pnlSlider, focusRing=0, win=$pnlName
+
+	DefineGuide/W=$pnlName CTL={FR,-400}, CTT={FB,-120}
 	NewPanel/FG=(CTL,FT,FR,CTT)/HOST=$pnlName
 	RenameWindow $pnlName#$S_name, table
 	ModifyPanel/W=$pnlName#table frameStyle=0
 	
-	ListBox filL pos={0,18}, size={330,120}, frame=2, mode=5, selRow=-1, win=$pnlName#table
-	ListBox filL listWave=$(dfTmp+SIDAM_WAVE_LIST), selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName#table
-	
+	ListBox filL pos={0,10}, size={330,240}, frame=2, mode=5, selRow=-1, win=$pnlName#table
+	ListBox filL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName#table
+	ListBox filL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName#table
+	Button addB title="Add", pos={340,10}, size={50,20}, win=$pnlName#table
+	Button deleteB title="Delete", pos={340,40}, size={50,20}, disable=2, win=$pnlName#table
+	CheckBox passC title="pass", pos={342,90}, value=1, win=$pnlName#table
+	CheckBox stopC title="stop", pos={342,113}, value=0, win=$pnlName#table
+	Button applyB title="Apply", pos={340,145}, size={50,20}, disable=2, win=$pnlName#table
+	ModifyControlList ControlNameList(pnlName+"#table",";","*B") proc=SIDAMFourierFilter#pnlButton, win=$pnlName#table
+	ModifyControlList ControlNameList(pnlName+"#table",";","*C") mode=1, disable=2, proc=SIDAMFourierFilter#pnlCheck, win=$pnlName#table
+	ModifyControlList ControlNameList(pnlName+"#table",";","*") focusRing=0, win=$pnlName#table
+		
 	NewPanel/FG=(CTL,CTT,FR,FB)/HOST=$pnlName
 	RenameWindow $pnlName#$S_name, controls
 	ModifyPanel/W=$pnlName#controls frameStyle=0
+
+	SetVariable sourceV title="source", pos={36,0}, frame=0, win=$pnlName#controls
+	SetVariable sourceV size={349,18}, bodyWidth=310, noedit=1, win=$pnlName#controls
+	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName#controls
 	
-	GroupBox filterG title="filter", pos={0,0}, size={190,115}, win=$pnlName#controls
-	Button addB title="Add", pos={6,22}, size={60,20}, win=$pnlName#controls
-	TitleBox addT title="new filter", pos={76,26}, frame=0, win=$pnlName#controls
-	Button deleteB title="Delete", pos={6,53}, size={60,20}, disable=2, win=$pnlName#controls
-	TitleBox deleteT title="selected filter", pos={76,57}, frame=0, disable=2, win=$pnlName#controls
-	Button applyB title="Apply", pos={6,84}, size={60,20}, disable=2, win=$pnlName#controls
-	PopupMenu invertP title="", pos={76,84}, size={70,20}, bodyWidth=70, disable=2, win=$pnlName#controls
-	PopupMenu invertP mode=1, value= #"\"pass;stop\"", userData="1", proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
-	TitleBox applyT title="filter", pos={156,88}, frame=0, disable=2, win=$pnlName#controls
+	SetVariable nameV pos={3,27}, size={382,16}, bodyWidth=310, win=$pnlName#controls
+	int flag = SIDAMValidateWaveforFFT(w)
+	if (flag)
+		String msg = SIDAMValidateWaveforFFTMsg(flag)
+		SetVariable nameV title="error: ", noedit=1, frame=0, win=$pnlName#controls
+		SetVariable nameV fColor=(65535,0,0),valueColor=(65535,0,0), win=$pnlName#controls
+		SetVariable nameV value=_STR:msg, help={msg}, win=$pnlName#controls
+		Button addB disable=2, win=$pnlName#table
+	else
+		SetVariable nameV title="output name", disable=2, win=$pnlName#controls
+		SetVariable nameV proc=SIDAMFourierFilter#pnlSetVar, win=$pnlName#controls
+		SetVariable nameV value= _STR:(NameOfWave(w)[0,MAX_OBJ_NAME-strlen(SUFFIX)]+SUFFIX), win=$pnlName#controls	
+	endif	
+
+	PopupMenu endP title="end effect", pos={19,55}, disable=2, win=$pnlName#controls
+	PopupMenu endP size={165,20}, bodyWidth=110, mode=2, win=$pnlName#controls
+	PopupMenu endP proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
+	PopupMenu endP value= #"\"bounce;wrap (none);zero;repeat\"", win=$pnlName#controls
+	PopupMenu endP popvalue="wrap", userData="2", win=$pnlName#controls
+	TitleBox endT title="this takes longer time", pos={196,56}, disable=1, frame=0, win=$pnlName#controls
 	
-	GroupBox maskG title="mask", pos={200,0}, size={130,115}, disable=2, win=$pnlName#controls
-	TitleBox maskT title="color and opacity", pos={210,26}, size={88,12}, frame=0, disable=2, win=$pnlName#controls
-	PopupMenu colorP pos={211,53}, size={50,20} ,mode=1, proc=SIDAMFourierFilter#pnlPopup, disable=2, win=$pnlName#controls
-	PopupMenu colorP popColor= (65535,65535,65535),value= #"\"*COLORPOP*\"", win=$pnlName#controls
-	Slider opacityS pos={211,85}, size={100,19}, limits={0,255,1} ,value=192, vert=0, ticks=0, proc=SIDAMFourierFilter#pnlSlider, disable=2, win=$pnlName#controls
-	
-	PopupMenu endP title="end effect", pos={20,129}, size={165,20}, bodyWidth=110, disable=2, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
-	PopupMenu endP mode=2, popvalue="wrap", value= #"\"bounce;wrap (none);zero;repeat\"", userData="2", win=$pnlName#controls
-	TitleBox endT title="this takes longer time", pos={196,133}, disable=1, frame=0, win=$pnlName#controls
-	SetVariable nameV title="output name", pos={8,161}, size={317,16}, bodyWidth=250, proc=SIDAMFourierFilter#pnlSetVar, disable=2, win=$pnlName#controls
-	SetVariable nameV value= _STR:(NameOfWave(w)[0,30-strlen(SUFFIX)]+SUFFIX), win=$pnlName#controls
-	
-	Button saveB title="Save", pos={6,192}, size={60,20}, disable=2, win=$pnlName#controls
-	CheckBox displayC title="display", pos={75,195}, disable=2, win=$pnlName#controls
-	PopupMenu toP title="To", pos={163,192}, size={60,20}, bodyWidth=60, disable=2, win=$pnlName#controls
-	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
-	Button helpB title="?", pos={231,192}, size={30,20}, win=$pnlName#controls
-	Button closeB title="Close", pos={269,192}, size={60,20}, win=$pnlName#controls
+	Button saveB title="Save", pos={6,93}, size={60,20}, disable=2, win=$pnlName#controls
+	CheckBox displayC title="display", pos={80,95}, disable=2, win=$pnlName#controls
+	PopupMenu toP title="To", pos={160,93}, size={60,20}, bodyWidth=60, win=$pnlName#controls
+	PopupMenu toP disable=2, value="Cmd Line;Clip", win=$pnlName#controls
+	PopupMenu toP mode=0, proc=SIDAMFourierFilter#pnlPopup, win=$pnlName#controls
+	Button helpB title="Help", pos={255,93}, size={60,20}, win=$pnlName#controls
+	Button closeB title="Close", pos={325,93}, size={60,20}, win=$pnlName#controls
 	
 	ModifyControlList ControlNameList(pnlName+"#controls",";","*B") proc=SIDAMFourierFilter#pnlButton, win=$pnlName#controls
 	ModifyControlList ControlNameList(pnlName+"#controls",";","*") focusRing=0, win=$pnlName#controls
 	
 	//	image area
-	DefineGuide/W=$pnlName IMGL={FL,9}, IMGT={FT,41}, IMGR={FR,-351}, IMGB={FB,-9}
+	DefineGuide/W=$pnlName IMGL={FL,9}, IMGT={FT,41}, IMGR={FL,309}, IMGB={FT,341}
 		//	original
 	Display/FG=(IMGL, IMGT, IMGR, IMGB)/HOST=$pnlName/HIDE=1
 	RenameWindow $pnlName#$S_name, original
@@ -403,8 +423,13 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	Duplicate ow $FILTEREDNAME
 	
 	//	FFT wave
-	SetDataFolder $dfTmp
-	Duplicate/O SIDAMFFT(ow,win="Hanning",out=3,subtract=1), $FOURIERNAME
+	int flag = SIDAMValidateWaveforFFT(w)
+	if (flag)
+		Duplicate ow $FOURIERNAME/WAVE=ow2
+		ow2 = 0
+	else
+		Duplicate SIDAMFFT(ow,win="Hanning",out=3,subtract=1), $FOURIERNAME
+	endif
 	
 	//	wave for the list
 	Make/N=(0,7)/T $SIDAM_WAVE_LIST/WAVE=listw
@@ -445,13 +470,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			if (strlen(ImageNameList(s.winName,";")))		//	only for subwindows showing a graph
 				pnlHookMouseup(s)
 			endif
-			break
-		case 6:	//	resize
-			Variable tabSize = s.winRect.right-340-2
-			TabControl mTab size={tabSize,tabSize+40}, win=$s.winName
-			ListBox filL size={330,tabSize+42-250}, win=$s.winName#table
-			GetWindow $s.winName wsize
-			MoveWindow/W=$s.winName V_left, V_top, V_right, V_top+(tabSize+42)*72/screenresolution
 			break
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
@@ -508,6 +526,22 @@ End
 //******************************************************************************
 //	Controls
 //******************************************************************************
+//	CheckBox
+Static Function pnlCheck(STRUCT WMCheckboxAction &s)
+	if (s.eventCode != 2)
+		return 1
+	endif
+
+	strswitch (s.ctrlName)
+		case "passC":
+			CheckBox stopC value=0, win=$s.win
+			break
+		case "stopC":
+			CheckBox passC value=0, win=$s.win
+			break
+	endswitch
+End
+
 //	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
 	if (s.eventCode != 2)
@@ -534,24 +568,18 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			break
 			
 		case "toP":
-			Wave srcw = $GetUserData(pnlName,"","src")
 			Wave/T/SDFR=dfrTmp listw = $SIDAM_WAVE_LIST
 			Make/N=(7,DimSize(listw,0))/FREE paramw = strlen(listw[q][p]) ? str2num(listw[q][p]) : 0
-			ControlInfo/W=$s.win nameV ;		String result = S_Value
-			ControlInfo/W=$s.win invertP ;	Variable invert = V_Value==2
-			ControlInfo/W=$s.win endP ;		Variable endeffect = V_Value-1
-			String paramStr = echoStr(srcw, paramw, result, invert, endeffect)
+			Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;nameV")
+			ControlInfo/W=$s.win endP
+			Variable endeffect = V_Value-1
+			ControlInfo/W=$(StringFromList(0,s.win,"#")+"#table") stopC
+			String paramStr = echoStr($ctw[%sourceV], paramw, ctw[%nameV], V_Value, endeffect)
 			SIDAMPopupTo(s, paramStr)
 			break
 			
 		case "endP":
 			TitleBox endT disable=(s.popNum == 2), win=$s.win
-			//*** FALLTHROUGH ***
-		case "invertP":
-			if (s.popNum != str2num(GetUserData(s.win, s.ctrlName, "")))
-				pnlUpdate(s.win, 1)
-				PopupMenu $s.ctrlName userData=num2str(s.popNum), win=$s.win
-			endif
 			break
 	endswitch
 End
@@ -656,14 +684,16 @@ Static Function pnlButtonApply(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T li
 	
 	pnlUpdate(s.win, 3)
 	
-	ControlInfo/W=$s.win invertP ;	int invert = V_Value==2
-	ControlInfo/W=$s.win endP ;		int endeffect = V_Value-1
+	ControlInfo/W=$s.win stopC
+	int invert = V_Value
+	ControlInfo/W=$(StringFromList(0,s.win,"#")+"#controls") endP
+	int endeffect = V_Value-1
 	Wave/WAVE ww = applyFilter(ow, paramw, invert, endeffect)
 	
 	//	Create a mask wave for the display
 	Wave mw = ww[1]
 	Variable nx = DimSize(ow,0), ny = DimSize(ow,1)
-	ControlInfo/W=$s.win opacityS
+	ControlInfo/W=$(StringFromList(0,s.win,"#")) opacityS
 	MultiThread maskw[nx/2-1,][][3] = round((1-mw[p-nx/2+1][q])*V_Value)
 	MultiThread maskw[,nx/2-2][][3] = maskw[nx-1-p][ny-1-q]
 	
@@ -679,27 +709,27 @@ Static Function pnlButtonSave(STRUCT WMButtonAction &s, DFREF dfrTmp, Wave/T lis
 	endif
 	
 	String pnlName = StringFromList(0,s.win,"#")
-	Wave srcw = $GetUserData(pnlName,"","src")
 	
 	Make/N=(7,DimSize(listw,0))/FREE paramw = strlen(listw[q][p]) ? str2num(listw[q][p]) : 0
 	
-	Wave cvw = SIDAMGetCtrlValues(s.win, "invertP;endP;displayC")
-	Variable invert = cvw[%invertP]==2, endeffect = cvw[%endP] - 1
-	ControlInfo/W=$s.win nameV
-	String result = S_Value
+	Wave cvw = SIDAMGetCtrlValues(s.win, "endP;displayC")
+	ControlInfo/W=$(StringFromList(0,s.win,"#")+"#table") stopC
+	Variable invert = V_Value, endeffect = cvw[%endP] - 1
+	Wave/T ctw = SIDAMGetCtrlTexts(s.win, "sourceV;nameV")
+	Wave srcw = $ctw[%sourceV]
 	
-	printf "%s%s\r", PRESTR_CMD, echoStr(srcw, paramw, result, invert, endeffect)
+	printf "%s%s\r", PRESTR_CMD, echoStr(srcw, paramw, ctw[%nameV], invert, endeffect)
 	if (WaveDims(srcw) == 2)
 		//	Recalculation is not necessary for 2D.
 		//	Duplicate the existing result and echo the command string.
 		DFREF dfr = GetWavesDataFolderDFR(srcw)
-		Duplicate/O dfrTmp:$FILTEREDNAME dfr:$result/WAVE=resw
+		Duplicate/O dfrTmp:$FILTEREDNAME dfr:$ctw[%nameV]/WAVE=resw
 	else
 		//	Recalulate the whole range for 3D.
 		pnlUpdate(s.win, 3)
 		DFREF dfr = GetWavesDataFolderDFR(srcw)
 		Duplicate/O SIDAMFilter(srcw, paramw, invert=invert, \
-			endeffect=endeffect) dfr:$result/WAVE=resw
+			endeffect=endeffect) dfr:$ctw[%nameV]/WAVE=resw
 		pnlUpdate(s.win, 0)
 	endif
 	
@@ -718,40 +748,30 @@ Static Function pnlListChange(Wave/T w, String pnlName)
 End
 
 //	0: all controls can be selected
-//	1: "save" and "display" can not be selected
-//	2: "add", "help", "close" can be selected
+//	1: all except for "save" and "display" can be selected
+//	2: only "add", "help", and "close" can be selected
 //	3: no controls can be selected
-Static Function pnlUpdate(String pnlName, int state)
-	
-	GroupBox filterG disable=(state==3)*2, win=$pnlName
-	Button addB disable=(state==3)*2, win=$pnlName
-	TitleBox addT disable=(state==3)*2, win=$pnlName
-	
-	Button deleteB disable=(state>=2)*2, win=$pnlName
-	TitleBox deleteT disable=(state>=2)*2, win=$pnlName
-	Button applyB disable=(state>=2)*2, win=$pnlName
-	PopupMenu invertP disable=(state>=2)*2, win=$pnlName
-	TitleBox applyT disable=(state>=2)*2, win=$pnlName
-	
-	GroupBox maskG disable=(state>=2)*2, win=$pnlName
-	TitleBox maskT disable=(state>=2)*2, win=$pnlName
+Static Function pnlUpdate(String subPnlName, int state)
+	String pnlName = StringFromList(0, subPnlName, "#")
+
 	PopupMenu colorP disable=(state>=2)*2, win=$pnlName
 	Slider opacityS disable=(state>=2)*2, win=$pnlName
 	
-	PopupMenu endP disable=(state>=2)*2, win=$pnlName
-	SetVariable nameV disable=(state>=2)*2, win=$pnlName
+	Button addB disable=(state>=3)*2, win=$pnlName#table
+	ModifyControlList "deleteB;passC;stopC;applyB", disable=(state>=2)*2, win=$pnlName#table
 	
-	Button saveB disable=(state>=1)*2, win=$pnlName
-	CheckBox displayC disable=(state>=1)*2, win=$pnlName
-	
-	PopupMenu toP disable=(state>=2)*2, win=$pnlName
-	Button helpB disable=(state==3)*2, win=$pnlName
-	Button closeB disable=(state==3)*2, win=$pnlName
-	
-	ControlInfo/W=$pnlName endT
+	SetVariable nameV disable=(state>=2)*2, win=$pnlName#controls
+	PopupMenu endP disable=(state>=2)*2, win=$pnlName#controls
+	ControlInfo/W=$pnlName#controls endT
 	if (V_disable==0)
-		TitleBox endT disable=(state>=2)*2, win=$pnlName
-	endif
+		TitleBox endT disable=(state>=2)*2, win=$pnlName#controls
+	endif	
+
+	Button saveB disable=(state>=1)*2, win=$pnlName#controls
+	CheckBox displayC disable=(state>=1)*2, win=$pnlName#controls
+	PopupMenu toP disable=(state>=2)*2, win=$pnlName#controls
+	Button helpB disable=(state>=3)*2, win=$pnlName#controls
+	Button closeB disable=(state>=3)*2, win=$pnlName#controls
 	
 	ControlUpdate/A/W=$pnlName
 End

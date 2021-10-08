@@ -12,7 +12,6 @@
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_misc"
-#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -58,11 +57,6 @@ Function SIDAMInfoBar(String grfName)
 		isTrace2D = WaveDims(w)==2 && ItemsInList(TraceNameList(grfName,";",1))==1
 	endif
 
-	//	This userdata is used when the right-click menu is opend in order to
-	// check if the wave has been updated since the right-click menu was opened
-	//	last time.
-	SetWindow $grfName userData(modtime)=StringByKey("MODTIME", WaveInfo(w,0))
-	
 	int ctrlHeight = is3D || isTrace2D ? 48 : 25
 	ControlBar/W=$grfName ctrlHeight
 
@@ -168,8 +162,6 @@ Static Function closeInfoBar(String pnlName)
 	DoUpdate/W=$pnlName	
 	SetWindow $pnlName userData(mode)=""
 	SetWindow $pnlName userData(title)=""
-	SetWindow $pnlName userdata(modtime)=""
-	SetWindow $pnlName userdata(fftavailable)=""
 End
 
 //-------------------------------------------------------------
@@ -624,9 +616,7 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 				SIDAMSubtraction#menuDo()
 				return 1
 			case 7:		//	F7
-				if (!SIDAMValidateWaveforFFT(w))
-					SIDAMFFT#menuDo()
-				endif
+				SIDAMFFT#menuDo()
 				return 1
 		endswitch
 	endif

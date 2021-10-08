@@ -453,8 +453,8 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 5:	//	mouseup
 			if (strlen(GetUserData(s.winName,"","parent")))
-				Variable v1Gsel = isGBClicked(s,"v1G")
-				Variable v2Gsel = isGBClicked(s,"v2G")
+				Variable v1Gsel = SIDAMPtInRect(s,"v1G")
+				Variable v2Gsel = SIDAMPtInRect(s,"v2G")
 				GroupBox v1G fstyle=v1Gsel, userData(selected)=num2str(v1Gsel), win=$s.winName
 				GroupBox v2G fstyle=v2Gsel, userData(selected)=num2str(v2Gsel), win=$s.winName
 				SetVariable p1V fstyle=v1Gsel, win=$s.winName
@@ -472,13 +472,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	endswitch
 	
 	return 0
-End
-
-//	A groupbox is clicked or not
-Static Function isGBClicked(STRUCT WMWinHookStruct &s, String grpName)
-	ControlInfo/W=$s.winName $grpName
-	return (V_left < s.mouseLoc.h && s.mouseLoc.h < V_left + V_width && \
-		V_top < s.mouseLoc.v && s.mouseLoc.v < V_top + V_height)
 End
 
 Static Function pnlHookParent(STRUCT WMWinHookStruct &s)	
