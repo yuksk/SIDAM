@@ -115,7 +115,7 @@ End
 
 
 //******************************************************************************
-//	Varidate if a string of SetVariable satisfies a condition specified by
+//	Validate if a string of SetVariable satisfies a condition specified by
 //	the mode parameter.
 //	When mode=0, check if the string is valid as a name of wave
 //	When mode=1, check if eval is possible.

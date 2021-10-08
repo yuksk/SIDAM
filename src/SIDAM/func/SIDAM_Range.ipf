@@ -452,7 +452,7 @@ End
 Static Function pnlHookParentLayerChanged(String grfName, String imgName)
 
 	Variable recorded = getZmodeValue(grfName, imgName, "layer")	//	nan for no record
-	Variable present = SIDAMGetLayerIndex(grfName)					//	non for 2D
+	Variable present = SIDAMGetLayerIndex(grfName)					//	nan for 2D
 	if (!numtype(present) && recorded!=present)
 		setZmodeValue(grfName, imgName, "layer", present)
 		return 1
@@ -462,7 +462,7 @@ Static Function pnlHookParentLayerChanged(String grfName, String imgName)
 End
 
 Static Function pnlHookParentWaveModified(String grfName, String imgName)
-	Variable recorded = getZmodeValue(grfName, imgName, "modtime")		//	non for no record
+	Variable recorded = getZmodeValue(grfName, imgName, "modtime")		//	nan for no record
 	Variable present = NumberByKey("MODTIME",WaveInfo(ImageNameToWaveRef(grfName,imgName),0))
 	if (recorded != present)
 		setZmodeValue(grfName, imgName, "modtime", present)

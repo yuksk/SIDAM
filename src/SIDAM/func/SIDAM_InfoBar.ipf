@@ -617,7 +617,7 @@ Static Function magnify(STRUCT WMWinHookStruct &s)
 End
 
 //	Keyboard shortcuts
-//	This is used in the external files (KM SpectrumViewer)
+//	This is used in the external files (SIDAM_SpectrumViewer)
 Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 	
 	Wave/Z w = SIDAMImageWaveRef(s.winName)
