@@ -521,11 +521,16 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 		case "colorP":
 			Variable red, green, blue
 			sscanf s.popStr, "(%d,%d,%d)", red, green, blue
-			red = round(red/256) ;	green = round(green/256) ;	blue = round(blue/256)
+			red = round(red/65535*255)
+			green = round(green/65535*255)
+			blue = round(blue/65535*255)
 			Wave/SDFR=dfrTmp maskw = $MASKNAME
 			MultiThread maskw[][][0] = red
 			MultiThread maskw[][][1] = green
 			MultiThread maskw[][][2] = blue
+			#if IgorVersion() < 9
+				DoUpdate/W=$pnlName
+			#endif
 			break
 			
 		case "toP":
@@ -553,11 +558,15 @@ End
 
 //	Slider
 Static Function pnlSlider(STRUCT WMSliderAction &s)
-	if (s.eventCode == 4)
-		Wave/SDFR=$GetUserData(StringFromList(0,s.win,"#"),"","dfTmp") maskw = $MASKNAME
+	if (s.eventCode > 0 && s.eventCode & 1)
+		String pnlName = StringFromList(0, s.win, "#")
+		Wave/SDFR=$GetUserData(pnlName,"","dfTmp") maskw = $MASKNAME
 		ImageStats/M=1/P=3 maskw
-		Variable v = V_max*s.curval
-		MultiThread maskw[][][3] = round(maskw[p][q][3]/v)
+		Variable v = s.curval/V_max
+		MultiThread maskw[][][3] = round(maskw[p][q][3]*v)
+		#if IgorVersion() < 9
+			DoUpdate/W=$pnlName
+		#endif
 	endif
 End
 
