@@ -9,52 +9,6 @@
 #endif
 
 //@
-//	Create a panel at the center of Igor window or screen.
-//
-//	## Parameters
-//	title : string
-//		The title of the panel.
-//	width : variable
-//		The width of the panel.
-//	height : variable
-//		The height of the panel.
-//	float : int {0 or !0}, default 0
-//		Set !0 to make the panel floating.
-//	resizable : int {0 or !0}, default 0
-//		Set !0 to make the panel resizable.
-//
-//	## Returns
-//	string
-//		The name of the created panel.
-//@
-Function/S SIDAMNewPanel(String title, Variable width, Variable height,
-	[int float, int resizable])
-	
-	float = ParamIsDefault(float) ? 0 : float
-	resizable = ParamIsDefault(resizable) ? 0 : resizable
-
-	GetWindow kwFrameOuter, wsizeRM
-
-	Variable left = (V_right-V_left)/2-width/2
-	Variable top = (V_bottom-V_top)/2-height
-	Variable right = left+width
-	Variable bottom = top+height
-
-	NewPanel/FLT=(float)/W=(left, top, right, bottom)/K=1 as title
-	String pnlName = S_name
-	if (float)
-		SetActiveSubwindow _endfloat_
-	endif
-	if (!resizable)
-		ModifyPanel/W=$pnlName fixedSize=1
-	endif
-
-	KillStrings/Z S_name
-	return pnlName
-End
-
-
-//@
 //	Returns a non-zero value if specified graph or panel exist,
 //	and 0 otherwise.
 //

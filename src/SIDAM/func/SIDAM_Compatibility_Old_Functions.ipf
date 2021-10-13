@@ -43,6 +43,35 @@ Static Function deprecatedCaution(String newName)
 	endif
 End
 
+Function/S SIDAMNewPanel(String title, Variable width, Variable height,
+	[int float, int resizable])
+
+	deprecatedCaution("")
+
+	float = ParamIsDefault(float) ? 0 : float
+	resizable = ParamIsDefault(resizable) ? 0 : resizable
+
+	GetWindow kwFrameOuter, wsizeRM
+
+	Variable left = (V_right-V_left)/2-width/2
+	Variable top = (V_bottom-V_top)/2-height
+	Variable right = left+width
+	Variable bottom = top+height
+
+	NewPanel/FLT=(float)/W=(left, top, right, bottom)/K=1 as title
+	String pnlName = S_name
+	if (float)
+		SetActiveSubwindow _endfloat_
+	endif
+	if (!resizable)
+		ModifyPanel/W=$pnlName fixedSize=1
+	endif
+
+	KillStrings/Z S_name
+
+	return pnlName
+End
+
 //---
 Function SIDAMTraceColor([String grfName, String clrTab, STRUCT RGBColor &clr])
 

@@ -48,8 +48,6 @@ commands:
         url: /commands/SIDAMLineSpectra/
       - title: "SIDAMLoadData"
         url: /commands/SIDAMLoadData/
-      - title: "SIDAMNewPanel"
-        url: /commands/SIDAMNewPanel/
       - title: "SIDAMPeakPos"
         url: /commands/SIDAMPeakPos/
       - title: "SIDAMPhaseAdjust"
