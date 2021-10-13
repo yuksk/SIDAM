@@ -8,7 +8,6 @@
 #include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_Panel"
 #include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
@@ -296,8 +295,8 @@ End
 //	show a panel
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
-	
-	String pnlName = SIDAMNewPanel("Fourier filter", 730, 380)
+	NewPanel/W=(0,0,730,380)/K=1 as "Fourier filter"
+	String pnlName = S_name	
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 
 	String dfTmp = pnlInit(pnlName, w)

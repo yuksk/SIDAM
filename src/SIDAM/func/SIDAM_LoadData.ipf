@@ -4,7 +4,6 @@
 
 #include "SIDAM_Display"
 #include "SIDAM_Utilities_Control"
-#include "SIDAM_Utilities_Panel"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -204,12 +203,18 @@ Static Function/DF createNewDFandMove(String fileName)
 End
 
 //	Show a panel to receive a name of a new data folder
+Static Constant PNLWIDTH = 335
+Static Constant PNLHEIGHT = 105
 Static Function/S pnl(String fileName)
 	//	Prepare a global string to receive a new name from the panel
 	String strName = UniqueName("newname", 4, 0)
 	String/G $strName
 	
-	String pnlName = SIDAMNewPanel("Load Data...", 335, 105)
+	GetWindow kwFrameOuter, wsizeRM
+	Variable left = (V_right-V_left)/2-PNLWIDTH/2
+	Variable top = (V_bottom-V_top)/2-PNLHEIGHT
+	NewPanel/W=(left, top, left+PNLWIDTH, top+PNLHEIGHT)/K=1 as "Load Data..."
+	String pnlName = S_name
 	SetWindow $pnlName userData(strName)=strName
 	
 	SetDrawLayer ProgBack
