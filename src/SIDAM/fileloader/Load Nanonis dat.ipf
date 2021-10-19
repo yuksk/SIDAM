@@ -183,8 +183,15 @@ Function LoadNanonisCommonGetHeader(String pathStr)
 			name = name[i+1,strlen(name)-1]
 		endif
 		
-		//	multiline settings if "," is included
+		//	Handle as the multiline settings if "," is included.
+		//	The multiline settings can be included in the main header of 3ds
+		//	and under the Bias Spectroscopy header. In the case of the former,
+		//	the name starts from "Segment Start (V),..." while it starts from
+		//	"MultiLine Settings : Segment Start (V),..." in the case of the latter.
 		if (strsearch(name,",",0) > -1)
+			if (strsearch(name,":",0) > -1)
+				name = name[strsearch(name,":",0)+2,strlen(name)-1]
+			endif
 			Make/N=(ItemsInList(value),5)/O $"multiline settings"/WAVE=w
 			for (i = 0; i < 5; i += 1)
 				SetDimLabel 1, i, $StringFromList(i, name, ", "), w
