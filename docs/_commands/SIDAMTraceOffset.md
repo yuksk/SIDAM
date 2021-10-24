@@ -14,4 +14,4 @@ The name of window.
 The offset value in the x- and y-direction, respectively.
 
 **fill :** ***int {0 or !0}***  
-Set !0 to eliminate hidden lines.
+Set !0 to remove hidden lines.

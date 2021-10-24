@@ -30,7 +30,7 @@
 #include "SIDAM_SyncAxisRange"
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"
-#include "SIDAM_Trace"
+#include "SIDAM_TraceOffset"
 #include "SIDAM_Utilities_Help"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_misc"
@@ -279,7 +279,7 @@ End
 
 Menu "SIDAMInfobarMenu1D", dynamic, contextualmenu
 	//	Trace
-	"Offset and Color...", /Q, SIDAMTrace#menuDo()
+	"Offset...", /Q, SIDAMTraceOffset#menuDo()
 	help = {"Set offset of traces in the top graph."}
 
 	SubMenu "Sync"
