@@ -345,8 +345,10 @@ Static Function/WAVE SXMData(String pathStr, STRUCT header &s)
 	//	Physical values
 	for (layer = 0; layer < nLayer; layer += 1)
 		Wave lw = refw[layer]
-		SetScale/I x, s.xcenter-s.xscale/2, s.xcenter+s.xscale/2, SIDAM_NANONIS_LENGTHUNIT, lw
-		SetScale/I y, s.ycenter-s.yscale/2, s.ycenter+s.yscale/2, SIDAM_NANONIS_LENGTHUNIT, lw
+		SetScale/P x, s.xcenter-s.xscale/2+s.xscale/s.xpnts/2, \
+			s.xscale/s.xpnts, SIDAM_NANONIS_LENGTHUNIT, lw
+		SetScale/P y, s.ycenter-s.yscale/2+s.yscale/s.ypnts/2, \
+			s.yscale/s.ypnts, SIDAM_NANONIS_LENGTHUNIT, lw
 		strswitch (WaveUnits(lw, -1))
 			case "m":	//	height
 				FastOP lw = (SIDAM_NANONIS_LENGTHSCALE) * lw	
