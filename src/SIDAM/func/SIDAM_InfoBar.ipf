@@ -13,13 +13,13 @@
 #include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_misc"
+#include "SIDAM_Utilities_WaveDf"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
 
 Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude);x' and y' (Cartesian, including angle)"
-Static StrConstant TITLEMENU = "Name of graph;Name of wave;Displayed size;Path of wave"
 
 
 //@
@@ -41,10 +41,12 @@ Function SIDAMInfoBar(String grfName)
 	endif
 	
 	SetWindow $grfName hook(self)=SIDAMInfoBar#hook
+	#if IgorVersion() >= 9
+		SetWindow $grfName tooltipHook(self)=SIDAMInfoBar#tooltipHook
+	#endif
+	
 	//	0: x,y;  1: r,theta,   2: r^-1,theta
 	SetWindow $grfName userData(mode)="0"
-	//	0: name of graph, 1: name of wave, 2: setpoint, 3: displayed size
-	SetWindow $grfName userData(title)="1"
 	
 	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
 	int isNoimage = !WaveExists(w)
@@ -158,7 +160,10 @@ End
 Static Function closeInfoBar(String pnlName)
 
 	SetWindow $pnlName hook(self)=$""
-
+	#if IgorVersion() >= 9
+		SetWindow $pnlName tooltipHook(self)=$""
+	#endif
+	
 	String listStr = ControlNameList(pnlName)
 	int i, n
 	for (i = 0, n = ItemsInList(listStr); i < n; i++)
@@ -168,7 +173,6 @@ Static Function closeInfoBar(String pnlName)
 
 	DoUpdate/W=$pnlName	
 	SetWindow $pnlName userData(mode)=""
-	SetWindow $pnlName userData(title)=""
 End
 
 //-------------------------------------------------------------
@@ -207,10 +211,6 @@ Static Function/S menuItem(int menuitem)
 			menuStr += "-;" + SIDAMAddCheckmark(isFree, "free (allows selecting 'between' pixels);")
 			
 			return menuStr
-			
-		case 1:	//	window title
-			mode = str2num(GetUserData(grfName,"","title"))
-			return SIDAMAddCheckmark(mode, TITLEMENU)
 		
 		case 2:	//	label
 			return SelectString(getTick(grfName)==3,"Hide","Show") + " Label"
@@ -268,10 +268,6 @@ Static Function/S menuDo(int mode)
 	switch (mode)
 		case 0:	//	coordinates
 			changeCoordinateSetting(WhichListItem(S_value, COORDINATESMENU))			
-			break
-			
-		case 1:	//	window title
-			changeWindowTitle(V_value-1)
 			break
 			
 		case 2:	//	axis
@@ -347,7 +343,6 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 					SetVariable xyV value=_NUM:IndexToScale(w,index,tracepq(s.winName)), win=$s.winName					
 				endif
 			endif
-			changeWindowTitle(str2num(GetUserData(s.winName,"","title")))
 			return 0
 			
 		case 11:	//	keyboard
@@ -410,10 +405,6 @@ Function SIDAMInfobarUpdatePos(STRUCT WMWinHookStruct &s, [String win])
 	setxyStr(xys, ms, s.winName)
 	TitleBox xyT title=xys, win=$win
 
-	if (str2num(GetUserData(s.winName,"","title")) == 1)
-		DoWindow/T $win, NameOfWave(ms.w)
-	endif
-	
 	adjustCtrlPos(win)
 End
 
@@ -663,10 +654,6 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 76:		//	L (shift + l)
 			toggleLabel(s.winName)
 			return 1
-		case 84:		//	T (shift + t)
-			int titleMode = str2num(GetUserData(s.winName,"","title"))
-			changeWindowTitle(titleMode+1)
-			return 1
 		case 88: 		//	X (shift + x)
 			if ((is2D || is3D) && isContainedComplexWave(s.winName,2))
 				mode = NumberByKey("imCmplxMode",ImageInfo(s.winName, "", 0),"=")
@@ -732,43 +719,6 @@ Static Function changeCoordinateSetting(int mode)
 			SetWindow $grfName userData(free)=num2str(isFree != 1)
 			break
 	endswitch
-End
-
-//	Change the title of window
-Static Function changeWindowTitle(int mode)
-	
-	String grfName = WinName(0,1), titleStr
-	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
-	if (!WaveExists(w))	//	1D wave for example
-		return 0
-	elseif (numtype(mode) == 2)
-		return 0
-	endif
-	
-	switch (mode)
-		case 0:
-			titleStr = grfName
-			break
-		case 1:
-			titleStr = NameOfWave(w)
-			break
-		case 2:
-			String xaxis = StringByKey("XAXIS",ImageInfo(grfName,"",0))
-			String yaxis = StringByKey("YAXIS",ImageInfo(grfName,"",0))
-			GetAxis/Q/W=$grfName $xaxis ;	Variable width = V_max - V_min
-			GetAxis/Q/W=$grfName $yaxis ;	Variable height = V_max - V_min
-			Sprintf titleStr, "%.2f %s \u00D7 %.2f %s", width, WaveUnits(w,0), height, WaveUnits(w,1)
-			break
-		case 3:
-			titleStr = GetWavesDataFolder(w,2)
-			break
-		default:
-			mode = 0
-			titleStr = grfName
-	endswitch
-	
-	SetWindow $grfName userData(title)=num2str(mode)	
-	DoWindow/T $grfName, titleStr	
 End
 
 //	Show or hide the axis labels
@@ -927,3 +877,133 @@ Static Function/S getYrangeStr(String grfName)
 	//	w[*] is equivalent to w[*][0]
 	return str + SelectString(CmpStr(str, "[*]"), "[0]", "")
 End
+
+//-------------------------------------------------------------
+//	Tooltip
+//-------------------------------------------------------------
+#if IgorVersion() >= 9
+Static Function tooltipHook(STRUCT WMTooltipHookStruct &s)
+	int useCustomTooltip = 0
+	
+	if (strlen(s.imageName) > 0)
+		Wave w = s.yWave
+		useCustomTooltip = 1
+	elseif (strlen(s.traceName) > 0)
+		Wave w = s.yWave
+		useCustomTooltip = 1
+	endif
+
+	if (useCustomTooltip)
+		s.tooltip = "<html>"
+		s.tooltip += "<b>"+NameOfWave(w)+"</b> "+getNumOfPoints(w)
+		s.tooltip += "<br>Datafolder: "+GetWavesDataFolder(w,1)
+		s.tooltip += getFOVcenter(w)
+		s.tooltip += getFOVsize(w)
+		s.tooltip += getSetpoint(w)
+		s.tooltip += "</html>"
+		s.isHTML=1
+	endif
+	return useCustomTooltip
+End
+
+Static Function/S getNumOfPoints(Wave w)
+	Make/U/I/N=4/FREE nw = DimSize(w,p)
+	DeletePoints WaveDims(w), 4-WaveDims(w), nw
+	String str = SIDAMWaveToString(nw)
+	return "["+str[1,strlen(str)-2]+"]"
+End
+
+Static Function/S getFOVsize(Wave w)
+	if (WaveDims(w) == 1)
+		return ""
+	endif
+	
+	Make/N=2/FREE fw = DimDelta(w,p)*DimSize(w,p)
+	Make/N=2/T/FREE tw = WaveUnits(w,p)
+	String str
+	sprintf str, "<br>Size: %.2W1P%s &times; %.2W1P%s", fw[0], tw[0], fw[1], tw[1]
+	return str	
+End
+
+Static Function/S getFOVcenter(Wave w)
+	String str = ""
+	
+	if (WaveDims(w) == 1)
+
+		String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS
+		if (!DataFolderExists(df))
+			return ""
+		endif
+		
+		//	Nanonis dat
+		NVAR/Z/SDFR=$df X__m_, Y__m_
+		if (NVAR_Exists(X__m_) && NVAR_Exists(Y__m_))
+			sprintf str, "<br>At: %.2W1Pm, %.2W1Pm", X__m_, Y__m_
+			return str
+		endif
+
+	else
+
+		Make/N=2/FREE cw = DimOffset(w,p)+DimDelta(w,p)*(DimSize(w,p)-1)/2
+		Make/N=2/T/FREE tw = WaveUnits(w,p)
+		sprintf str, "<br>Center: %.2W1P%s, %.2W1P%s", cw[0], tw[0], cw[1], tw[1]
+		return str
+
+	endif
+End
+
+Static Function/S getSetpoint(Wave w)
+	String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS
+	if (!DataFolderExists(df))
+		return ""
+	endif
+	
+	String str
+	sprintf str, "<br>Setpoint: %s @ %s", getCurrent(w), getBias(w)
+	return str
+End
+
+Static Function/S getBias(Wave w)
+	String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS
+	if (!DataFolderExists(df))
+		return ""
+	endif
+	
+	String str
+
+	//	Nanonis sxm
+	NVAR/Z/SDFR=$df bias_V
+	if (NVAR_Exists(bias_V))
+		sprintf str, "%.2W1PV", bias_V
+		return str
+	endif
+
+	//	Nanonis 3ds, dat
+	NVAR/Z/SDFR=$(df+":Bias") Bias__V_
+	if (NVAR_Exists(Bias__V_))
+		sprintf str, "%.2W1PV", Bias__V_
+		return str
+	endif
+		
+	return ""
+End
+
+Static Function/S getCurrent(Wave w)
+	String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS+":'Z-Controller'"
+	if (!DataFolderExists(df))
+		return ""
+	endif
+
+	String str
+
+	//	Nanonis sxm, 3ds, dat
+	NVAR/Z/SDFR=$df Setpoint
+	SVAR/Z/SDFR=$df Setpoint_unit
+	if (NVAR_Exists(Setpoint) && SVAR_Exists(Setpoint_unit))
+		sprintf str, "%.2W1P%s", Setpoint, Setpoint_unit
+		return str
+	endif
+	
+	return ""
+End
+#endif

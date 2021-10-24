@@ -184,9 +184,6 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 		SubMenu "Coordinates"
 			SIDAMInfoBar#menuItem(0), /Q,  SIDAMInfoBar#menuDo(0)
 		End
-		SubMenu "Title"
-			SIDAMInfoBar#menuItem(1), /Q,  SIDAMInfoBar#menuDo(1)
-		End
 		SubMenu "Complex"
 			SIDAMInfoBar#menuItem(3), /Q,  SIDAMInfoBar#menuDo(3)
 		End

@@ -157,5 +157,8 @@ Static Function updateWindow()
 		//	Check of FFT availability
 		SetWindow $grfName userData(modtime)=""
 		SetWindow $grfName userData(fftavailable)=""
+		
+		//	Change window title
+		SetWindow $grfName userData(title)=""
 	endfor
 End
