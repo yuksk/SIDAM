@@ -87,46 +87,6 @@ Function/S SIDAMAddCheckmark(Variable num, String menuStr)
 End
 
 //------------------------------------------------------------------------------
-//	Return the angle in the setting folder
-//------------------------------------------------------------------------------
-Function SIDAMGetSettingsAngle(Wave/Z w)
-	if (!WaveExists(w))
-		return nan
-	endif
-	
-	DFREF dfr = GetWavesDataFolderDFR(w):$SIDAM_DF_SETTINGS
-	if (!DataFolderRefStatus(dfr))
-		return nan
-	endif
-			
-	NVAR/Z/SDFR=dfr angle		//	RHK SM2
-	if (NVAR_Exists(angle))
-		return angle
-	endif
-	
-	//	For nanonis
-	//	Reverse the sign of angle because the angle is positive
-	//	for clockwise rotation.
-	//	Nanonis 3ds
-	SVAR/Z/SDFR=dfr grid = $SIDAMNumStrName("Grid settings", 1)
-	if (SVAR_Exists(grid))
-		return -str2num(StringFromList(4, grid))
-	endif
-	
-	//	Nanonis sxm
-	NVAR/Z/SDFR=dfr anglesxm = angle_deg
-	if (NVAR_Exists(anglesxm))
-		return -anglesxm
-	endif
-	NVAR/Z/SDFR=dfr anglesxmold = 'angle (deg)'
-	if (NVAR_Exists(anglesxmold))
-		return -anglesxmold
-	endif
-	
-	return nan
-End
-
-//------------------------------------------------------------------------------
 //	Functions for absorbing a change of "Liberal object names" in Igor 9.
 //	In Igor 8, liberal object names are allowed for variables and strings
 //	although it is not written so in the manual. In Igor 9, they are not allowed.

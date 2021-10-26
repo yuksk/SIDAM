@@ -19,7 +19,7 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude);x' and y' (Cartesian, including angle)"
+Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude)"
 
 
 //@
@@ -198,11 +198,6 @@ Static Function/S menuItem(int menuitem)
 			String menuStr = SIDAMAddCheckmark(mode, COORDINATESMENU)
 			
 			Wave/Z w = SIDAMImageNameToWaveRef(grfName)
-			if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
-				//	wave not exists (1D) or the angle setting is not found
-				menuStr = RemoveListItem(3, menuStr)
-			endif
-			
 			if (!WaveExists(w))		//	1D for example
 				return menuStr
 			endif
@@ -492,18 +487,6 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 			Sprintf xys, fStr\
 				, "1/r", 1/mag, "\u03b8", acos(ms.x/mag)*180/pi*sign(ms.y)
 			break
-		case 3:		//	x', y', angle is degree
-			Variable angle = SIDAMGetSettingsAngle(ms.w) / 180 * pi
-			if (numtype(angle))
-				xys = "(x':-, y':-)"
-			else
-				Variable cx = DimOffset(ms.w,0) + DimDelta(ms.w,0)*(DimSize(ms.w,0)-1)/2
-				Variable cy = DimOffset(ms.w,1) + DimDelta(ms.w,1)*(DimSize(ms.w,1)-1)/2
-				Variable rx = (ms.x-cx)*cos(angle) - (ms.y-cy)*sin(angle) + cx
-				Variable ry = (ms.x-cx)*sin(angle) + (ms.y-cy)*cos(angle) + cy
-				Sprintf xys, fStr, "x'", rx, "y'", ry
-			endif
-			break
 	endswitch
 End
 
@@ -695,8 +678,7 @@ Static Function changeCoordinateSetting(int mode)
 	
 	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
 	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
-	if (!WaveExists(w) || numtype(SIDAMGetSettingsAngle(w)))
-		//	1D wave or the angle setting is not found.
+	if (!WaveExists(w))		//	1D wave
 		maxMode -= 1
 	endif
 	
