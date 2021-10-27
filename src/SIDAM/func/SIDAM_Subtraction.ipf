@@ -463,7 +463,7 @@ Static Function collectVariableFromPnl(String pnlName, STRUCT paramStruct &s)
 	s.direction = cvw[%directionP]-1
 	s.method = cvw[%methodP]-1
 	s.index = cvw[%indexV]
-	Make/B/U/FREE roi = {{cvw[%p1V], cvw[%q1V]},{cvw[%p2V], cvw[%q2V]}}
+	Make/I/U/FREE roi = {{cvw[%p1V], cvw[%q1V]},{cvw[%p2V], cvw[%q2V]}}
 	Wave s.roi = roi	
 	s.result = SelectString(cvw[%owC], ctw[%resultV], NameOfWave(s.w))
 End
