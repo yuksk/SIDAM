@@ -324,8 +324,7 @@ Static Constant separatorWidth = 22
 //******************************************************************************
 Static Function pnl(String grfName)
 	String targetWin = StringFromList(0,grfName,"#")
-
-	if (SIDAMWindowExists(grfName+"#Color"))
+	if (SIDAMWindowExists(targetWin+"#Color"))
 		return 0
 	endif
 

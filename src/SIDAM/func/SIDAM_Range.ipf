@@ -225,8 +225,8 @@ Static StrConstant HISTCLR = "SIDAMRange_histclr"	//	Name of a color histogram w
 Static StrConstant PNAME = "Range"
 
 Static Function pnl(String grfName)
-
-	if (SIDAMWindowExists(grfName+"#"+PNAME))
+	String targetWin = StringFromList(0, grfName, "#")
+	if (SIDAMWindowExists(targetWin+"#"+PNAME))
 		return 0
 	endif
 
@@ -237,8 +237,8 @@ Static Function pnl(String grfName)
 
 	String dfTmp = pnlInit(grfName, imgName, zmin, zmax)
 
-	NewPanel/EXT=0/HOST=$StringFromList(0, grfName, "#")/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
-	String pnlName = StringFromList(0, grfName, "#") + "#" + PNAME
+	NewPanel/EXT=0/HOST=$targetWin/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
+	String pnlName = targetWin + "#" + PNAME
 
 	//	Controls
 	PopupMenu imageP title="image",pos={3,7},size={218,19},bodyWidth=180,win=$pnlName
