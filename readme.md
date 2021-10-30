@@ -1,10 +1,10 @@
 # SIDAM
 
 *SIDAM* (**S**pectroscopic **I**maging **D**ata **A**nalysis **M**acro) is
-a software for data analysis of scanning tunneling spectroscopy.
-Compared with other software for SPM data analysis such as WSxM, SPIP, or
-Gwyddion, SIDAM is developed especially for handling 3D data (positions and
-energy) of spectroscopic imaging (or scanning tunneling spectroscopy).
+a software for data analysis of spectroscopic imaging scanning tunneling
+microscopy / scanning tunneling spectroscopy. Compared with other software
+for SPM data analysis such as WSxM, SPIP, or Gwyddion, SIDAM is developed
+especially for handling 3D data (x, y, and energy).
 
 Frequently used basic features:
 
@@ -23,11 +23,10 @@ visualization of Igor Pro to analyse your data and make figures. Moreover, SIDAM
 is designed for both GUI and CLI. You can do everything from the menus and do not
 have to remember commands. However, you can also do the same things by calling
 commands, making it easy to repeat analyses and incorporate *SIDAM* functions
-into your scripts.
-
+into your scripts. All commands are [documented](https://yuksk.github.io/SIDAM/commands/).
 ## Requirement
 
-Igor Pro 8 or 9.
+Igor Pro 8 or later is required. Igor Pro 9 is recommended to use full features.
 
 ## Getting started
 

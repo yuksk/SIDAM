@@ -11,6 +11,13 @@ minimal_mistakes_skin: default
 search: true
 search_full_content: true
 
+# Analytics
+analytics:
+  provider               : "google"
+  google:
+    tracking_id          : "G-Y6G51RHYPS"
+    anonymize_ip         : false
+
 # Outputting
 permalink: /:categories/:path/
 
