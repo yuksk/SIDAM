@@ -507,12 +507,12 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 		case 1: 	//	r, theta
 			mag = sqrt(ms.x^2+ms.y^2)
 			Sprintf xys, fStr\
-				, "r", mag, "t", acos(ms.x/mag)*180/pi*sign(ms.y)
+				, "r", mag, "\u03b8", acos(ms.x/mag)*180/pi*sign(ms.y)
 			break
 		case 2: 	//	r^-1, theta
 			mag = sqrt(ms.x^2+ms.y^2)
 			Sprintf xys, fStr\
-				, "1/r", 1/mag, "t", acos(ms.x/mag)*180/pi*sign(ms.y)
+				, "1/r", 1/mag, "\u03b8", acos(ms.x/mag)*180/pi*sign(ms.y)
 			break
 		case 3:		//	x', y', angle is degree
 			Variable angle = SIDAMGetSettingsAngle(ms.w) / 180 * pi
