@@ -87,10 +87,6 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			break
 			
 		case 8:		//	modified
-			//	Do nothing if called from other hook functions
-			if (strlen(GetRTStackInfo(2)))
-				break
-			endif
 			//	In case a window(s) in the list had been closed before compiling
 			SIDAMSync#updateList(s.winName, SYNCKEY)
 			
