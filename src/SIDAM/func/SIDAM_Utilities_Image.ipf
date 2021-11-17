@@ -626,6 +626,10 @@ Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
 	endif
 	
 	ModifyImage/W=$grfName $NameOfWave(w) plane=limit(round(index), 0, DimSize(w,2)-1)
-	DoUpdate/W=$grfName
+	// Do not insert DoUpdate/W=$grfName here.
+	// If inserted, when this function is called from a hook function, the
+	// modification event of a hook function, which are expected to be called
+	// by a change made by the above ModifyImage, is not called. This problem
+	// occurs in Igor 8.
 	return 0
 End

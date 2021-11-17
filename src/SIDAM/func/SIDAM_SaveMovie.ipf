@@ -91,12 +91,12 @@ Static Function saveMovie(String pnlName)
 	// The following commands need to be put into the queue so that each layer
 	// is saved after any modifications such as adjusting the z range. This is
 	// required in Igor 9 where modified events are sent to a window only when
-	// Igor's main outer loop runs.
+	// Igor's main outer loop runs. DoUpdate is necessary for Igor 8.
 	Wave lw = SIDAMSaveCommon#getLayers(pnlName)
 	String grfName = StringFromList(0,pnlName,"#")
 	int i
 	for (i = lw[0]; i <= lw[1]; i++)
-		sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d)", grfName, i
+		sprintf cmd, "SIDAMSetLayerIndex(\"%s\", %d);DoUpdate/W=%s", grfName, i, grfName
 		Execute/P/Q cmd
 		Execute/P/Q "AddMovieFrame"
 	endfor
