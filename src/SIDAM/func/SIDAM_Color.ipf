@@ -343,10 +343,11 @@ Static Function pnl(String grfName)
 	RenameWindow $targetWin#$S_name, Color
 	String pnlName = targetWin + "#Color"
 
-	//print pnlHeight-270-topmargin-10
-	SetWindow $grfName hook(SIDAMColorPnl)=SIDAMColor#pnlHookParent
 	SetWindow $pnlName hook(self)=SIDAMColor#pnlHook
 	SetWindow $pnlName userData(grf)=grfName, activeChildFrame=0
+	//	grfName can be a subwindow such as "Panel0#image" (LineProfile, LineSpectra)
+	//	The hook function for the parent window must be given to the main window.
+	SetWindow $StringFromList(0,grfName,"#") hook(SIDAMColorPnl)=SIDAMColor#pnlHookParent
 
 	saveInitialColor(pnlName)
 
@@ -696,7 +697,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 End
 
 Static Function pnlHookClose(String pnlName)
-	SetWindow $GetUserData(pnlName,"","grf") hook(SIDAMColorPnl)=$""
+	SetWindow $StringFromList(0,pnlName,"#") hook(SIDAMColorPnl)=$""
 	if (!strlen(GetUserData(pnlName,"","norevert")))
 		revertImageColor(pnlName)
 	endif
@@ -801,7 +802,8 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 		return 0
 	endif
 
-	String pnlName = s.winName + "#Color"
+	//	s.winName can be "Graph0" or "Panel0#image".
+	String pnlName = StringFromList(0, s.winName, "#") + "#Color"
 	ControlInfo/W=$pnlName imageP
 	String imgName = S_Value
 
@@ -849,7 +851,6 @@ Static Function pnlCheck(STRUCT  WMCheckboxAction &s)
 			else
 				SIDAMColor(grfName=grfName, imgList=imgList, rev=s.checked)
 			endif
-			updateColorscalesInPnl(ParseFilePath(1,s.win,"#",1,0))
 			break
 
 	endswitch
