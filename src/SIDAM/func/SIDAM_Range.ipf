@@ -928,7 +928,7 @@ Static Function updateZRange(String grfName, [int pause])
 
 		Wave zw = updateZRange_getValues(grfName, imgName, m0, v0, m1, v1)
 		applyZRange(grfName, imgName, zw[0], zw[1])
-
+		
 		//	Record the present values so that any changes from the Igor default dialog
 		//	can be detected later
 		setZmodeValue(grfName, imgName, "z0", zw[0])
@@ -956,19 +956,23 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 	endif
 
 	Variable zmin, zmax
+	//	When tw contains only NaN, WaveMin and WaveMax return NaN.
+	//	To disinguish this from the case of m0==0 or m1==0, use +-inf.
+	Variable defaultmin = numtype(WaveMin(tw)) ? -inf : WaveMin(tw)
+	Variable defaultmax = numtype(WaveMax(tw)) ? inf : WaveMax(tw)
 	switch (m0)
 		case 0:	//	auto
 			zmin = NaN
 			break
 		case 2:	//	sigma
-			zmin = numtype(avg) || numtype(sdev) ? WaveMin(tw) : avg + sdev * v0
+			zmin = numtype(avg) || numtype(sdev) ? defaultmin : avg + sdev * v0
 			break
 		case 3:	//	cut
 			FindLevel/Q hw, v0/100
-			zmin = V_flag ? WaveMin(tw) : V_LevelX
+			zmin = V_flag ? defaultmin : V_LevelX
 			break
 		case 4:	//	logsigma
-			zmin = numtype(lnavg) || numtype(lnsdev) ? WaveMin(tw) : exp(lnavg+lnsdev*v0)
+			zmin = numtype(lnavg) || numtype(lnsdev) ? defaultmin : exp(lnavg+lnsdev*v0)
 			break
 		default:	//	1 (fix)
 			zmin = v0
@@ -979,14 +983,14 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			zmax = NaN
 			break
 		case 2:	//	sigma
-			zmax = numtype(avg) || numtype(sdev) ? WaveMax(tw) : avg + sdev * v1
+			zmax = numtype(avg) || numtype(sdev) ? defaultmax : avg + sdev * v1
 			break
 		case 3:	//	cut
 			FindLevel/Q hw, v1/100
-			zmax = V_flag ? WaveMax(tw) : V_LevelX
+			zmax = V_flag ? defaultmax : V_LevelX
 			break
 		case 4:	//	logsigma
-			zmax = numtype(lnavg) || numtype(lnsdev) ? WaveMax(tw) : exp(lnavg+lnsdev*v1)
+			zmax = numtype(lnavg) || numtype(lnsdev) ? defaultmax : exp(lnavg+lnsdev*v1)
 			break
 		default:	//	1 (fix)
 			zmax = v1
