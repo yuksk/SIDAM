@@ -144,6 +144,10 @@ Static Function writeConstants(Variable refNum, STRUCT 	SIDAMConfigStruct &s)
 	
 	fprintf refNum, "StrConstant SIDAM_WINDOW_EXPORT_TRANSPARENT = \"%s\"\n", s.window.export.transparent
 	fprintf refNum, "Constant SIDAM_WINDOW_EXPORT_RESOLUTION = %d\n", s.window.export.resolution
+
+	fprintf refNum, "StrConstant SIDAM_WINDOW_CTAB_TABLE = \"%s\"\n", s.window.ctab.table
+	fprintf refNum, "Constant SIDAM_WINDOW_CTAB_REVERSE = %d\n", s.window.ctab.reverse
+	fprintf refNum, "Constant SIDAM_WINDOW_CTAB_LOG = %d\n", s.window.ctab.log
 	
 	String nanonis_encoding = s.nanonis.text_encoding
 	if (!strlen(nanonis_encoding))

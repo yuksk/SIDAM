@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMDisplay
 
+#include "SIDAM_Color"
 #include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_WaveDf"
@@ -196,6 +197,10 @@ Static Function/S displayNumericWaveLayer(Wave w)
 	sprintf cmdStr, "ModifyGraph/W=%s width=%s, height=%s"\
 		, PossiblyQuoteName(pnlName), SIDAM_WINDOW_WIDTH, SIDAM_WINDOW_HEIGHT
 	Execute/Q cmdStr
+
+	SIDAMColor(grfName=pnlName, imgList=PossiblyQuoteName(NameOfWave(w)), \
+		ctable=SIDAM_WINDOW_CTAB_TABLE, rev=SIDAM_WINDOW_CTAB_REVERSE, \
+		log=SIDAM_WINDOW_CTAB_LOG)
 
 	SIDAMInfoBar(pnlName)
 	SetWindow $pnlName hide=0

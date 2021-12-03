@@ -26,6 +26,7 @@ Static Structure windowS
 	STRUCT windowformatS format
 	STRUCT windowcolorsS colors
 	STRUCT windowexportS export
+	STRUCT windowctabS ctab
 EndStructure
 
 Static Structure windowformatS
@@ -43,6 +44,12 @@ EndStructure
 Static Structure windowexportS
 	String transparent
 	Variable resolution
+EndStructure
+
+Static Structure windowctabS
+	String table
+	Variable reverse
+	Variable log
 EndStructure
 
 Static Structure ctabS
@@ -90,6 +97,7 @@ Function SIDAMConfigRead(STRUCT SIDAMConfigStruct &s)
 	s.window.format.xy = ""
 	s.window.format.z = ""
 	s.window.export.transparent = ""
+	s.window.ctab.table = ""
 	s.ctab.path = ""
 	s.ctab.keys = ""
 	s.loader.path = ""
@@ -133,7 +141,14 @@ Function readConfig(STRUCT SIDAMConfigStruct &s, int kind)
 		strOverwrite(s.window.export.transparent, StringByKey("transparent", str))
 	s.window.export.resolution = \
 		numOverwrite(s.window.export.resolution, NumberByKey("resolution", str))
-	
+
+	str = configItems(refNum, "[window.ctab]")
+	s.window.ctab.table = \
+		strOverwrite(s.window.ctab.table, StringByKey("table", str))
+	s.window.ctab.reverse = \
+		numOverwrite(s.window.ctab.reverse, NumberByKey("reverse", str))
+	s.window.ctab.log = numOverwrite(s.window.ctab.log, NumberByKey("log", str))
+
 	s.ctab.path = strOverwrite(s.ctab.path, \
 		parsePath(configItems(refNum, "[ctab]", usespecial=1), kind))
 	s.ctab.keys = parseCtabKeys(s.ctab.path)

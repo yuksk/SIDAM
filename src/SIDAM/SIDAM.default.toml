@@ -44,6 +44,11 @@ transparent = "both"
 # resolution is n*72. Otherwise, this number is directly used.
 resolution = 2
 
+[window.ctab]
+table = "Grays256"
+reverse = 0
+log = 0
+
 # Names of color table groups and paths to folders where color table
 # waves exist. You can add your own group.
 [ctab]
