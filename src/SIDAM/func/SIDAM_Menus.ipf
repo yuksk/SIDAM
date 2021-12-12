@@ -13,6 +13,7 @@
 #include "SIDAM_Fourier_Symmetrization"
 #include "SIDAM_Help"
 #include "SIDAM_Histogram"
+#include "SIDAM_ImageRotate"
 #include "SIDAM_InfoBar"
 #include "SIDAM_LayerAnnotation"
 #include "SIDAM_LineProfile"
@@ -219,6 +220,10 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	//	Subtraction
 	"Subtract.../F6", /Q, SIDAMSubtraction#menuDo()
 	help = {"Subtract n-th plane or line from a 2D wave or each layer of a 3D wave"}
+	
+	"Rotate image...", /Q, SIDAMImageRotate#menuDo()
+	help = {"Rotate an image wave around the center of the image."}
+
 	//	Histogram
 	"Histogram...", /Q, SIDAMHistogram#menuDo()
 	help = {"Compute the histogram of a source wave."}
