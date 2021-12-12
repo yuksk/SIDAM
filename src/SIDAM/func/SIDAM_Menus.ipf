@@ -159,7 +159,6 @@ End
 Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	//	Range
 	SubMenu "Range"
-		help = {"Adjust of z range of images in the active graph."}
 		"Manual.../F4", /Q, SIDAMRange()
 		"-"
 		SIDAMRange#menuItem(2), /Q, SIDAMRange#menuDo(2)
@@ -167,18 +166,11 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	End
 
 	"Color Table.../F5", /Q, SIDAMColor()
-	help = {"Change the color table used to display the top image in the active graph."}
 
 	SubMenu "Sync"
-		//	Sync Layers
 		SIDAMMenus#only3D("Sync Layers..."), /Q, SIDAMSyncLayer#menuDo()
-		help = {"Syncronize layer index of LayerViewers"}
-		//	Sync Axis Range
 		"Sync Axis Range...", /Q, SIDAMSyncAxisRange#menuDo()
-		help = {"Syncronize axis range"}
-		//	Sync Cursors
 		SIDAMSyncCursor#menuItem(), /Q, SIDAMSyncCursor#menuDo()
-		help = {"Synchronize cursor positions in graphs showing images"}
 	End
 
 	SubMenu "Window"
@@ -192,7 +184,6 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 		SIDAMMenus#only3D("Layer Annotation..."), /Q, SIDAMLayerAnnotation#menuDo()
 		//	Show/Hide Axis
 		SIDAMInfoBar#menuItem(2), /Q, SIDAMInfoBar#menuDo(2)
-		help = {"Show/Hide labels of the graph."}
 	End
 
 	SubMenu "\\M0Save/Export Graphics"
@@ -207,52 +198,34 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 
 	"-"
 
-	//	View spectra of LayerViewer
+	//	Extracting a part of a wave ------------------------------------------
 	SIDAMMenus#only3D("Point Spectrum..."), /Q, SIDAMSpectrumViewer#menuDo()
 	SIDAMMenus#only3D("Line Spectra..."), /Q, SIDAMLineSpectra#menuDo()
-	//	Line Profile
 	"Line Profile...", /Q, SIDAMLineProfile#menuDo()
-	help = {"Make a line profile wave of the image in the active graph."}
-
+	SIDAMExtractLayer#menuItem(), /Q, SIDAMExtractLayer#menuDo()
 
 	"-"
 
-	//	Subtraction
+	//	Manipulating a wave --------------------------------------------------
 	"Subtract.../F6", /Q, SIDAMSubtraction#menuDo()
-	help = {"Subtract n-th plane or line from a 2D wave or each layer of a 3D wave"}
-	
 	"Rotate image...", /Q, SIDAMImageRotate#menuDo()
-	help = {"Rotate an image wave around the center of the image."}
+	
+	"-"
 
-	//	Histogram
 	"Histogram...", /Q, SIDAMHistogram#menuDo()
-	help = {"Compute the histogram of a source wave."}
 		
 	SubMenu "Fourier"
-		//	Fourier Transform
 		"Fourier Transform.../F7", /Q, SIDAMFFT#menuDo()
-		help = {"Compute a Fourier transform of a source wave."}
-		//	Fourier filter
 		"Fourier Filter...", /Q, SIDAMFourierFilter#menuDo()
-		help = {"Apply a Fourier filter to a source wave"}
-		//	Fourier Symmetrization
 		"Fourier Symmetrization...", /Q, SIDAMFourierSym#menuDo()
-		help = {"Symmetrize a FFT image"}
 	End
 
-	//	Correlation
 	"Correlation...", /Q, SIDAMCorrelation#menuDo()
-	help = {"Compute a correlation function of a source wave(s)."}
-	//	Work Function
 	SIDAMMenus#only3D("Work Function..."), /Q, SIDAMWorkfunction#menuDo()
-	help = {"Compute work function."}
 
 	"-"
 
 	"Position Recorder", /Q, SIDAMPositionRecorder("")
-	//	Extract Layers of LayerViewer
-	SIDAMExtractLayer#menuItem(), /Q, SIDAMExtractLayer#menuDo()
-	//	"Data Parameters"
 	SIDAMShowParameters#menuItem(), /Q, SIDAMShowParameters()
 
 
@@ -267,14 +240,11 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 End
 
 Menu "SIDAMInfobarMenu1D", dynamic, contextualmenu
-	//	Trace
+
 	"Offset...", /Q, SIDAMTraceOffset#menuDo()
-	help = {"Set offset of traces in the top graph."}
 
 	SubMenu "Sync"
-		//	Sync Axis Range
 		"Sync Axis Range...", /Q, SIDAMSyncAxisRange#menuDo()
-		help = {"Syncronize axis range"}
 	End
 
 	SubMenu "Window"
@@ -296,13 +266,10 @@ Menu "SIDAMInfobarMenu1D", dynamic, contextualmenu
 
 	"-"
 
-	//	Work Function
 	"Work Function...", /Q, SIDAMWorkfunction#menuDo()
-	help = {"Compute work function."}
 
 	"-"
 
-	//	"Data Parameters"
 	SIDAMShowParameters#menuItem(), /Q, SIDAMShowParameters()
 
 	"-"
