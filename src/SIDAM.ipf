@@ -6,11 +6,9 @@
 //	Start SIDAM
 //******************************************************************************
 Function sidam()
-	Execute/P/Q "SetIgorOption poundDefine=SIDAMstarting"
 	Execute/P "INSERTINCLUDE \"SIDAM_StartExit\""
 	Execute/P "COMPILEPROCEDURES "
 	Execute/P/Q "SIDAMStart()"
-	Execute/P/Q "SetIgorOption poundUndefine=SIDAMstarting"
 	Execute/P "DELETEINCLUDE \"SIDAM_StartExit\""
 	Execute/P "COMPILEPROCEDURES "
 	return 0
