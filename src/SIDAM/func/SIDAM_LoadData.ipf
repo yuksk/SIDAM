@@ -2,7 +2,6 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMLoadData
 
-#include "SIDAM_Display"
 #include "SIDAM_Utilities_Control"
 
 #ifndef SIDAMshowProc
@@ -17,15 +16,21 @@
 //	pathStr : string
 //		Path to a file or a directory. When a path to a directory is given,
 //		files under the directory are loaded recursively.
-//	history : int {0 or !0}
+//	noavg : int {0 or !0}, default 0
+//		Set !0 to average the forward and backward sweep of spectroscopic
+//		data. If the shift key is pressed when this function is called,
+//		`noavg` is set to 1.
+//	history : int {0 or !0}, default 0
 //		Set !0 to print this command in the history.
 //
 //	## Returns
 //	wave
 //		Loaded wave.
 //@
-Function/WAVE SIDAMLoadData(String pathStr, [int history])
+Function/WAVE SIDAMLoadData(String pathStr, [int noavg, int history])
 
+	int isShiftPressed = GetKeyState(1) & 4
+	noavg = ParamIsDefault(noavg) ? isShiftPressed : noavg
 	history = ParamIsDefault(history) ? 0 : history
 
 	int isFolder
@@ -43,7 +48,7 @@ Function/WAVE SIDAMLoadData(String pathStr, [int history])
 		//	for the folder(s)
 		n = ItemsInList(IndexedDir($pathName, -1, 0))
 		for (i = 0; i < n; i += 1)
-			SIDAMLoadData(IndexedDir($pathName, i, 1))		//	no history
+			SIDAMLoadData(IndexedDir($pathName, i, 1), noavg=noavg)		//	no history
 		endfor
 
 		//	If a file(s) is included in pathStr, call this function
@@ -51,17 +56,17 @@ Function/WAVE SIDAMLoadData(String pathStr, [int history])
 		n = ItemsInList(IndexedFile($pathName, -1, "????"))
 		for (i = 0; i < n; i++)
 			SIDAMLoadData(ParseFilePath(2, pathStr, ":", 0, 0) \
-				+ IndexedFile($pathName, i, "????"))	//	no history
+				+ IndexedFile($pathName, i, "????"), noavg=noavg)	//	no history
 		endfor
 		KillPath $pathName
 		
 		if (history)
-			printHistory(pathStr)
+			printHistory(pathStr, noavg)
 		endif
 		return $""
 	endif
 	
-	return loadDataFile(pathStr,history)
+	return loadDataFile(pathStr, noavg, history)
 End
 
 Static Function validatePath(String &pathStr, int &isFolder)
@@ -103,7 +108,7 @@ Static Function validatePath(String &pathStr, int &isFolder)
 	return V_Flag	
 End
 
-Static Function/WAVE loadDataFile(String pathStr, int history)
+Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 	String fileName = ParseFilePath(0, pathStr, ":", 1, 0)				//	file name
 	String fileNameNoExt = ParseFilePath(3, pathStr, ":", 0, 0)		//	file name without extension
 	String extStr = LowerStr(ParseFilePath(4, pathStr, ":", 0, 0))	//	extension
@@ -127,9 +132,18 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 		if (!DataFolderRefStatus(dfrNew))
 			return $""
 		endif
+		
 		FUNCREF SIDAMLoadDataPrototype fn = $StringFromList(i, fnName, ",")
+		FUNCREF SIDAMLoadDataPrototype2 fn2 = $StringFromList(i, fnName, ",")
+		if (NumberBykey("ISPROTO", FuncRefInfo(fn)) && NumberBykey("ISPROTO", FuncRefInfo(fn2)))
+			return $""
+		endif
 		try
-			Wave/Z w = fn(pathStr)
+			if (!NumberBykey("ISPROTO", FuncRefInfo(fn)))
+				Wave/Z w = fn(pathStr)
+			elseif (!NumberBykey("ISPROTO", FuncRefInfo(fn2)))
+				Wave/Z w = fn2(pathStr, noavg)
+			endif
 		catch
 			SetDataFolder dfrSav
 			KillDataFolder dfrNew
@@ -143,13 +157,9 @@ Static Function/WAVE loadDataFile(String pathStr, int history)
 		endif
 		
 		if (history)
-			printHistory(pathStr)
+			printHistory(pathStr, noavg)
 		endif
 		
-		int isCtrlPressed = GetKeyState(1)&1
-		if (isCtrlPressed)
-			SIDAMDisplay(w, history=1)
-		endif
 		return w
 	endfor
 End
@@ -168,13 +178,18 @@ Static Function/S fetchFunctionName(String extStr)
 	return ""
 End
 
-Static Function printHistory(String pathStr)
-	printf "%sSIDAMLoadData(\"%s\")\r", PRESTR_CMD, ReplaceString("\\",pathStr,"\\\\")
+Static Function printHistory(String pathStr, int noavg)
+	String paramStr = "\"" + ReplaceString("\\",pathStr,"\\\\") + "\""
+	if (noavg)
+		 paramStr += ", noavg=1" 
+	endif
+	printf "%sSIDAMLoadData(%s)\r", PRESTR_CMD, paramStr
 End
 
 //	Prototype of data loading functions
 Function/WAVE SIDAMLoadDataPrototype(String pathStr)
-	Abort
+End
+Function/WAVE SIDAMLoadDataPrototype2(String pathStr, int noavg)
 End
 
 //-----------------------------------------------------------------------------------------------

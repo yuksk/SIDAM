@@ -7,7 +7,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonis3ds(String pathStr)
+Function/WAVE LoadNanonis3ds(String pathStr, int noavg)
 	DFREF dfrSav = GetDataFolderDFR()
 	
 	//	Read the header
@@ -17,7 +17,7 @@ Function/WAVE LoadNanonis3ds(String pathStr)
 	
 	//	Read the data
 	SetDataFolder dfrSav
-	Wave/WAVE resw = LoadNanonis3dsGetData(pathStr, s)
+	Wave/WAVE resw = LoadNanonis3dsGetData(pathStr, noavg, s)
 	
 	return resw
 End
@@ -331,7 +331,7 @@ EndStructure
 
 //	Data reading functions.
 //	The resultant waves are saved in the current datafolder.
-Static Function/WAVE LoadNanonis3dsGetData(String pathStr, STRUCT Nanonis3ds &s)
+Static Function/WAVE LoadNanonis3dsGetData(String pathStr, int noavg, STRUCT Nanonis3ds &s)
 	String fileName = ParseFilePath(3, pathStr, ":", 0, 0)	//	filename w/o an extension
 	
 	GBLoadWave/Q/N=tmp/T={2,4}/S=(s.headerSize)/W=1 pathStr
@@ -347,9 +347,7 @@ Static Function/WAVE LoadNanonis3dsGetData(String pathStr, STRUCT Nanonis3ds &s)
 	//	Make spectrum waves from the big wave
 	Wave/WAVE specw = LoadNanonis3dsGetDataSpec(w, namew, s)
 	
-	//	Calculate the average between the forward and the backward data
-	//	unless the shift key is pressed.
-	if (GetKeyState(1)&4)
+	if (noavg)
 		Make/N=(1+numpnts(specw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = specw[p-1]

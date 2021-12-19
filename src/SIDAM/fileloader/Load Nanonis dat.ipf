@@ -6,7 +6,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonisDat(String pathStr)
+Function/WAVE LoadNanonisDat(String pathStr, int noavg)
 	String fileName = ParseFilePath(3, pathStr, ":", 0, 0) //	name w/o an extension
 	DFREF dfrSav = GetDataFolderDFR()
 	
@@ -19,7 +19,7 @@ Function/WAVE LoadNanonisDat(String pathStr)
 	
 	//	Read the data
 	SetDataFolder dfrSav
-	Wave/WAVE resw =  LoadNanonisDatGetData(pathStr, s)
+	Wave/WAVE resw =  LoadNanonisDatGetData(pathStr, noavg, s)
 	
 	return resw
 End
@@ -68,7 +68,7 @@ EndStructure
 
 //	Data reading functions.
 //	The resultant waves are saved in the current datafolder.
-Static Function/WAVE LoadNanonisDatGetData(String pathStr, STRUCT header &s)
+Static Function/WAVE LoadNanonisDatGetData(String pathStr, int noavg, STRUCT header &s)
 	LoadWave/G/W/A/Q pathStr
 	Make/N=(ItemsInList(S_waveNames))/WAVE/FREE ww = $StringFromList(p,S_waveNames)
 	
@@ -86,9 +86,7 @@ Static Function/WAVE LoadNanonisDatGetData(String pathStr, STRUCT header &s)
 		case  "Z spectroscopy":
 		case "bias spectroscopy":
 			LoadNanonisDatGetDataConvert(s, ww)
-			if (!(GetKeyState(1)&4))
-				//	Calculate the average between the forward and the backward data
-				//	unless the shift key is pressed.
+			if (!noavg)
 				LoadNanonisCommonDataAvg("_bwd")
 			endif
 			break
@@ -272,8 +270,6 @@ Function/WAVE LoadNanonisCommonDataAvg(String bwdStr)
 			continue
 		endif
 		Wave fwdw = $ReplaceString(bwdStr, name, ""), bwdw = $name
-		Duplicate/O fwdw $(NameOfWave(fwdw)+"_sub")/WAVE=subw
-		FastOP subw = fwdw - bwdw
 		FastOP fwdw = (0.5)*fwdw + (0.5)*bwdw
 		KillWaves bwdw
 		refw[numpnts(refw)] = {fwdw}

@@ -70,3 +70,8 @@ The cheat sheet of shortcuts.
 |:---|:---|
 | <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">click</span> | Delete nearest point |
 
+## Load Data
+
+| key | function |
+|:---|:---|
+| <span class="shortcuts_key">Shift</span> | Do not average the forward and backward sweeps of spectroscopic data |
