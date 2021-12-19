@@ -7,6 +7,7 @@
 #include "SIDAM_Config"
 #include "SIDAM_Correlation"
 #include "SIDAM_Display"
+#include "SIDAM_Exit"
 #include "SIDAM_ExtractLayer"
 #include "SIDAM_FFT"
 #include "SIDAM_Fourier_Filter"
@@ -28,7 +29,6 @@
 #include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_SpectrumViewer"
-#include "SIDAM_StartExit"
 #include "SIDAM_SyncAxisRange"
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"
@@ -89,8 +89,7 @@ Menu "SIDAM", dynamic
 
 	"-"
 
-	//	Exit or Restart
-	SIDAMStartExit#mainMenuItem(), /Q, SIDAMStartExit#mainMenuDo()
+	SIDAMExit#mainMenuItem(), /Q, SIDAMExit#mainMenuDo()
 End
 
 

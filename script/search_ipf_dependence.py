@@ -141,8 +141,8 @@ if __name__ == '__main__':
             if include not in ipfs:
                 ipfs[name].unnecessary.append(include)
 
-    ipfs['SIDAM_StartExit.ipf'].require.remove('SIDAM_Hook.ipf')
-    ipfs['SIDAM_StartExit.ipf'].unnecessary.remove('SIDAM_Constants.ipf')
+    ipfs['SIDAM_Start.ipf'].require.remove('SIDAM_Hook.ipf')
+    ipfs['SIDAM_Start.ipf'].unnecessary.remove('SIDAM_Constants.ipf')
 
     resolved = True
     for name in ipfs:

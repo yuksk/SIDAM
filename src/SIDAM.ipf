@@ -6,10 +6,10 @@
 //	Start SIDAM
 //******************************************************************************
 Function sidam()
-	Execute/P "INSERTINCLUDE \"SIDAM_StartExit\""
+	Execute/P "INSERTINCLUDE \"SIDAM_Start\""
 	Execute/P "COMPILEPROCEDURES "
 	Execute/P/Q "SIDAMStart()"
-	Execute/P "DELETEINCLUDE \"SIDAM_StartExit\""
+	Execute/P "DELETEINCLUDE \"SIDAM_Start\""
 	Execute/P "COMPILEPROCEDURES "
 	return 0
 End

@@ -1,50 +1,33 @@
-#pragma TextEncoding="UTF-8"
+﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
-#pragma moduleName=SIDAMStartExit
+#pragma moduleName=SIDAMCreateProcedures
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
 
 #include "SIDAM_Config"
-#include "SIDAM_Constants"
-
-//******************************************************************************
-//	Start SIDAM
-//******************************************************************************
-Function SIDAMStart()
-	printf "\r SIDAM %d.%d.%d\r", SIDAM_VERSION_MAJOR, SIDAM_VERSION_MINOR, SIDAM_VERSION_PATCH
-
-	//	Construct SIDAM_Procedures.ipf and complie
-	createProcFile()
-	Execute/P "INSERTINCLUDE \"" + SIDAM_FILE_INCLUDE + "\""
-	Execute/P "COMPILEPROCEDURES "
-	
-	SetIgorHook BeforeFileOpenHook = SIDAMFileOpenHook
-	SetIgorHook BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
-	SetIgorHook AfterCompiledHook = SIDAMAfterCompiledHook
-End
 
 #if IgorVersion() >= 9
-Function SIDAMSource()
-	Execute/P/Q "SIDAMStartExit#createProcFile()"
+Function SIDAMReloadProcedures()
+	Execute/P/Q "SIDAMCreateProcedures#SIDAMCreateProcedures()"
 	Execute/P "RELOAD CHANGED PROCS "
 	Execute/P "COMPILEPROCEDURES "
 End
 #else
-Function SIDAMSource()
-	Execute/P/Q "SIDAMStartExit#createProcFile()"
+Function SIDAMReloadProcedures()
+	Execute/P/Q "SIDAMCreateProcedures#SIDAMCreateProcedures()"
 	Execute/P "COMPILEPROCEDURES "
 End
 #endif
 
-Static Function createProcFile()
+Function SIDAMCreateProcedures()
 	STRUCT SIDAMConfigStruct s
 	SIDAMConfigRead(s)
 	
 	//	Make a list of ipf files
 	//	The core files
-	Make/T/FREE lw = {"SIDAM_Menus.ipf", "SIDAM_Constants.ipf", "SIDAM_Hook.ipf"}
+	Make/T/FREE lw = {"SIDAM_Menus.ipf", "SIDAM_Constants.ipf", "SIDAM_CreateProcedures.ipf", "SIDAM_Hook.ipf"}
 	//	file loaders
 	appendIpf(lw, s.loader.path)
 	//	extensions
@@ -163,34 +146,4 @@ Static Function writeConstants(Variable refNum, STRUCT 	SIDAMConfigStruct &s)
 	fprintf refNum, "Constant SIDAM_NANONIS_VOLTAGESCALE = %f\n", s.nanonis.voltage.scale
 	fprintf refNum, "StrConstant SIDAM_NANONIS_CONDUCTANCEUNIT = \"%s\"\n", s.nanonis.conductance.unit
 	fprintf refNum, "Constant SIDAM_NANONIS_CONDUCTANCESCALE = %f\n", s.nanonis.conductance.scale
-End
-
-
-//******************************************************************************
-//	Exit SIDAM
-//******************************************************************************
-Function SIDAMExit()
-	SetIgorHook/K BeforeFileOpenHook = SIDAMFileOpenHook
-	SetIgorHook/K AfterCompiledHook = SIDAMAfterCompiledHook
-	SetIgorHook/K BeforeExperimentSaveHook = SIDAMBeforeExperimentSaveHook
-	Execute/P/Q/Z "DELETEINCLUDE \""+SIDAM_FILE_INCLUDE+"\""
-	Execute/P/Q/Z "SetIgorOption poundUndefine=SIDAMshowProc"
-	Execute/P/Q/Z "COMPILEPROCEDURES "
-	Execute/P/Q/Z "BuildMenu \"All\""
-End
-
-Static Function/S mainMenuItem()
-	//	"Restart" when the shift key is pressed
-	return SelectString(GetKeyState(0) && 0x04, "Exit", "Restart") + " SIDAM"
-End
-
-Static Function mainMenuDo()
-	GetLastUserMenuInfo
-	int isRestart = !CmpStr(S_value, "Restart SIDAM")
-
-	SIDAMExit()
-
-	if (isRestart)
-		sidam()
-	endif
 End
