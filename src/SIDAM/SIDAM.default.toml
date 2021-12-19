@@ -73,6 +73,8 @@ path = ":fileloader"
 dat = "SIDAMLoadNanonisDat"
 # Nanonis 3ds
 3ds = "SIDAMLoadNanonis3ds"
+# HDF5
+"hdf5,h5" = "SIDAMLoadHDF5"
 
 [nanonis]
 # The text encoding used when nanonis files were saved.

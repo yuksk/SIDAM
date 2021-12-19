@@ -49,7 +49,14 @@ Menu "SIDAM", dynamic
 		"from a File...;from a Directory...", /Q, SIDAMLoadData("", history=1)
 		help = {"Load data from a file or directory."}
 	End
+	
+	SubMenu "Save Data..."
+		SIDAMHDF5#mainMenuItem(), /Q, SIDAMHDF5#mainMenuDo()
+		help = {"Save the selected wave(s) as an HDF5 file(s)"}
+	End
 
+	"-"
+	
 	Submenu "Display..."
 		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
 		help = {"Display a wave(s)"}

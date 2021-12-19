@@ -15,6 +15,9 @@
 !/src/SIDAM/ctab/readme.md
 
 # fileloader
+!/src/SIDAM/fileloader
+/src/SIDAM/fileloader/*
+!/src/SIDAM/fileloader/SIDAM_HDF5.ipf
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_3ds.ipf
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_dat.ipf
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_sxmnsp.ipf
