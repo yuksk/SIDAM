@@ -7,7 +7,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonis3ds(String pathStr, int noavg)
+Function/WAVE SIDAMLoadNanonis3ds(String pathStr, int noavg)
 	DFREF dfrSav = GetDataFolderDFR()
 	
 	//	Read the header

@@ -6,7 +6,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonisDat(String pathStr, int noavg)
+Function/WAVE SIDAMLoadNanonisDat(String pathStr, int noavg)
 	String fileName = ParseFilePath(3, pathStr, ":", 0, 0) //	name w/o an extension
 	DFREF dfrSav = GetDataFolderDFR()
 	

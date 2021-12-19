@@ -15,8 +15,8 @@
 !/src/SIDAM/ctab/readme.md
 
 # fileloader
-!/src/SIDAM/fileloader/Load\ Nanonis\ 3ds.ipf
-!/src/SIDAM/fileloader/Load\ Nanonis\ dat.ipf
-!/src/SIDAM/fileloader/Load\ Nanonis\ sxm\ nsp.ipf
+!/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_3ds.ipf
+!/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_dat.ipf
+!/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_sxmnsp.ipf
 !/src/SIDAM/fileloader/readme.md
 

@@ -6,7 +6,7 @@
 #endif
 
 //	Main function
-Function/WAVE LoadNanonisSxmNsp(String pathStr)
+Function/WAVE SIDAMLoadNanonisSxmNsp(String pathStr)
 	DFREF dfrSav = GetDataFolderDFR()
 	
 	//	Read the header

@@ -68,11 +68,11 @@ path = ":fileloader"
 # Relationship extensions and loading functions.
 [loader.functions]
 # Nanonis sxm, nsp
-"sxm,nsp" = "LoadNanonisSxmNsp"
+"sxm,nsp" = "SIDAMLoadNanonisSxmNsp"
 # Nanonis dat
-dat = "LoadNanonisDat"
+dat = "SIDAMLoadNanonisDat"
 # Nanonis 3ds
-3ds = "LoadNanonis3ds"
+3ds = "SIDAMLoadNanonis3ds"
 
 [nanonis]
 # The text encoding used when nanonis files were saved.
