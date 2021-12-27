@@ -5,7 +5,7 @@
 #include "SIDAM_Help"
 #include "SIDAM_Sync"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

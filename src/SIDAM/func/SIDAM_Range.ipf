@@ -5,10 +5,10 @@
 #include "SIDAM_Help"
 #include "SIDAM_Histogram"
 #include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Df"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_ImageInfo"
-#include "SIDAM_Utilities_Panel"
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

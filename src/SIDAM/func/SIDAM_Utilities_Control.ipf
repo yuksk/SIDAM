@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMUtilControl
 
-#include "SIDAM_Utilities_Panel"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -436,4 +436,14 @@ Static Function getEventMod()
 	eventMod += 1	//	This function is used when a control is clicked
 	eventMod += isShiftPressed*2 + isAltPressed*4 + isCtrlPressed*8
 	return eventMod
+End
+
+
+//******************************************************************************
+//	Return if the mouse cursor is on a control
+//******************************************************************************
+Function SIDAMPtInRect(STRUCT WMWinHookStruct &s, String ctrlName)
+	ControlInfo/W=$s.winName $ctrlName
+	return V_left <= s.mouseLoc.h && s.mouseLoc.h <= V_left+V_width \
+			&& V_top <= s.mouseLoc.v && s.mouseLoc.v <= V_top+V_Height
 End

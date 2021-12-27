@@ -1,6 +1,6 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
-#pragma ModuleName = SIDAMUtilBias
+#pragma ModuleName = SIDAMBias
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -123,73 +123,4 @@ Function SIDAMisUnevenlySpacedBias(Wave/Z w)
 	endif
 	Make/N=(DimSize(w,2))/FREE tw = numtype(str2num(GetDimlabel(w,2,p)))
 	return WaveMax(tw) == 0	//	true if all labels are numeric
-End
-
-//@
-//	Extension of `ScaleToIndex()` that includes unevenly-spaced bias
-//
-//	## Parameters
-//	w : wave
-//		The input wave
-//	value : int
-//		A scaled coordinate value
-//	dim : int {0 -- 3}
-//		Specify the dimension.
-//		* 0: Rows
-//		* 1: Columns
-//		* 2: Layers
-//		* 3: Chunks
-//
-//	## Returns
-//	variable
-//		The index value
-//@
-Function SIDAMScaleToIndex(Wave/Z w, Variable value, int dim)
-	if (!WaveExists(w))
-		return nan
-	elseif (dim < 0 || dim > 3)
-		return nan
-	endif
-
-	if (dim == 2 && SIDAMisUnevenlySpacedBias(w))
-		//	search index corresponding to the nearest value
-		Make/N=(DimSize(w,2))/FREE dw = abs(str2num(GetDimLabel(w,2,p))-value), iw = p
-		Sort dw, iw
-		return iw[0]
-	else
-		return ScaleToIndex(w,value,dim)
-	endif
-End
-
-//@
-//	Extension of `IndexToScale()` that includes unevenly-spaced bias
-//
-//	## Parameters
-//	w : wave
-//		The input wave
-//	index : int
-//		An index number
-//	dim : int {0 -- 3}
-//		Specify the dimension.
-//		* 0: Rows
-//		* 1: Columns
-//		* 2: Layers
-//		* 3: Chunks
-//
-//	## Returns
-//	variable
-//		The scaled coordinate value
-//@
-Function SIDAMIndexToScale(Wave w, int index, int dim)
-	if (!WaveExists(w))
-		return nan
-	elseif (dim < 0 || dim > 3)
-		return nan
-	endif
-
-	if (dim == 2 && SIDAMisUnevenlySpacedBias(w))
-		return str2num(GetDimLabel(w,dim,index))
-	else
-		return IndexToScale(w,index,dim)
-	endif
 End

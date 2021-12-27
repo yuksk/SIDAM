@@ -2,14 +2,15 @@
 #pragma rtGlobals=1
 #pragma ModuleName = SIDAMFourierSym
 
+#include "SIDAM_Bias"
 #include "SIDAM_Display"
+#include "SIDAM_EndEffect"
 #include "SIDAM_Help"
 #include "SIDAM_PeakPos"
-#include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
+#include "SIDAM_Utilities_Mouse"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_Panel"
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Wave"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

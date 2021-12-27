@@ -5,6 +5,7 @@
 #include "SIDAM_Display"
 #include "SIDAM_Help"
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Mouse"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

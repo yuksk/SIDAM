@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMHDF5
 
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Wave"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -10,7 +10,7 @@
 
 Static Function/S mainMenuItem()
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
-	int n = SIDAMnumberOfSelectedWaves()
+	int n = numpnts(SIDAMSelectedWaves())
 	if (!isBrowserShown || !n)
 		return "(Save Selected Waves as hdf5 Files..."
 	elseif (n == 1)
@@ -21,8 +21,8 @@ Static Function/S mainMenuItem()
 End
 
 Static Function mainMenuDo()
-	Make/N=(SIDAMnumberOfSelectedWaves())/WAVE/FREE ww=$GetBrowserSelection(p)
 	int i
+	Wave/WAVE ww = SIDAMSelectedWaves()
 	for (i = 0; i < numpnts(ww); i++)
 		SIDAMSaveHDF5(ww[i], "", history=1)
 	endfor

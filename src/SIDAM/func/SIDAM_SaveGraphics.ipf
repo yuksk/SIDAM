@@ -4,9 +4,9 @@
 
 #include "SIDAM_Help"
 #include "SIDAM_SaveCommon"
-#include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Wave"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

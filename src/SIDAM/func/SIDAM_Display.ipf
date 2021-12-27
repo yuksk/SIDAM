@@ -5,7 +5,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_InfoBar"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Wave"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -135,7 +135,7 @@ EndStructure
 Static Function/S mainMenuItem(int mode, String shortCutStr)
 
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
-	int n = SIDAMnumberOfSelectedWaves()
+	int n = numpnts(SIDAMSelectedWaves())
 
 	String prefix = ""
 	if (!isBrowserShown || !n)
@@ -158,8 +158,7 @@ Static Function/S mainMenuItem(int mode, String shortCutStr)
 End
 
 Static Function mainMenuDo()
-	Make/N=(SIDAMnumberOfSelectedWaves())/WAVE/FREE ww=$GetBrowserSelection(p)
-	SIDAMDisplay(ww,history=1)
+	SIDAMDisplay(SIDAMSelectedWaves(),history=1)
 End
 
 //-------------------------------------------------------------

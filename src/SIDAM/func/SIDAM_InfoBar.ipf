@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName= SIDAMInfoBar
 
+#include "SIDAM_Bias"
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
 #include "SIDAM_Help"
@@ -10,10 +11,11 @@
 #include "SIDAM_Range"
 #include "SIDAM_ScaleBar"
 #include "SIDAM_Subtraction"
-#include "SIDAM_Utilities_Bias"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_misc"
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Mouse"
+#include "SIDAM_Utilities_Window"
+#include "SIDAM_Utilities_Wave"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

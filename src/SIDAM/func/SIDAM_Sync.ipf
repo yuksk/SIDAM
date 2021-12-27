@@ -2,9 +2,9 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMSync
 
+#include "SIDAM_Utilities_Df"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_Panel"
-#include "SIDAM_Utilities_WaveDf"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

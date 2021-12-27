@@ -3,6 +3,7 @@
 #pragma moduleName = SIDAMPeakPos
 
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Marquee"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
