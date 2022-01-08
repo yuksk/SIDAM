@@ -258,6 +258,8 @@ Static Function pnl(Wave w, String grfName)
 	int is2D = (WaveDims(w) == 2)
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
+
 	SetVariable sourceV title="source wave:", pos={4,3}, size={312,18}, win=$pnlName
 	SetVariable sourceV bodyWidth=240, noedit=1, frame=0, win=$pnlName
 	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
@@ -310,7 +312,7 @@ Static Function pnl(Wave w, String grfName)
 
 	pnlHelp(pnlName)
 	
-	SetActiveSubwindow $grfName
+	SetActiveSubwindow $pnlName
 End
 
 Static Function pnlHelp(String pnlName)

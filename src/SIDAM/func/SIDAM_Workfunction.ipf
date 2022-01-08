@@ -367,7 +367,7 @@ Static Function pnl()
 	
 	pnlValidateWave(pnlName)
 	
-	SetActiveSubwindow $grfName
+	SetActiveSubwindow $pnlName
 End
 
 Static Function pnlValidateWave(String pnlName)

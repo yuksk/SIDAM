@@ -46,7 +46,9 @@ Static Function pnl(String grfName)
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,290,195)
 	RenameWindow $grfName#$S_name, ExtractLayers
 	String pnlName = grfName + "#ExtractLayers"
-	
+
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
+
 	GroupBox layer0G title="Layer", pos={11,4}, size={268,70}, win=$pnlName
 	CheckBox thisC title="this ("+num2str(plane)+")", pos={23,26}, size={66,14}, value=1, mode=1, proc=SIDAMExtractLayer#pnlCheck, win=$pnlName
 	CheckBox fromC title="", pos={23,49}, size={16,14}, value=0, mode=1, proc=SIDAMExtractLayer#pnlCheck, win=$pnlName
@@ -66,7 +68,7 @@ Static Function pnl(String grfName)
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
-	SetActiveSubwindow $grfName
+	SetActiveSubwindow $pnlName
 End
 
 //-------------------------------------------------------------

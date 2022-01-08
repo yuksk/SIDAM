@@ -161,13 +161,23 @@ End
 	
 Static Function closeInfoBar(String pnlName)
 
+	int i, n
+	
+	//	pnlName may be a subwindow. This occurs if (1) a subwindow is opened, (2) it
+	//	is activated (clicked), and (3) then the title bar of the parent window is
+	//	clicked without clicking the inside of parent window. In this case, make
+	//	pnlName the parent window.
+	n = strsearch(pnlName, "#", 0)
+	if (n != -1)
+		pnlName = pnlName[0, n-1]
+	endif
+
 	SetWindow $pnlName hook(self)=$""
 	#if IgorVersion() >= 9
 		SetWindow $pnlName tooltipHook(self)=$""
 	#endif
 	
 	String listStr = ControlNameList(pnlName)
-	int i, n
 	for (i = 0, n = ItemsInList(listStr); i < n; i++)
 		KillControl/W=$pnlName $StringFromList(i,listStr)
 	endfor

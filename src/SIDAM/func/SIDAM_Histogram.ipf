@@ -255,6 +255,7 @@ Static Function pnl(Wave w, String grfName)
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,340,220)/N=Histogram
 	String pnlName = grfName + "#Histogram"
 	SetWindow $pnlName userData(grf)=grfName
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	
 	Wave minmaxw = getMinMax(w, GetUserData(pnlName,"","grf"))
 	
@@ -313,6 +314,8 @@ Static Function pnl(Wave w, String grfName)
 	SIDAMApplyHelpStringsWave(pnlName, helpw)
 											
 	pnlDisable(pnlName)
+
+	SetActiveSubwindow $pnlName
 End
 
 //******************************************************************************

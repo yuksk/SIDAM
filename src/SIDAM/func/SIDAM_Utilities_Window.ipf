@@ -49,7 +49,7 @@ End
 //******************************************************************************
 Function SIDAMWindowHookClose(STRUCT WMWinHookStruct &s)
 	int isKillVote = s.eventCode == 17
-	int isEscPressed = (s.eventCode != 11) && (s.keycode == 27)
+	int isEscPressed = (s.eventCode == 11) && (s.keycode == 27)
 
 	if (!isKillVote && !isEscPressed)
 		return 0

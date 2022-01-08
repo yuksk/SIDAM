@@ -154,6 +154,8 @@ Static Function pnl(String grfName)
 	
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,140,140)/N=Offset
 	String pnlname = grfName + "#Offset"
+
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	
 	Wave initw = initOffset(grfName)
 	SetVariable xoffsetV title="x:", pos={5,5}, value=_NUM:initw[0], win=$pnlName
@@ -179,7 +181,7 @@ Static Function pnl(String grfName)
 	helpw[][4] = {"reverseB", "Press to reverse the order of traces."}
 	SIDAMApplyHelpStringsWave(pnlName, helpw)
 	
-	SetActiveSubwindow $grfName
+	SetActiveSubwindow $pnlName
 End
 
 Static Function/WAVE initOffset(String grfName)
