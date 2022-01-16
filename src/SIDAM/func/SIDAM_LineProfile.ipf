@@ -195,7 +195,7 @@ Static Function/WAVE getLineProfile(STRUCT paramStruct &s)
 				Duplicate/O $STDV_1D_NAME dfr:$(s.basename+SUFFIX_SDEV)
 			endif
 		else
-			Wave rtnw = linew		
+			Wave rtnw = $PROF_1D_NAME
 		endif
 
 	//	3D & complex
