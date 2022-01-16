@@ -453,7 +453,7 @@ Static Function saveSpectrum(String pnlName)
 		Redimension/N=(numpnts(extw)) extw
 
 		if (SIDAMisUnevenlySpacedBias(srcw))
-			Duplicate/O SIDAMGetBias(srcw, 1) $(NameOfWave(srcw)+"_b")
+			Duplicate/O SIDAMGetBias(srcw, 1) dfr:$(NameOfWave(srcw)+"_b")
 		else
 			SetScale/P x DimOffset(srcw,2), DimDelta(srcw,2), WaveUnits(srcw,2), extw
 		endif
