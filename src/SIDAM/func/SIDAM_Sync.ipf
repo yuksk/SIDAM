@@ -383,7 +383,10 @@ Static Function pnlSelectionHookGrf(STRUCT WMWinHookStruct &s)
 End
 
 Static Function pnlSelectionHookPnl(STRUCT WMWinHookStruct &s)
-	if (s.eventCode != 2 && s.eventCode != 17)	//	neither kill nor killvote
+	int isKill = s.eventCode == 2
+	int isKillVote = s.eventCode == 17
+	int isEscPressed = s.eventCode == 11 && s.keycode == 27
+	if (!isKill && !isKillVote && isEscPressed)	
 		return 0
 	endif
 	
