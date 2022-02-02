@@ -42,7 +42,7 @@ Static Function LoadNanonisDatGetHeader(String pathStr, STRUCT header &s)
 			break
 		case "bias spectroscopy":
 			s.driveamp = NumVarOrDefault(":'Lock-in':Amplitude", NaN)
-			s.modulated = StrVarOrDefault(":'Lock-in':'Modulated signal'", "")
+			s.modulated = SIDAMStrVarOrDefault(":'Lock-in':'Modulated signal'", "")
 			s.skip = !WaveExists('multiline settings')
 			break
 		case "Spectrum":
