@@ -49,7 +49,7 @@ Static Function LoadNanonisDatGetHeader(String pathStr, STRUCT header &s)
 			s.skip = 1
 			break
 		case "History Data":
-			s.interval = NumVarOrDefault("Sample Period (ms)",1)
+			s.interval = SIDAMNumVarOrDefault("Sample Period (ms)", 1)
 			s.skip = 0
 			break
 	endswitch
