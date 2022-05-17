@@ -48,8 +48,10 @@ Function/S SIDAMPath()
 		+ "User Procedures:"+SIDAM_FOLDER_MAIN
 
 	GetFileFolderInfo/Q/Z path
-	if (!V_Flag)
+	if (V_isFile)
 		return path
+	elseif (V_isFolder)
+		return ParseFilePath(2, path, ":", 0, 0)
 	endif
 	
 	GetFileFolderInfo/Q/Z path+".lnk"	//	shortcut
