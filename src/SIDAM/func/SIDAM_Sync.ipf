@@ -386,9 +386,10 @@ Static Function pnlSelectionHookPnl(STRUCT WMWinHookStruct &s)
 	int isKill = s.eventCode == 2
 	int isKillVote = s.eventCode == 17
 	int isEscPressed = s.eventCode == 11 && s.keycode == 27
-	if (!isKill && !isKillVote && isEscPressed)	
+	if (!(isKill || isKillVote || isEscPressed))
 		return 0
 	endif
+	//	The following is only for kill or killvote or esc.
 	
 	String grfName, list = WinList("*",";","WIN:1")
 	int i, n
