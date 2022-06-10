@@ -1,7 +1,7 @@
 # SIDAM
 
 *SIDAM* (**S**pectroscopic **I**maging **D**ata **A**nalysis **M**acro) is
-a software for data analysis of spectroscopic imaging scanning tunneling
+software for data analysis of spectroscopic imaging scanning tunneling
 microscopy / scanning tunneling spectroscopy. Compared with other software
 for SPM data analysis such as WSxM and Gwyddion, SIDAM is developed especially
 for handling 3D data (x, y, and energy).
@@ -19,7 +19,7 @@ Frequently used basic features ([gif movies](#Gif-movies)):
 - Work function
 
 *SIDAM* is written in Igor Pro, so you can fully use the powerful functions and
-visualization of Igor Pro to analyse your data and make figures (*c.f.*,
+visualization of Igor Pro to analyze your data and make figures (*c.f.*,
 [papers](#Papers)). Moreover, *SIDAM* is designed for both GUI and CLI. You can
 do everything from the menus and do not have to remember commands. At the same
 time, you can also do the same things by calling commands, making it easy to
@@ -50,14 +50,14 @@ User Procedures folder, respectively. If you don't know where the folders are,
 choose *Menubar > Help > Show Igor Pro User Files* in Igor Pro.
 
 Instead of copying the file and folder, you can also make shortcuts or
-symbolic links of them in the designated folders. This would be useful for
-updating SIDAM in future if you clone the files.
+symbolic links to them in the designated folders. This would be useful for
+updating SIDAM in the future if you clone the files.
 
 If you use Igor Pro 8, you need an extension file. See issue [#37](
 https://github.com/yuksk/SIDAM/issues/37).
 
 ### Launch SIDAM
-Lanuch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will
+Launch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will
 find a new menu item *SIDAM* in the menu bar. If Igor Pro is already running,
 you need to restart it after installing SIDAM.
 
@@ -119,7 +119,7 @@ The color range is adjusted to statistical values such as 3&#963; below and abov
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/autorange.gif" width="262px" height="182px" alt="autorange">
 
 ### Spectrum viewer
-Interactive viewer of a spectrum or specta.
+The interactive viewer of a spectrum or spectra.
 Positions of spectra can be acquired from any image, e.g., a simultaneous topograph.
 
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/spectrum.gif" width="381px" height="160px" alt="spectrum">
@@ -128,7 +128,7 @@ Positions of spectra can be acquired from any image, e.g., a simultaneous topogr
 
 ### Line profile
 Line profiles for 2D and 3D waves.
-Both of waterfall and intensity plots are available for 3D waves.
+Both waterfall and intensity plots are available for 3D waves.
 
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/lineprofile.gif" width="277px" height="160px" alt="lineprofile">
 
@@ -140,7 +140,7 @@ Synchronize the layer index, ranges of axes, and cursor positions of multiple im
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/synccursor.gif" width="260px" height="160px" alt="synccursor">
 
 ### Position recorder
-Record positions you click in a wave. For example, if you click at impurities, the dimension of resultant wave gives the number of impurities.
+Record positions you click in a wave. For example, if you click on impurities, the dimension of the resultant wave gives the number of impurities.
 
 <img src="https://raw.githubusercontent.com/yuksk/SIDAM/main/docs/assets/images/position_recorder.gif" width="249px" height="148px" alt="synclayer">
 
