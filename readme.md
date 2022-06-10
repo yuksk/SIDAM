@@ -53,6 +53,9 @@ Instead of copying the file and folder, you can also make shortcuts or
 symbolic links of them in the designated folders. This would be useful for
 updating SIDAM in future if you clone the files.
 
+If you use Igor Pro 8, you need an extension file. See issue [#37](
+https://github.com/yuksk/SIDAM/issues/37).
+
 ### Launch SIDAM
 Lanuch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will
 find a new menu item *SIDAM* in the menu bar. If Igor Pro is already running,
