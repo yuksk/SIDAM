@@ -21,5 +21,6 @@
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_3ds.ipf
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_dat.ipf
 !/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_sxmnsp.ipf
+!/src/SIDAM/fileloader/SIDAM_LoadData_Nanonis_common.ipf
 !/src/SIDAM/fileloader/readme.md
 

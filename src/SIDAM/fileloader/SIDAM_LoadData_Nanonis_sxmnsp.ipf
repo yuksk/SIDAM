@@ -73,7 +73,7 @@ Static Function SxmNspHeader(String pathStr, STRUCT header &s)
 				
 				//	Read values from the header and save them as global variables.
 				FReadLine refNum, buffer
-				LoadNanonisCommonVariableString(name, buffer[0,strlen(buffer)-2])
+				SIDAMLoadDataNanonisCommon#saveToGlobalVariables(name, buffer[0,strlen(buffer)-2])
 				
 				if (subFolder)
 					SetDataFolder dfrSav
@@ -111,7 +111,7 @@ Static Function SXMHeaderZC(Variable refNum)
 	FReadLine refNum, buffer ;	String names = buffer[1,strlen(buffer)-2]
 	FReadLine refNum, buffer ;	String values = buffer[1,strlen(buffer)-2]
 	for (i = 0; i < ItemsInList(names,"\t"); i++)
-		LoadNanonisCommonVariableString(StringFromList(i,names,"\t"), StringFromList(i,values,"\t"))
+		SIDAMLoadDataNanonisCommon#saveToGlobalVariables(StringFromList(i,names,"\t"), StringFromList(i,values,"\t"))
 	endfor
 End
 

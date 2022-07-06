@@ -32,7 +32,7 @@ End
 Static Function LoadNanonis3dsGetHeader(String pathStr, STRUCT Nanonis3ds &s)
 	
 	//	Save the header values as global variables
-	s.headerSize = LoadNanonisCommonGetHeader(pathStr)
+	s.headerSize = SIDAMLoadDataNanonisCommon#getHeaderDat3ds(pathStr)
 	Wave/Z s.mlsw = 'multiline settings'
 	s.filename = ParseFilePath(3, pathStr, ":", 0, 0)	//	filename w/o an extension
 	
@@ -352,7 +352,7 @@ Static Function/WAVE LoadNanonis3dsGetData(String pathStr, int noavg, STRUCT Nan
 		refw[0] = {stmw}
 		refw[1,] = specw[p-1]
 	else
-		Wave/WAVE avgw = LoadNanonisCommonDataAvg("_bwd")
+		Wave/WAVE avgw = SIDAMLoadDataNanonisCommon#averageSweeps("_bwd")
 		Make/N=(1+numpnts(avgw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = avgw[p-1]
@@ -518,7 +518,7 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		endif
 		
 		//	Physical values
-		LoadNanonisCommonConversion(specw, driveamp=s.lockin.amp, modulated=s.lockin.modulated)
+		SIDAMLoadDataNanonisCommon#conversion(specw, driveamp=s.lockin.amp, modulated=s.lockin.modulated)
 		
 		refw[i] = {specw}
 	endfor
