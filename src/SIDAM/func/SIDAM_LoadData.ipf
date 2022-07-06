@@ -43,7 +43,11 @@ Function/WAVE SIDAMLoadData(String pathStr, [int noavg, int history])
 		int i, n
 		String pathName = UniqueName("path", 12, 0)
 		NewPath/Q/Z $pathName, pathStr
-		
+
+		if (history)
+			printHistory(pathStr, noavg)
+		endif
+
 		//	If a folder(s) is included in pathStr, call this function
 		//	for the folder(s)
 		n = ItemsInList(IndexedDir($pathName, -1, 0))
@@ -59,10 +63,7 @@ Function/WAVE SIDAMLoadData(String pathStr, [int noavg, int history])
 				+ IndexedFile($pathName, i, "????"), noavg=noavg)	//	no history
 		endfor
 		KillPath $pathName
-		
-		if (history)
-			printHistory(pathStr, noavg)
-		endif
+
 		return $""
 	endif
 	
@@ -138,6 +139,11 @@ Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 		if (NumberBykey("ISPROTO", FuncRefInfo(fn)) && NumberBykey("ISPROTO", FuncRefInfo(fn2)))
 			return $""
 		endif
+		
+		if (history)
+			printHistory(pathStr, noavg)
+		endif
+		
 		try
 			if (!NumberBykey("ISPROTO", FuncRefInfo(fn)))
 				Wave/Z w = fn(pathStr)
@@ -154,10 +160,6 @@ Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 		if (!WaveExists(w))
 			KillDataFolder dfrNew
 			return $""
-		endif
-		
-		if (history)
-			printHistory(pathStr, noavg)
 		endif
 		
 		return w

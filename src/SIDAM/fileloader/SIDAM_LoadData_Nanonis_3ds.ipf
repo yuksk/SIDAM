@@ -19,6 +19,10 @@ Function/WAVE SIDAMLoadNanonis3ds(String pathStr, int noavg)
 	SetDataFolder dfrSav
 	Wave/WAVE resw = LoadNanonis3dsGetData(pathStr, noavg, s)
 	
+	if (s.angle != 0)
+		SIDAMLoadDataNanonisCommon#nonZeroAngleCaution()
+	endif
+	
 	return resw
 End
 

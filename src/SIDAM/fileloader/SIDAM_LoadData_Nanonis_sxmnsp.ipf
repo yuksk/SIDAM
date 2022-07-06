@@ -17,6 +17,9 @@ Function/WAVE SIDAMLoadNanonisSxmNsp(String pathStr)
 	//	Read the data
 	SetDataFolder dfrSav
 	if (s.type == 0)
+		if (s.angle != 0)
+			SIDAMLoadDataNanonisCommon#nonZeroAngleCaution()
+		endif
 		return SXMData(pathStr, s)
 	elseif (s.type == 1)
 		return NSPData(pathStr, s)
@@ -239,6 +242,7 @@ Static Function SXMHeaderCvt(STRUCT header &s)
 	s.xcenter = center_x_m * SIDAM_NANONIS_LENGTHSCALE
 	s.ycenter = center_y_m * SIDAM_NANONIS_LENGTHSCALE
 	s.direction = stringmatch(direction, "down")
+	s.angle = angle_deg
 End
 #else
 Static Function SXMHeaderCvt(STRUCT header &s)
@@ -271,6 +275,7 @@ Static Function SXMHeaderCvt(STRUCT header &s)
 	s.xcenter = 'center x (m)' * SIDAM_NANONIS_LENGTHSCALE
 	s.ycenter = 'center y (m)' * SIDAM_NANONIS_LENGTHSCALE
 	s.direction = stringmatch(direction, "down")
+	s.angle = 'angle (deg)'
 End
 #endif
 
@@ -294,6 +299,7 @@ Static Structure header
 	uint16	xpnts, ypnts	//	for both sxm and nsp
 	Variable	xcenter, ycenter, xscale, yscale		//	yscale is for both
 	uchar	direction		//	for sxm
+	Variable angle		//	for sxm
 	Variable	starttime, endtime		//	for nsp
 	Variable	headerSize	//	The size of header, for both sxm and nsp
 	uchar	type			//	1: sxm, 2: nsp

@@ -166,3 +166,9 @@ Static Function saveToGlobalVariables(String name, String str)
 		Variable/G $SIDAMNumStrName(name, isString) = str2num(value)
 	endif
 End
+
+Static Function nonZeroAngleCaution()
+	printf "%sThe scan angle is not 0.\r", PRESTR_CAUTION
+	printf "%sBe careful that the xy scaling values except for the center of the image do not represent the actual coordinates.\r", PRESTR_CAUTION
+	printf "%sThe scan size is correctly reflected in the xy scaling values.\r", PRESTR_CAUTION
+End
