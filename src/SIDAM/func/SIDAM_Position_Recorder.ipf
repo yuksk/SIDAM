@@ -70,8 +70,8 @@ Static Function pnl(String grfName)
 	CheckBox newC pos={15,52}, title="new:", value=0, win=$pnlName
 	PopupMenu newP pos={80,50}, value="_select a mode_;p and q;x and y", win=$pnlName
 
-	TitleBox pathT title="", pos={5,110}, frame=0, win=$pnlName
-	Checkbox gridC pos={189,110}, title="grid", value=1, win=$pnlName
+	TitleBox pathT title="", pos={5,110}, frame=0, disable=1, win=$pnlName
+	Checkbox gridC pos={189,110}, title="grid", value=1, disable=1, win=$pnlName
 
 	Button startB pos={7,85}, title="Start", disable=2, win=$pnlName
 	Button finishB pos={75,85}, title="Finish", disable=2, win=$pnlName
@@ -284,7 +284,8 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 				ControlInfo/W=$s.win newP
 				mode = V_Value - 1
 			endif
-			TitleBox pathT title=GetWavesDataFolder(w,2), win=$s.win
+			Checkbox gridC disable=0, win=$s.win
+			TitleBox pathT title=GetWavesDataFolder(w,2), disable=0, win=$s.win
 			//	numpnts can be 0 by ctrl+click and dimlabels can be lost.
 			//	Therefore save mode in advance here.
 			SetWindow $s.win userData(mode)=num2istr(mode)
@@ -305,6 +306,8 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 		case "finishB":
 			SetWindow $grfName hook(positionrecorder)=$""
 			KillWindow $(s.win+"#T0")
+			Checkbox gridC disable=1, win=$s.win
+			TitleBox pathT disable=1, win=$s.win
 			MoveSubwindow/W=$s.win fnum=(0,0,PNLWIDTH,PNLHEIGHT)
 			break
 
