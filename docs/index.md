@@ -22,11 +22,14 @@ User Procedures folder, respectively. If you don't know where the folders are,
 choose *Menubar > Help > Show Igor Pro User Files* in Igor Pro.
 
 Instead of copying the file and folder, you can also make shortcuts or
-symbolic links of them in the designated folders. This would be useful for
-updating SIDAM in future if you clone the files.
+symbolic links to them in the designated folders. This would be useful for
+updating SIDAM in the future if you clone the files.
+
+If you use Igor Pro 8, you need an extension file. See issue [#37](
+https://github.com/yuksk/SIDAM/issues/37).
 
 ## Launch SIDAM
-Lanuch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will
+Launch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will
 find a new menu item *SIDAM* in the menu bar. If Igor Pro is already running,
 you need to restart it after installing SIDAM.
 
@@ -42,5 +45,5 @@ Alternatively, you can press F3 after choosing a wave(s) you want to show in
 the Data Browser.
 
 ## Subsequent analysis
-Right-click the control bar shown in a window and you will find menu items of
+Click ☰ in the control bar of a window and you will find menu items of
 analysis available for the data shown in the window.
