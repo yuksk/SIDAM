@@ -105,6 +105,7 @@ Static Function/WAVE doFit(int fitfn,
 End
 
 Static Function marqueeDo(int mode)
+	//	do fit
 	String grfName = WinName(0,1)
 	Wave iw = SIDAMImageNameToWaveRef(grfName)
 	try
@@ -113,31 +114,100 @@ Static Function marqueeDo(int mode)
 		DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
 		return 0
 	endtry
-	
+
+	//	display the fit result
+	DFREF dfrTmp = marqueeDoDisplayAttempt(grfName, posw)
+
+	//	zoom in the marquee area
+	STRUCT SIDAMAxisRange s
+	SIDAMGetAxis(grfName, NameOfWave(iw), s)
+	Wave mw = SIDAMGetMarquee()
+	SIDAMSetAxis(grfName, NameOfWave(iw), "X", mw[%x][0], mw[%x][1])
+	SIDAMSetAxis(grfName, NameOfWave(iw), "Y", mw[%y][0], mw[%y][1])
+	#if IgorVersion() >= 9
+	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],mw[%x][1],mw[%y][0]
+	#endif
+	DoUpdate/W=$grfName
+
+	//	save the result if requested
+	marqueeDoSaveWave(posw, GetWavesDataFolderDFR(iw))
+
+	//	set the axes back to the original ranges
+	SIDAMSetAxis(grfName, NameOfWave(iw), "X", \
+		s.x.min.auto ? NaN : s.x.min.value, s.x.max.auto ? NaN : s.x.max.value)
+	SIDAMSetAxis(grfName, NameOfWave(iw), "Y", \
+		s.y.min.auto ? NaN : s.y.min.value, s.y.max.auto ? NaN : s.y.max.value)
+	#if IgorVersion() >= 9
+	DoUpdate/W=$grfName
+	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],mw[%x][1],mw[%y][0]
+	#endif
+
+	//	remove the fit result
+	marqueeDoRemoveAttempt(grfName, dfrTmp)
+End
+
+Static StrConstant ATTEMPTNAME = "SIDAMPeakPosAttempt"
+
+Static Function/DF marqueeDoDisplayAttempt(String grfName, Wave posw)
 	DFREF dfrSav = GetDataFolderDFR()
-	SetDataFolder GetWavesDataFolderDFR(iw)
-	String name = Uniquename("peakPos",1,0)
-	Duplicate posw $name
+	DFREF dfrTmp = $SIDAMNewDF(StringFromList(0, grfName, "#"),"PeakPos")
+
+	SetDataFolder dfrTmp
+	Make/N=5 xw={-posw[%xwidthneg], posw[%xwidthpos], nan, 0, 0}
+	Make/N=5 yw={0,0,nan,-posw[%ywidthneg], posw[%ywidthpos]}
+	Make/N=5 xw2, yw2
 	SetDataFolder dfrSav
-	
-	Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw={-posw[%xwidthneg], posw[%xwidthpos], nan, 0, 0}
-	Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw={0,0,nan,-posw[%ywidthneg], posw[%ywidthpos]}
-	Make/N=5 $(Uniquename("wave",1,0))/WAVE=xw2
-	Make/N=5 $(Uniquename("wave",1,0))/WAVE=yw2
+
 	xw2 = xw*cos(posw[%angle]) - yw*sin(posw[%angle]) + posw[%xcenter]
 	yw2 = xw*sin(posw[%angle]) + yw*cos(posw[%angle]) + posw[%ycenter]
-	AppendToGraph/W=$grfName yw2 vs xw2
-	ModifyGraph/W=$grfName mode($NameOfWave(yw2))=0, mrkThick($NameOfWave(yw2))=1, rgb($NameOfWave(yw2))=(65535,0,52428)
-	String msg0, msg1
-	sprintf msg0, "Output wave: %s\rPosition: (%g, %g)\r"\
-		, GetWavesDataFolder(iw,1)+name, posw[%xcenter], posw[%ycenter]
-	sprintf msg1, "x width: (%g, %g)\ry width: (%g, %g)\rangle: %g degree"\
-		, posw[%xwidthneg], posw[%xwidthpos], posw[%ywidthneg], posw[%ywidthpos], posw[%angle]/pi*180
-	DoUpdate/W=$grfName
-	DoAlert 0, msg0+msg1
-	RemoveFromGraph/W=$grfName $NameOfWave(yw2)
-	KillWaves xw, yw, xw2, yw2
+	AppendToGraph/W=$grfName yw2/TN=$ATTEMPTNAME vs xw2
+	ModifyGraph/W=$grfName mode($ATTEMPTNAME)=0, mrkThick($ATTEMPTNAME)=1
+	ModifyGraph/W=$grfName rgb($ATTEMPTNAME)=(65535,0,52428)
+	
+	return dfrTmp
 End
+
+Static Function marqueeDoRemoveAttempt(String grfName, DFREF dfrTmp)
+	RemoveFromGraph/W=$grfName $ATTEMPTNAME
+	DoUpdate/W=$grfName
+	SIDAMKillDataFolder(dfrTmp)
+End
+
+Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
+	//	Confirm whether saving the result
+	String msg
+	sprintf msg, "Position: (%g, %g)\rx width: (%g, %g)\ry width: (%g, %g)\r" \
+		+ "angle: %g degree\rDo you want to save this result?", \
+		posw[%xcenter], posw[%ycenter], posw[%xwidthneg], posw[%xwidthpos], \
+		posw[%ywidthneg], posw[%ywidthpos], posw[%angle]/pi*180
+	DoAlert 1, msg
+	if (V_flag == 2)		//	no is selected
+		return 0
+	endif
+
+	//	Enter a basename
+	String basename = "peakPos"
+	Prompt basename, "Enter a basename:"
+	DoPrompt "Enter a basename", basename
+	if (V_Flag)	// User canceled
+		return 0
+	endif
+
+	//	Save the result as a wave
+	#if IgorVersion() >= 9	
+		String name = CreateDataObjectName(dfr, basename, 1, 0, 4)
+		Duplicate posw dfr:$name
+	#else
+		DFREF dfrSav = GetDataFolderDFR()
+		SetDataFolder dfr
+		String name = Uniquename(basename,1,0)
+		Duplicate posw $name
+		SetDataFolder dfrSav
+	#endif
+	sprintf msg, "The result is saved at %s", GetDataFolder(1, dfr)+name
+	DoAlert 1, msg
+End
+
 
 Static Function/S marqueeMenu(int mode)
 	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1))	
