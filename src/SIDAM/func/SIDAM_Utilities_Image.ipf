@@ -77,19 +77,25 @@ Function/WAVE SIDAMImageNameToWaveRef(String grfName, [String imgName, int displ
 end
 
 //******************************************************************************
-//	Get the range of displayed axes by giving an image or a trace
+//	Get or set the range of displayed axes by giving an image or a trace
 //******************************************************************************
 Structure SIDAMAxisRange
-	double	xmin
-	double	xmax
-	double	ymin
-	double	ymax
-	uint32	pmin
-	uint32	pmax
-	uint32	qmin
-	uint32	qmax
+	STRUCT range x
+	STRUCT range y
+	STRUCT range p
+	STRUCT range q
 	String	xaxis
 	String	yaxis
+EndStructure
+
+Static Structure range
+	STRUCT rangesub min
+	STRUCT rangesub max
+EndStructure
+
+Static Structure rangesub
+	Variable value
+	uchar auto
 EndStructure
 
 Function SIDAMGetAxis(String grfName, String tName, STRUCT SIDAMAxisRange &s)
@@ -102,15 +108,59 @@ Function SIDAMGetAxis(String grfName, String tName, STRUCT SIDAMAxisRange &s)
 		Wave w = TraceNameToWaveRef(grfName, tName)
 	endif
 
-	s.xaxis = StringByKey("XAXIS", info)
-	s.yaxis = StringByKey("YAXIS", info)
-	GetAxis/W=$grfName/Q $s.xaxis ;	s.xmin = V_min ;	s.xmax = V_max
-	GetAxis/W=$grfName/Q $s.yaxis ;	s.ymin = V_min ;	s.ymax = V_max
+	int i0, i1
 
-	s.pmin = isImg ? round((s.xmin-DimOffset(w,0))/DimDelta(w,0)) : round((s.xmin-leftx(w))/deltax(w))
-	s.pmax = isImg ? round((s.xmax-DimOffset(w,0))/DimDelta(w,0)) : round((s.xmax-leftx(w))/deltax(w))
-	s.qmin = isImg ? round((s.ymin-DimOffset(w,1))/DimDelta(w,1)) : NaN
-	s.qmax = isImg ? round((s.ymax-DimOffset(w,1))/DimDelta(w,1)) : NaN
+	s.xaxis = StringByKey("XAXIS", info)
+	GetAxis/W=$grfName/Q $s.xaxis
+	s.x.min.value = V_min
+	s.x.max.value = V_max
+	[i0, i1] = checkAxisAuto(grfName, s.xaxis)
+	s.x.min.auto = i0
+	s.x.max.auto = i1
+
+	s.yaxis = StringByKey("YAXIS", info)
+	GetAxis/W=$grfName/Q $s.yaxis
+	s.y.min.value = V_min
+	s.y.max.value = V_max
+	[i0, i1] = checkAxisAuto(grfName, s.yaxis)
+	s.y.min.auto = i0
+	s.y.max.auto = i1
+
+	s.p.min.value = isImg ? round((s.x.min.value-DimOffset(w,0))/DimDelta(w,0)) \
+		: round((s.x.min.value-leftx(w))/deltax(w))
+	s.p.max.value = isImg ? round((s.x.max.value-DimOffset(w,0))/DimDelta(w,0)) \
+		: round((s.x.max.value-leftx(w))/deltax(w))
+	s.q.min.value = isImg ? round((s.y.min.value-DimOffset(w,1))/DimDelta(w,1)) : NaN
+	s.q.max.value = isImg ? round((s.y.max.value-DimOffset(w,1))/DimDelta(w,1)) : NaN
+End
+
+Static Function [int isMinAuto, int isMaxAuto] checkAxisAuto(String grfName, String axisName)
+	String infoStr = AxisInfo(grfName, axisName)
+	String type = StringByKey("AXTYPE", infoStr)
+	String cmdStr = StringByKey("SETAXISCMD", infoStr)
+	int isAuto = strsearch(cmdStr, "/A", 0) != -1
+	isMinAuto = (strsearch(cmdStr, "*,", 0) != -1) || isAuto
+	isMaxAuto = (strsearch(cmdStr, ",*", 0) != -1) || isAuto
+End
+
+Function SIDAMSetAxis(String grfName, String tName, String XY,
+	Variable vmin, Variable vmax)
+
+	String info = ImageInfo(grfName, tName, 0)
+	if (!strlen(info))
+		info = TraceInfo(grfName, tName, 0)
+	endif
+
+	String axis = XY + "AXIS"
+	if (numtype(vmin) && numtype(vmax))
+		SetAxis/W=$grfName/A $StringByKey(axis, info)
+	elseif (numtype(vmin))
+		SetAxis/W=$grfName $StringByKey(axis, info) *, vmax
+	elseif (numtype(vmax))
+		SetAxis/W=$grfName $StringByKey(axis, info) vmin, *
+	else
+		SetAxis/W=$grfName $StringByKey(axis, info) vmin, vmax
+	endif
 End
 
 

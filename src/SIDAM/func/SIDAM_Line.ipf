@@ -41,8 +41,8 @@ Static Function pnlCtrls(String pnlName, String menuName)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(GetUserData(pnlName,"","parent"),NameOfWave(w),s)
 
-	int pmin = max(s.pmin, 0), pmax = min(s.pmax, DimSize(w,0)-1)
-	int qmin = max(s.qmin, 0), qmax = min(s.qmax, DimSize(w,1)-1)
+	int pmin = max(s.p.min.value, 0), pmax = min(s.p.max.value, DimSize(w,0)-1)
+	int qmin = max(s.q.min.value, 0), qmax = min(s.q.max.value, DimSize(w,1)-1)
 	int p1 = round(pmin*0.75 + pmax*0.25), q1 = round(qmin*0.75 + qmax*0.25)
 	int p2 = round(pmin*0.25 + pmax*0.75), q2 = round(qmin*0.25 + qmax*0.75)
 	Variable distance = sqrt((p1-p2)^2*dx^2+(q1-q2)^2*dy^2)
@@ -597,7 +597,8 @@ Static Function pnlSetVarIncrement(String pnlName)
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(grfName,NameOfWave(w),s)
-	SetVariable distanceV limits={0,inf,sqrt((s.xmax-s.xmin)^2+(s.ymax-s.ymin)^2)/128}, win=$pnlName
+	SetVariable distanceV limits={0,inf,sqrt((s.x.max.value-s.x.min.value)^2 \
+		+ (s.y.max.value-s.y.min.value)^2)/128}, win=$pnlName
 End
 
 //	Waterfall

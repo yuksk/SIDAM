@@ -83,10 +83,10 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 		SIDAMGetAxis(grfName,itemName,as)
 
 		//	When the axis is reversed, as.xmin > as.xmax and as.ymin > as.ymax
-		axis_x_min = min(as.xmin, as.xmax)
-		axis_x_max = max(as.xmin, as.xmax)
-		axis_y_min = min(as.ymin, as.ymax)
-		axis_y_max = max(as.ymin, as.ymax)
+		axis_x_min = min(as.x.min.value, as.x.max.value)
+		axis_x_max = max(as.x.min.value, as.x.max.value)
+		axis_y_min = min(as.y.min.value, as.y.max.value)
+		axis_y_max = max(as.y.min.value, as.y.max.value)
 
 		mousex = AxisValFromPixel(grfName, as.xaxis, (swap ? ps.v : ps.h))
 		mousey = AxisValFromPixel(grfName, as.yaxis, (swap ? ps.h : ps.v))

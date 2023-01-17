@@ -283,6 +283,7 @@ Static Function setIncrement(String grfName, int axis)	//	0:x, 1:y
 	Variable numOfTrc = ItemsInList(trcList)
 	STRUCT SIDAMAxisRange s
 	SIDAMGetAxis(grfName, StringFromList(0,trcList), s)
-	return axis ? (s.ymax-s.ymin)/(numOfTrc-1)/16 : (s.xmax-s.xmin)/(numOfTrc-1)/16
+	return axis ? (s.y.max.value-s.y.min.value)/(numOfTrc-1)/16 \
+		: (s.x.max.value-s.x.min.value)/(numOfTrc-1)/16
 End
 

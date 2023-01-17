@@ -228,8 +228,8 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			//	Do nothing unless a change is made in the displayed area
 			STRUCT SIDAMAxisRange as
 			SIDAMGetAxis(s.winName,StringFromList(0,ImageNameList(s.winName,";")),as)
-			if (as.xmin==ps.xmin && as.xmax==ps.xmax \
-				&& as.ymin==ps.ymin && as.ymax==ps.ymax)
+			if (as.x.min.value==ps.xmin && as.x.max.value==ps.xmax \
+				&& as.y.min.value==ps.ymin && as.y.max.value==ps.ymax)
 				break
 			endif
 			//	*** FALLTHROUGH ***
@@ -299,11 +299,11 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	//	The area of scale bar
 	STRUCT SIDAMAxisRange as
 	SIDAMGetAxis(grfName,NameOfWave(w),as)
-	Variable L = as.xmax-as.xmin		//	width (scaling value)
-	s.xmin = as.xmin
-	s.xmax = as.xmax
-	s.ymin = as.ymin
-	s.ymax	 = as.ymax	
+	Variable L = as.x.max.value - as.x.min.value		//	width (scaling value)
+	s.xmin = as.x.min.value
+	s.xmax = as.x.max.value
+	s.ymin = as.y.min.value
+	s.ymax	 = as.y.max.value	
 	
 	//	Decide the length of scale bar
 	//	NICEWIDTH(%) of the scale bar area (scaling value)
@@ -363,7 +363,7 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	SetWindow $grfName userData($NAME)=str
 	
 	//	Bar
-	v0 = (px? as.xmax : as.xmin) + (L*boxWidth-nicewidth)/2*(px?-1:1)
+	v0 = (px? as.x.max.value : as.x.min.value) + (L*boxWidth-nicewidth)/2*(px?-1:1)
 	v1 = py + MARGIN*(py?-1:1)
 	SetDrawEnv/W=$grfName xcoord=$as.xaxis, ycoord=prel
 	SetDrawEnv/W=$grfName linefgc=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha), linethick=LINETHICK

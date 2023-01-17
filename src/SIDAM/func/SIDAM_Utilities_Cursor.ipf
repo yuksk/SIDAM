@@ -50,8 +50,8 @@ Function SIDAMGetCursor(String csrName, String grfName,
 		//	Calculate (x,y) from these, then [p,q] from (x,y)
 		STRUCT SIDAMAxisRange axis
 		SIDAMGetAxis(grfName,tName,axis)
-		pos.x = axis.xmin + (axis.xmax - axis.xmin) * posx
-		pos.y = axis.ymin + (axis.ymax - axis.ymin) * (1 - posy)
+		pos.x = axis.x.min.value + (axis.x.max.value - axis.x.min.value) * posx
+		pos.y = axis.y.min.value + (axis.y.max.value - axis.y.min.value) * (1 - posy)
 		pos.p = pos.isImg ? round((pos.x-ox)/dy) : NaN
 		pos.q = pos.isImg ? round((pos.y-oy)/dy) : NaN
 	else
@@ -95,7 +95,9 @@ Function SIDAMMoveCursor(String csrName, String grfName, int mode,
 			else
 				STRUCT SIDAMAxisRange axis
 				SIDAMGetAxis(grfName,tName,axis)
-				Cursor/A=(active)/F/I/P/W=$grfName $csrName $tName (pos.p-axis.pmin)/(axis.pmax-axis.pmin), (pos.q-axis.qmax)/(axis.qmin-axis.qmax)
+				Cursor/A=(active)/F/I/P/W=$grfName $csrName $tName \
+					(pos.p-axis.p.min.value)/(axis.p.max.value-axis.p.min.value), \
+					(pos.q-axis.q.max.value)/(axis.q.min.value-axis.q.max.value)
 			endif
 		else
 			if (mode)
