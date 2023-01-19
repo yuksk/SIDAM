@@ -80,7 +80,10 @@ analysis available for the data shown in the window.
 https://yuksk.github.io/SIDAM/
 
 ## Papers
-Figures in the following papers were made using *SIDAM*.
+<details>
+<summary>Expand to see a list of papers in which figures were made using SIDAM.</summary>
+
+- [Phys. Rev. B 105, 064507 (2022)](https://doi.org/10.1103/PhysRevB.105.064507)
 - [Rev. Sci. Instrum. 92, 033702 (2021)](https://doi.org/10.1063/5.0038852j)
 - [Nat. Commun. 11, 5925 (2020)](https://doi.org/10.1038/s41467-020-19751-4)
 - [Nat. Mater. 18, 811 (2019)](https://doi.org/10.1038/s41563-019-0397-1)
@@ -105,6 +108,7 @@ Figures in the following papers were made using *SIDAM*.
 - [Science 315, 1380 (2007)](https://doi.org/10.1126/science.1138584)
 - [Phys. Rev. B 70, 161103 (2004)](https://doi.org/10.1103/PhysRevB.70.161103)
 - [Phys. Rev. Lett. 93, 097004 (2004)](https://doi.org/10.1103/PhysRevLett.93.097004)
+</details>
 
 ## Gif movies
 
