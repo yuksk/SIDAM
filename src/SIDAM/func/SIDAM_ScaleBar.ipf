@@ -63,16 +63,15 @@ Function SIDAMScalebar([String grfName, String anchor, int size,
 	s.overwrite[1] = !ParamIsDefault(size)
 	s.overwrite[2] = !ParamIsDefault(fgRGBA)
 	s.overwrite[3] = !ParamIsDefault(bgRGBA)
-	initializeParamStruct(s, grfName, anchor, size, fgRGBA, bgRGBA)
+	s.overwrite[4] = !ParamIsDefault(prefix)
+	initializeParamStruct(s, grfName, anchor, size, fgRGBA, bgRGBA, prefix)
 
 	//	If the anchor is empty, delete the scale bar
 	if (!s.anchor[0] && !s.anchor[1])
 		deleteBar(grfName)
 		return 0
 	endif
-	
-	s.prefix = ParamIsDefault(prefix) ? DEFAULT_PREFIX : prefix
-	
+
 	//	Delete the scale bar if it is already shown, then
 	//	show a new bar
 	if (strlen(GetUserData(grfName,"",NAME))>0)
@@ -105,9 +104,9 @@ Static Function validate(String grfName, String anchor)
 End
 
 Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
-	String anchor, int size, Wave/Z fgRGBA, Wave/Z bgRGBA)
+	String anchor, int size, Wave/Z fgRGBA, Wave/Z bgRGBA, int prefix)
 
-	Make/B/U/N=4/FREE overwrite = s.overwrite[p]
+	Make/B/U/N=5/FREE overwrite = s.overwrite[p]
 
 	//	Use the present value if a scale bar is displayed.
 	//	If not, use the default values.
@@ -126,6 +125,7 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 		s.bgRGBA.green = DEFAULT_BC
 		s.bgRGBA.blue = DEFAULT_BC
 		s.bgRGBA.alpha = DEFAULT_BA
+		s.prefix = DEFAULT_PREFIX
 	endif
 
 	//	If a parameter is specified in the main function,
@@ -167,6 +167,10 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 		endswitch
 		return 0
 	endtry
+	
+	if (overwrite[4])
+		s.prefix = prefix
+	endif
 End
 
 Static Structure paramStruct
@@ -177,7 +181,7 @@ Static Structure paramStruct
 	STRUCT	RGBAColor	bgRGBA
 	uchar	prefix
 	//	for internal use
-	uchar overwrite[4]
+	uchar overwrite[5]
 	STRUCT	RectF box
 	double	xmin, xmax, ymin, ymax
 	double	ticks
@@ -303,7 +307,7 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	s.xmin = as.x.min.value
 	s.xmax = as.x.max.value
 	s.ymin = as.y.min.value
-	s.ymax	 = as.y.max.value	
+	s.ymax = as.y.max.value
 	
 	//	Decide the length of scale bar
 	//	NICEWIDTH(%) of the scale bar area (scaling value)
