@@ -532,7 +532,7 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 		subWinNameFull = pnlName+"#"+subPnlName+"#G"+num2istr(floor(i/ctabsInColumn))
 		ctabName = StringFromList(i, list)
 		colorscaleName = "cs_"+num2istr(group)+"_"+num2istr(i)
-		ColorScale/W=$subWinNameFull/N=$colorscaleName/F=0/A=LT/X=0/Y=(mod(i,ctabsInColumn)/ctabsInColumn*100)
+		ColorScale/W=$subWinNameFull/N=$colorscaleName/F=0/A=LT/X=0/Y=(mod(i,ctabsInColumn)/ctabsInColumn*100)/Z=1
 		ColorScale/W=$subWinNameFull/C/N=$colorscaleName widthPct=100,height=ctabHeight,vert=0,nticks=0,tickLen=0
 		ColorScale/W=$subWinNameFull/C/N=$colorscaleName ctab={0,100,$ctabName,rev}, log=log
 
