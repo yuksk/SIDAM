@@ -30,3 +30,6 @@ available under [the MIT license](https://opensource.org/licenses/MIT).
 From [Matplotlib](https://matplotlib.org/stable/index.html),
 available under [the matplotlib license](https://matplotlib.org/stable/users/license.html).
 
+### Tol
+From [Paul Tol's Notes](https://personal.sron.nl/~pault/) by Paul Tol,
+available under [the 3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause)

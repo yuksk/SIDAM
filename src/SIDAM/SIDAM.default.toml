@@ -61,6 +61,7 @@ ColorBrewer = ":ctab:ColorBrewer"
 Matplotlib = ":ctab:Matplotlib"
 SciColMaps = ":ctab:SciColMaps"
 SIDAM = ":ctab:SIDAM"
+Tol = ":ctab:Tol"
 
 [loader]
 # Paths to folders where data loading functions exist. Multiple folders
