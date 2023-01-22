@@ -50,7 +50,8 @@ reverse = 0
 log = 0
 
 # Names of color table groups and paths to folders where color table
-# waves exist. You can add your own group.
+# waves exist. The groups appears in the Color panel as written below.
+# You can modify the order and add your own group.
 [ctab]
 CartoColors = ":ctab:CartoColors"
 CET = ":ctab:CET"
