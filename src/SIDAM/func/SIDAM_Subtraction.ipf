@@ -226,20 +226,31 @@ Static Function menuDo()
 End
 
 Static Function marqueeDo()
+	String grfName = WinName(0,1,1)
 	STRUCT paramStruct s
-	Wave s.w = SIDAMImageNameToWaveRef(WinName(0,1,1))
+	Wave s.w = SIDAMImageNameToWaveRef(grfName)
 	Wave s.roi = SIDAMGetMarquee()
-	DeletePoints/M=0 FindDimLabel(s.roi,0,"x"), 2, s.roi
+	DeletePoints/M=0 FindDimLabel(s.roi,0,"x"), 1, s.roi
+	DeletePoints/M=0 FindDimLabel(s.roi,0,"y"), 1, s.roi
 	s.degree = 1
 	s.result = NameOfWave(s.w)
-	printf "%s%s\r" PRESTR_CMD, echoStr(s)
+
+	Duplicate/FREE s.w tw	
 	Duplicate/O SIDAMSubtraction(s.w, degree=s.degree, roi=s.roi) s.w
+	DoUpdate/W=$grfName
+	
+	DoAlert 1, "Do you want to save this result?"
+	if (V_flag == 2) 	//	no is selected
+		s.w = tw
+	else
+		printf "%s%s\r" PRESTR_CMD, echoStr(s)
+	endif
 End
 
 Static Function/S marqueeMenu()
 	Wave/Z w = SIDAMImageNameToWaveRef(WinName(0,1,1))
 	if (WaveExists(w) && WaveDims(w) == 2)
-		return "plane subtraction about this region"
+		return "Subtract a plane with respect to this area"
 	else
 		return ""
 	endif
