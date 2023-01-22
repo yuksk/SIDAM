@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 
-# https://matplotlib.org/3.1.0/gallery/color/colormap_reference.html
+# https://matplotlib.org/stable/gallery/color/colormap_reference.html
 cmaps = {
     '0_Perceptually_Uniform_Seq': {
         'viridis': 256,
@@ -14,17 +14,17 @@ cmaps = {
         'cividis': 256,
         },
     '1_Sequential': {
-        'binary': 256,
-        'gist_yarg': 256,
-        'gist_gray': 256,
-        'gray': 256,
+        #'binary': 256,		# reverse of Gray256
+        #'gist_yarg': 256,	# reverse of Gray256
+        #'gist_gray': 256,	# same as Gray256
+        #'gray': 256,		# same as Gray256
         'bone': 256,
         'pink': 256,
         'spring': 256,
         'summer': 256,
         'autumn': 256,
         'winter': 256,
-        'cool': 256,
+        #'cool': 256,		# same as CyanMagenta
         'Wistia': 256,
         'hot': 256,
         'afmhot': 256,
@@ -33,7 +33,7 @@ cmaps = {
         },
     '2_Diverging': {
         'coolwarm': 256,
-        'bwr': 256,
+        #'bwr': 256,	# reverse of RedWhiteBlue256
         'seismic': 256,
         },
     '3_Cyclic': {
@@ -58,10 +58,11 @@ cmaps = {
         'gnuplot2': 256,
         'CMRmap': 256,
         'cubehelix': 256,
-        'brg': 256,
+        #'brg': 256,		# same as BlueRedGreen256
         'gist_rainbow': 256,
         'rainbow': 256,
         'jet': 256,
+        #'turbo': 256,		# same as Turbo
         'nipy_spectral': 256,
         'gist_ncar': 256,
         }

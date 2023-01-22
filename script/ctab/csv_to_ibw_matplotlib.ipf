@@ -1,60 +1,54 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
+#pragma IgorVersion = 9
 
-Function save_matplotlib_as_ibw(String basePathStr)
-	//	basePathStr is the absolute path to the directory where this ipf is
-	String basepath = UniqueName("path", 12,0), subpath
-	NewPath/Q $basepath, basePathStr
+#include ":csv_to_ibw_common"
+
+Function save_matplotlib_as_ibw()
+	String basepathStr = csv_to_ibw#getBasePath()
 	
 	//	list of subfolders: 0_Perceptually_Uniform_Seq, 1_Sequential, 2_Diverging,
 	//	3_Cyclic, 4_Qualitative, 5_Miscellaneous
-	String dirlist = IndexedDir($basepath, -1, 0)
+	Wave/T folders = csv_to_ibw#getFolders(basePathStr)
 	
-	String dirname, filelist, filename, wname
 	String destination = SIDAMPath()+"ctab:Matplotlib:"
-	int i, j, is_qualitative
+	int is_qualitative
 		
-	for (i = 0; i < ItemsInList(dirlist); i++)
-		dirname = StringFromList(i, dirlist)
+	for (String dirname: folders)
 		is_qualitative = !CmpStr(dirname, "4_Qualitative")
+		Wave/T csvfiles = csv_to_ibw#getCSVFiles(basePathStr+dirname)
 		
-		//	list of csv files in a subfolder
-		subpath = UniqueName("path", 12,0)
-		NewPath/Q $subpath, basePathStr+dirname
-		filelist = IndexedFile($subpath, -1, ".csv")
-		KillPath $subpath
-		
-		for (j = 0; j < ItemsInList(filelist); j++)
-			filename = StringFromList(j, filelist)
-			LoadWave/J/M/Q/K=0/V={","," $",0,0} \
-				basePathStr+StringFromList(i, dirlist)+":"+filename
+		for (String filename: csvfiles)
+			LoadWave/J/M/Q/K=0/V={","," $",0,0} basePathStr+dirname+":"+filename
 			Wave w = $StringFromList(0, S_waveNames)
-			
-			//	If the name is the same as one of Igor's table,
-			//	add "2" to the name
-			wname = ReplaceString(".csv", filename, "")
-			if (WhichListItem(wname, CTabList(), ";", 0, 0) >= 0)
-				wname += "2"
-			endif
+			filename = csv_to_ibw#createCleanName(filename)
 			if (is_qualitative)
-				Rename w $wname
-				Save/C w as destination+wname+".ibw"
-				KillWaves w
+				Rename w $filename
+				Save/C w as destination+filename+".ibw"
 			else
-				if (!j)
-					Make/U/W/N=(DimSize(w,0), DimSize(w,1), ItemsInList(filelist)) $dirname/WAVE=outw
-				endif
-				outw[][][j] = w[p][q]
-				SetDimLabel 2, j, $wname, outw
-				KillWaves w
+				Wave outw = bind_waves(dirname, filename, w)
 			endif
+			KillWaves w
 		endfor
 		
 		if (!is_qualitative)
-			Save/C outw as destination+NameOfWave(outw)+".ibw"
+			Save/C outw as destination+dirname+".ibw"
 			KillWaves outw
 		endif
 	endfor
+End
+
+Static Function/WAVE bind_waves(String dirname, String filename, Wave w)
+	if (!WaveExists($dirname))
+		Make/U/W/N=(DimSize(w,0), DimSize(w,1)) $dirname/WAVE=outw
+	else
+		Wave outw = $dirname
+	endif
+
+	int n = DimSize(outw, 2)	
+	Redimension/N=(-1, -1, n+1) outw
+	outw[][][n] = w[p][q]
+	SetDimLabel 2, n, $filename, outw
 	
-	KillPath $basepath
+	return outw
 End
