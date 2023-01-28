@@ -677,6 +677,8 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 116:		//	t
 			DoIgorMenu "Graph", "Modify Trace Appearance"
 			return 1
+		default:
+			return 1		//	prevent command input 
 	endswitch
 
 	return 0
