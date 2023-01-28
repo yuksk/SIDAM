@@ -21,7 +21,7 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and theta (Polar);1/r and theta (Polar, inverse magnitude)"
+Static StrConstant COORDINATESMENU = "x and y (Cartesian);r and θ (Polar);1/r and θ (Polar, inverse magnitude)"
 
 
 //@
@@ -47,7 +47,7 @@ Function SIDAMInfoBar(String grfName)
 		SetWindow $grfName tooltipHook(self)=SIDAMInfoBar#tooltipHook
 	#endif
 	
-	//	0: x,y;  1: r,theta,   2: r^-1,theta
+	//	0: x,y;  1: r,θ,   2: r^-1,θ
 	SetWindow $grfName userData(mode)="0"
 	
 	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
@@ -456,50 +456,89 @@ Static Function setpqzStr(String &pqs, String &zs,
 End
 
 Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
+	//	The mode is NaN if GetUserData returns "". e.g., Fourier filter
 	int mode = str2num(GetUserData(grfName,"","mode"))
-	int showunit = (SIDAM_WINDOW_FORMAT_SHOWUNIT & 1) && WaveExists(ms.w)
-	int isSameUnit = WaveExists(ms.w) && !CmpStr(WaveUnits(ms.w,0), WaveUnits(ms.w,1))
-
-	String fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY \
-					+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
-	if (showunit)
-		if (mode == 0 || mode == 3)
-			fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
-				+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 1) + ")"
-		elseif ((mode == 1 || mode == 2) && isSameUnit)
-			fStr = "(%s:"+SIDAM_WINDOW_FORMAT_XY + WaveUnits(ms.w, 0) \
-				+ ", %s:"+SIDAM_WINDOW_FORMAT_XY + ")"
-		endif
-	endif
-	
+	String formatStr = constructFormatStr(mode, SIDAM_WINDOW_FORMAT_SHOWUNIT, ms.w)
 	Variable mag
+
 	switch (mode)
-		default:
-			//	*** FALLTHROUGH ***
+		default:		//	*** FALLTHROUGH ***
 		case 0:		//	x, y	(also for traces)
 			if (!WaveExists(ms.w))
 				xys = "(x:-, y:-)"
 			elseif (stringmatch(WaveUnits(ms.w,0),"dat"))
-				Sprintf xys, "(x:%s %s, y:"+SIDAM_WINDOW_FORMAT_XY+")" \
-					, Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
+				Sprintf xys, formatStr, Secs2Date(ms.x,-2), Secs2Time(ms.x,3), ms.y
 			elseif (stringmatch(WaveUnits(ms.w,1),"dat"))
-				Sprintf xys, "(x:"+SIDAM_WINDOW_FORMAT_XY+", y:%s %s)" \
-					, ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
+				Sprintf xys, formatStr, ms.x, Secs2Date(ms.y,-2), Secs2Time(ms.y,3)
 			else
-				Sprintf xys, fStr, "x", ms.x, "y", ms.y
+				Sprintf xys, formatStr, ms.x, ms.y
 			endif
 			break
-		case 1: 	//	r, theta
+		case 1: 	//	r, θ
 			mag = sqrt(ms.x^2+ms.y^2)
-			Sprintf xys, fStr\
-				, "r", mag, "\u03b8", acos(ms.x/mag)*180/pi*sign(ms.y)
+			if (numtype(mag))
+				xys = "(r:-, θ:-)"
+			else
+				Sprintf xys, formatStr, mag, acos(ms.x/mag)*180/pi*sign(ms.y)
+			endif
 			break
-		case 2: 	//	r^-1, theta
+		case 2: 	//	1/r, θ
 			mag = sqrt(ms.x^2+ms.y^2)
-			Sprintf xys, fStr\
-				, "1/r", 1/mag, "\u03b8", acos(ms.x/mag)*180/pi*sign(ms.y)
+			if (numtype(mag))
+				xys = "(1/r:-, θ:-)"
+			else
+				Sprintf xys, formatStr, 1/mag, acos(ms.x/mag)*180/pi*sign(ms.y)
+			endif
 			break
 	endswitch
+End
+
+Static Function/S constructFormatStr(int mode, int showunit, Wave/Z w)
+	if (!WaveExists(w))
+		return ""
+	elseif (mode < 0 || mode > 2)		//	e.g., NaN for Fourier filter
+		mode = 0
+	endif
+
+	String str = ""
+
+	if (mode == 0)	//	x, y
+		if (stringmatch(WaveUnits(w,0),"dat"))
+			str = "(x: %s %s, y:" + SIDAM_WINDOW_FORMAT_XY \
+				+ SelectString(showUnit & 1, "", WaveUnits(w,1))
+		elseif (stringmatch(WaveUnits(w,1),"dat"))
+			str = "(x:" + SIDAM_WINDOW_FORMAT_XY \
+				+ SelectString(showUnit & 1, "", WaveUnits(w,0)) + ", y:%s %s)"
+		else
+			str = "(x:"+SIDAM_WINDOW_FORMAT_XY \
+				+ SelectString(showUnit & 1, "", WaveUnits(w,0)) \
+				+ ", y:"+SIDAM_WINDOW_FORMAT_XY \
+				+ SelectString(showUnit & 1, "", WaveUnits(w,1)) + ")"		
+		endif
+		return str
+	endif
+	
+	String xUnit = WaveUnits(w,0)
+	int isSameUnit = !CmpStr(xUnit, WaveUnits(w,1))
+	int isInverseUnit = !CmpStr(xUnit[strlen(xUnit)-3,strlen(xUnit)-1], "^-1")
+	if (!strlen(xUnit))
+		showunit = 0
+	endif
+
+	if (mode == 1)	//	r, θ
+		str = "(r:"+SIDAM_WINDOW_FORMAT_XY \
+			+ SelectString((showUnit & 1) && isSameUnit, "", WaveUnits(w,0)) \
+			+ ", θ:"+SIDAM_WINDOW_FORMAT_THETA \
+			+ SelectString(showUnit & 4, ")", "\u00b0)")
+	elseif (mode == 2)	//	1/r, θ
+		xUnit = SelectString(isInverseUnit, xUnit+"^-1", xUnit[0,strlen(xUnit)-4])
+		str = "(1/r:"+SIDAM_WINDOW_FORMAT_XY \
+			+ SelectString((showUnit & 1) && isSameUnit, "", xUnit) \
+			+ ", θ:"+SIDAM_WINDOW_FORMAT_THETA \
+			+ SelectString(showUnit & 4, ")", "\u00b0)")
+	endif
+
+	return str
 End
 
 //	Adjust the positions of controls

@@ -32,6 +32,7 @@ EndStructure
 Static Structure windowformatS
 	String xy
 	String z
+	String theta
 	Variable show_units
 EndStructure
 
@@ -96,6 +97,7 @@ Function SIDAMConfigRead(STRUCT SIDAMConfigStruct &s)
 	s.window.height = ""
 	s.window.format.xy = ""
 	s.window.format.z = ""
+	s.window.format.theta = ""
 	s.window.export.transparent = ""
 	s.window.ctab.table = ""
 	s.ctab.path = ""
@@ -113,7 +115,7 @@ Function SIDAMConfigRead(STRUCT SIDAMConfigStruct &s)
 	readConfig(s, USER)
 End
 
-Function readConfig(STRUCT SIDAMConfigStruct &s, int kind)
+Static Function readConfig(STRUCT SIDAMConfigStruct &s, int kind)
 	Variable refNum
 	Open/R/Z refNum as configFile(kind)
 	if (V_flag)
@@ -128,6 +130,7 @@ Function readConfig(STRUCT SIDAMConfigStruct &s, int kind)
 	str = configItems(refNum, "[window.format]")
 	s.window.format.xy = strOverwrite(s.window.format.xy, StringByKey("xy", str))
 	s.window.format.z = strOverwrite(s.window.format.z, StringByKey("z", str))
+	s.window.format.theta = strOverwrite(s.window.format.theta, StringByKey("theta", str))
 	s.window.format.show_units = \
 		numOverwrite(s.window.format.show_units, NumberByKey("show_units", str))
 	

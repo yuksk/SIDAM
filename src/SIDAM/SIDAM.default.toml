@@ -26,8 +26,9 @@ axthick = 0
 [window.format]
 xy = " %.2f"
 z = " %.2e"
-# 1 for xy, 2 for z, 3 for both, 0 for neither
-show_units = 3
+theta = "%.2f"
+# bit 0: xy, bit 1: z, bit 2: theta
+show_units = 7
 
 [window.colors]
 # For general curves

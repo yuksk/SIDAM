@@ -113,6 +113,7 @@ Static Function writeConstants(Variable refNum, STRUCT 	SIDAMConfigStruct &s)
 
 	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_XY = \"%s\"\n", s.window.format.xy
 	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_Z = \"%s\"\n", s.window.format.z
+	fprintf refNum, "StrConstant SIDAM_WINDOW_FORMAT_THETA = \"%s\"\n", s.window.format.theta
 	fprintf refNum, "Constant SIDAM_WINDOW_FORMAT_SHOWUNIT = %d\n", s.window.format.show_units
 	
 	fprintf refNum, "Constant SIDAM_WINDOW_LINE_R = %d\n", s.window.colors.line.red
