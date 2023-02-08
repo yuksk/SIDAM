@@ -128,7 +128,9 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 14:	//	subwindowkill
 			//	s.winName here is pnlName+"T0"
-			Wave w = $StringByKey("WAVE", TableInfo(s.winName,0))
+			//	/Z is necessary because the wave is not found if thw parent
+			//	window is closed.
+			Wave/Z w = $StringByKey("WAVE", TableInfo(s.winName,0))
 			if (!numpnts(w))
 				//	Kill the wave if it has no point and is not on the graph.
 				//	If the finish button is pressed without adding a point to a new wave,
