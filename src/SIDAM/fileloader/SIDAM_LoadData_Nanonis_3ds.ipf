@@ -351,12 +351,17 @@ Static Function/WAVE LoadNanonis3dsGetData(String pathStr, int noavg, STRUCT Nan
 	//	Make spectrum waves from the big wave
 	Wave/WAVE specw = LoadNanonis3dsGetDataSpec(w, namew, s)
 	
-	if (noavg)
+	if (!noavg)
+		//	If only forward sweep is saved, the following fails
+		Wave/WAVE/Z avgw = SIDAMLoadDataNanonisCommon#averageSweeps("_bwd")
+	endif
+	
+	//	Here I assume no mixture of forward-sweep-only channels and both sweep channels
+	if (noavg || !numpnts(avgw))
 		Make/N=(1+numpnts(specw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = specw[p-1]
 	else
-		Wave/WAVE avgw = SIDAMLoadDataNanonisCommon#averageSweeps("_bwd")
 		Make/N=(1+numpnts(avgw))/WAVE/FREE refw
 		refw[0] = {stmw}
 		refw[1,] = avgw[p-1]
