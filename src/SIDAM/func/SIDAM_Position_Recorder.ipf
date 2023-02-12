@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMPositionRecorder
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Display"
 #include "SIDAM_Help"
 #include "SIDAM_Utilities_Image"
@@ -204,8 +206,11 @@ Static Function addPoint(Wave w, STRUCT SIDAMMousePos &ms, String pnlName)
 		Redimension/N=(-1,n+1) w
 	else
 		Redimension/N=(2,n+1) w
-		SetDimLabel 0, 0, $SelectString(isPQ,"x","p"), w
-		SetDimLabel 0, 1, $SelectString(isPQ,"y","q"), w
+		if (isPQ)
+			CopyWaveToDimLabels({"p","q"}, w, 0)
+		else
+			CopyWaveToDimLabels({"x","y"}, w, 0)
+		endif
 		ModifyTable/W=$tableName elements=(-3,-2,0,0), horizontalIndex=2
 		showWave(w, StringFromList(0,pnlName,"#"))
 	endif

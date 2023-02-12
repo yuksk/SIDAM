@@ -95,10 +95,7 @@ Function SIDAMCopyBias(Wave/Z srcw, Wave/Z destw)
 	if (SIDAMisUnevenlySpacedBias(srcw) != 1 || DimSize(srcw,2)!=DimSize(destw,2))
 		return 1
 	endif
-	int i, nz = DimSize(srcw,2)
-	for (i = 0; i < nz; i++)
-		SetDimLabel 2, i, $GetDimLabel(srcw, 2, i), destw
-	endfor
+	CopyDimLabels/LAYR=2 srcw, destw
 	return 0
 End
 

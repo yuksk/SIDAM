@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma moduleName = SIDAMPeakPos
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Utilities_DataFolder"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Marquee"
@@ -72,15 +74,9 @@ Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	WaveStats/Q/M=1/RMD=[1][] results
 	Wave coef = ww[V_minColLoc]
 	
-	SetDimLabel 0, 0, offset, coef
-	SetDimLabel 0, 1, amplitude, coef
-	SetDimLabel 0, 2, xcenter, coef
-	SetDimLabel 0, 3, ycenter, coef
-	SetDimLabel 0, 4, xwidthpos, coef
-	SetDimLabel 0, 5, xwidthneg, coef
-	SetDimLabel 0, 6, ywidthpos, coef
-	SetDimLabel 0, 7, ywidthneg, coef
-	SetDimLabel 0, 8, angle, coef
+	Make/T/FREE labels = {"offset","amplitude","xcenter","ycenter","xwidthpos",\
+		"xwidthneg","ywidthpos","ywidthneg","angle"}
+	CopyWaveToDimLabels(labels, coef, 0)
 	
 	SetDataFolder dfrSav
 	return coef

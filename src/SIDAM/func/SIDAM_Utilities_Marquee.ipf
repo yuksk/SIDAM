@@ -1,6 +1,8 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Utilities_Image"
 
 #ifndef SIDAMshowProc
@@ -29,10 +31,7 @@ Function/WAVE SIDAMGetMarquee()
 	Make/D/N=(4,2)/FREE rtnw 
 	rtnw[][0] = {round((V_left-ox)/dx), round((V_bottom-oy)/dy), V_left,V_bottom}
 	rtnw[][1] = {round((V_right-ox)/dx), round((V_top-oy)/dy), V_right,V_top}
-	SetDimLabel 0, 0, p, rtnw
-	SetDimLabel 0, 1, q, rtnw
-	SetDimLabel 0, 2, x, rtnw
-	SetDimLabel 0, 3, y, rtnw
+	CopyWaveToDimLabels({"p","q","x","y"}, rtnw, 0)
 	return rtnw
 End
 

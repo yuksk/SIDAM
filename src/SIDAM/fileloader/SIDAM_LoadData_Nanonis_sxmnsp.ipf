@@ -1,6 +1,8 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=1
 
+#include <DimensionLabelUtilities>
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -163,17 +165,13 @@ End
 
 //	Multipass-Config
 Static Function SXMHeaderMC(Variable refNum)
-	String buffer
-	Variable i, n
-	
 	//	The labels of multipass-config are saved to the dimension labels
+	String buffer
 	FReadLine refNum, buffer
 	buffer = RemoveEnding(buffer, "\r")
-	n = ItemsInList(buffer, "\t")
+	int n = ItemsInList(buffer, "\t")
 	Make/N=(n) $"Multipass-Config"/WAVE=w
-	for (i = 0; i < n; i += 1)
-		SetDimLabel 0, i, $StringFromList(i, buffer, "\t"), w
-	endfor
+	CopyWaveToDimLabels(ListToTextWave(buffer,"\t"), w, 0)
 	
 	do
 		FStatus refNum

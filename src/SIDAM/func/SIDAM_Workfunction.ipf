@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMWorkfunction
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
@@ -182,10 +184,7 @@ Static Function/WAVE wf1D(Wave w, int startp, int endp, Variable offset)
 	endif
 
 	Make/N=4/FREE resw
-	SetDimLabel 0, 0, workfunction, resw
-	SetDimLabel 0, 1, amplitude, resw
-	SetDimLabel 0, 2, chisq, resw
-	SetDimLabel 0, 3, offset, resw
+	CopyWaveToDimLabels({"workfunction","amplitude","chisq","offset"}, resw, 0)
 	resw[%workfunction] = convCoef(w)/coefw[2]^2
 	resw[%amplitude] = coefw[1]
 	resw[%offset] = coefw[0]
@@ -207,12 +206,7 @@ Static Function/WAVE wf3D(Wave w, int startr, int endr, Variable offset)
 
 	//	return wave
 	Make/N=6/FREE/WAVE rtnw
-	SetDimLabel 0, 0, workfunction, rtnw
-	SetDimLabel 0, 1, amplitude, rtnw
-	SetDimLabel 0, 2, chisq, rtnw
-	SetDimLabel 0, 3, offset, rtnw
-	SetDimLabel 0, 4, fiterror, rtnw
-	SetDimLabel 0, 5, fitquitreason, rtnw
+	CopyWaveToDimLabels({"workfunction","amplitude","chisq","offset","fiterror","fitquitreason"}, rtnw, 0)
 
 	int nx = DimSize(w,0), ny = DimSize(w,1)
 	

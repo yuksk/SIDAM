@@ -142,6 +142,7 @@ Function SIDAMIndexToScale(Wave w, int index, int dim)
 	endif
 End
 
+
 //******************************************************************************
 ///	Return a string converted from a wave
 ///	@param w			A 1D text wave, a 1D/2D numeric wave

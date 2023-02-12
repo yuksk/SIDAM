@@ -1,6 +1,8 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#include <DimensionLabelUtilities>
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -84,9 +86,7 @@ Static Function/WAVE fn1D(Wave xw, Wave yw, int order)
 	CopyScales xw, xw_rot, yw_rot
 	
 	Make/WAVE/FREE ww = {xw_rot, yw_rot, pw}
-	SetDimLabel 0, 0, x, ww
-	SetDimLabel 0, 1, y, ww
-	SetDimLabel 0, 2, angle, ww
+	CopyWaveToDimLabels({"x","y","angle"}, ww, 0)
 	return ww
 End
 
@@ -98,9 +98,7 @@ Static Function/WAVE fn3D(Wave xw, Wave yw, int order)
 	
 	MultiThread pw = worker3D(xw_rot, yw_rot, xw, yw, order, p, q)
 	Make/WAVE/FREE ww = {xw_rot, yw_rot, pw}
-	SetDimLabel 0, 0, x, ww
-	SetDimLabel 0, 1, y, ww
-	SetDimLabel 0, 2, angle, ww
+	CopyWaveToDimLabels({"x","y","angle"}, ww, 0)
 	return ww
 End
 
