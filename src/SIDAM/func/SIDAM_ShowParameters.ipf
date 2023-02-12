@@ -3,6 +3,7 @@
 #pragma ModuleName=SIDAMShowParameters
 
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

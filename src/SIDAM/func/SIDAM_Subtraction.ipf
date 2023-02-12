@@ -8,6 +8,7 @@
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Marquee"
 #include "SIDAM_Utilities_Wave"
+#include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
