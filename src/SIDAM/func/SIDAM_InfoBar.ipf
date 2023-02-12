@@ -626,6 +626,11 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 27:		//	esc
 			closeInfoBar(s.winName)
 			return 1
+		case 28:		//	arrow left
+		case 29:		//	arrow right
+		case 30:		//	arrow up
+		case 31:		//	arrow down
+			return 0		//	allow moving cursors
 		case 49:		//	1
 		case 50:		//	2
 		case 51:		//	3
