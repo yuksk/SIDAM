@@ -205,7 +205,7 @@ Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
 		SetDataFolder dfrSav
 	#endif
 	sprintf msg, "The result is saved at %s", GetDataFolder(1, dfr)+name
-	DoAlert 1, msg
+	DoAlert 0, msg
 End
 
 

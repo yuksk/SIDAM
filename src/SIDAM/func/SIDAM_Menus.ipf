@@ -151,7 +151,7 @@ End
 Menu "GraphMarquee", dynamic
 	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
 	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
-	Submenu "Get peak"
+	Submenu "Fit the marquee area with"
 		SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
 		SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
 	End
