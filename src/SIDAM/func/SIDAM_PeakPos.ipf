@@ -34,7 +34,7 @@
 //@
 Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	
-	Wave mw = SIDAMGetMarquee()
+	Wave/Z mw = SIDAMGetMarquee()
 	if (!WaveExists(mw))
 		Duplicate/FREE w, tw
 	elseif (WaveDims(w)==3)
