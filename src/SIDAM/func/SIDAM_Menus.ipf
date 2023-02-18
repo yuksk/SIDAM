@@ -61,7 +61,7 @@ End
 #if IgorVersion() >= 9
 Menu "SIDAM", dynamic
 	Submenu "Display..."
-		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
 		help = {"Display a wave(s)"}
 		
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
@@ -71,13 +71,13 @@ End
 #else
 Menu "SIDAM", dynamic
 	Submenu "Display..."
-		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
 		help = {"Display a wave(s)"}
 
-		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
+		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay#mainMenuDo(1)
 		help = {"Display a 2D wave as 1d-traces"}
 
-		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
 		help = {"Display a 2D wave as xy-traces"}
 		
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
@@ -167,11 +167,11 @@ End
 #if IgorVersion() >= 9
 Menu "DataBrowserObjectsPopup", dynamic
 	Submenu "Display..."
-		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
-		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
+		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay#mainMenuDo(1)
 	End
 	Submenu "Append..."
-		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
 	End
 End
 #endif

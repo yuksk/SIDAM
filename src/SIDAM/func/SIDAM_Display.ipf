@@ -48,9 +48,9 @@ Function/S SIDAMDisplay(Wave w, [int traces, int history])
 
 	switch (WaveType(s.w, 1))
 		case 1:	//	numeric
-			return displayNumericWave(s.w, s.traces, s.history)
+			return displayNumericWave(s)
 		case 4:	//	wave reference
-			return displayWaveRefWave(s.w, s.history)
+			return displayWaveRefWave(s)
 	endswitch
 End
 
@@ -70,11 +70,6 @@ Static Function validate(STRUCT paramStruct &s)
 
 	if (s.traces < 0 || s.traces > 2)
 		s.errMsg = "traces is 0, 1, or 2."
-		return 1
-	endif
-
-	if (s.traces && !(WaveType(s.w,1)==1 && WaveDims(s.w)==2))
-		s.errMsg = "the traces option is valid for 2D numeric waves."
 		return 1
 	endif
 
@@ -99,18 +94,32 @@ Static Function validateWave(Wave/Z w, STRUCT paramStruct &s)
 	elseif (WaveType(w,2) == 2)
 		s.errMsg = "a numeric free wave is not accepted."
 		return 1
-	elseif (s.traces==2 && !canBeDisplayedAsXYTrace(w))
+	elseif (s.traces==2 && !xyTraceMode(w))
 		s.errMsg = "the wave can not be displayed as xy-trace."
 		return 1
 	endif
 	return 0
 End
 
-Static Function canBeDisplayedAsXYTrace(Wave/Z w)
-	if (WaveDims(w) != 2 || !strlen(WinName(0,1)))
+Static Function isXYTraceModeSame(Wave/WAVE ww)
+	if (numpnts(ww) == 0)
 		return 0
 	endif
+	
+	int mode = xyTraceMode(ww[0])
+	if (numpnts(ww) == 1)
+		return mode
+	endif
+	
+	Make/B/U/N=(numpnts(ww))/FREE mw = xyTraceMode(ww[p]) - mode
+	return sum(mw) ? 0 : mode
+End
 
+Static Function xyTraceMode(Wave w)
+	if (WaveDims(w) != 2)
+		return 0
+	endif
+	
 	int hasP = FindDimLabel(w,0,"p")!=-2, hasQ = FindDimLabel(w,0,"q")!=-2
 	int hasX = FindDimLabel(w,0,"x")!=-2, hasY = FindDimLabel(w,0,"y")!=-2
 	if (hasP && hasQ)
@@ -119,72 +128,78 @@ Static Function canBeDisplayedAsXYTrace(Wave/Z w)
 		return 2
 	else
 		return 0
-	endif
+	endif	
+End
+
+Static Function isAll2D(Wave/WAVE ww)
+	Make/B/U/N=(numpnts(ww))/FREE tw = WaveDims(ww[p]) - 2
+	return !sum(tw)
 End
 
 Static Structure paramStruct
-	Wave	w
-	String	errMsg
-	uchar	traces
-	uchar	history
+	Wave w
+	String errMsg
+	uchar traces
+	uchar history
 EndStructure
 
 //-------------------------------------------------------------
 //	Menu functions
 //-------------------------------------------------------------
 Static Function/S mainMenuItem(int mode, String shortCutStr)
-
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
-	int n = numpnts(SIDAMSelectedWaves())
+	Wave/WAVE selectedSaves = SIDAMSelectedWaves()
 
 	String prefix = ""
-	if (!isBrowserShown || !n)
+	if (!isBrowserShown || !numpnts(selectedSaves))
 		prefix = "("
-	elseif (mode==1 && (n!=1 || WaveDims($GetBrowserSelection(0))!=2))
+	elseif (mode==1 && !isAll2D(selectedSaves))
 		prefix = "("
-	elseif (mode==2 && !canBeDisplayedAsXYTrace($GetBrowserSelection(0)))
+	elseif (mode==2 && !isXYTraceModeSame(selectedSaves))
 		prefix = "("
 	endif
 
+	int isPlural = numpnts(selectedSaves) > 1
+	String waves = "Selected Wave" + SelectString(isPlural, "", "s")	
 	String items = ""
 	#if IgorVersion() >= 9
-	items += "Selected Wave" + SelectString(n>1, "", "s") + ";"
-	items += "Selected Wave as 1d-traces;"
-	items += "Selected Wave as a xy-trace;"
+	items += waves + ";"
+	items += waves + " as 1d-traces;"
+	items += waves + " as " + SelectString(isPlural, "a xy-trace;", "xy-traces;")
 	#else
-	items += "Display Selected Wave" + SelectString(n>1, "", "s") + ";"
-	items +=	"Display Selected Wave as 1d-traces;"
-	items += "Append Selected Wave as a xy-trace;"
+	items += "Display " + waves + ";"
+	items +=	"Display " + waves + " as 1d-traces;"
+	items += "Append " + waves + " as " + SelectString(isPlural, "a xy-trace;", "xy-traces;")
 	#endif
 
 	return prefix + StringFromList(mode,items) + shortCutStr
 End
 
-Static Function mainMenuDo()
-	SIDAMDisplay(SIDAMSelectedWaves(),history=1)
+Static Function mainMenuDo(int traces)
+	SIDAMDisplay(SIDAMSelectedWaves(),traces=traces,history=1)
 End
 
 //-------------------------------------------------------------
 //	For numeric wave
 //-------------------------------------------------------------
-Static Function/S displayNumericWave(Wave w, int traces, int history)
-	if (history)
-		echo(w,traces)
+Static Function/S displayNumericWave(STRUCT paramStruct &s)
+	if (s.history)
+		echo(s.w,s.traces)
 	endif
 
-	if (WaveDims(w)==1)
-		Display/K=1 w
+	if (WaveDims(s.w)==1)
+		Display/K=1 s.w
 		SIDAMInfoBar(S_name)
 		return S_name
 
-	elseif (WaveDims(w)==2 && traces==1)
-		return displayNumericWaveTrace(w)
+	elseif (WaveDims(s.w)==2 && s.traces==1)
+		return displayNumericWaveTrace(s.w)
 
-	elseif (canBeDisplayedAsXYTrace(w) && traces==2)
-		return displayNumericWaveTraceXY(w)
+	elseif (xyTraceMode(s.w) && s.traces==2)
+		return displayNumericWaveTraceXY(s.w)
 
 	else //	2D (trace=0) or 3D
-		return displayNumericWaveLayer(w)
+		return displayNumericWaveLayer(s.w)
 
 	endif
 End
@@ -223,7 +238,12 @@ End
 
 Static Function/S displayNumericWaveTraceXY(Wave w)
 	String grfName = WinName(0,1)
-	int mode = canBeDisplayedAsXYTrace(w)
+	if (!strlen(grfName))
+		Display
+		grfName = S_name
+	endif
+	
+	int mode = xyTraceMode(w)
 	if (mode == 1)
 		AppendToGraph/W=$grfName w[%q][] vs w[%p][]
 		Wave/Z iw = SIDAMImageNameToWaveRef(grfName)
@@ -246,32 +266,33 @@ End
 //-------------------------------------------------------------
 //	For wave reference wave
 //-------------------------------------------------------------
-Static Function/S displayWaveRefWave(Wave/WAVE w, int history)
-
+Static Function/S displayWaveRefWave(STRUCT paramStruct &s)
+	Wave/WAVE ww = s.w
+	
 	String winNameList = ""
 	int i
 
 	//	Display 2D and 3D waves and remove their references from the input wave
-	for (i = numpnts(w) - 1; i >= 0; i--)
-		if (WaveDims(w[i]) == 1)
+	for (i = numpnts(ww) - 1; i >= 0; i--)
+		if (WaveDims(ww[i]) == 1)
 			continue
 		endif
-		winNameList += SIDAMDisplay(w[i],history=history) + ";"
-		DeletePoints i, 1, w
+		winNameList += SIDAMDisplay(ww[i],traces=s.traces,history=s.history) + ";"
+		DeletePoints i, 1, ww
 	endfor
-	if (!numpnts(w))
+	if (!numpnts(ww))
 		return winNameList
 	endif
 
 	//	Display the remaining 1D waves
 	Display/K=1
 	String grfName = S_name
-	for (i = 0; i < numpnts(w); i++)
-		AppendToGraph/W=$grfName w[i]
+	for (i = 0; i < numpnts(ww); i++)
+		AppendToGraph/W=$grfName ww[i]
 	endfor
 
-	if (history)
-		echo(w,0)
+	if (s.history)
+		echo(ww,0)
 	endif
 
 	SIDAMInfoBar(grfName)
