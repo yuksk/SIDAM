@@ -122,10 +122,14 @@ Static Function xyTraceMode(Wave w)
 	
 	int hasP = FindDimLabel(w,0,"p")!=-2, hasQ = FindDimLabel(w,0,"q")!=-2
 	int hasX = FindDimLabel(w,0,"x")!=-2, hasY = FindDimLabel(w,0,"y")!=-2
+	int hasXcenter = FindDimLabel(w,0,"xcenter")!=-2
+	int hasYcenter = FindDimLabel(w,0,"ycenter")!=-2
 	if (hasP && hasQ)
 		return 1
 	elseif (hasX && hasY)
 		return 2
+	elseif (hasXcenter && hasYcenter)
+		return 3
 	else
 		return 0
 	endif	
@@ -253,6 +257,8 @@ Static Function/S displayNumericWaveTraceXY(Wave w)
 		endif
 	elseif (mode == 2)
 		AppendToGraph/W=$grfName w[%y][] vs w[%x][]
+	elseif (mode == 3)
+		AppendToGraph/W=$grfName w[%ycenter][] vs w[%xcenter][]
 	endif
 
 	int hasmarker = FindDimLabel(w,0,"marker")!=-2
