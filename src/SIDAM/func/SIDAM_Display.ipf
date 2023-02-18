@@ -146,15 +146,18 @@ Static Function/S mainMenuItem(int mode, String shortCutStr)
 		prefix = "("
 	endif
 
-	switch (mode)
-		case 0:
-			return prefix + "Display Selected Wave" + SelectString(n>1, "", "s") \
-				+ shortCutStr
-		case 1:
-			return prefix + "Display Selected Wave as 1d-traces" + shortCutStr
-		case 2:
-			return prefix + "Append Selected Wave as xy-trace" + shortCutStr
-	endswitch
+	String items = ""
+	#if IgorVersion() >= 9
+	items += "Selected Wave" + SelectString(n>1, "", "s") + ";"
+	items += "Selected Wave as 1d-traces;"
+	items += "Selected Wave as a xy-trace;"
+	#else
+	items += "Display Selected Wave" + SelectString(n>1, "", "s") + ";"
+	items +=	"Display Selected Wave as 1d-traces;"
+	items += "Append Selected Wave as a xy-trace;"
+	#endif
+
+	return prefix + StringFromList(mode,items) + shortCutStr
 End
 
 Static Function mainMenuDo()

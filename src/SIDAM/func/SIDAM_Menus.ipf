@@ -56,7 +56,20 @@ Menu "SIDAM", dynamic
 	End
 
 	"-"
-	
+End
+
+#if IgorVersion() >= 9
+Menu "SIDAM", dynamic
+	Submenu "Display..."
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
+		help = {"Display a wave(s)"}
+		
+		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
+		help = {"Show information bar at the top of image graph."}
+	End
+End
+#else
+Menu "SIDAM", dynamic
 	Submenu "Display..."
 		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
 		help = {"Display a wave(s)"}
@@ -70,7 +83,10 @@ Menu "SIDAM", dynamic
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
+End
+#endif
 
+Menu "SIDAM", dynamic	
 	"-"
 
 	Submenu "Config"
@@ -144,6 +160,21 @@ Static Function ctrlAction(STRUCT WMCustomControlAction &s)
 			break
 	endswitch
 End
+
+//******************************************************************************
+//	Definition of data browser menu
+//******************************************************************************
+#if IgorVersion() >= 9
+Menu "DataBrowserObjectsPopup", dynamic
+	Submenu "Display..."
+		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo()
+		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=1,history=1)
+	End
+	Submenu "Append..."
+		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay($GetBrowserSelection(0),traces=2,history=1)
+	End
+End
+#endif
 
 //******************************************************************************
 //	Definition of graph marquee menu
