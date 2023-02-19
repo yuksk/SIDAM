@@ -9,22 +9,27 @@
 #pragma hide = 1
 #endif
 
+Static StrConstant FUNCTION_NAMES = "asymGauss2D;asymLor2D"
+Static StrConstant TEMP_NAME = "SIDAMPeakPosTemp"
+Static Constant TEMP_CLR_R = 65535
+Static Constant TEMP_CLR_G = 0
+Static Constant TEMP_CLR_B = 52428
+
 //@
 //	Find a peak position by fitting.
 //
 //	## Parameters
 //	w : wave
-//		The input wave. If a marquee is shown, use the area specified
-//		by the marquee. If not, use the whole wave.
+//		The input wave. The whole wave is fit.
 //	fitfn : int {0 or 1}
 //		The fitting function.
-//		* 0: asymGauss2D
-//		* 1: asymLor2D
+//		* 0: asymmetric gauss2D
+//		* 1: asymmetric lorentz2D
 //
 //	## Returns
 //	wave
-//		A 1D numeric wave is saved in the datafolder where `w` is, and wave reference
-//		to the saved wave is returned.
+//		A 1D numeric wave is saved in the datafolder where the input wave is, and
+//		the wave reference to the saved wave is returned.
 //		The values of fitting results are given as follows.
 //		- offset : `wave[%offset]`
 //		- amplitude : `wave[%amplitude]`
@@ -33,43 +38,32 @@
 //		- peak angle : `wave[%angle]`
 //@
 Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
-	
-	Wave/Z mw = SIDAMGetMarquee()
-	if (!WaveExists(mw))
-		Duplicate/FREE w, tw
-	elseif (WaveDims(w)==3)
-		//	Use the displayed layer for a 3D wave
-		Duplicate/R=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]][SIDAMGetLayerIndex(WinName(0,1))]/FREE w, tw
-		Redimension/N=(-1,-1) tw
-	else
-		Duplicate/R=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]]/FREE w, tw
-	endif
-	
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
 	Variable V_FitError	
 	
 	//	Use Gauss2D to get initial values
-	CurveFit/M=2/W=2/N=1/Q Gauss2D, tw/D
-	AbortOnValue V_FitError, 21
+	CurveFit/M=2/W=2/N=1/Q Gauss2D, w/D
+	AbortOnValue V_FitError, V_FitError
 	Wave cw = W_coef
 	Make/D/N=9 initcoef = {cw[0],cw[1],cw[2],cw[4],cw[3],cw[3],cw[5],cw[5],0}
 
 	Variable fitResult = 0
-	Make/D angles = {pi/6, -pi/6}				//	initial angles
-	Make/D/N=(2,numpnts(angles)) results	//	[0][] = V_FitError, [1][] = V_chisq
-	Make/WAVE/N=(numpnts(angles)) ww			//	coef
-	ww = doFit(fitfn, initcoef, angles, tw, results, p)
-	
+	Make/D initangles = {pi/6, -pi/6}	
+	Make/D/N=(2,numpnts(initangles)) results		//	[0][] = V_FitError, [1][] = V_chisq
+	Make/WAVE/N=(numpnts(initangles)) ww			//	coef
+	Make/T T_constraint = {"K8 <= pi/4", "K8 >= -pi/4", "K4 > 0",\
+		"K5 > 0", "K6 > 0", "K7 > 0"}
+	ww = doFit(w, fitfn, initcoef, initangles, T_constraint, results, p)
+	SetDataFolder dfrSav
+		
 	//	Abort if all initial angles fail
-	Make/N=(numpnts(angles)) tw2
-	tw2 = results[0][p]
-	AbortOnValue WaveMin(tw2), 22
+	WaveStats/Q/M=1/RMD=[0][] results
+	AbortOnValue V_min, V_min
 	
 	//	Use the initial angle that gives the best result
-	tw2 = results[1][p]
-	WaveStats/Q/M=1 tw2
-	Wave coef = ww[V_minloc]
+	WaveStats/Q/M=1/RMD=[1][] results
+	Wave coef = ww[V_minColLoc]
 	
 	SetDimLabel 0, 0, offset, coef
 	SetDimLabel 0, 1, amplitude, coef
@@ -81,24 +75,17 @@ Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	SetDimLabel 0, 7, ywidthneg, coef
 	SetDimLabel 0, 8, angle, coef
 	
-	SetDataFolder dfrSav
 	return coef
 End
 
-Static Function/WAVE doFit(int fitfn,
-		Wave initcoef, Wave angle, Wave w, Wave results, int index)
+Static Function/WAVE doFit(Wave w, int fitfn, Wave initcoef, Wave initangle,
+	Wave/T constraint, Wave results, int index)
+
 	Duplicate/FREE initcoef, coef
-	coef[8] = angle[index]
+	coef[8] = initangle[index]
 	Variable V_FitError, V_chisq
-	Make/T/FREE T_constraint = {"K8 <= pi/4", "K8 >= -pi/4", "K4 > 0", "K5 > 0", "K6 > 0", "K7 > 0"}
-	switch (fitfn)
-		case 0:	//	asymmetric gauss2D
-			FuncFitMD/N=1/Q/W=2 SIDAMPeakPos#asymGauss2D coef w /D /C=T_constraint
-			break
-		case 1:	//	asymmetric lorentz2D
-			FuncFitMD/N=1/Q/W=2 SIDAMPeakPos#asymLor2D coef w /D /C=T_constraint
-			break
-	endswitch
+	String fnName = "SIDAMPeakPos#" + StringFromList(fitfn,FUNCTION_NAMES)
+	FuncFitMD/N=1/Q/W=2 $fnName coef w /D /C=constraint
 	results[0][index] = V_FitError
 	results[1][index] = V_chisq
 	return coef
@@ -107,48 +94,60 @@ End
 Static Function marqueeDo(int mode)
 	//	do fit
 	String grfName = WinName(0,1)
-	Wave iw = SIDAMImageNameToWaveRef(grfName)
+	Wave w = SIDAMImageNameToWaveRef(grfName)
+	Wave mw = SIDAMGetMarquee()
+	
 	try
-		Wave posw = SIDAMPeakPos(iw, mode)
+		Wave posw = SIDAMPeakPos(marqueeAreaWave(w, mw, grfName), mode)
 	catch
-		DoAlert 0, "Failed to fit "+num2istr(V_AbortCode)
+		informError(V_AbortCode)
 		return 0
 	endtry
 
-	//	display the fit result
-	DFREF dfrTmp = marqueeDoDisplayAttempt(grfName, posw)
+	DFREF dfrTmp = displayAttempt(grfName, posw)
 
-	//	zoom in the marquee area
 	STRUCT SIDAMAxisRange s
-	SIDAMGetAxis(grfName, NameOfWave(iw), s)
-	Wave mw = SIDAMGetMarquee()
-	SIDAMSetAxis(grfName, NameOfWave(iw), "X", mw[%x][0], mw[%x][1])
-	SIDAMSetAxis(grfName, NameOfWave(iw), "Y", mw[%y][0], mw[%y][1])
-	#if IgorVersion() >= 9
-	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],mw[%x][1],mw[%y][0]
-	#endif
-	DoUpdate/W=$grfName
+	zoomin(grfName, NameOfWave(w), mw, s)
+	String resultName = saveWave(posw, GetWavesDataFolderDFR(w))
+	if (strlen(resultName))
+		echo(w, mw, grfName, mode, resultName)
+	endif
 
-	//	save the result if requested
-	marqueeDoSaveWave(posw, GetWavesDataFolderDFR(iw))
-
-	//	set the axes back to the original ranges
-	SIDAMSetAxis(grfName, NameOfWave(iw), "X", \
-		s.x.min.auto ? NaN : s.x.min.value, s.x.max.auto ? NaN : s.x.max.value)
-	SIDAMSetAxis(grfName, NameOfWave(iw), "Y", \
-		s.y.min.auto ? NaN : s.y.min.value, s.y.max.auto ? NaN : s.y.max.value)
-	#if IgorVersion() >= 9
-	DoUpdate/W=$grfName
-	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],mw[%x][1],mw[%y][0]
-	#endif
-
-	//	remove the fit result
-	marqueeDoRemoveAttempt(grfName, dfrTmp)
+	revertRange(grfName, NameOfWave(w), mw, s)
+	removeAttempt(grfName, dfrTmp)
 End
 
-Static StrConstant ATTEMPTNAME = "SIDAMPeakPosAttempt"
+Static Function informError(int code)
+	String msg = "Failed to fit: "
+	if (code & 2^1)
+		DoAlert 0, msg + "Singular matrix"
+	endif
+	if (code & 2^2)
+		DoAlert 0, msg + "Out of memory"
+	endif
+	if (code & 2^3)
+		DoAlert 0, msg + "Function returned NaN or INF"
+	endif
+	if (code & 2^4)
+		DoAlert 0, msg + "Fit function requested stop"
+	endif
+	if (code & 2^5)
+		DoAlert 0, msg + "Reentrant curve fitting"
+	endif
+End
 
-Static Function/DF marqueeDoDisplayAttempt(String grfName, Wave posw)
+Static Function/WAVE marqueeAreaWave(Wave w, Wave mw, String grfName)
+	if (WaveDims(w)==3)
+		//	Use the displayed layer for a 3D wave
+		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]][SIDAMGetLayerIndex(grfName)]/FREE w, tw
+		Redimension/N=(-1,-1) tw
+	else
+		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]]/FREE w, tw
+	endif
+	return tw
+End
+
+Static Function/DF displayAttempt(String grfName, Wave posw)
 	DFREF dfrSav = GetDataFolderDFR()
 	DFREF dfrTmp = $SIDAMNewDF(StringFromList(0, grfName, "#"),"PeakPos")
 
@@ -160,20 +159,47 @@ Static Function/DF marqueeDoDisplayAttempt(String grfName, Wave posw)
 
 	xw2 = xw*cos(posw[%angle]) - yw*sin(posw[%angle]) + posw[%xcenter]
 	yw2 = xw*sin(posw[%angle]) + yw*cos(posw[%angle]) + posw[%ycenter]
-	AppendToGraph/W=$grfName yw2/TN=$ATTEMPTNAME vs xw2
-	ModifyGraph/W=$grfName mode($ATTEMPTNAME)=0, mrkThick($ATTEMPTNAME)=1
-	ModifyGraph/W=$grfName rgb($ATTEMPTNAME)=(65535,0,52428)
+	AppendToGraph/W=$grfName yw2/TN=$TEMP_NAME vs xw2
+	ModifyGraph/W=$grfName mode($TEMP_NAME)=0, mrkThick($TEMP_NAME)=1
+	ModifyGraph/W=$grfName rgb($TEMP_NAME)=(TEMP_CLR_R,TEMP_CLR_G,TEMP_CLR_B)
 	
 	return dfrTmp
 End
 
-Static Function marqueeDoRemoveAttempt(String grfName, DFREF dfrTmp)
-	RemoveFromGraph/W=$grfName $ATTEMPTNAME
+Static Function removeAttempt(String grfName, DFREF dfrTmp)
+	RemoveFromGraph/W=$grfName $TEMP_NAME
 	DoUpdate/W=$grfName
 	SIDAMKillDataFolder(dfrTmp)
 End
 
-Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
+Static Function zoomin(String grfName, String wname, Wave mw,
+	STRUCT SIDAMAxisRange &s)
+
+	SIDAMGetAxis(grfName, wname, s)
+	SIDAMSetAxis(grfName, wname, "X", mw[%x][0], mw[%x][1])
+	SIDAMSetAxis(grfName, wname, "Y", mw[%y][0], mw[%y][1])
+	#if IgorVersion() >= 9
+	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],\
+		mw[%x][1],mw[%y][0]
+	#endif
+	DoUpdate/W=$grfName
+End
+
+Static Function revertRange(String grfName, String wname, Wave mw,
+	STRUCT SIDAMAxisRange &s)
+	
+	SIDAMSetAxis(grfName, wname, "X", \
+		s.x.min.auto ? NaN : s.x.min.value, s.x.max.auto ? NaN : s.x.max.value)
+	SIDAMSetAxis(grfName, wname, "Y", \
+		s.y.min.auto ? NaN : s.y.min.value, s.y.max.auto ? NaN : s.y.max.value)
+	#if IgorVersion() >= 9
+	DoUpdate/W=$grfName
+	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],\
+		mw[%x][1],mw[%y][0]
+	#endif
+End
+
+Static Function/S saveWave(Wave posw, DFREF dfr)
 	//	Confirm whether saving the result
 	String msg
 	sprintf msg, "Position: (%g, %g)\rx width: (%g, %g)\ry width: (%g, %g)\r" \
@@ -182,7 +208,7 @@ Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
 		posw[%ywidthneg], posw[%ywidthpos], posw[%angle]/pi*180
 	DoAlert 1, msg
 	if (V_flag == 2)		//	no is selected
-		return 0
+		return ""
 	endif
 
 	//	Enter a basename
@@ -190,7 +216,7 @@ Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
 	Prompt basename, "Enter a basename:"
 	DoPrompt "Enter a basename", basename
 	if (V_Flag)	// User canceled
-		return 0
+		return ""
 	endif
 
 	//	Save the result as a wave
@@ -206,6 +232,29 @@ Static Function marqueeDoSaveWave(Wave posw, DFREF dfr)
 	#endif
 	sprintf msg, "The result is saved at %s", GetDataFolder(1, dfr)+name
 	DoAlert 0, msg
+	
+	return name
+End
+
+Static Function echo(Wave w, Wave mw, String grfName, int fitfn, String resultName)
+	String newName = UniqueName(TEMP_NAME, 1, 0)
+	String cmdStr, rmdStr
+
+	if (WaveDims(w)==3)
+		sprintf rmdStr, "[%d,%d][%d,%d][%d]", mw[%p][0], mw[%p][1], mw[%q][0], mw[%q][1], SIDAMGetLayerIndex(grfName)
+	else
+		sprintf rmdStr, "[%d,%d][%d,%d]", mw[%p][0], mw[%p][1], mw[%q][0], mw[%q][1]
+	endif
+	sprintf cmdStr, "%sDuplicate/R=%s %s %s\r", PRESTR_CMD, rmdStr, GetWavesDataFolder(w,2), newName
+	
+	if (WaveDims(w)==3)
+		sprintf cmdStr, "%s%sRedimension/N=(-1,-1) %s\r", cmdStr, PRESTR_CMD, newName
+	endif
+	
+	sprintf cmdStr, "%s%sDuplicate SIDAMPeakPos(%s, %d) %s%s\r", cmdStr, PRESTR_CMD, newName, \
+		fitfn, GetWavesDataFolder(w,1), resultName
+	sprintf cmdStr, "%s%sKillWaves %s\r", cmdStr, PRESTR_CMD, newName
+	print cmdStr
 End
 
 
