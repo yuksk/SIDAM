@@ -41,10 +41,14 @@ Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	DFREF dfrSav = GetDataFolderDFR()
 	SetDataFolder NewFreeDataFolder()
 	Variable V_FitError	
-	
+
 	//	Use Gauss2D to get initial values
 	CurveFit/M=2/W=2/N=1/Q Gauss2D, w/D
-	AbortOnValue V_FitError, V_FitError
+	if (V_FitError)
+		SetDataFolder dfrSav
+		AbortOnValue V_FitError, V_FitError
+	endif
+
 	Wave cw = W_coef
 	Make/D/N=9 initcoef = {cw[0],cw[1],cw[2],cw[4],cw[3],cw[3],cw[5],cw[5],0}
 
@@ -55,12 +59,14 @@ Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	Make/T T_constraint = {"K8 <= pi/4", "K8 >= -pi/4", "K4 > 0",\
 		"K5 > 0", "K6 > 0", "K7 > 0"}
 	ww = doFit(w, fitfn, initcoef, initangles, T_constraint, results, p)
-	SetDataFolder dfrSav
-		
+
 	//	Abort if all initial angles fail
 	WaveStats/Q/M=1/RMD=[0][] results
-	AbortOnValue V_min, V_min
-	
+	if (V_min)
+		SetDataFolder dfrSav
+		AbortOnValue V_min, V_min
+	endif
+
 	//	Use the initial angle that gives the best result
 	WaveStats/Q/M=1/RMD=[1][] results
 	Wave coef = ww[V_minColLoc]
@@ -75,6 +81,7 @@ Function/WAVE SIDAMPeakPos(Wave w, int fitfn)
 	SetDimLabel 0, 7, ywidthneg, coef
 	SetDimLabel 0, 8, angle, coef
 	
+	SetDataFolder dfrSav
 	return coef
 End
 
