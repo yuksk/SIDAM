@@ -103,9 +103,8 @@ Static Function marqueeDo(int mode)
 	String grfName = WinName(0,1)
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	Wave mw = SIDAMGetMarquee()
-	
 	try
-		Wave posw = SIDAMPeakPos(marqueeAreaWave(w, mw, grfName), mode)
+		Wave posw = SIDAMPeakPos(SIDAMGetMarqueeAreaWave(w, grfName), mode)
 	catch
 		informError(V_AbortCode)
 		return 0
@@ -141,17 +140,6 @@ Static Function informError(int code)
 	if (code & 2^5)
 		DoAlert 0, msg + "Reentrant curve fitting"
 	endif
-End
-
-Static Function/WAVE marqueeAreaWave(Wave w, Wave mw, String grfName)
-	if (WaveDims(w)==3)
-		//	Use the displayed layer for a 3D wave
-		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]][SIDAMGetLayerIndex(grfName)]/FREE w, tw
-		Redimension/N=(-1,-1) tw
-	else
-		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]]/FREE w, tw
-	endif
-	return tw
 End
 
 Static Function/DF displayAttempt(String grfName, Wave posw)

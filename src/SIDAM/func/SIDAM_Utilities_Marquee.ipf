@@ -1,6 +1,8 @@
 ﻿#pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3
 
+#include "SIDAM_Utilities_Image"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -31,5 +33,28 @@ Function/WAVE SIDAMGetMarquee()
 	SetDimLabel 0, 1, q, rtnw
 	SetDimLabel 0, 2, x, rtnw
 	SetDimLabel 0, 3, y, rtnw
+	return rtnw
+End
+
+//******************************************************************************
+//	Return a wave of the area enclosed by the marquee
+//******************************************************************************
+Function/WAVE SIDAMGetMarqueeAreaWave(Wave/Z w, String grfName)
+	if (!WaveExists(w))
+		return $""
+	endif
+
+	Wave/Z mw = SIDAMGetMarquee()
+	if (!WaveExists(mw))
+		return $""
+	endif
+
+	if (WaveDims(w)==3)
+		//	Use the displayed layer for a 3D wave
+		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]][SIDAMGetLayerIndex(grfName)]/FREE w, rtnw
+		Redimension/N=(-1,-1) rtnw
+	else
+		Duplicate/RMD=[mw[%p][0],mw[%p][1]][mw[%q][0],mw[%q][1]]/FREE w, rtnw
+	endif
 	return rtnw
 End

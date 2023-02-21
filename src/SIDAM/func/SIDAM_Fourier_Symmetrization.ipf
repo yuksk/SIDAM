@@ -9,6 +9,7 @@
 #include "SIDAM_PeakPos"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Mouse"
+#include "SIDAM_Utilities_Marquee"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Wave"
 
@@ -380,12 +381,12 @@ Static Function marqueeDo()
 	
 	//	Get the peak position
 	String grfName = WinName(0,1)
-	Wave iw = SIDAMImageNameToWaveRef(grfName)
-	Wave posw = SIDAMPeakPos(iw, 1)	//	asymmetric Lorentz2D	
+	Wave w = SIDAMImageNameToWaveRef(grfName)
+	Wave posw = SIDAMPeakPos(SIDAMGetMarqueeAreaWave(w, grfName), 1)	//	asymmetric Lorentz2D	
 
 	//	Pass the position to the panel
-	Variable cp = (posw[2]-DimOffset(iw,0))/DimDelta(iw,0)
-	Variable cq = (posw[3]-DimOffset(iw,1))/DimDelta(iw,1)
+	Variable cp = (posw[%xcenter]-DimOffset(w,0))/DimDelta(w,0)
+	Variable cq = (posw[%ycenter]-DimOffset(w,1))/DimDelta(w,1)
 	String pnlName = GetUserData(grfName, "", KEY)
 	pnlPutNumbers(pnlName, vec, {cp,cq})
 End
