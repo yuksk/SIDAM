@@ -120,9 +120,12 @@ End
 Static StrConstant SUFFIX = "_rot"
 
 Static Function pnl(Wave w, String grfName)
-
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,115)/N=Rotation
 	String pnlName = grfName+"#Rotation"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,115)/N=Rotation
 	SetWindow $pnlName hook(self)=SIDAMUtilPanel#SIDAMWindowHookClose
 	
 	SetVariable sourceV title="source wave:", pos={4,3}, size={312,18}, win=$pnlName

@@ -286,8 +286,9 @@ End
 //	Show the main panel
 //******************************************************************************
 Static Function pnl(String grfName, String imgName)
-	if (SIDAMWindowExists(GetUserData(grfName,"",KEY)))
-		DoWindow/F $GetUserData(grfName,"",KEY)
+	String pnlName = StringFromList(0,GetUserData(grfName,"",KEY),"=")
+	if (SIDAMWindowExists(pnlName))
+		DoWindow/F $pnlName
 		return 0
 	endif
 
@@ -303,7 +304,7 @@ Static Function pnl(String grfName, String imgName)
 	int i
 
 	NewPanel/K=1/W=(0,0,288,340) as "Line Profile"
-	String pnlName = S_name
+	pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
 
 	SetWindow $grfName hook($KEY)=SIDAMLineProfile#pnlHookParent

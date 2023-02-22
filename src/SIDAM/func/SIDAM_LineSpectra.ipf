@@ -380,8 +380,9 @@ End
 //	Show the main panel
 //******************************************************************************
 Static Function pnl(String LVName)
-	if (SIDAMWindowExists(GetUserData(LVName,"",KEY)))
-		DoWindow/F $GetUserData(LVName,"",KEY)
+	String pnlName = StringFromList(0,GetUserData(LVName,"",KEY),"=")
+	if (SIDAMWindowExists(pnlName))
+		DoWindow/F $pnlName
 		return 0
 	endif
 
@@ -389,7 +390,7 @@ Static Function pnl(String LVName)
 	int i
 
 	NewPanel/K=1/W=(0,0,288,340) as NameOfWave(w)
-	String pnlName = S_name
+	pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName
 
 	DFREF dfrSav = GetDataFolderDFR()

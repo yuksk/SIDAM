@@ -19,10 +19,14 @@ Function SIDAMShowParameters()
 		return 0
 	endif
 
+	String pnlName = "properties"
+	if (SIDAMWindowExists(grfName+"#"+pnlName))
+		return 0
+	endif
+		
 	//	A notebook can not be a subwindow of a graph. Therefore, create a new panel
 	//	as a subwindow of a graph, and create a notebook as a subwindow of the panel.
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,10,10) as "properties"	//	the size is temporary
-	String pnlName = S_name
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,10,10)/N=$pnlName as "properties"	//	the size is temporary
 	ModifyPanel/W=$grfName#$pnlName fixedSize=0
 
 	String nbName = "nb", fullName = grfName+"#"+pnlName+"#"+nbName

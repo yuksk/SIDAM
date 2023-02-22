@@ -252,8 +252,12 @@ End
 //	Display a panel
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,340,220)/N=Histogram
 	String pnlName = grfName + "#Histogram"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,340,220)/N=Histogram
 	SetWindow $pnlName userData(grf)=grfName
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	

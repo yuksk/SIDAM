@@ -414,12 +414,11 @@ End
 //	show panel
 //******************************************************************************
 Static Function pnl(String grfName)
-	if (SIDAMWindowExists(grfName+"#Scalebar"))
+	String pnlName = grfName + "#Scalebar"
+	if (SIDAMWindowExists(pnlName))
 		return 0
 	endif
-	
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,135,270)/N=Scalebar as "Scale bar"
-	String pnlName = grfName + "#Scalebar"
 	
 	String settingStr = GetUserData(grfName,"",NAME), anchor
 	Variable opacity

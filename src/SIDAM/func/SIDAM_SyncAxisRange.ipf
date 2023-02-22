@@ -129,9 +129,11 @@ Static Function/S topName(String grfName)
 End
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,235) as "Syncronize Axis Range"
-	RenameWindow $grfName#$S_name, syncaxisrange
 	String pnlName = grfName + "#syncaxisrange"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,235)/N=syncaxisrange as "Syncronize Axis Range"
 	
 	String dfTmp = SIDAMSync#pnlInit(pnlName, SYNCKEY)
 	

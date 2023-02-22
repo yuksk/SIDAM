@@ -149,9 +149,11 @@ End
 
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,255) as "Synchronize cursors"
-	RenameWindow $grfName#$S_name, synccursor
 	String pnlName = grfName + "#synccursor"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,282,255)/N=synccursor as "Synchronize cursors"
 	
 	String dfTmp = SIDAMSync#pnlInit(pnlName, SYNCKEY)
 	

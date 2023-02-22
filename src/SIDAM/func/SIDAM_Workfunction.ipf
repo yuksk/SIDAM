@@ -301,16 +301,17 @@ Static Constant PNLWIDTH = 315
 Static Constant PNLHEIGHT = 175
 Static Function pnl()
 	String grfName = WinName(0,1)
-
+	String pnlName = StringFromList(0, grfName, "#") + "#WorkFunction"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=WorkFunction
+	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
+	
 	Wave/Z w = SIDAMImageNameToWaveRef(grfName)	//	for a 3D wave
 	if (!WaveExists(w))		//	for a 1D wave
 		Wave w = TraceNameToWaveRef(grfName,StringFromList(0,TraceNameList(grfName,";",1)))
 	endif
-
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=WorkFunction
-	String pnlName = StringFromList(0, grfName, "#") + "#WorkFunction"
-
-	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 	int dim = WaveDims(w)
 
 	SetVariable sourceV title="source wave: ", pos={6,6}, size={300,18}, win=$pnlName

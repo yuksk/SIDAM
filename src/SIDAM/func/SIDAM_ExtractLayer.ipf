@@ -35,18 +35,15 @@ End
 //	Panel
 //-------------------------------------------------------------
 Static Function pnl(String grfName)
-	
-	if (SIDAMWindowExists(grfName+"#ExtractLayers"))
+	String pnlName = grfName + "#ExtractLayers"	
+	if (SIDAMWindowExists(pnlName))
 		return 0
 	endif
 	
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	int plane = SIDAMGetLayerIndex(grfName)
 
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,290,195)
-	RenameWindow $grfName#$S_name, ExtractLayers
-	String pnlName = grfName + "#ExtractLayers"
-
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,290,195)/N=ExtractLayers
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
 
 	GroupBox layer0G title="Layer", pos={11,4}, size={268,70}, win=$pnlName

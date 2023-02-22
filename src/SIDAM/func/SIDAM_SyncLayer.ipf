@@ -121,9 +121,11 @@ End
 
 
 Static Function pnl(String LVName)
-	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,235) as "Syncronize Layers"
-	RenameWindow $LVName#$S_name, synclayer
 	String pnlName = LVName + "#synclayer"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif	
+	NewPanel/HOST=$LVName/EXT=0/W=(0,0,282,235)/N=synclayer as "Syncronize Layers"
 	
 	String dfTmp = SIDAMSync#pnlInit(pnlName, SYNCKEY)
 	

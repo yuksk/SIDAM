@@ -58,9 +58,12 @@ Static Constant PNLOFFSET = 130
 Static StrConstant PNAME = "PositionRecorder"
 
 Static Function pnl(String grfName)
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
 	String pnlName = grfName + "#" + PNAME
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
 
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,PNLWIDTH,PNLHEIGHT)/N=$PNAME
 	SetWindow $pnlName hook(self)=SIDAMPositionRecorder#pnlHook, activeChildFrame=0
 
 	GroupBox posG title="position wave", pos={8,2}, size={220,75}, win=$pnlName

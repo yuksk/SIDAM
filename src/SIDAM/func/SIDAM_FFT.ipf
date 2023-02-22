@@ -279,10 +279,13 @@ End
 //	Show a panel
 //******************************************************************************
 Static Function pnl(String grfName)
-
+	String pnlName = grfName+ "#FFT"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,300,400)/N=FFT
-	String pnlName = grfName+ "#FFT"
 
 	String dfTmp = SIDAMNewDF(pnlName,"FFTPnl")
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose

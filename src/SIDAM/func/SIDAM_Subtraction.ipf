@@ -261,9 +261,12 @@ End
 //	Panel
 //******************************************************************************
 Static Function pnl(Wave w, String grfName)
-
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,205)/N=Subtraction
 	String pnlName = grfName+"#Subtraction"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+	
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,328,205)/N=Subtraction
 
 	int isComplex = (WaveType(w) & 0x01)
 	int is2D = (WaveDims(w) == 2)

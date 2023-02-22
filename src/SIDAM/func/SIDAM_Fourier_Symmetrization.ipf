@@ -411,8 +411,12 @@ Static StrConstant SUFFIX = "_sym"
 Static StrConstant KEY = "SIDAMFourierSymPnl"
 
 Static Function pnl(Wave w, String grfName)
-	NewPanel/EXT=0/HOST=$grfName/W=(0,0,355,255)/N=Symmetrize
 	String pnlName = grfName+ "#Symmetrize"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+
+	NewPanel/EXT=0/HOST=$grfName/W=(0,0,355,255)/N=Symmetrize
 	SetWindow $pnlName hook(self)=SIDAMFourierSym#pnlHook
 	SetWindow $grfName hook($KEY)=SIDAMFourierSym#pnlHookParent, userData($KEY)=pnlName
 	

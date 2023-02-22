@@ -360,14 +360,12 @@ End
 //-------------------------------------------------------------
 Static StrConstant PNAME = "SIDAM_LA"
 Static Function pnl(String grfName)
-	
-	if (SIDAMWindowExists(grfName+"#"+PNAME))
+	String pnlName = grfName + "#" + PNAME
+	if (SIDAMWindowExists(pnlName))
 		return 0
 	endif
-	
+
 	NewPanel/HOST=$grfName/EXT=0/W=(0,0,255,230)/N=$PNAME as "Layer annotation"
-	String pnlName = grfName + "#" + PNAME
-	
 	SetWindow $pnlName hook(self)=SIDAMLayerAnnotation#pnlHook
 	
 	PopupMenu imageP title="image", pos={6,8}, size={240,19}, bodyWidth=205\

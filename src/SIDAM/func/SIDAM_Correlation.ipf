@@ -164,8 +164,12 @@ End
 Static StrConstant SUFFIX = "_Corr"
 
 Static Function pnl(Wave w, String grfName)
+	String pnlName = grfName+ "#Correlation"
+	if (SIDAMWindowExists(pnlName))
+		return 0
+	endif
+
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,320,180)/N=Correlation
-	String pnlName = grfName+ "#Correlation"	
 
 	String dfTmp = SIDAMNewDF(pnlName,"CorrelationPnl")
 	SetWindow $pnlName hook(self)=SIDAMCorrelation#pnlHook
