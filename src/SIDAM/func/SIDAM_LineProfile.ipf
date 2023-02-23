@@ -10,6 +10,7 @@
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_DataFolder"
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_misc"
 #include "SIDAM_Utilities_Window"
 
 #ifndef SIDAMshowProc
@@ -478,7 +479,16 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 
 	String pnlName = StringFromList(0,GetUserData(s.winName,"",KEY),"=")
 	switch (s.eventCode)
+		case 0:	// activate
+			SIDAMDisableIgorMenuItems()
+			return 0
+			
+		case 1:	// deactivate
+			SIDAMEnableIgorMenuItems()
+			return 0
+			
 		case 2:	//	kill
+			SIDAMEnableIgorMenuItems()
 			KillWindow/Z $pnlName
 			return 0
 

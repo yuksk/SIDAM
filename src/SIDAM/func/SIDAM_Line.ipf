@@ -90,7 +90,7 @@ Static Function pnlCtrls(String pnlName, String menuName)
 	
 	SetWindow $pnlName activeChildFrame=0
 
-	changeIgorMenuMode(0)
+	SIDAMDisableIgorMenuItems(count=2)	//	an deactivation event of the parent window will be called
 End
 
 //	Draw the gray background for the controls of waterfall
@@ -124,19 +124,6 @@ Static Function pnlChangeDim(String pnlName, int dim)
 	TitleBox waterT disable=hideLine, win=$pnlName
 	SetVariable axlenV disable=hideLine, win=$pnlName
 	CheckBox hiddenC disable=hideLine, win=$pnlName
-End
-
-//	Change the menu mode of Igor
-Static Function changeIgorMenuMode(int mode)
-	if (mode)
-		SetIgorMenuMode "File", "Save Graphics", EnableItem
-		SetIgorMenuMode "Edit", "Export Graphics", EnableItem
-		SetIgorMenuMode "Edit", "Copy", EnableItem
-	else
-		SetIgorMenuMode "File", "Save Graphics", DisableItem
-		SetIgorMenuMode "Edit", "Export Graphics", DisableItem
-		SetIgorMenuMode "Edit", "Copy", DisableItem
-	endif
 End
 
 //	Checkbox
@@ -293,21 +280,21 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			for (i = 0, n = ItemsInList(parentList); i < n; i++)
 				if (SIDAMWindowExists(StringFromList(i,parentList)))
 					pnlSetVarIncrement(s.winName)
-					changeIgorMenuMode(0)
+					SIDAMDisableIgorMenuItems()
 					return 0
 				endif
 			endfor
 			SIDAMKillDataFolder($GetUserData(s.winName,"","dfTmp"))
 			KillWindow $s.winName
-			changeIgorMenuMode(1)
+			SIDAMEnableIgorMenuItems()
 			return 0
 
 		case 1:	//	deactivate
-			changeIgorMenuMode(1)
+			SIDAMEnableIgorMenuItems()
 			return 0
 
 		case 2:	//	kill
-			changeIgorMenuMode(1)
+			SIDAMEnableIgorMenuItems()
 			//	Removing the hook function of the parent window (the parent hook function)
 			//	will be done by itself because it will detect this panel is closed.
 			//	Similarly, SIDAMKillDataFolder below also can be done by the parent hook
@@ -379,7 +366,7 @@ Static Function pnlHookKeyboard(STRUCT WMWinHookStruct &s)
 
 	switch (s.keycode)
 		case 27:	//	esc
-			changeIgorMenuMode(1)
+			SIDAMEnableIgorMenuItems()
 			SIDAMKillDataFolder($GetUserData(pnlName,"","dfTmp"))
 			KillWindow $pnlName
 			return 0

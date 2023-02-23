@@ -568,7 +568,16 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	endif
 
 	switch (s.eventCode)
+		case 0:	// activate
+			SIDAMDisableIgorMenuItems()
+			return 0
+			
+		case 1:	// deactivate
+			SIDAMEnableIgorMenuItems()
+			return 0
+		
 		case 2:	//	kill
+			SIDAMEnableIgorMenuItems()
 			pnlList = GetUserData(s.winName,"",KEY)
 			for (i = 0, n = ItemsInList(pnlList); i < n; i++)
 				KillWindow/Z $StringFromList(0,StringFromList(i,pnlList),"=")

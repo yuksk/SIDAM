@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMUtilMisc
 
+#include "SIDAM_Preference"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -144,3 +146,32 @@ Static Function movedf(String name)
 	return 0
 End
 
+//------------------------------------------------------------------------------
+//	Enable and disable some Igor menus
+//------------------------------------------------------------------------------
+Function SIDAMEnableIgorMenuItems()
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
+	prefs.disable = prefs.disable - 1
+	if (prefs.disable > 0)
+		SIDAMSavePrefs(prefs)
+		return 0
+	endif
+	SetIgorMenuMode "File", "Save Graphics", EnableItem
+	SetIgorMenuMode "Edit", "Export Graphics", EnableItem
+	SetIgorMenuMode "Edit", "Copy", EnableItem
+	prefs.disable = 0
+	SIDAMSavePrefs(prefs)
+End
+
+Function SIDAMDisableIgorMenuItems([int count])
+	count = ParamIsDefault(count) ? 1 : count
+	
+	STRUCT SIDAMPrefs prefs
+	SIDAMLoadPrefs(prefs)
+	prefs.disable = prefs.disable + count
+	SIDAMSavePrefs(prefs)
+	SetIgorMenuMode "File", "Save Graphics", DisableItem
+	SetIgorMenuMode "Edit", "Export Graphics", DisableItem
+	SetIgorMenuMode "Edit", "Copy", DisableItem
+End

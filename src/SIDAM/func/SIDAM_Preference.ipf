@@ -9,7 +9,7 @@
 Static StrConstant PACKAGE = "SIDAM"
 Static StrConstant FILENAME = "SIDAM.bin"
 Static Constant ID = 0
-Static Constant VERSION = 18
+Static Constant VERSION = 19
 
 
 //	Preference structure
@@ -19,6 +19,7 @@ Structure SIDAMPrefs
 	uint32		version
 	uchar		fourier[3]
 	uchar		color
+	int32		disable
 	double		last
 EndStructure
 
@@ -70,6 +71,17 @@ End
 //	Backward compatibility
 Static Function inheritValues(STRUCT SIDAMPrefs &prefs)
 
+	STRUCT SIDAMPrefs18 prefs18
+	LoadPackagePreferences/MIS=1 PACKAGE, FILENAME, ID, prefs18
+	if (!V_flag && V_bytesRead && prefs18.version == 18)
+		prefs.fourier[0] = prefs18.fourier[0]
+		prefs.fourier[1] = prefs18.fourier[1]
+		prefs.fourier[2] = prefs18.fourier[2]
+		prefs.color = prefs18.color
+		prefs.last = prefs18.last
+		return 1
+	endif
+	
 	STRUCT SIDAMPrefs17 prefs17
 	LoadPackagePreferences/MIS=1 PACKAGE, FILENAME, ID, prefs17
 	if (!V_flag && V_bytesRead && prefs17.version == 17)
@@ -92,6 +104,13 @@ Static Function inheritValues(STRUCT SIDAMPrefs &prefs)
 	
 	return 0
 End
+
+Structure SIDAMPrefs18
+	uint32		version
+	uchar		fourier[3]
+	uchar		color
+	double		last
+EndStructure
 
 Structure SIDAMPrefs17
 	uint32		version
