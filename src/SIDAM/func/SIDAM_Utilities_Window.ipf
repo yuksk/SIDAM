@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMUtilPanel
 
-#include "SIDAM_Utilities_Df"
+#include "SIDAM_Utilities_DataFolder"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
