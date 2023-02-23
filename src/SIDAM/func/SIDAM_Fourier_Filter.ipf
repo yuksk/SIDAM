@@ -301,6 +301,7 @@ Static Function pnl(Wave w, String grfName)
 	NewPanel/W=(0,0,730,380)/K=1 as "Fourier filter"
 	String pnlName = S_name	
 	AutoPositionWindow/E/M=0/R=$grfName $pnlName
+	ModifyPanel/W=$pnlName fixedSize=1
 
 	String dfTmp = pnlInit(pnlName, w)
 	SetWindow $pnlName hook(self)=SIDAMFourierFilter#pnlHook
