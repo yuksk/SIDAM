@@ -7,7 +7,6 @@
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Utilities_Wave"
 #include "SIDAM_Utilities_Window"
-#include "SIDAM_Compatibility_ScaleBar"	//	backward compatibility
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -372,7 +371,6 @@ End
 Static Function deleteBar(String grfName)
 	stopUpdateBar(grfName)
 	DrawAction/L=ProgFront/W=$grfName getgroup=$NAME, delete
-	KMScaleBar#deleteBar(grfName)	//	backward compatibility
 End
 
 Static Function stopUpdateBar(String grfName)
