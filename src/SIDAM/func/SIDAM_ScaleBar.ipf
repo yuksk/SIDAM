@@ -5,6 +5,7 @@
 #include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
 #include "SIDAM_Utilities_Image"
+#include "SIDAM_Utilities_Wave"
 #include "SIDAM_Utilities_Window"
 #include "SIDAM_Compatibility_ScaleBar"	//	backward compatibility
 
@@ -64,7 +65,9 @@ Function SIDAMScalebar([String grfName, String anchor, int size,
 	s.overwrite[2] = !ParamIsDefault(fgRGBA)
 	s.overwrite[3] = !ParamIsDefault(bgRGBA)
 	s.overwrite[4] = !ParamIsDefault(prefix)
-	initializeParamStruct(s, grfName, anchor, size, fgRGBA, bgRGBA, prefix)
+	if (initializeParamStruct(s, grfName, anchor, size, fgRGBA, bgRGBA, prefix))
+		return 0
+	endif
 
 	//	If the anchor is empty, delete the scale bar
 	if (!s.anchor[0] && !s.anchor[1])
@@ -117,14 +120,8 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 		s.anchor[0] = char2num(DEFAULT_ANCHOR[0])
 		s.anchor[1] = char2num(DEFAULT_ANCHOR[1])
 		s.fontsize = DEFAULT_SIZE
-		s.fgRGBA.red = DEFAULT_FC
-		s.fgRGBA.green = DEFAULT_FC
-		s.fgRGBA.blue = DEFAULT_FC
-		s.fgRGBA.alpha = DEFAULT_FA
-		s.bgRGBA.red = DEFAULT_BC
-		s.bgRGBA.green = DEFAULT_BC
-		s.bgRGBA.blue = DEFAULT_BC
-		s.bgRGBA.alpha = DEFAULT_BA
+		WaveToRGBAColor({DEFAULT_FC,DEFAULT_FC,DEFAULT_FC,DEFAULT_FA}, s.fgRGBA)
+		WaveToRGBAColor({DEFAULT_BC,DEFAULT_BC,DEFAULT_BC,DEFAULT_BA}, s.bgRGBA)
 		s.prefix = DEFAULT_PREFIX
 	endif
 
@@ -141,16 +138,10 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 
 	try
 		if (overwrite[2])
-			s.fgRGBA.red = fgRGBA[0]; 	AbortOnRTE
-			s.fgRGBA.green = fgRGBA[1];	AbortOnRTE
-			s.fgRGBA.blue = fgRGBA[2];	AbortOnRTE
-			s.fgRGBA.alpha = numpnts(fgRGBA)>3 ? fgRGBA[3] : 65535
+			WaveToRGBAColor(fgRGBA, s.fgRGBA)
 		endif
 		if (overwrite[3])
-			s.bgRGBA.red = bgRGBA[0]; 	AbortOnRTE
-			s.bgRGBA.green = bgRGBA[1];	AbortOnRTE
-			s.bgRGBA.blue = bgRGBA[2]; 	AbortOnRTE
-			s.bgRGBA.alpha = numpnts(bgRGBA)>3 ? bgRGBA[3] : 65535
+			WaveToRGBAColor(bgRGBA, s.bgRGBA)
 		endif
 	catch
 		Variable err = GetRTError(1)
@@ -165,12 +156,23 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 			default:
 				print msg + "error code ("+num2str(err)+")"
 		endswitch
-		return 0
+		return 1
 	endtry
 	
 	if (overwrite[4])
 		s.prefix = prefix
 	endif
+	
+	return 0
+End
+
+Static Function/WAVE RGBAColorToWave(STRUCT RGBAColor &s)
+	Make/W/U/N=4/FREE w = {s.red, s.green, s.blue, s.alpha}
+	return w
+End
+
+Static Function WaveToRGBAColor(Wave w, STRUCT RGBAColor &s)
+	s.red = w[0]; s.green = w[1]; s.blue = w[2]; s.alpha = w[3]; AbortOnRTE
 End
 
 Static Structure paramStruct
@@ -252,31 +254,6 @@ Static Function isClickedInside(STRUCT RectF &box, STRUCT WMWinHookStruct &s)
 	Variable y0 = V_top+(V_bottom-V_top)*box.top
 	Variable y1 = V_top+(V_bottom-V_top)*box.bottom
 	return (x0 < s.mouseLoc.h && s.mouseLoc.h < x1 && y0 < s.mouseLoc.v && s.mouseLoc.v < y1)
-End
-
-Static Function echo(String grfName, STRUCT paramStruct &s)
-	String paramStr = "grfName=\"" + grfName + "\""
-	
-	if (!s.anchor[0] && !s.anchor[1])
-		printf "%sSIDAMScalebar(%s,anchor=\"\")\r", PRESTR_CMD, paramStr
-		return 0
-	elseif (s.anchor[0] != char2num(DEFAULT_ANCHOR[0]) || s.anchor[1] != char2num(DEFAULT_ANCHOR[1]))
-		sprintf paramStr, "%s,anchor=\"%s\"", paramStr, s.anchor
-	endif
-	
-	if (s.fontsize != DEFAULT_SIZE)
-		sprintf paramStr, "%s,size=%d", paramStr, s.fontsize
-	endif
-	
-	if (s.fgRGBA.red != DEFAULT_FC || s.fgRGBA.green != DEFAULT_FC || s.fgRGBA.blue != DEFAULT_FC || s.fgRGBA.alpha != DEFAULT_FA)
-		sprintf paramStr, "%s,fgRGBA={%d,%d,%d,%d}", paramStr, s.fgRGBA.red, s.fgRGBA.green, s.fgRGBA.blue, s.fgRGBA.alpha
-	endif
-	
-	if (s.bgRGBA.red != DEFAULT_BC || s.bgRGBA.green != DEFAULT_BC || s.bgRGBA.blue != DEFAULT_BC || s.bgRGBA.alpha != DEFAULT_BA)
-		sprintf paramStr, "%s,bgRGBA={%d,%d,%d,%d}", paramStr, s.bgRGBA.red, s.bgRGBA.green, s.bgRGBA.blue, s.bgRGBA.alpha
-	endif
-	
-	printf "%sSIDAMScalebar(%s)\r", PRESTR_CMD, paramStr
 End
 
 Static Function/S menuDo()
@@ -434,8 +411,8 @@ Static Function pnl(String grfName)
 	else
 		anchor = DEFAULT_ANCHOR
 		s.fontsize = DEFAULT_SIZE
-		s.fgRGBA.red = DEFAULT_FC;	s.fgRGBA.green = DEFAULT_FC;	s.fgRGBA.blue = DEFAULT_FC;	s.fgRGBA.alpha = DEFAULT_FA
-		s.bgRGBA.red = DEFAULT_BC;	s.bgRGBA.green = DEFAULT_BC;	s.bgRGBA.blue = DEFAULT_BC;	s.bgRGBA.alpha = DEFAULT_BA
+		WaveToRGBAColor({DEFAULT_FC,DEFAULT_FC,DEFAULT_FC,DEFAULT_FA}, s.fgRGBA)
+		WaveToRGBAColor({DEFAULT_BC,DEFAULT_BC,DEFAULT_BC,DEFAULT_BA}, s.bgRGBA)
 		s.prefix = DEFAULT_PREFIX
 	endif
 	
@@ -504,8 +481,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 				StructGet/S ps, GetUserData(s.win,"","init")
 				SIDAMScalebar(grfName=grfName,\
 					anchor=num2char(ps.anchor[0])+num2char(ps.anchor[1]),size=ps.fontsize,\
-					fgRGBA={ps.fgRGBA.red,ps.fgRGBA.green,ps.fgRGBA.blue,ps.fgRGBA.alpha},\
-					bgRGBA={ps.bgRGBA.red,ps.bgRGBA.green,ps.bgRGBA.blue,ps.bgRGBA.alpha},\
+					fgRGBA=RGBAColorToWave(ps.fgRGBA), bgRGBA=RGBAColorToWave(ps.bgRGBA),\
 					prefix=ps.prefix)
 			else
 				SIDAMScalebar(grfName=grfName,anchor="")
@@ -513,7 +489,7 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 		case "doB":
 			StructGet/S ps, GetUserData(grfName,"",NAME)
-			echo(grfName,ps)
+			echo(s.win, ps)
 			break
 	endswitch
 	
@@ -574,6 +550,11 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 	String str = s.popStr, listStr = str[1,strlen(s.popStr)-2]
 	Make/W/U/N=(ItemsInList(listStr,","))/FREE tw = str2num(StringFromList(p,listStr,","))
 	
+	if (numpnts(tw) == 3)
+		Redimension/N=4 tw
+		tw[3] = 65535
+	endif
+	
 	strswitch (s.ctrlName)
 		case "fgRGBAP":
 			SIDAMScalebar(grfName=StringFromList(0,s.win,"#"), fgRGBA=tw)
@@ -597,4 +578,41 @@ Static Function/S getAnchorFromPnl(String pnlName)
 	Wave cw = SIDAMGetCtrlValues(pnlName,"ltC;lbC;rtC;rbC")
 	WaveStats/Q/M=1 cw
 	return StringFromList(V_maxloc,"LT;LB;RT;RB")
+End
+
+
+Static Function echo(String pnlName, STRUCT paramStruct &s)
+	STRUCT paramStruct init
+	StructGet/S init, GetUserData(pnlName, "", "init")
+	
+	String paramStr = ""
+	
+	if (!s.anchor[0] && !s.anchor[1])
+		printf "%sSIDAMScalebar(grfName=\"%s\",anchor=\"\")\r", PRESTR_CMD, StringFromList(0, pnlName, "#")
+		return 0
+	elseif (s.anchor[0] != init.anchor[0] || s.anchor[1] != init.anchor[1])
+		sprintf paramStr, "%s,anchor=\"%s\"", paramStr, s.anchor
+	endif
+	
+	if (s.fontsize != init.fontsize)
+		sprintf paramStr, "%s,size=%d", paramStr, s.fontsize
+	endif
+	
+	Wave fg = RGBAColorToWave(s.fgRGBA), fginit = RGBAColorToWave(init.fgRGBA)
+	if (!EqualWaves(fg, fginit, 1))
+		sprintf paramStr, "%s,fgRGBA=%s", paramStr, SIDAMWaveToString(fg)
+	endif
+	
+	Wave bg = RGBAColorToWave(s.bgRGBA), bginit = RGBAColorToWave(init.bgRGBA)
+	if (!EqualWaves(bg, bginit, 1))
+		sprintf paramStr, "%s,bgRGBA=%s", paramStr, SIDAMWaveToString(bg)
+	endif
+	
+	if (s.prefix != init.prefix)
+		sprintf paramStr, "%s,prefix=%d", paramStr, s.prefix
+	endif
+	
+	if (strlen(paramStr))
+		printf "%sSIDAMScalebar(grfName=\"%s\"%s)\r", PRESTR_CMD, StringFromList(0, pnlName, "#"), paramStr
+	endif
 End
