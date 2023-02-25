@@ -25,7 +25,7 @@ Function/S SIDAMDeprecatedFunctions()
 		endif
 		deprecatedList += fnName+";"
 	endfor
-	return deprecatedList
+	return RemoveFromList(GetRTStackInfo(1), deprecatedList)
 End
 
 //	print caution in the history window
