@@ -34,6 +34,7 @@ Function SIDAMSyncAxisRange(String syncWinList)
 	String fn = "SIDAMSyncAxisRange#hook"
 	String data = "list:" + s.list
 	SIDAMSync#set(SYNCKEY, fn, data)
+	doSync(StringFromList(ItemsInList(s.list)-1, s.list))
 
 	if (SIDAMSync#calledFromPnl())
 		printf "%s%s(\"%s\")\r", PRESTR_CMD, GetRTStackInfo(1), s.list
@@ -90,25 +91,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		case 8:		//	modified
 			//	In case a window(s) in the list had been closed before compiling
 			SIDAMSync#updateList(s.winName, SYNCKEY)
-			
-			STRUCT SIDAMAxisRange axis0
-			SIDAMGetAxis(s.winName, topName(s.winName), axis0)
-			STRUCT SIDAMAxisRange axis1
-			String win, list = SIDAMSync#getList(s.winName, SYNCKEY), fnName
-			int i, n = ItemsInList(list)
-			for (i = 0; i < n; i++)
-				win = StringFromList(i,list)
-				SIDAMGetAxis(win, topName(win), axis1)
-				//	This is necessary to prevent a loop caused by mutual calling
-				if (axis0.x.min.value == axis1.x.min.value && axis0.x.max.value == axis1.x.max.value \
-					&& axis0.y.min.value == axis1.y.min.value && axis0.y.max.value == axis1.y.max.value)
-						continue
-				endif
-				fnName = SIDAMSync#pause(win, SYNCKEY)
-				SetAxis/W=$win $axis1.xaxis axis0.x.min.value, axis0.x.max.value
-				SetAxis/W=$win $axis1.yaxis axis0.y.min.value, axis0.y.max.value
-				SIDAMSync#resume(win, SYNCKEY, fnName)
-			endfor
+			doSync(s.winName)
 			break
 			
 		case 13:		//	renamed
@@ -116,6 +99,29 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			break
 	endswitch
 	return 0
+End
+
+Static Function doSync(String grfName)
+	STRUCT SIDAMAxisRange axis0
+	SIDAMGetAxis(grfName, topName(grfName), axis0)
+
+	STRUCT SIDAMAxisRange axis1
+	String win, list = SIDAMSync#getList(grfName, SYNCKEY), fnName
+
+	int i, n = ItemsInList(list)
+	for (i = 0; i < n; i++)
+		win = StringFromList(i,list)
+		SIDAMGetAxis(win, topName(win), axis1)
+		//	This is necessary to prevent a loop caused by mutual calling
+		if (axis0.x.min.value == axis1.x.min.value && axis0.x.max.value == axis1.x.max.value \
+			&& axis0.y.min.value == axis1.y.min.value && axis0.y.max.value == axis1.y.max.value)
+				continue
+		endif
+		fnName = SIDAMSync#pause(win, SYNCKEY)
+		SetAxis/W=$win $axis1.xaxis axis0.x.min.value, axis0.x.max.value
+		SetAxis/W=$win $axis1.yaxis axis0.y.min.value, axis0.y.max.value
+		SIDAMSync#resume(win, SYNCKEY, fnName)
+	endfor
 End
 
 //	Return the name of top image, or top trace

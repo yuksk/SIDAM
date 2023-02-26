@@ -38,6 +38,11 @@ Function SIDAMSyncCursor(String syncWinList, [int mode])
 	String fn = "SIDAMSyncCursor#hook"
 	String data = "list:" + s.list + ",mode:" + num2str(mode)
 	SIDAMSync#set(SYNCKEY, fn, data, call=$"SIDAMSyncCursor#putCursor")
+	
+	int i
+	for (i = 65; i <= 74; i++)	//	from A to J
+		doSync(StringFromList(ItemsInList(s.list)-1,s.list), num2char(i))
+	endfor
 
 	if (SIDAMSync#calledFromPnl())
 		printf "%s%s(\"%s\"%s)\r", PRESTR_CMD, GetRTStackInfo(1), s.list, SelectString(mode, "", ", mode=1")
@@ -108,18 +113,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			endif
 			//	In case a window(s) in the list had been closed before compiling
 			SIDAMSync#updateList(s.winName, SYNCKEY)
-			
-			STRUCT SIDAMCursorPos pos
-			SIDAMGetCursor(s.cursorName, s.winName, pos)
-			String win, syncWinList = SIDAMSync#getList(s.winName, SYNCKEY), fnName
-			int mode = NumberByKey("mode",GetUserData(s.winName,"",SYNCKEY),":",",")	//	0: p, q,	1: x, y
-			int i, n = ItemsInList(syncWinList)
-			for (i = 0; i < n; i++)
-				win = StringFromList(i, syncWinList)
-				fnName = SIDAMSync#pause(win, SYNCKEY)
-				SIDAMMoveCursor(s.cursorName, win, mode, pos)
-				SIDAMSync#resume(win, SYNCKEY, fnName)
-			endfor
+			doSync(s.winName, s.cursorName)
 			break
 			
 		case 13:		//	renamed
@@ -127,6 +121,21 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			break
 	endswitch
 	return 0
+End
+
+Static Function doSync(String grfName, String cursorName)
+	STRUCT SIDAMCursorPos pos
+	SIDAMGetCursor(cursorName, grfName, pos)
+	
+	String win, syncWinList = SIDAMSync#getList(grfName, SYNCKEY), fnName
+	int mode = NumberByKey("mode",GetUserData(grfName,"",SYNCKEY),":",",")	//	0: p, q,	1: x, y
+	int i, n = ItemsInList(syncWinList)
+	for (i = 0; i < n; i++)
+		win = StringFromList(i, syncWinList)
+		fnName = SIDAMSync#pause(win, SYNCKEY)
+		SIDAMMoveCursor(cursorName, win, mode, pos)
+		SIDAMSync#resume(win, SYNCKEY, fnName)
+	endfor
 End
 
 //	Show a cursor unless shown

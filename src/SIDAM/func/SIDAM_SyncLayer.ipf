@@ -34,6 +34,7 @@ Function SIDAMSyncLayer(String syncWinList)
 	String fn = "SIDAMSyncLayer#hook"
 	String data = "list:" + s.list
 	SIDAMSync#set(SYNCKEY, fn, data)
+	doSync(StringFromList(ItemsInList(s.list)-1,s.list))
 
 	if (SIDAMSync#calledFromPnl())
 		printf "%s%s(\"%s\")\r", PRESTR_CMD, GetRTStackInfo(1), s.list
@@ -97,19 +98,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 		case 8:		//	modified
 			//	In case a window(s) in the list had been closed before compiling
 			SIDAMSync#updateList(s.winName, SYNCKEY)
-			
-			String win, list = SIDAMSync#getList(s.winName, SYNCKEY), fnName
-			int i, n = ItemsInList(list), plane = SIDAMGetLayerIndex(s.winName)
-			for (i = 0; i < n; i++)
-				win = StringFromList(i, list)
-				//	This is necessary to prevent a loop caused by mutual calling
-				if (plane == SIDAMGetLayerIndex(win))
-					continue
-				endif
-				fnName = SIDAMSync#pause(win, SYNCKEY)
-				SIDAMSetLayerIndex(win, plane)
-				SIDAMSync#resume(win, SYNCKEY, fnName)
-			endfor
+			doSync(s.winName)
 			break
 			
 		case 13:		//	renamed
@@ -119,6 +108,21 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 	return 0
 End
 
+Static Function doSync(String grfName)
+	String win, list = SIDAMSync#getList(grfName, SYNCKEY), fnName
+
+	int i, n = ItemsInList(list), plane = SIDAMGetLayerIndex(grfName)
+	for (i = 0; i < n; i++)
+		win = StringFromList(i, list)
+		//	This is necessary to prevent a loop caused by mutual calling
+		if (plane == SIDAMGetLayerIndex(win))
+			continue
+		endif
+		fnName = SIDAMSync#pause(win, SYNCKEY)
+		SIDAMSetLayerIndex(win, plane)
+		SIDAMSync#resume(win, SYNCKEY, fnName)
+	endfor
+End
 
 Static Function pnl(String LVName)
 	String pnlName = LVName + "#synclayer"
