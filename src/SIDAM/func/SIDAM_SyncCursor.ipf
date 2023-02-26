@@ -37,7 +37,7 @@ Function SIDAMSyncCursor(String syncWinList, [int mode])
 	
 	String fn = "SIDAMSyncCursor#hook"
 	String data = "list:" + s.list + ",mode:" + num2str(mode)
-	SIDAMSync#set(SYNCKEY, fn, data, call=$"SIDAMSyncCursor#putCursor")
+	SIDAMSync#set(SYNCKEY, fn, data, call="SIDAMSyncCursor#putCursor")
 	
 	int i
 	for (i = 65; i <= 74; i++)	//	from A to J

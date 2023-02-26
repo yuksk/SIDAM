@@ -19,7 +19,7 @@ Static Function set(
 					//	contain ";".
 					//	When the key is "list", the value is a window list.
 					//	When the key is "mode", the value is the mode of synccursormode
-	[FUNCREF SIDAMSyncproto call]		//	This is used to put a cursor, at present.
+	[String call]		//	This is used to put a cursor, at present.
 	)
 	
 	String syncWinList = StringByKey("list",data,":",",")
@@ -53,7 +53,8 @@ Static Function set(
 			SetWindow $win, hook($key) = $fn
 			SetWindow $win, userData($key) = data
 			if (!paramIsDefault(call))
-				call(win,key)
+				sprintf str, "%s(\"%s\",\"%s\")", call, win, key
+				Execute/Q str
 			endif
 		endfor
 	else
@@ -61,9 +62,6 @@ Static Function set(
 			reset(StringFromList(i, syncWinList), key)
 		endfor
 	endif
-End
-
-Function SIDAMSyncproto(String win, String key)
 End
 
 Static Function reset(String grfName, String key)
@@ -375,9 +373,9 @@ End
 
 Static Function pnlSelectionHookGrf(STRUCT WMWinHookStruct &s)
 	if (s.eventCode == 5) 	//	mouseup
-		String pnlName = GetUserData(s.winName, "", "SIDAMSyncPnlSelection")
-		FUNCREF SIDAMSyncPnlSelectionProto fn = $GetUserData(pnlName, "", "SIDAMSyncPnlSelection")
-		fn(s.winName, pnlName)
+		String pnlName = GetUserData(s.winName, "", "SIDAMSyncPnlSelection"), cmd
+		sprintf cmd, "%s(\"%s\",\"%s\")", GetUserData(pnlName, "", "SIDAMSyncPnlSelection"), s.winName, pnlName
+		Execute/Q cmd
 	endif
 	return 0
 End
@@ -401,7 +399,4 @@ Static Function pnlSelectionHookPnl(STRUCT WMWinHookStruct &s)
 		endif
 	endfor
 	return 0
-End
-
-Function SIDAMSyncPnlSelectionProto(String grfName, String pnlName)
 End

@@ -39,16 +39,17 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 				endif
 			endif
 			//	Disable all controls
+			String ctrlName, cmd
 			int i
 			for (i = 0; i < ItemsInList(ControlNameList(s.win)); i++)
-				String ctrlName = StringFromList(i,ControlNameList(s.win))
+				ctrlName = StringFromList(i,ControlNameList(s.win))
 				ControlInfo/W=$s.win $ctrlName
 				if (!V_disable)
 					ModifyControl/Z $ctrlName, disable=2, win=$s.win
 				endif
 			endfor
-			FUNCREF KMDoButtonPrototype fn = $GetUserData(s.win,s.ctrlName,"fn")
-			fn(s.win)
+			sprintf cmd, "%s(\"%s\")", GetUserData(s.win,s.ctrlName,"fn"), s.win
+			Execute/Q cmd
 			// *** FALLTHROUGH ***
 		case "closeB":
 			KillPath/Z SIDAMSaveCommon#getPathName(s.win)
@@ -183,10 +184,4 @@ Static Function/S getPathName(String pnlName)
 			return ""
 			
 	endswitch
-End
-//-------------------------------------------------------------
-//	Prototype for functions invoked by pressing "Do" button
-//-------------------------------------------------------------
-Function KMDoButtonPrototype(String pnlName)
-	return 0
 End
