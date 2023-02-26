@@ -23,8 +23,8 @@ Static Constant DEFAULT_PREFIX = 1			//	use a prefix
 
 //	Fixed values
 Static Constant NICEWIDTH = 20				//	Width of scale bar is about 20% of a window
-Static Constant MARGIN = 0.02					//	Position from the edge
-Static Constant OFFSET = 0.015				//	Space between the bar and characters
+Static Constant MARGINPX = 7					//	Position from the edge
+Static Constant OFFSETPX = 3					//	Space between the bar and characters
 Static Constant LINETHICK = 3					//	Thickness of the bar
 Static Constant DOUBLECLICK = 20				//	Interval between clicks to recognize double-click
 Static StrConstant NICEVALUES = "1;2;3;5"	//	Definition of "nice" values
@@ -270,9 +270,11 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
 	//	If the anchor is empty, px=0 and py=1, that is LB.
-	int px = s.anchor[0]==82		//	L:0, R:1
-	int py = s.anchor[1]!=84		//	B:1, T:0
+	int isRight = s.anchor[0]==82		//	L:0, R:1
+	int isBottom = s.anchor[1]!=84		//	B:1, T:0
 	
+	Variable expand = getExpand(grfName)
+	Variable margin = MARGINPX*expand, offset = OFFSETPX*expand
 	Variable v0, v1
 	String str
 	
@@ -314,14 +316,15 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	//	Height and width of the scale bar area
 	//	Width of displayed numbers, pixel
 	v0 = FontSizeStringWidth(GetDefaultFont(grfName),\
-		fontsize*ScreenResolution/72,0,barStr)*getExpand(grfName)
+		fontsize*ScreenResolution/72,0,barStr)*expand
 	//	Height of displayed numbers, pixel
 	v1 = FontSizeHeight(GetDefaultFont(grfName),\
-		fontsize*ScreenResolution/72,0)*getExpand(grfName)
+		fontsize*ScreenResolution/72,0)*expand
 	GetWindow $grfName psizeDC
+	Variable winWidth = V_right - V_left, winHeight = V_bottom - V_top
 	//	The longer one of the bar and the numbers is used as the width
-	Variable boxWidth = max(v0/(V_right-V_left),nicewidth/L) + MARGIN*2
-	Variable boxHeight = v1/(V_bottom-V_top) + MARGIN*2 + OFFSET
+	Variable boxWidth = max(v0/winWidth, barwidth/L) + margin*2/winWidth
+	Variable boxHeight = (v1+margin*2+offset)/winHeight
 	
 	//	Draw the scale bar
 	//	Initialize
@@ -332,31 +335,31 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	//	Background
 	SetDrawEnv/W=$grfName xcoord=prel, ycoord=prel
 	SetDrawEnv/W=$grfName fillfgc=(s.bgRGBA.red,s.bgRGBA.green,s.bgRGBA.blue,s.bgRGBA.alpha), linethick=0.00
-	DrawRect/W=$grfName px, py, px+boxWidth*(px?-1:1), py+boxHeight*(py?-1:1)
+	DrawRect/W=$grfName isRight, isBottom, isRight+boxWidth*(isRight?-1:1), isBottom+boxHeight*(isBottom?-1:1)
 	
 	//	Record the position of the background
-	s.box.left = min(px,px+boxWidth*(px?-1:1))
-	s.box.right = max(px,px+boxWidth*(px?-1:1))
-	s.box.top = min(py,py+boxHeight*(py?-1:1))
-	s.box.bottom = max(py,py+boxHeight*(py?-1:1))
+	s.box.left = min(isRight,isRight+boxWidth*(isRight?-1:1))
+	s.box.right = max(isRight,isRight+boxWidth*(isRight?-1:1))
+	s.box.top = min(isBottom,isBottom+boxHeight*(isBottom?-1:1))
+	s.box.bottom = max(isBottom,isBottom+boxHeight*(isBottom?-1:1))
 	StructPut/S s, str
 	SetWindow $grfName userData($NAME)=str
 	
 	//	Bar
-	v0 = (px? as.x.max.value : as.x.min.value) + (L*boxWidth-nicewidth)/2*(px?-1:1)
-	v1 = py + MARGIN*(py?-1:1)
+	v0 = (isRight? as.x.max.value : as.x.min.value) + (L*boxWidth-barwidth)/2*(isRight?-1:1)
+	v1 = isBottom + margin/winHeight*(isBottom?-1:1)
 	SetDrawEnv/W=$grfName xcoord=$as.xaxis, ycoord=prel
 	SetDrawEnv/W=$grfName linefgc=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha), linethick=LINETHICK
-	DrawLine/W=$grfName v0, v1, v0+nicewidth*(px?-1:1), v1
+	DrawLine/W=$grfName v0, v1, v0+nicewidth*(isRight?-1:1), v1
 	
 	//	Number and unit
-	SetDrawEnv/W=$grfName xcoord=prel, ycoord=prel, textxjust=1, textyjust=(py?0:2), fsize=fontsize, fname=fontname
+	SetDrawEnv/W=$grfName xcoord=prel, ycoord=prel, textxjust=1, textyjust=(isBottom?0:2), fsize=fontsize, fname=fontname
 	SetDrawEnv/W=$grfName textrgb=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha)
-	v0 = px + boxWidth/2*(px?-1:1)
-	v1 = py + (MARGIN+OFFSET)*(py?-1:1)
+	v0 = isRight + boxWidth/2*(isRight?-1:1)
+	v1 = isBottom + (margin+offset)/winHeight*(isBottom?-1:1)
 	DrawText/W=$grfName v0, v1, barStr
-
-	//	Finalize	
+	
+	//	Finalize
 	SetDrawEnv/W=$grfName gstop
 	SetDrawLayer/W=$grfName UserFront
 	resumeUpdateBar(grfName)
