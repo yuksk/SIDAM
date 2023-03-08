@@ -104,7 +104,7 @@ Static Function/S echoStr(Wave w1, Wave w2, int subtract, int normalize,
 	String result)
 	
 	String paramStr = GetWavesDataFolder(w1,2)
-	paramStr += SelectString(WaveRefsEqual(w1, w2), ",w2="+GetWavesDataFolder(w2,2),  "")
+	paramStr += SelectString(WaveRefsEqual(w1, w2), ",dest="+GetWavesDataFolder(w2,2),  "")
 	paramStr += SelectString(subtract==1, ",subtract="+num2str(subtract), "")
 	paramStr += SelectString(normalize==1, ",normalize="+num2str(normalize), "")
 	Sprintf paramStr, "Duplicate/O SIDAMCorrelation(%s), %s%s"\
