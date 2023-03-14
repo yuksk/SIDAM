@@ -1,4 +1,4 @@
-﻿#pragma TextEncoding="UTF-8"
+#pragma TextEncoding="UTF-8"
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLoadDataNanonisCommon
 
@@ -77,17 +77,21 @@ Static Function conversion(Wave w, [Variable driveamp,
 	int isLockin = GrepString(NameOfWave(w),"_LI([RXY]|phi|_Demod)_")
 	int isCurrent = GrepString(NameOfWave(w), "_Current")
 	int isBias = GrepString(NameOfWave(w), "_Bias")
-	SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS) Experiment
-
+	
 	if (isLockin && !ParamIsDefault(modulated) && !ParamIsDefault(driveamp))
+		SVAR/SDFR=$(GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS+":'Bias Spectroscopy'")/Z Lock_In_run
+		int noExcitation = SVAR_Exists(Lock_In_run) && !CmpStr(Lock_In_run, "FALSE")
 		int noLockInHeader = numtype(driveamp) == 2
 		int isBiasModulated = !CmpStr(modulated,"Bias (V)")
 		int isZModulated = !CmpStr(modulated,"Z (m)")
 
-		if (noLockInHeader)	
+		if (noExcitation)	
 			SetScale d WaveMin(w), WaveMax(w), "A", w
-			print "CAUTION: Information about lock-in settings is missing. "\
-				+ "Conversion is NOT done."
+			return 1
+
+		elseif (noLockInHeader)	
+			SetScale d WaveMin(w), WaveMax(w), "A", w
+			return 2
 
 		elseif (isBiasModulated)
 			FastOP w = (SIDAM_NANONIS_CONDUCTANCESCALE/driveamp) * w
@@ -110,29 +114,77 @@ Static Function conversion(Wave w, [Variable driveamp,
 		FastOP w = (SIDAM_NANONIS_CURRENTSCALE) * w
 		SetScale d WaveMin(w), WaveMax(w), SIDAM_NANONIS_CURRENTUNIT, w
 	endif
+	
+	return 0
 End
 
-//	Calculate the average between the forward and the backward sweeps
-Static Function/WAVE averageSweeps(String bwdStr)
-	String listStr = WaveList("*",";",""), name, avgName, subName
-	Variable i, n
-	Make/WAVE/N=0/FREE refw
+Static Function showConversionCaution(Wave/WAVE statusw)
+	Wave/T names = statusw[%name]
+	Wave flags = statusw[%flag]
 	
-	//	If a string given by the bwdStr is included in the name of wave,
-	//	it is the backward wave. The forward wave is given by removing
-	//	the bwdStr from the name of the backward wave.
-	for (i = 0, n = ItemsInList(listStr); i < n; i += 1)
-		name = StringFromList(i,listStr)
-		if (!GrepString(name,bwdStr))
+	if (!WaveMax(flags))
+		return 0
+	endif
+	
+	if (WaveMax(flags) == 1)
+		print "AC voltages were not applyied during the measurement. "\
+			+ "No conversion is done for the following waves."
+	elseif (WaveMax(flags) == 2)
+		print "Information about the lock-in settings is missing. "\
+			+ "No conversion is done for the following waves."
+	endif
+	
+	int i
+	String str = ""
+	for (i = 0; i < numpnts(flags); i++)
+		if (!flags[i])
 			continue
 		endif
-		Wave fwdw = $ReplaceString(bwdStr, name, ""), bwdw = $name
-		FastOP fwdw = (0.5)*fwdw + (0.5)*bwdw
-		KillWaves bwdw
-		refw[numpnts(refw)] = {fwdw}
+		str += names[i] + ";"
 	endfor
 	
-	return refw
+	int length = 0, oneline = 200
+	for (i = 0; i < ItemsInList(str); i++)
+		printf SelectString(length, "%s", ", %s"), StringFromList(i, str)
+		length += strlen(StringFromList(i, str))
+		if (length > oneline)
+			printf "\r"
+			length = 0
+		endif
+	endfor
+	if (length)
+		printf "\r"
+	endif
+End
+
+Static Function/WAVE averageSweeps(Wave/WAVE specw, String bwdStr, Wave/WAVE statusw)
+	Make/WAVE/N=(numpnts(specw))/FREE avgWaves
+	Make/T/N=(numpnts(specw))/FREE names = NameOfWave(specw[p])
+	int i, n = 0
+	
+	//	Regard a wave as a backward sweep if the bwdStr is included in
+	//	the name of wave. The corresponding forward wave is given by
+	//	removing the bwdStr from the name of the backward sweep wave.
+	String fwdName
+	for (i = 0; i < numpnts(names); i++)
+		if (!GrepString(names[i], bwdStr))
+			continue
+		endif
+		fwdName = ReplaceString(bwdStr, names[i], "")
+		Wave fwdw = $fwdName, bwdw = $names[i]
+		//	Use the name of the forward sweep as the name of the average sweep.
+		//	So change the name of the forward sweep
+		MatrixOP/FREE avgw = fp32((fwdw + bwdw) * 0.5)
+		Copyscales fwdw, avgw
+		SIDAMCopyBias(fwdw, avgw)
+		updateStatus(statusw, {fwdw, bwdw}, fwdName)	
+		killSweeps(specw, {fwdw, bwdw})
+		Duplicate avgw, $fwdName
+		avgWaves[n++] = $fwdName
+	endfor
+	
+	DeletePoints n, numpnts(avgWaves)-n, avgWaves
+	return avgWaves
 End
 
 //	Save the header values as global variables.
@@ -171,4 +223,142 @@ Static Function nonZeroAngleCaution()
 	printf "%sThe scan angle is not 0.\r", PRESTR_CAUTION
 	printf "%sBe careful that the xy scaling values except for the center of the image do not represent the actual coordinates.\r", PRESTR_CAUTION
 	printf "%sThe scan size is correctly reflected in the xy scaling values.\r", PRESTR_CAUTION
+End
+
+//	Concatenate waves saved by "save all" into one wave.
+Static Function/WAVE concatSaveAllSweeps(Wave/WAVE sweepRefs, Wave/WAVE statusw)
+	Make/T/N=(numpnts(sweepRefs))/FREE sweepNames = NameOfWave(sweepRefs[p])
+
+	//	Remove average waves and the bias calc wave from the list
+	//	"dat" contains _AVG_ and "3ds" contains [AVG] in the file name
+	//	The bias calc wave is included in "dat".
+	Grep/E="^(?!.*((_|\[)AVG(_|\])|_calc$))" sweepNames as sweepNames
+	
+	Make/WAVE/N=(numpnts(sweepRefs))/FREE concatWaves
+	String basename 
+	int i = 0, n = 0
+	for (i = 0; numpnts(sweepNames) && i < numpnts(sweepRefs); i++)
+		basename = fetchBasename(sweepNames)
+		if (!strlen(basename))
+			continue
+		endif
+		Wave/WAVE sweeps = fetchSweeps(sweepNames, basename)
+		concatWaves[n] = concatSweeps(sweeps, basename)
+		updateStatus(statusw, sweeps, NameOfWave(concatWaves[n++]))
+		killSweeps(sweepRefs, sweeps)
+		removeNames(sweepNames, basename)
+	endfor
+	
+	DeletePoints n, numpnts(concatWaves)-n, concatWaves
+	return concatWaves
+End
+
+Static Function/S fetchBasename(Wave/T names)
+	int index
+	String name = names[0]
+	
+	//	3ds
+	index = strsearch(name, "_[", 0)
+	if (index != -1)
+		return name[0,index-1]
+	endif
+	
+	//	dat
+	index = strsearch(name, "__", 0)
+	if (index != -1)
+		return name[0,index-1]
+	endif
+	
+	return ""
+End
+
+Static Function/WAVE fetchSweeps(Wave/T names, String basename)
+	Make/T/N=1/FREE fetchedNames
+	Grep/E=("^"+basename+".*") names as fetchedNames
+	Make/WAVE/N=(numpnts(fetchedNames))/FREE sweeps = $fetchedNames[p]
+	return sweeps
+End
+
+Static Function/WAVE concatSweeps(Wave/WAVE sweeps, String basename)
+	Wave w0 = sweeps[0]
+	Make/L/U/N=4/FREE n = DimSize(sweeps[0],p)
+	int dim = WaveDims(sweeps[0])
+	
+	//	Use duplicate to inherit the wave type
+	Duplicate/R=[0]/O w0, $basename/WAVE=concatw
+	
+	switch (dim)
+		case 1:
+			Redimension/N=(n[0], numpnts(sweeps)) concatw
+			break
+		case 2:
+			Redimension/N=(n[0],n[1],numpnts(sweeps)) concatw
+			break
+		case 3:
+			Redimension/N=(n[0],n[1],n[2],numpnts(sweeps)) concatw
+			break
+	endswitch
+	Copyscales sweeps[0], concatw
+
+	int i
+	for (i = 0; i < numpnts(sweeps); i++)
+		Wave w1 = sweeps[i]
+		switch (dim)
+			case 1:
+				concatw[][i] = w1[p]
+				break
+			case 2:
+				concatw[][][i] = w1[p][q]
+				break
+			case 3:
+				concatw[][][][i] = w1[p][q][r]
+				break
+		endswitch
+	endfor
+	
+	Make/T/N=(numpnts(sweeps))/FREE names = NameOfWave(sweeps[p])
+	CopyWaveToDimLabels(names, concatw, dim)
+
+	return concatw
+End
+
+Static Function killSweeps(Wave/WAVE sweepRefs, Wave/WAVE sweeps)
+	int i, j
+	for (i = 0; i < numpnts(sweeps); i++)
+		for (j = 0; j < numpnts(sweepRefs); j++)
+			if (WaveRefsEqual(sweeps[i], sweepRefs[j]))
+				Wave tw = sweepRefs[j]
+				KillWaves tw
+				DeletePoints j, 1, sweepRefs
+				break
+			endif
+		endfor
+	endfor
+End
+
+Static Function updateStatus(Wave/WAVE statusw, Wave/WAVE wavesToBeRemoved,
+	String nameToBeAdded)
+	
+	Wave/T names = statusw[%name]
+	Wave flags = statusw[%flag]
+	int i, n, flag
+	
+	for (i = 0; i < numpnts(wavesToBeRemoved); i++)
+		FindValue/TEXT=(NameOfWave(wavesToBeRemoved[i])) names
+		if (V_Value < 0)
+			continue
+		elseif (!i)
+			flag = flags[V_Value]
+		endif
+		DeletePoints V_Value, 1, names, flags
+	endfor
+	
+	n = numpnts(names)
+	Redimension/N=(n+1) names, flags
+	names[n] = nameToBeAdded
+	flags[n] = flag
+End
+
+Static Function removeNames(Wave/T sweepNames, String basename)
+	Grep/E=("^(?!"+basename+")") sweepNames as sweepNames
 End

@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName=LoadNanonis3ds
 
+#include <DimensionLabelUtilities>
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -18,9 +20,6 @@ Function/WAVE SIDAMLoadNanonis3ds(String pathStr, int noavg)
 	//	Read the data
 	SetDataFolder dfrSav
 	Wave/WAVE resw = LoadNanonis3dsGetData(pathStr, noavg, s)
-	
-	//	Make the data 2D waves if they are spectra taken along a line
-	LoadNanonis3dsTransposeVol(resw)
 	
 	if (s.angle != 0)
 		SIDAMLoadDataNanonisCommon#nonZeroAngleCaution()
@@ -352,24 +351,31 @@ Static Function/WAVE LoadNanonis3dsGetData(String pathStr, int noavg, STRUCT Nan
 	Wave/T namew = LoadNanonis3dsGetDataWaveNames(fileName, s.channels)
 	
 	//	Make spectrum waves from the big wave
-	Wave/WAVE specw = LoadNanonis3dsGetDataSpec(w, namew, s)
+	[Wave/WAVE specw, Wave/WAVE statusw] = LoadNanonis3dsGetDataSpec(w, namew, s)
+	
+	//	Concatenate "save all" waves (if any) into one wave
+	Wave/WAVE/Z concatw = SIDAMLoadDataNanonisCommon#concatSaveAllSweeps(specw, statusw)
 	
 	if (!noavg)
-		//	If only forward sweep is saved, the following fails
-		Wave/WAVE/Z avgw = SIDAMLoadDataNanonisCommon#averageSweeps("_bwd")
+		Wave/WAVE/Z avgw = SIDAMLoadDataNanonisCommon#averageSweeps(specw, "_bwd", statusw)
 	endif
-	
-	//	Here I assume no mixture of forward-sweep-only channels and both sweep channels
-	if (noavg || !numpnts(avgw))
-		Make/N=(1+numpnts(specw))/WAVE/FREE refw
-		refw[0] = {stmw}
-		refw[1,] = specw[p-1]
-	else
-		Make/N=(1+numpnts(avgw))/WAVE/FREE refw
-		refw[0] = {stmw}
-		refw[1,] = avgw[p-1]
+
+	Make/N=1/WAVE/FREE refw = {stmw}
+	if (numpnts(specw))
+		Concatenate {specw}, refw
 	endif
+	if (numpnts(concatw))
+		Concatenate {concatw}, refw
+	endif
+	if (numpnts(avgw))
+		Concatenate {avgw}, refw
+	endif
+
+	//	Make the data 2D waves if they are spectra taken along a line
+	LoadNanonis3dsTransposeVol(refw)
 	
+	SIDAMLoadDataNanonisCommon#showConversionCaution(statusw)
+		
 	KillWaves w
 	return refw
 End
@@ -443,6 +449,7 @@ Static Function/WAVE LoadNanonis3dsGetDataWaveNames(String fileName, String chan
 		nameStr = StringFromList(i, chanList)
 		nameStr = ReplaceString(" (A)", nameStr, "")
 		nameStr = ReplaceString(" (V)", nameStr, "")
+		nameStr = ReplaceString(" (m)", nameStr, "")
 		nameStr = ReplaceString(" omega", nameStr, "")
 		nameStr = ReplaceString(" [bwd]", nameStr, "_bwd")
 		nameStr = ReplaceString(" ", nameStr, "_")
@@ -465,7 +472,7 @@ End
 
 //	Make spectrum waves from the big wave.
 //	The created image waves are saved in the current datafolder.
-Static Function/WAVE LoadNanonis3dsGetDataSpec(
+Static Function [Wave/WAVE rw, Wave/WAVE sw] LoadNanonis3dsGetDataSpec(
 	Wave w,
 	Wave/T namew,
 	STRUCT Nanonis3ds &s
@@ -478,6 +485,11 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 	int i, v
 	
 	Make/N=(nchan)/FREE/WAVE refw
+	
+	Make/B/U/N=(nchan)/FREE status_flag
+	Make/T/N=(nchan)/FREE status_name
+	Make/WAVE/N=2/FREE statusw = {status_flag, status_name}
+	CopyWaveToDimLabels({"flag","name"}, statusw, 0)
 	
 	for (i = 0; i < nchan; i++)
 		
@@ -531,12 +543,13 @@ Static Function/WAVE LoadNanonis3dsGetDataSpec(
 		endif
 		
 		//	Physical values
-		SIDAMLoadDataNanonisCommon#conversion(specw, driveamp=s.lockin.amp, modulated=s.lockin.modulated)
-		
+		status_flag[i] = SIDAMLoadDataNanonisCommon#conversion(specw, driveamp=s.lockin.amp, \
+			modulated=s.lockin.modulated)
+		status_name[i] = NameOfWave(specw)
 		refw[i] = {specw}
 	endfor
 	
-	return refw
+	return [refw, statusw]
 End
 
 //	For MLS
@@ -591,7 +604,7 @@ Static Function LoadNanonis3dsTransposeVol(Wave/WAVE resw)
 		Duplicate/O tw2 dfr:$(NameOfWave(tw0))
 	endfor
 End
-#else	
+#else
 Function LoadNanonis3dsTransposeVol(Wave/WAVE resw)
 	for (Wave tw0 : resw)
 		DFREF dfr = GetWavesDataFolderDFR(tw0)
@@ -617,3 +630,4 @@ Static Function isTakenAlongLine(Wave w)
 		return 1
 	endif
 End
+

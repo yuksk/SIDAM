@@ -1,6 +1,8 @@
 #pragma TextEncoding="UTF-8"
 #pragma rtGlobals=1
 
+#include <DimensionLabelUtilities>
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -70,79 +72,96 @@ EndStructure
 //	The resultant waves are saved in the current datafolder.
 Static Function/WAVE LoadNanonisDatGetData(String pathStr, int noavg, STRUCT header &s)
 	LoadWave/G/W/A/Q pathStr
-	Make/N=(ItemsInList(S_waveNames))/WAVE/FREE ww = $StringFromList(p,S_waveNames)
+	int n = ItemsInList(S_waveNames)
+	Make/N=(n)/WAVE/FREE ww = $StringFromList(p,S_waveNames)
 	
 	S_waveNames = ReplaceString("__A_",S_waveNames,"")
 	S_waveNames = ReplaceString("__V_",S_waveNames,"")
+	S_waveNames = ReplaceString("__m_",S_waveNames,"")
 	S_waveNames = ReplaceString("_omega",S_waveNames,"")
 	S_waveNames = ReplaceString("_bwd_",S_waveNames,"bwd")
-	Variable i
-	for (i = 0; i < ItemsInList(S_waveNames); i += 1)
+
+	String basename = ParseFilePath(3, pathStr, ":", 0, 0)
+	int i
+	for (i = 0; i < n; i += 1)
 		Wave w = ww[i]
-		Rename w $(ParseFilePath(3, pathStr, ":", 0, 0)+"_"+StringFromList(i,S_waveNames))
+		Rename w $(basename+"_"+StringFromList(i,S_waveNames))
 	endfor
+
+	Make/B/U/N=(n)/FREE status_flag
+	Make/T/N=(n)/FREE status_name = NameOfWave(ww[p])
+	Make/WAVE/N=2/FREE statusw = {status_flag, status_name}
+	CopyWaveToDimLabels({"flag","name"}, statusw, 0)
 	
 	strswitch (s.type)
 		case  "Z spectroscopy":
 		case "bias spectroscopy":
-			LoadNanonisDatGetDataConvert(s, ww)
+			LoadNanonisDatGetDataConvert(s, ww, statusw)
+			SIDAMLoadDataNanonisCommon#concatSaveAllSweeps(ww, statusw)
 			if (!noavg)
-				SIDAMLoadDataNanonisCommon#averageSweeps("_bwd")
+				SIDAMLoadDataNanonisCommon#averageSweeps(ww, "_bwd" ,statusw)
 			endif
 			break
 		case "Spectrum":
 		case "History Data":
-			LoadNanonisDatGetDataConvert(s, ww)
+			LoadNanonisDatGetDataConvert(s, ww, statusw)
 			break
 	endswitch
+
+	SIDAMLoadDataNanonisCommon#showConversionCaution(statusw)
 	
 	DFREF dfr = GetDataFolderDFR()
 	Make/FREE/N=(CountObjectsDFR(dfr, 1))/WAVE refw = $GetIndexedObjNameDFR(dfr, 1, p)	
 	return refw
 End
 
-Static Function LoadNanonisDatGetDataConvert(STRUCT header &s, Wave/WAVE ww)
-	int i, n
+Static Function LoadNanonisDatGetDataConvert(STRUCT header &s, Wave/WAVE ww, Wave/WAVE statusw)
+	int i, n = numpnts(ww)
 	
 	//	The first column is the bias voltage, length, or frequency except
 	//	the Histroy Data.
 	Wave xw = ww[0]
 	
+	Wave/T names = statusw[%name]
+	Wave flags = statusw[%flag]
+	
 	strswitch (s.type)
 		case "bias spectroscopy":
-			for (i = 1, n = numpnts(ww); i < n; i += 1)
+			for (i = 1; i < n; i += 1)
 				SetScale/I x xw[0]*SIDAM_NANONIS_VOLTAGESCALE\
 				             , xw[numpnts(xw)-1]*SIDAM_NANONIS_VOLTAGESCALE\
 				             , SIDAM_NANONIS_VOLTAGEUNIT, ww[i]
-				SIDAMLoadDataNanonisCommon#conversion(ww[i], driveamp=s.driveamp, \
-				                                      modulated=s.modulated)
+				names[i] = NameOfWave(ww[i])
+				flags[i] = SIDAMLoadDataNanonisCommon#conversion(\
+					ww[i], driveamp=s.driveamp, modulated=s.modulated)
 			endfor
 			break
 		case "Z spectroscopy":
-			for (i = 1, n = numpnts(ww); i < n; i += 1)
+			for (i = 1; i < n; i += 1)
 				SetScale/I x xw[0]*SIDAM_NANONIS_LENGTHSCALE\
 				             , xw[numpnts(xw)-1]*SIDAM_NANONIS_LENGTHSCALE\
 				             , SIDAM_NANONIS_LENGTHUNIT, ww[i]
+				names[i] = NameOfWave(ww[i])
 				if (strlen(s.modulated))
-					SIDAMLoadDataNanonisCommon#conversion(ww[i], driveamp=s.driveamp, \
-					                                      modulated=s.modulated)
+					flags[i] = SIDAMLoadDataNanonisCommon#conversion(\
+						ww[i], driveamp=s.driveamp, modulated=s.modulated)
 				else
-					SIDAMLoadDataNanonisCommon#conversion(ww[i])
+					flags[i] = SIDAMLoadDataNanonisCommon#conversion(ww[i])
 				endif
 			endfor
 			break
 		case "Spectrum":
-			for (i = 1, n = numpnts(ww); i < n; i += 1)
+			for (i = 1; i < n; i += 1)
 				SetScale/I x xw[0], xw[numpnts(xw)-1], "Hz", ww[i]
 			endfor
 			break
 		case "History Data":
-			for (i = 0, n = numpnts(ww); i < n; i += 1)
+			for (i = 0; i < n; i += 1)
 				SetScale/P x 0, s.interval, "ms", ww[i]
 			endfor
 			break
 	endswitch
-	
+
 	if (s.skip)
 		KillWaves xw
 	endif
