@@ -213,9 +213,9 @@ End
 //==============================================================================
 //	Panel
 //==============================================================================
-Static Constant CTRLHEIGHT = 175
+Static Constant CTRLHEIGHT = 200
 Static Constant BOTTOMHEIGHT = 30
-Static Constant PNLHEIGHT = 338
+Static Constant PNLHEIGHT = 363
 Static Constant PNLWIDTH = 262
 
 Static Constant BINS = 48		//	Number of bins of a histogram
@@ -277,18 +277,21 @@ Static Function pnl(String grfName)
 	TitleBox zmaxCutT   pos={241,122},title="%",win=$pnlName
 	TitleBox zmaxLogigmaT pos={241,145},title="\u03c3",win=$pnlName
 
-	PopupMenu adjustP pos={5,312}, size={75,19}, bodyWidth=75, win=$pnlName
-	PopupMenu adjustP mode=0, value="present z;full z", win=$pnlName
-	PopupMenu adjustP title="histogram", proc=SIDAMRange#pnlPopup, win=$pnlName
+	TitleBox adjustT pos={5,CTRLHEIGHT-23},title="histogram range",win=$pnlName
+	Button presentB pos={100,CTRLHEIGHT-25}, size={85,20}, title="first Z - last Z", win=$pnlName
+	Button fullB pos={200,CTRLHEIGHT-25}, size={45,20}, title="full", win=$pnlName
 
-	Button doB pos={118,310}, title="Do It", win=$pnlName
-	Button cancelB pos={195,310}, title="Cancel", win=$pnlName
+	PopupMenu toP title="To", pos={80,PNLHEIGHT-23}, size={50,20}, mode=0, win=$pnlName
+	PopupMenu toP bodyWidth=50, value="Cmd Line;Clip", proc=SIDAMRange#pnlPopup, win=$pnlName
+	
+	Button doB pos={5,PNLHEIGHT-25}, size={65,20}, title="Do It", win=$pnlName
+	Button cancelB pos={PNLWIDTH-70,PNLHEIGHT-25}, size={65,20}, title="Cancel", win=$pnlName
 
 	ModifyControlList ControlNameList(pnlName,";","zm*C") mode=1, proc=SIDAMRange#pnlCheck, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","zm*V") size={60,18}, bodyWidth=60, proc=SIDAMRange#pnlSetVar, win=$pnlName
 	ModifyControlList "zminV;zmaxV" size={100,18}, bodyWidth=100, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*T") frame=0,win=$pnlName
-	ModifyControlList ControlNameList(pnlName,";","*B") size={65,20},proc=SIDAMRange#pnlButton,win=$pnlName
+	ModifyControlList ControlNameList(pnlName,";","*B") proc=SIDAMRange#pnlButton,win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
 	//	Histogram
@@ -302,11 +305,18 @@ Static Function pnl(String grfName)
 	Cursor/C=(65280,32768,32768)/F/H=2/N=1/S=2/T=2/W=$subGrfName I $HIST zmin, 0
 	Cursor/C=(32768,40704,65280)/F/H=2/N=1/S=2/T=2/W=$subGrfName J $HIST zmax, 0
 
+	NewFreeAxis/B logAxis
+	ModifyFreeAxis/W=$subGrfName logAxis, master=bottom, hook=SIDAMRange#pnlAxHook
+	
 	ModifyGraph/W=$subGrfName margin(top)=8, margin(right)=12, margin(bottom)=32, margin(left)=40, gfSize=12
-	ModifyGraph/W=$subGrfName tick=2, btlen=5, mirror=1, lblMargin=0, prescaleExp(left)=2
+	ModifyGraph/W=$subGrfName tick=2, standoff=1, btlen=5, mirror=1, lblMargin=0, lblPosMode=1
 	ModifyGraph/W=$subGrfName mode=6, lstyle=1, rgb=(0,0,0)
-	Label/W=$subGrfName bottom "z (\u\M)"
+	ModifyGraph/W=$subGrfName prescaleExp(left)=2
+	ModifyGraph/W=$subGrfName freePos(logAxis)={0,kwFraction}, log(logAxis)=1
 	Label/W=$subGrfName left "Probability (\u#2%)"
+	Label/W=$subGrfName bottom "z (\u\M)"
+	Label/W=$subGrfName logAxis "z (\u\M)"
+	
 	SetActiveSubwindow ##
 
 	//	Hook functions
@@ -328,6 +338,8 @@ Static Function pnl(String grfName)
 	Execute/Q cmdStr
 	resetPnlCtrls(pnlName)
 
+	updatePnlAxis(pnlName)
+	
 	pnlHelp(pnlName)
 
 	SetActiveSubwindow $grfName
@@ -335,11 +347,19 @@ End
 
 Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variable zmax)
 	String dfTmp = SIDAMNewDF(StringFromList(0, grfName, "#"),"Range")
-	Wave w = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
-	Duplicate SIDAMHistogram(w, startz=zmin-(zmax-zmin)*0.05, endz=zmax+(zmax-zmin)*0.05, \
+	Wave w0 = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
+	if (SIDAM_ColorTableLog(grfName, imgName))
+		MatrixOP/FREE w = log(w0)
+	else
+		Wave w = w0
+	endif
+
+	Variable zmargin = (zmax - zmin) * 0.05
+	Duplicate SIDAMHistogram(w, startz=zmin-zmargin, endz=zmax+zmargin, \
 		bins=BINS) $(dfTmp+HIST)/WAVE=hw
 	Duplicate hw $(dfTmp+HISTCLR)/WAVE=rangew
 	rangew = x
+
 	return dfTmp
 End
 
@@ -401,7 +421,8 @@ Static Function pnlHelp(String pnlName)
 	helpw[][n++] = {"zmaxLogsigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
 	               + helpstr_last + helpstr_logavgsdev}
 
-	helpw[][n++] = {"adjustP", "Choose a z range to which the histogram is adjusted."}	
+	helpw[][n++] = {"presentB", "Create the histogram between the first and last Z."}
+	helpw[][n++] = {"fullB", "Create the histogram in the full z range."}
 
 	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
 	SIDAMApplyHelpStringsWave(pnlName, helpw)
@@ -548,7 +569,8 @@ Static Function pnlHookParentUpdatePanel(String grfName)
 	//	If the wave selected in the panel is removed from the graph,
 	//	select a new wave in the popupmenu.
 	ControlInfo/W=$pnlName imageP
-	Wave/Z w = SIDAMImageNameToWaveRef(grfName, imgName=S_Value)
+	String imgName = S_Value
+	Wave/Z w = SIDAMImageNameToWaveRef(grfName, imgName=imgName)
 	if (!WaveExists(w))
 		//	This does not work correctly for the panel of Line Profile and
 		//	Line Spectra. But the wave should not be removed from the panel,
@@ -564,6 +586,7 @@ Static Function pnlHookParentUpdatePanel(String grfName)
 	endif
 
 	updatePnlHistogram(pnlName, 0)
+	updatePnlAxis(pnlName)
 	resetPnlCtrls(pnlName)
 
 	return 1
@@ -628,16 +651,23 @@ End
 //	Behavior when a cursor is moved by a user
 Static Function pnlHookCursor(STRUCT WMWinHookStruct &s)
 
+	//	s.winName = Graph0#Range#G0
+	//	pnlName = Graph0#Range
+	String pnlName = RemoveEnding(ParseFilePath(1, s.winName, "#", 1, 0))
+	
+	String grfName = GetUserData(pnlName,"","grf")
+	ControlInfo/W=$pnlName imageP
+	String imgName = S_Value
+	
 	//	Since the cursor value is given between 0 and 1. Therefore, the axis
 	//	range is necessary to get an x value.
 	String xAxis = StringByKey("XAXIS",TraceInfo(s.winName, s.traceName, 0))
 	GetAxis/W=$s.winName/Q $xAxis
 	Variable xmin = V_min, xmax = V_max
 	Variable xvalue = xmin + (xmax-xmin)*s.pointNumber
-
-	//	s.winName = Graph0#Range#G0
-	//	pnlName = Graph0#Range
-	String pnlName = RemoveEnding(ParseFilePath(1, s.winName, "#", 1, 0))
+	if (SIDAM_ColorTableLog(grfName, imgName))
+		xvalue = 10^xvalue
+	endif
 
 	String checkBoxName = StringByKey(s.cursorName, "I:zminC;J:zmaxC;")
 	updatePnlRadioBox(pnlName, checkBoxName)
@@ -651,6 +681,13 @@ Static Function pnlHookCursor(STRUCT WMWinHookStruct &s)
 
 	updateZmode(pnlName)
 	updateZRange(GetUserData(pnlName,"","grf"), pause=1)
+End
+
+Static Function pnlAxHook(STRUCT WMAxisHookStruct &s)
+	GetAxis/Q/W=$s.win $s.mastName
+	s.min = 10^V_min
+	s.max = 10^V_max
+	return 0
 End
 
 //******************************************************************************
@@ -693,17 +730,12 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			//	The histogram has to be updated before the initilization.
 			//	Otherwise, the cursor position may be wrong.
 			updatePnlHistogram(s.win, 0)
+			updatePnlAxis(s.win)
 			resetPnlCtrls(s.win)
 			break
 
-		case "adjustP":
-			if (s.popNum == 1)		//	present
-				updatePnlHistogram(s.win, 0)
-			elseif (s.popNum == 2)	//	full
-				updatePnlHistogram(s.win, 1)
-			endif
-			updatePnlCursorsPos(s.win)
-			updatePnlColor(s.win)
+		case "toP":
+			SIDAMPopupTo(s, ReplaceString(";", constructEchoStr(s.win), "\r"))
 			break
 
 	endswitch
@@ -719,37 +751,24 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 	strswitch (s.ctrlName)
 		case "doB":
-			STRUCT paramStruct ps
-			ps.grfName = GetUserData(s.win,"","grf")
-			String zModeInfo = GetUserData(ps.grfName,"",MODEKEY)
-
-			ControlInfo/W=$s.win allC
-			if (V_Value)
-				ps.imgList = ""
-				String imgName = StringFromList(0, ImageNameList(ps.grfName,";"))
-				ps.zminmode = getZmodeValue(ps.grfName, imgName, "m0")
-				ps.zmaxmode = getZmodeValue(ps.grfName, imgName, "m1")
-				ps.zmin = getZmodeValue(ps.grfName, imgName, "v0")
-				ps.zmax = getZmodeValue(ps.grfName, imgName, "v1")
-				printHistory(ps)
-			else
-				int i
-				for (i = 0; i < ItemsInList(zModeInfo); i++)
-					ps.imgList = StringFromList(0,StringFromList(i,zModeInfo),":")
-					ps.zminmode = getZmodeValue(ps.grfName, ps.imgList, "m0")
-					ps.zmaxmode = getZmodeValue(ps.grfName, ps.imgList, "m1")
-					ps.zmin = getZmodeValue(ps.grfName, ps.imgList, "v0")
-					ps.zmax = getZmodeValue(ps.grfName, ps.imgList, "v1")
-					printHistory(ps)
-				endfor
-			endif
-
+			String echoStr = constructEchoStr(s.win)
+			int i
+			for (i = 0; i < ItemsInList(echoStr); i++)
+				printf "%s%s\r", PRESTR_CMD, StringFromList(i, echoStr)
+			endfor
 			SetWindow $s.win userData(norevert)="1"
 			//*** FALLTHROUGH ***
 		case "cancelB":
 			KillWindow $s.win
 			break
 
+		case "presentB":
+		case "fullB":		
+			updatePnlHistogram(s.win, NumberByKey(s.ctrlName, "presentB:0;fullB:1"))
+			updatePnlCursorsPos(s.win)
+			updatePnlColor(s.win)
+			break
+			
 	endswitch
 	return 0
 End
@@ -764,12 +783,13 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	if (CmpStr(s.ctrlName,"allC"))
 		updatePnlRadioBox(s.win, s.ctrlName)
 	else
-		Variable height = s.checked ? CTRLHEIGHT+BOTTOMHEIGHT : PNLHEIGHT
-		Variable dy = (PNLHEIGHT-CTRLHEIGHT-BOTTOMHEIGHT) * (s.checked ? -1 : 1)
+		Variable height = s.checked ? CTRLHEIGHT : PNLHEIGHT
+		Variable dy = (PNLHEIGHT-CTRLHEIGHT) * (s.checked ? -1 : 1)
 		MoveSubWindow/W=$s.win fnum=(0,0,PNLWIDTH,height)
 		SetWindow $(s.win+"#G0") hide=s.checked
-		ModifyControlList "doB;cancelB" pos+={0,dy}, win=$s.win
-		ModifyControlList "imageP;adjustP" disable=(s.checked*2), win=$s.win
+		ModifyControlList "doB;cancelB;toP" pos+={0,dy}, win=$s.win
+		ModifyControlList "imageP" disable=(s.checked*2), win=$s.win
+		ModifyControlList "adjustT;presentB;fullB" disable=s.checked, win=$s.win
 	endif
 
 	updateZmode(s.win)
@@ -866,12 +886,14 @@ Static Function updatePnlCursorsPos(String pnlName)
 
 	String grfName = GetUserData(pnlName, "", "grf")
 	String subGrfName = GetUserData(pnlName, "", "subGrfName")
-	Variable zmin, zmax
 	ControlInfo/W=$pnlName imageP
-	SIDAM_GetColorTableMinMax(grfName, S_Value, zmin, zmax)
+	String imgName = S_value
+	Variable zmin, zmax
+	SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
+	int isLog = SIDAM_ColorTableLog(grfName, imgName)
 
-	Cursor/F/W=$subGrfName I $HIST zmin, 0
-	Cursor/F/W=$subGrfName J $HIST zmax, 0
+	Cursor/F/W=$subGrfName I $HIST isLog ? log(zmin) : zmin, 0
+	Cursor/F/W=$subGrfName J $HIST isLog ? log(zmax) : zmax, 0
 End
 
 //	Update the color histogram to reflect the present values of the range
@@ -884,12 +906,16 @@ Static Function updatePnlColor(String pnlName)
 	String imgName = S_Value
 	Variable zmin, zmax
 	SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
-
+	if (SIDAM_ColorTableLog(grfName, imgName))
+		zmin = log(zmin)
+		zmax = log(zmax)
+	endif
+	
 	String dfTmp = GetUserData(pnlName, "", "dfTmp")
 	Wave/SDFR=$dfTmp clrw = $HISTCLR
 	int reversed = WM_ColorTableReversed(grfName,imgName)
 	String tableName = SIDAM_ColorTableForImage(grfName,imgName)
-
+	
 	ModifyGraph/W=$subGrfName mode($HIST)=5, hbFill($HIST)=2
 	ModifyGraph/W=$subGrfName zColorMax($HIST)=NaN, zColorMin($HIST)=NaN
 	if (WaveExists($tableName))
@@ -908,13 +934,19 @@ Static Function updatePnlHistogram(String pnlName, int mode)
 	ControlInfo/W=$pnlName imageP
 	String imgName = S_Value
 	String grfName = GetUserData(pnlName, "", "grf")
-	Wave w = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
-
+	Wave w0 = SIDAMImageNameToWaveRef(grfName, imgName=imgName, displayed=1)
+	int isLog = SIDAM_ColorTableLog(grfName, imgName)
+	if (isLog)
+		MatrixOP/FREE w = log(w0)
+	else
+		Wave w = w0
+	endif	
+		
 	Variable z0, z1, zmin, zmax
 	if ( mode == 0 )
 		SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
-		z0 = zmin - (zmax-zmin)*0.05
-		z1 = zmax + (zmax-zmin)*0.05
+		z0 = isLog ? log(zmin)-log(zmax/zmin)*0.05 : zmin - (zmax - zmin) * 0.05
+		z1 = isLog ? log(zmax)+log(zmax/zmin)*0.05 : zmax + (zmax - zmin) * 0.05
 	else
 		z0 = WaveMin(w)
 		z1 = WaveMax(w)
@@ -926,6 +958,14 @@ Static Function updatePnlHistogram(String pnlName, int mode)
 	clrw = x
 
 	DoUpdate/W=$pnlName
+End
+
+Static Function updatePnlAxis(String pnlName)
+	ControlInfo/W=$pnlName imageP
+	int isLog = SIDAM_ColorTableLog(GetUserData(pnlName, "", "grf"), S_Value)
+	String subGrfName = GetUserData(pnlName, "", "subGrfName")
+	ModifyGraph/W=$subGrfName noLabel(bottom)=isLog*2,axThick(bottom)=!isLog
+	ModifyGraph/W=$subGrfName noLabel(logAxis)=!isLog*2,axThick(logAxis)=isLog
 End
 
 //	Update the Z mode values of the parent window based on
@@ -1014,9 +1054,9 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			Wave hw = SIDAMHistogram(tw,bins=256,cumulative=1,normalize=1)
 		endif
 		if (m0 == 4 || m1 == 4)	//	logsimga
-			MatrixOP/FREE tw2 = ln(tw)
+			MatrixOP/FREE tw2 = log(tw)
 			WaveStats/Q tw2
-			Variable lnavg = V_avg, lnsdev = V_sdev
+			Variable logavg = V_avg, logsdev = V_sdev
 		endif
 	endif
 
@@ -1037,7 +1077,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			zmin = V_flag ? defaultmin : V_LevelX
 			break
 		case 4:	//	logsigma
-			zmin = numtype(lnavg) || numtype(lnsdev) ? defaultmin : exp(lnavg+lnsdev*v0)
+			zmin = numtype(logavg) || numtype(logsdev) ? defaultmin : 10^(logavg+logsdev*v0)
 			break
 		default:	//	1 (fix)
 			zmin = v0
@@ -1055,7 +1095,7 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 			zmax = V_flag ? defaultmax : V_LevelX
 			break
 		case 4:	//	logsigma
-			zmax = numtype(lnavg) || numtype(lnsdev) ? defaultmax : exp(lnavg+lnsdev*v1)
+			zmax = numtype(logavg) || numtype(logsdev) ? defaultmax : 10^(logavg+logsdev*v1)
 			break
 		default:	//	1 (fix)
 			zmax = v1
@@ -1065,8 +1105,36 @@ Static Function/WAVE updateZRange_getValues(String grfName, String imgName,
 	return rtnw
 End
 
-Static Function printHistory(STRUCT paramStruct &s)
+Static Function/S constructEchoStr(String grfName)
+	STRUCT paramStruct ps
+	ps.grfName = GetUserData(grfName,"","grf")
+	String zModeInfo = GetUserData(ps.grfName,"",MODEKEY)
 
+	ControlInfo/W=$grfName allC
+	if (V_Value)
+		ps.imgList = ""
+		String imgName = StringFromList(0, ImageNameList(ps.grfName,";"))
+		ps.zminmode = getZmodeValue(ps.grfName, imgName, "m0")
+		ps.zmaxmode = getZmodeValue(ps.grfName, imgName, "m1")
+		ps.zmin = getZmodeValue(ps.grfName, imgName, "v0")
+		ps.zmax = getZmodeValue(ps.grfName, imgName, "v1")
+		return echoStr(ps)
+	endif
+	
+	int i
+	String rtnStr = ""
+	for (i = 0; i < ItemsInList(zModeInfo); i++)
+		ps.imgList = StringFromList(0,StringFromList(i,zModeInfo),":")
+		ps.zminmode = getZmodeValue(ps.grfName, ps.imgList, "m0")
+		ps.zmaxmode = getZmodeValue(ps.grfName, ps.imgList, "m1")
+		ps.zmin = getZmodeValue(ps.grfName, ps.imgList, "v0")
+		ps.zmax = getZmodeValue(ps.grfName, ps.imgList, "v1")
+		rtnStr += echoStr(ps) + ";"
+	endfor
+	return rtnStr
+End
+
+Static Function/S echoStr(STRUCT paramStruct &s)
 	String paramStr = "grfName=\"" + s.grfName + "\""
 
 	int hasOnlyOneImage = ItemsInList(ImageNameList(s.grfName,";")) == 1
@@ -1099,7 +1167,7 @@ Static Function printHistory(STRUCT paramStruct &s)
 			paramStr += ",zmax="+num2str(s.zmax)
 	endswitch
 
-	printf "%sSIDAMRange(%s)\r", PRESTR_CMD, paramStr
+	return "SIDAMRange(" + paramStr + ")"
 End
 
 
