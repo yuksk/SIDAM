@@ -49,7 +49,8 @@ End
 Function/S SIDAMTOMLStringFromLine(String line)
 	//	For ease of implementation, "=" is not assumed to be included in the key.
 	//	Multi-lines are not supported.
-	return unsurrounding(StringFromList(1, line, "="))
+	int i0 = strsearch(line, "=", 0)
+	return unsurrounding(line[i0+1,strlen(line)-1]	)
 End
 
 Function SIDAMTOMLValueFromLine(String line)
