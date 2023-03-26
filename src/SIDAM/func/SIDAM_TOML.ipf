@@ -41,6 +41,38 @@ Function/S SIDAMTOMLListFromTable(Variable refNum, String tableName, [int usespe
 	return listStr
 End
 
+Function/WAVE SIDAMTOMLWaveFromTable(Variable refNum, String tableName)
+	int status = fastforward(refNum, tableName)
+	if (status)
+		return $""
+	endif
+	
+	String buffer
+	int n = 0
+	Make/N=(2,16)/T/FREE rtnw	//	16 is mostly enough
+
+	do
+		FReadLine refNum, buffer
+		buffer = TrimString(buffer)
+		if (!strlen(buffer))	//	EOF, empty line
+			break
+		elseif (GrepString(buffer, "^\[.*?\]"))	//	next table
+			break
+		endif
+		removeComment(buffer)
+		if (strlen(buffer))
+			rtnw[][n++] = {SIDAMTOMLKeyFromLine(buffer), SIDAMTOMLStringFromLine(buffer)}
+		endif
+		if (n == DimSize(rtnw,1))
+			InsertPoints/M=1 n, n, rtnw
+		endif
+	while (1)
+	DeletePoints/M=1 n, DimSize(rtnw,1)-n, rtnw
+	
+	return rtnw
+End
+
+
 Function/S SIDAMTOMLKeyFromLine(String line)
 	//	For ease of implementation, "=" is not assumed to be included in the key.
 	return unsurrounding(StringFromList(0, line, "="))

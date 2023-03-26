@@ -73,20 +73,7 @@ Static Function pnlCtrls(String pnlName, String menuName)
 		drawCtrlBack(pnlName)
 	endif
 
-	Make/T/N=(2,16)/FREE helpw
-	int n = 0
-	helpw[][n++] = {"p1C", "Check to move the point #1."}
-	helpw[][n++] = {"p1V", "Enter the row index of point #1."}
-	helpw[][n++] = {"q1V", "Enter the column index of point #1."}
-	helpw[][n++] = {"p2C", "Check to move point #2."}
-	helpw[][n++] = {"p2V", "Enter the row index of point #2."}
-	helpw[][n++] = {"q2V", "Enter the column index of point #2."}
-	helpw[][n++] = {"distanceV", "Enter a distance between points #1 and #2."}					
-	helpw[][n++] = {"angleV", "Enter an angle between positive x-axis and the path."}
-	helpw[][n++] = {"axlenV", "Enter a relative length of y-axis, between 0.1 and 0.9."}
-	helpw[][n++] = {"hiddenC", "Check to eliminate hidden lines."}			
-	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Line]")
 	
 	SetWindow $pnlName activeChildFrame=0
 

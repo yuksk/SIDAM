@@ -153,18 +153,9 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "doB;cancelB" proc=SIDAMImageRotate#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
 	
-	pnlHelp(pnlName)
-		
+	SIDAMApplyHelp(pnlName, "[SIDAM_ImageRotate]")	
+	
 	SetActiveSubwindow $pnlName
-End
-
-Static Function pnlHelp(String pnlName)
-	Make/T/N=(2,2)/FREE helpw
-	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
-		+ "saved in the same datafolder where the source wave is."}
-	helpw[][1] = {"angleV", "Enter an angle in degrees. A positive value means a " \
-		+ "counter-clock wise rotation."}		
-	SIDAMApplyHelpStringsWave(pnlName, helpw)	
 End
 
 //******************************************************************************

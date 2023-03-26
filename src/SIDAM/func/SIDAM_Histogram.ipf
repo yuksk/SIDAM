@@ -299,24 +299,7 @@ Static Function pnl(Wave w, String grfName)
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
-	String helpstr_blue = " of the histogram. You can enter a formula in a box of "\
-		+ "blue letters."
-	Make/T/N=(2,10)/FREE helpw
-	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
-		+ "saved in the same datafolder where the source wave is."}
-	helpw[][1] = {"modeP", "Select a mode to specify a z range of the histogram."}
-	helpw[][2] = {"z1V", "Enter the first value"	+ helpstr_blue}
-	helpw[][3] = {"z2V", "Enter the last value (end) or the spacing (delta)"\
-		+ helpstr_blue}
-	helpw[][4] = {"binsV", "Enter the number of bins" + helpstr_blue}
-	helpw[][5] = {"auto1C", "Check to use the minimum z value of the source wave "\
-		+ "for the first value of the histogram."}
-	helpw[][6] = {"auto2C", "Check to use the maximum z value of the source wave "\
-		+ "for the last value of the histogram."}
-	helpw[][7] = {"displayC", "Check to display the output wave."}
-	helpw[][8] = {"normalizeC", "Check to normalize the histogram."}
-	helpw[][9] = {"cumulativeC", "Check to generate a cumulative histogram."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName,"[SIDAM_Histogram]")
 											
 	pnlDisable(pnlName)
 

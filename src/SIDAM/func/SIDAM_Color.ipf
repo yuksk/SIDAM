@@ -446,7 +446,7 @@ Static Function pnl(String grfName)
 	SetActiveSubwindow ##
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0,win=$pnlName
 
-	pnlHelp(pnlName)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Color]")
 
 	SetActiveSubwindow $grfName
 End
@@ -548,7 +548,7 @@ Static Function pnlGroupComponents(String pnlName, int group, [int hide, int rev
 		CheckBox $checkboxName proc=SIDAMColor#pnlCheckCtab, userData(ctabName)=ctabName, win=$pnlName#$subPnlName
 		CheckBox $checkboxName mode=1,focusRing=0, win=$pnlName#$subPnlName
 		CheckBox $checkboxName help={"Click to use "+titleName+". You can also select "\
-			+ "a color table by pressing a arrow key."}, win=$pnlName#$subPnlName
+			+ "a color table by pressing an arrow key."}, win=$pnlName#$subPnlName
 		CheckBox $checkboxName value=CmpStr(ctabName,selected)==0, win=$pnlName#$subPnlName
 	endfor
 End
@@ -619,33 +619,6 @@ Static Function/S checkBoxNameList(String pnlName)
 		list += ControlNameList(childPnlName,";","cb_*")
 	endfor
 	return list
-End
-
-Static Function pnlHelp(String pnlName)
-	Make/T/N=(2,16)/FREE helpw
-	String helpstr_first = "All z values before the first are assigned "
-	String helpstr_last = "All z values after the last are assigned "
-	String helpstr_pop = "the color selected from the popup to the right."
-	int n = 0
-
-	helpw[][n++] = {"imageP","Choose an image to apply a color table."}
-	helpw[][n++] = {"allC", "Check to apply a common color table to all images in the graph."}
-	helpw[][n++] = {"optionB", "Click to show or hide the items on the left."}
-	helpw[][n++] = {"op_revC", "Check to reverse the order of colors in the color table."}
-	helpw[][n++] = {"op_logC", "Check to use logarithmically-spaced colors."}	
-	helpw[][n++] = {"op_beforeUseC", helpstr_first + "the same color as the first z value."}
-	helpw[][n++] = {"op_beforeClrC", helpstr_first + helpstr_pop}
-	helpw[][n++] = {"op_beforeClrP", "Select a color to use for any z values before the first."}
-	helpw[][n++] = {"op_beforeTransC", "All z values before the first are transparent."}
-	helpw[][n++] = {"op_lastUseC", helpstr_last + "the same color as the last z value."}
-	helpw[][n++] = {"op_lastClrC", helpstr_last + helpstr_pop}
-	helpw[][n++] = {"op_lastClrP", "Select a color to use for any z values after the last."}
-	helpw[][n++] = {"op_lastTransC", "All z values after the last are transparent."}
-	helpw[][n++] = {"ctabgroupL", "Choose a group of color tables shown on the right. "\
-		+ "Groups can be changed by using the mouse wheel."}
-
-	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
 End
 
 //---------------------------------------------------------------------------

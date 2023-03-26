@@ -325,46 +325,9 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "doB;cancelB" proc=SIDAMSubtraction#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*"), focusRing=0, win=$pnlName
 
-	pnlHelp(pnlName)
-	
-	SetActiveSubwindow $pnlName
-End
+	SIDAMApplyHelp(pnlName, "[SIDAM_Subtraction]", lengths="modeP:100;methodP:100")
 
-Static Function pnlHelp(String pnlName)
-	Make/T/N=(2,11)/FREE helpw
-	helpw[][0] = {"resultV", "Enter the name of output wave. The output wave is "\
-		+ "saved in the same datafolder where the source wave is."}
-	helpw[][1] = {"owC", "Check to overwrite the source wave by the subtracted wave."}
-	helpw[][2] = {"degreeP", "Select a degree of subtracted plane or lines."}
-	helpw[][3] = {"directionP", "Select a direction of line subtraction, row "\
-		+ "(\u21c4) or column (\u21c5)."}
-	helpw[][4] = {"roiC", "Check to set a region of interest of subtraction."}
-	helpw[][5] = {"p1V", "Enter a row index of a corner of ROI."}
-	helpw[][6] = {"q1V", "Enter a column index of a corner of ROI."}
-	helpw[][7] = {"p2V", "Enter a row index of a corner of ROI."}
-	helpw[][8] = {"q2V", "Enter a column index of a corner of ROI."}
-	helpw[][9] = {"indexV", "Enter an index of a layer to be subtracted."}
-	helpw[][10] = {"displayC", "Check to display the output wave."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
-	
-	Redimension/N=(2,2) helpw
-	helpw = ""
-	helpw[][0] = {"modeP", "Select a subtraction mode.\\r"\
-		+ "Plane: Subtract a polynomial plane. Choose a degree from the menu on the right.\\r"\
-		+ "Line: Subtract a line from each row or column. Dependeing on the degree, "\
-		+ "a constant (0), a line (1), or a quadratic curve (2) is subtracted from "\
-		+ "each row or column, which can be selected from the popupmenu below.\\r"\
-		+ "Layer: Subtract a layer of the source wave. This is available for 3D waves.\\r"\
-		+ "Phase: Subtract the phase of a layer of the source wave. This is available "\
-		+ "for complex waves."}
-	helpw[][1] = {"methodP", "Select a method to determine coefficients of subtracted "\
-		+ "lines.\\r"\
-		+ "least squares: By least-squares polynomial fitting to each row or column.\\r"\
-		+ "median: By taking the median. 0th degree is the median of the height. "\
-		+ "1st and 2nd degrees are the medians of slopes and curvatures, respectively. "\
-		+ "The slopes and curvatures are caluculated from all combinations of 2 and 3 "\
-		+ "points, respectively."}	
-	SIDAMApplyHelpStringsWave(pnlName, helpw, oneline=100)
+	SetActiveSubwindow $pnlName
 End
 
 //******************************************************************************

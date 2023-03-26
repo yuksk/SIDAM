@@ -71,19 +71,7 @@ Static Function pnl(String grfName)
 	
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
-	Make/T/N=(2,10)/FREE helpw
-	helpw[][0] = {"all_rC", "Check to include all layers in the movie."}
-	helpw[][1] = {"select_rC", "Check to specify a range of layers included in the movie."}
-	helpw[][2] = {"from_f_V", "Enter the first index of layers included in the movie."}
-	helpw[][3] = {"to_f_V", "Enter the last index of layers included in the movie."}
-	helpw[][4] = {"codecP", "Select the compression codec to use."}
-	helpw[][5] = {"factorV", "Enter a compression factor relative to the theoretical "\
-		+ "uncompressed value. The default compression factor is 200."}
-	helpw[][6] = {"rateV", "Enter a value of frames per second between 1 and 60."}
-	helpw[][7] = {"filenameV", "Enter the name of movie file."}
-	helpw[][8] = {"pathP", "Select a path where the movie file is saved."}
-	helpw[][9] = {"overwriteC", "Check to overwrite the movie file if already exists."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_SaveMovie]")
 	
 	SetActiveSubwindow $grfName
 End

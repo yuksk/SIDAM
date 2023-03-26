@@ -172,14 +172,8 @@ Static Function pnl(String grfName)
 	Button cancelB title="Cancel", pos={75,110}, size={60,20}, win=$pnlName
 	ModifyControlList "reverseB;resetB;doB;cancelB" proc=SIDAMTraceOffset#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
-
-	Make/T/N=(2,5)/FREE helpw
-	helpw[][0] = {"xoffsetV", "Enter an offset value in the x direction."}
-	helpw[][1] = {"yoffsetV", "Enter an offset value in the x direction."}
-	helpw[][2] = {"resetB", "Press to make the offsets zero."}
-	helpw[][3] = {"fillC", "Check to remove hidden lines"}
-	helpw[][4] = {"reverseB", "Press to reverse the order of traces."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
+	SIDAMApplyHelp(pnlName, "[SIDAM_TraceOffset]")
 	
 	SetActiveSubwindow $pnlName
 End

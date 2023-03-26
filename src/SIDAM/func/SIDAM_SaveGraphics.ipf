@@ -97,27 +97,7 @@ Static Function pnl(String grfName)
 	ModifyControlList ControlNameList(pnlName,";","*_rC") mode=1, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
-	Make/T/N=(2,18)/FREE helpw
-	helpw[][0] = {"all_rC", "Check to save all layers."}
-	helpw[][1] = {"select_rC", "Check to specify a range of layers to be saved."}
-	helpw[][2] = {"from_f_V", "Enter the first index of layers to be saved."}
-	helpw[][3] = {"to_f_V", "Enter the last index of layers to be saved."}
-	helpw[][4] = {"group0", "Select the format of the saved file."}
-	helpw[][5] = {"colorC", "Check to save the file in color."}
-	helpw[][6] = {"rgb_rC", "Check to save the file in RGB color."}
-	helpw[][7] = {"cmyk_rC", "Check to save the file in CMYK color."}
-	helpw[][8] = {"transC", "Check to make white background area transparent."}
-	helpw[][9] = {"dontembedC", "Check to embed all fonts except for standard fonts."}
-	helpw[][10] = {"embedC", "Check to embed all fonts."}
-	helpw[][11] = {"exceptC", "Check to embed all fonts except for standard fonts."}
-	helpw[][12] = {"resolutionP", "Select the image resolution in an integer multiple "\
-		+ "of the screen resolution."}
-	helpw[][13] = {"dpiP", "Select the image resolution in DPI."}
-	helpw[][14] = {"filenameV", "Enter the base name of image files."}
-	helpw[][15] = {"suffixP", "Select a suffix of names of image files."}
-	helpw[][16] = {"pathP", "Select a path where the image files are saved."}
-	helpw[][17] = {"overwriteC", "Check to overwrite the image files if already exists."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_SaveGraphics]")
 	
 	SetActiveSubwindow $grfName
 End

@@ -89,15 +89,7 @@ Static Function pnl(String grfName)
 		) size={60,20}, proc=SIDAMPositionRecorder#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
-	Make/T/N=(2,7)/FREE helpw
-	helpw[][0] = {"existingC", "Check to save positions you click to an existing wave."}
-	helpw[][1] = {"newC", "Check to save positions you click to a new wave."}
-	helpw[][2] = {"existingP", "Select a wave to save positions."}
-	helpw[][3] = {"newP", "Select a mode how positions are saved."}
-	helpw[][4] = {"startB", "Press to start recording positions."}
-	helpw[][5] = {"finishB", "Press to stop recording positions."}
-	helpw[][6] = {"gridC", "Check to record grid points."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Position_Recorder]")
 	
 	SetActiveSubwindow $grfName
 End

@@ -1,0 +1,230 @@
+[SIDAM_Color]
+"imageP" = "Choose an image to apply a color table."
+"allC" = "Check to apply a common color table to all images in the graph."
+"optionB" = "Click to show or hide the items on the left."
+"op_revC" = "Check to reverse the order of colors in the color table."
+"op_logC" = "Check to use logarithmically-spaced colors."
+"op_beforeUseC" = "All z values before the first are assigned the same color as the first z value."
+"op_beforeClrC" = "All z values before the first are assigned the color selected from the popup to the right."
+"op_beforeClrP" = "Select a color to use for any z values before the first."
+"op_beforeTransC" = "All z values before the first are transparent."
+"op_lastUseC" = "All z values after the last are assigned the same color as the last z value."
+"op_lastClrC" = "All z values after the last are assigned the color selected from the popup to the right."
+"op_lastClrP" = "Select a color to use for any z values after the last."
+"op_lastTransC" = "All z values after the last are transparent."
+"ctabgroupL" = "Choose a group of color tables shown on the right. Groups can be changed by using the mouse wheel."
+
+[SIDAM_Correlation]
+"destV" = "Click to select the destination wave. When the destination wave is the same as the source wave, calculate the auto-correlation of the source wave."
+"resultV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"subtractC" = "Check to subtract the average before calculating FFT. For 3D waves, the average of each layer is subtracted."
+"normalizeC" = "Check to normalize the correlation wave so that the maximum of absolute value is 1."
+"displayC" = "Check to display the output wave."
+
+[SIDAM_FFT]
+"resultV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"subtractC" = "Check to subtract the average before calculating FFT. For 3D waves, the average of each layer is subtracted."
+"outputP" = "Select an output type."
+"windowP" = "Select an image window applied before calculating FFT. The profile and image of the window are shown below."
+"displayC" = "Check to display the output wave."
+
+[SIDAM_Fourier_Filter]
+"colorP" = "Select the color of the mask."
+"opacityS" = "Select the opacity of the mask."
+
+[SIDAM_Fourier_Filter.table]
+"addB" = "Press to add a filter."
+"deleteB" = "Press to delete a filter selected in the list."
+"passC" = "Select to make a pass filter."
+"stopC" = "Select to make a stop filter."
+"applyB" = "Press to apply the filters in the list."
+"filL" = "Enter parameters of a filter here. A filter is constructed by a sum of Gaussians. The center of each Gaussian is given by a linear combination of (p0, q0) and (p1, q1) in the unit of pixels. The linear combinations are taken up to n0-th and n1-th order, respectively. The HWHM is also in the unit of pixels.\\r\\rPress \\\"Add\\\" on the right to add a filter, and a row is added to the table. Click a cell to enter a number. You can also click the FFT image on the left after selecting a cell.\\r\\rPress \\\"Apply\\\" on the right after defining filters, and you will get a filtered image in the filtered tab on the left and a masked FFT image in the FFT tab.\\r\\rPress \\\"Save\\\" below to save a wave of the filtered image."
+
+[SIDAM_Fourier_Filter.controls]
+"nameV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"displayC" = "Check to display the output wave."
+"endP" = "The end effect is the same as used in Smooth.\\r\\\"bounce\\\" uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].\\r\\\"wrap\\\" uses w[n-i] in place of the mising w[-i] and vice-versa.\\r\\\"zero\\\" uses 0 for any missing values.\\r\\\"repeat\\\" uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i].\\r\\rThe end effect is realized by simply expanding the original wave. Therefore, end effects except for \\\"wrap\\\" take longer time."
+
+[SIDAM_Fourier_Symmetrization]
+"outputV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"symP" = "Select the symmetry of the Fourier pattern."
+"shearP" = "Select the direction of shear. This is usually the direction of the fast scan."
+"p1V" = "Enter the row index of the first peak. You can enter a formula in a box of blue letters."
+"q1V" = "Enter the column index of the first peak. You can enter a formula in a box of blue letters."
+"a1V" = "Enter the period corresponding to the first peak. You can enter a formula in a box of blue letters. For example, 3.5/2*sqrt(3)."
+"p2V" = "Enter the row index of the second peak. You can enter a formula in a box of blue letters."
+"q2V" = "Enter the column index of the second peak. You can enter a formula in a box of blue letters."
+"a2V" = "Enter the period corresponding to the second peak. You can enter a formula in a box of blue letters. For example, 3.5/2*sqrt(3)."
+"displayC" = "Check to display the output wave."
+"v1G" = "Enter numbers of the first peak.\\rBesides typing numbers, there are two ways to enter numbers.\\r(1) Click the group box and then click the FFT image on the left.\\r(2) Enclose a peak by clicking and dragging, and you will find a menu item for fitting in the marquee menu."
+"v2G" = "Enter numbers of the second peak.\\rBesides typing numbers, there are two ways to enter numbers.\\r(1) Click the group box and then click the FFT image on the left.\\r(2) Enclose a peak by clicking and dragging, and you will find a menu item for fitting in the marquee menu."
+"endeffectP" = "The end effect is the same as used in Smooth.\\r\\\"bounce\\\" uses w[i] in place of the missing w[-i] and w[n-i] in place of the missing w[n+i].\\r\\\"wrap\\\" uses w[n-i] in place of the mising w[-i] and vice-versa.\\r\\\"zero\\\" uses 0 for any missing values.\\r \\\"repeat\\\" uses w[0] in place of the missing w[-i] and w[n] in place of the missing w[n+i]."
+
+[SIDAM_Histogram]
+"resultV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"modeP" = "Select a mode to specify a z range of the histogram."
+"z1V" = "Enter the first value of the histogram. You can enter a formula in a box of blue letters."
+"z2V" = "Enter the last value (end) or the spacing (delta) of the histogram. You can enter a formula in a box of blue letters."
+"binsV" = "Enter the number of bins of the histogram. You can enter a formula in a box of blue letters."
+"auto1C" = "Check to use the minimum z value of the source wave for the first value of the histogram."
+"auto2C" = "Check to use the maximum z value of the source wave for the last value of the histogram."
+"displayC" = "Check to display the output wave."
+"normalizeC" = "Check to normalize the histogram."
+"cumulativeC" = "Check to generate a cumulative histogram."
+
+[SIDAM_ImageRotate]
+"resultV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"angleV" = "Enter an angle in degrees. A positive value means a counter-clock wise rotation."
+
+[SIDAM_InfoBar]
+"indexV" = "Enter an index of a layer to show."
+"energyV" = "Enter a scaling value of a layer to show."
+"pqV" = "Enter an index of a row/column to show."
+"xyV" = "Enter a scaling value of a row/column to show."
+
+[SIDAM_LayerAnnotation]
+"imageP" = "Select an image of a 3D wave to show an annotation."
+"digitV" = "Enter the number of digits after the decimal point."
+"unitC" = "Check to insert the unit of data after the value."
+"signC" = "Check to add the plus sign before the value when the value is positive."
+"prefixC" = "Check to use a prefix such as μ, m, k, or M."
+"stringV" = "Enter the text of annotation. ${value} is replaced with the layer value.\\r\\rThe text here is simply used as the text of the TextBox command except for the replacement of ${value}$. You can insert any codes to modify the annotation. For example, \\\f01 to make the font style bold."
+"styleP" = "Select a style of the annotation.\\r\\rEach style uses to the following flags of the Textbox Command.\\r\\u2022 \\\"no style\\\"\\rNo flags. Flags already applied including the Igor's default are kept.\\r\\u2022 \\\"light background\\\"\\r/F=2/D={1,1,3}/G=(0,0,0,0)/B=(65535,65535,65535,39321) \\\"\\\\K(0,0,0)\\\"+text\\r\\u2022 \\\"dark background\\\"\\r/F=2/D={1,1,3}/G=(0,0,0,0)/B=(0,0,0,39321) \\\"\\\\K(65535,65535,65535)\\\"+text"
+
+[SIDAM_Line]
+"p1C" = "Check to move the point 1."
+"p1V" = "Enter the row index of point 1."
+"q1V" = "Enter the column index of point 1."
+"p2C" = "Check to move point 2."
+"p2V" = "Enter the row index of point 2."
+"q2V" = "Enter the column index of point 2."
+"distanceV" = "Enter a distance between points 1 and 2."
+"angleV" = "Enter an angle between positive x-axis and the path."
+"axlenV" = "Enter a relative length of y-axis, between 0.1 and 0.9."
+"hiddenC" = "Check to eliminate hidden lines."
+
+[SIDAM_LineProfile]
+"widthV" = "Enter the width in pixels in a direction perpendicular to the path. See the help of ImageLineProfile for the details."
+
+[SIDAM_Position_Recorder]
+"existingC" = "Check to save positions you click to an existing wave."
+"newC" = "Check to save positions you click to a new wave."
+"existingP" = "Select a wave to save positions."
+"newP" = "Select a mode how positions are saved."
+"startB" = "Press to start recording positions."
+"finishB" = "Press to stop recording positions."
+"gridC" = "Check to record grid points."
+
+[SIDAM_Range]
+"imageP" = "Choose an image to set the z range."
+"allC" = "Check to apply a common z range to all images in the graph."
+"zminC" = "When selected, the value in the box on the right is assigned to the first color of the color table you choose."
+"zminAutoC" = "When selected, the minimum z value in the current area of the selected image is assigned to the first color of the color table you choose. This is equivalent to ModifyImage ctabAutoscale=3."
+"zminSigmaC" = "When selected, μ+nσ is assigned to the first color of the color table you choose. n is the value in the box on the right. μ and σ are the average and the standard deviation, respectively, calculated for the current area of the selected image."
+"zminCutC" = "When selected, the value corresponding to x% of the cumulative histogram is assigned to the first color of the color table you choose. x is the value in the box on the right. The histogram is calculated for the current area of the selected image."
+"zminLogsigmaC" = "When selected, μ+nσ is assigned to the first color of the color table you choose. n is the value in the box on the right. μ and σ are the average and the standard deviation, respectively, calculated for logarithmic values of the current area of the selected image. This option is useful when values in an image span a wide range over a few orders like an FFT image."
+"zminV" = "Enter a value assigned to the first color of the color table you choose."
+"zminSigmaV" = "Enter a value for n of μ+nσ assigned to the first color of the color table you choose. μ and σ are the average and the standard deviation, respectively, calculated for the current area of the selected image."
+"zminCutV" = "Enter a value for x where x% from the minimum of the cumulative histogram is assigned to the first color of the color table you choose. The histogram is calculated for the current area of the selected image."
+"zminLogsigmaV" = "Enter a value for n of μ+nσ assigned to the first color of the color table you choose. μ and σ are the average and the standard deviation, respectively, calculated for logarithmic values of the current area of the selected image. This option is useful when values in an image span in a wide range over a few orders like an FFT image."
+"zmaxC" = "When selected, the value in the box on the right is assigned to the last color of the color table you choose."
+"zmaxAutoC" = "When selected, the maximum z value in the current area of the selected image is assigned to the last color of the color table you choose. This is equivalent to ModifyImage ctabAutoscale=3."
+"zmaxSigmaC" = "When selected, μ+nσ is assigned to the last color of the color table you choose. n is the value in the box on the right. μ and σ are the average and the standard deviation, respectively, calculated for the current area of the selected image."
+"zmaxCutC" = "When selected, the value corresponding to x% of the cumulative histogram is assigned to the last color of the color table you choose. x is the value in the box on the right. The histogram is calculated for the current area of the selected image."
+"zmaxLogsigmaC" = "When selected, μ+nσ is assigned to the last color of the color table you choose. n is the value in the box on the right. μ and σ are the average and the standard deviation, respectively, calculated for logarithmic values of the current area of the selected image. This option is useful when values in an image span in a wide range over a few orders like an FFT image."
+"zmaxV" = "Enter a value assigned to the last color of the color table you choose."
+"zmaxSigmaV" = "Enter a value for n of μ+nσ assigned to the last color of the color table you choose. μ and σ are the average and the standard deviation, respectively, calculated for the current area of the selected image."
+"zmaxCutV" = "Enter a value for x where x% from the maximum of the cumulative histogram is assigned to the last color of the color table you choose. The histogram is calculated for the current area of the selected image."
+"zmaxLogsigmaV" = "Enter a value for n of μ+nσ assigned to the last color of the color table you choose. μ and σ are the average and the standard deviation, respectively, calculated for logarithmic values of the current area of the selected image. This option is useful when values in an image span in a wide range over a few orders like an FFT image."
+"presentB" = "Create the histogram between the first and last Z."
+"fullB" = "Create the histogram in the full z range."
+
+[SIDAM_SaveGraphics]
+"all_rC" = "Check to save all layers."
+"select_rC" = "Check to specify a range of layers to be saved."
+"from_f_V" = "Enter the first index of layers to be saved."
+"to_f_V" = "Enter the last index of layers to be saved."
+"group0" = "Select the format of the saved file."
+"colorC" = "Check to save the file in color."
+"rgb_rC" = "Check to save the file in RGB color."
+"cmyk_rC" = "Check to save the file in CMYK color."
+"transC" = "Check to make white background area transparent."
+"dontembedC" = "Check to embed all fonts except for standard fonts."
+"embedC" = "Check to embed all fonts."
+"exceptC" = "Check to embed all fonts except for standard fonts."
+"resolutionP" = "Select the image resolution in an integer multiple of the screen resolution."
+"dpiP" = "Select the image resolution in DPI."
+"filenameV" = "Enter the base name of image files."
+"suffixP" = "Select a suffix of names of image files."
+"pathP" = "Select a path where the image files are saved."
+"overwriteC" = "Check to overwrite the image files if already exists."
+
+[SIDAM_SaveMovie]
+"all_rC" = "Check to include all layers in the movie."
+"select_rC" = "Check to specify a range of layers included in the movie."
+"from_f_V" = "Enter the first index of layers included in the movie."
+"to_f_V" = "Enter the last index of layers included in the movie."
+"codecP" = "Select the compression codec to use."
+"factorV" = "Enter a compression factor relative to the theoretical uncompressed value. The default compression factor is 200."
+"rateV" = "Enter a value of frames per second between 1 and 60."
+"filenameV" = "Enter the name of movie file."
+"pathP" = "Select a path where the movie file is saved."
+"overwriteC" = "Check to overwrite the movie file if already exists."
+
+[SIDAM_ScaleBar]
+"prefixC" = "Check to use a prefix such as n and μ."
+"ltC" = "Check to show the scale bar at the left-top corner."
+"lbC" = "Check to show the scale bar at the left-bottom corner."
+"rtC" = "Check to show the scale bar at the right-top corner."
+"rbC" = "Check to show the scale bar at the right-bottom corner."
+"sizeV" = "Enter the font size. When 0, the default font size is used."
+"fgRGBAP" = "Select the foreground color of the scale bar."
+"bgRGBAP" = "Select the background color of the scale bar."
+"lengthV" = "Enter the length of bar. When 0, a nice value is used."
+
+[SIDAM_SpectrumViewer]
+"pV" = "Enter a row index of a position where a spectrum is extracted."
+"qV" = "Enter a column index of a position where a spectrum is extracted."
+
+[SIDAM_Subtraction]
+"resultV" = "Enter the name of output wave. The output wave is saved in the same datafolder where the source wave is."
+"owC" = "Check to overwrite the source wave by the subtracted wave."
+"degreeP" = "Select a degree of subtracted plane or lines."
+"directionP" = "Select a direction of line subtraction, row (\u21c4) or column (\u21c5)."
+"roiC" = "Check to set a region of interest of subtraction."
+"p1V" = "Enter a row index of a corner of ROI."
+"q1V" = "Enter a column index of a corner of ROI."
+"p2V" = "Enter a row index of a corner of ROI."
+"q2V" = "Enter a column index of a corner of ROI."
+"indexV" = "Enter an index of a layer to be subtracted."
+"displayC" = "Check to display the output wave."
+"modeP" = "Select a subtraction mode.\\rPlane: Subtract a polynomial plane. Choose a degree from the menu on the right.\\rLine: Subtract a line from each row or column. Dependeing on the degree, a constant (0), a line (1), or a quadratic curve (2) is subtracted from each row or column, which can be selected from the popupmenu below.\\rLayer: Subtract a layer of the source wave. This is available for 3D waves.\\rPhase: Subtract the phase of a layer of the source wave. This is available for complex waves."
+"methodP" = "Select a method to determine coefficients of subtracted lines.\\rleast squares: By least-squares polynomial fitting to each row or column.\\rmedian: By taking the median. 0th degree is the median of the height. 1st and 2nd degrees are the medians of slopes and curvatures, respectively. The slopes and curvatures are caluculated from all combinations of 2 and 3 points, respectively."
+
+[SIDAM_SyncAxisRange]
+"winL" = "Select windows you want to synchronize axes. You can also select a window by clicking an actual window."
+
+[SIDAM_SyncCursor]
+"pC" = "Put cursors at the same [p,q] in all windows."
+"xC" = "Put cursors at the same (x,y) in all windows."
+"winL" = "Select windows you want to synchronize cursors. You can also select a window by clicking an actual window."
+
+[SIDAM_SyncLayer]
+"winL" = "Select windows you want to synchronize layers. You can also select a window by clicking an actual window. 3D waves with the same number of layers are listed here."
+
+[SIDAM_TraceOffset]
+"xoffsetV" = "Enter an offset value in the x direction."
+"yoffsetV" = "Enter an offset value in the x direction."
+"resetB" = "Press to make the offsets zero."
+"fillC" = "Check to remove hidden lines"
+"reverseB" = "Press to reverse the order of traces."
+
+[SIDAM_Workfunction]
+"basenameV" = "Enter the basename of output waves. The output waves are saved in the same datafolder where the source wave is."
+"startpV" = "Enter the first index of the range for fitting."
+"endpV" = "Enter the last index of the range for fitting."
+"startC" = "Check to use the first index of the input wave as the first index of the range for fitting."
+"endC" = "Check to use the last index of the input wave as the last index of the range for fitting."
+"fitC" = "Check to fit the current offset."
+"fixC" = "Check to use a fixed value for the current offset."
+"offsetV" = "Enter a value for the fixed current offset."

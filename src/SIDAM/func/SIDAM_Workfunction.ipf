@@ -345,20 +345,8 @@ Static Function pnl()
 	ModifyControlList "startC;endC;fitC;fixC" proc=SIDAMWorkfunction#pnlCheckBox, win=$pnlName
 	ModifyControlList "doB;cancelB" size={70,20}, proc=SIDAMWorkfunction#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
-
-	Make/T/N=(2,8)/FREE helpw
-	helpw[][0] = {"basenameV", "Enter the basename of output waves. The output "\
-		+ "waves are saved in the same datafolder where the source wave is."}
-	helpw[][1] = {"startpV", "Enter the first index of the range for fitting."}
-	helpw[][2] = {"endpV", "Enter the last index of the range for fitting."}
-	helpw[][3] = {"startC", "Check to use the first index of the input wave as "\
-		+ "the first index of the range for fitting."}
-	helpw[][4] = {"endC", "Check to use the last index of the input wave as "\
-		+ "the last index of the range for fitting."}
-	helpw[][5] = {"fitC", "Check to fit the current offset."}
-	helpw[][6] = {"fixC", "Check to use a fixed value for the current offset."}
-	helpw[][7] = {"offsetV", "Enter a value for the fixed current offset."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	
+	SIDAMApplyHelp(pnlName, "[SIDAM_Workfunction]")
 	
 	pnlValidateWave(pnlName)
 	

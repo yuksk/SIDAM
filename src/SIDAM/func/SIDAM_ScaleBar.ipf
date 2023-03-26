@@ -499,18 +499,7 @@ Static Function pnl(String grfName)
 	ModifyControlList "fgRGBAP;bgRGBAP" mode=1, bodyWidth=40, proc=SIDAMScaleBar#pnlPopup, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
-	Make/T/N=(2,9)/FREE helpw
-	String helpstr_check = "Check to show the scale bar at the "
-	helpw[][0] = {"prefixC", "Check to use a prefix such as n and \\u03bc."}
-	helpw[][1] = {"ltC", helpstr_check+"left-top corner."}
-	helpw[][2] = {"lbC", helpstr_check+"left-bottom corner."}
-	helpw[][3] = {"rtC", helpstr_check+"right-top corner."}
-	helpw[][4] = {"rbC", helpstr_check+"right-bottom corner."}
-	helpw[][5] = {"sizeV", "Enter the font size. When 0, the default font size is used."}
-	helpw[][6] = {"fgRGBAP", "Select the foreground color of the scale bar."}
-	helpw[][7] = {"bgRGBAP", "Select the background color of the scale bar."}
-	helpw[][8] = {"lengthV", "Enter the length of bar. When 0, a nice value is used."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_ScaleBar]")
 	
 	SIDAMScalebar(grfName=grfName, anchor=getAnchorFromPnl(pnlName))
 	

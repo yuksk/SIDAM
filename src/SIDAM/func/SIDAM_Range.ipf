@@ -340,7 +340,7 @@ Static Function pnl(String grfName)
 
 	updatePnlAxis(pnlName)
 	
-	pnlHelp(pnlName)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Range]")
 
 	SetActiveSubwindow $grfName
 End
@@ -361,71 +361,6 @@ Static Function/S pnlInit(String grfName, String imgName, Variable zmin, Variabl
 	rangew = x
 
 	return dfTmp
-End
-
-Static Function pnlHelp(String pnlName)
-	Make/T/N=(2,32)/FREE helpw
-	
-	String helpstr_first = " is assigned to the first color of the color table you choose."
-	String helpstr_last = " is assigned to the last color of the color table you choose."
-	String helpstr_box = " is the value in the box on the right."
-	String helpstr_avgsdev = " \u03bc and \u03c3 are the average and the standard "\
-		+ "deviation, respectively, calculated for the current area of the selected image."
-	String helpstr_hist = " The histogram is calculated for the current area of the selected image."
-	String helpstr_logavgsdev = " \u03bc and \u03c3 are the average and the standard "\
-		+ "deviation, respectively, calculated for logarithmic values of the current "\
-		+ "area of the selected image. This option is useful when values in an image "\
-		+ "span in a wide range over a few orders like an FFT image"
-	int n
-
-	helpw[][n++] = {"imageP","Choose an image to set the z range."}
-	helpw[][n++] = {"allC", "Check to apply a common z range to all images in the graph."}
-	
-	helpw[][n++] = {"zminC", "When selected, the value in the box on the right" + helpstr_first}
-	helpw[][n++] = {"zminAutoC", "When selected, the minimum z value of the current "\
-	               + "area of the selected image" + helpstr_first + " This is equivalent to "\
-	               + "ModifyImage ctabAutoscale=3."}
-	helpw[][n++] = {"zminSigmaC", "When selected, \u03bc+n\u03c3" + helpstr_first\
-	               + " n" + helpstr_box + helpstr_avgsdev}
-	helpw[][n++] = {"zminCutC", "When selected, the value that corresponds to x% of the "\
-	               + " cumulative histogram" + helpstr_first + " x " + helpstr_box + helpstr_hist}
-	helpw[][n++] = {"zminLogsigmaC", "When selected, \u03bc+n\u03c3" + helpstr_first\
-	               + " n" + helpstr_box + helpstr_logavgsdev}
-		
-	helpw[][n++] = {"zminV", "Enter a value that" + helpstr_first}
-	helpw[][n++] = {"zminSigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
-	               + helpstr_first + helpstr_avgsdev}
-	helpw[][n++] = {"zminCutV", "Enter a value for x where the value corresponding to "\
-	               + "x% of the cumulative histogram" + helpstr_first + helpstr_hist}
-	helpw[][n++] = {"zminLogsigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
-	               + helpstr_first + helpstr_logavgsdev}
-
-	helpw[][n++] = {"zmaxC", "When selected, the value in the box on the right" + helpstr_last}
-	helpw[][n++] = {"zmaxAutoC", "When selected, the maximum z value of the displayed "\
-	               + "area of selected image" + helpstr_last + " This is equivalent to "\
-	               + "ModifyImage ctabAutoscale=3."}
-	helpw[][n++] = {"zmaxSigmaC", "When selected, \u03bc+n\u03c3" + helpstr_last\
-	               + " n" + helpstr_box + helpstr_avgsdev}
-	helpw[][n++] = {"zmaxCutC", "When selected, the value that corresponds to x% of the "\
-	               + " cumulative histogram" + helpstr_last + " x " + helpstr_box + helpstr_hist}
-	helpw[][n++] = {"zmaxLogsigmaC", "When selected, \u03bc+n\u03c3" + helpstr_last\
-	               + " n" + helpstr_box + helpstr_logavgsdev}
-
-	helpw[][n++] = {"zmaxV", "Enter a value that" + helpstr_last}
-	helpw[][n++] = {"zmaxSigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
-	               + helpstr_last + helpstr_avgsdev}
-	helpw[][n++] = {"zmaxCutV", "Enter a value for x where x% from the maximum of the "\
-	               + "cumulative histogram" + helpstr_last + helpstr_hist}
-	helpw[][n++] = {"zmaxCutV", "Enter a value for x where the value corresponding to "\
-	               + "x% of the cumulative histogram" + helpstr_last + helpstr_hist}
-	helpw[][n++] = {"zmaxLogsigmaV", "Enter a value for n of \u03bc+n\u03c3 that"\
-	               + helpstr_last + helpstr_logavgsdev}
-
-	helpw[][n++] = {"presentB", "Create the histogram between the first and last Z."}
-	helpw[][n++] = {"fullB", "Create the histogram in the full z range."}
-
-	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
 End
 
 //******************************************************************************

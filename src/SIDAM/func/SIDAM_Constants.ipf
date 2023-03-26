@@ -38,10 +38,10 @@ Constant SIDAM_CLR_CAUTION_B = 32768
 //	Folders and files
 //------------------------------------------------------------------------------
 StrConstant SIDAM_FOLDER_MAIN = "SIDAM"
-StrConstant SIDAM_FOLDER_HELP = "help"
 StrConstant SIDAM_FILE_CONFIG = "SIDAM.toml"
 StrConstant SIDAM_FILE_CONFIG_DEFAULT = "SIDAM.default.toml"
 StrConstant SIDAM_FILE_INCLUDE = "SIDAM_Procedures"
+StrConstant SIDAM_FILE_HELP = "func:SIDAM_Help.toml"
 
 //------------------------------------------------------------------------------
 //	URLs

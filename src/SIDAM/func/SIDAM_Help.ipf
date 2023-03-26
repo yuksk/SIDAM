@@ -2,6 +2,9 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMUtilHelp
 
+#include "SIDAM_TOML"
+#include "SIDAM_Utilities_misc"
+
 #ifndef SIDAMshowProc
 #pragma hide = 1
 #endif
@@ -68,10 +71,37 @@ Static Function existsNew()
 	endif
 End
 
-Function SIDAMApplyHelpStrings(String pnlName, String ctrlName, String str,
-	[int oneline])
-	oneline = ParamIsDefault(oneline) ? 40 : oneline
+Static Constant HELPLINELENGTH = 40
+
+Function SIDAMApplyHelp(String pnlName, String tableName, [String lengths])
+	lengths = SelectString(ParamIsDefault(lengths), lengths, "")
+
+	Wave/T helpw = loadHelp(tableName)
+
+	Variable i, oneline
+	for (i = 0; i < DimSize(helpw, 1); i++)
+		oneline = NumberByKey(helpw[0][i], lengths)
+		if (numtype(oneline))
+			oneline = HELPLINELENGTH
+		endif
+		applyHelp(pnlName, helpw[0][i], helpw[1][i], oneline)	
+	endfor
+End
+
+Static Function/WAVE loadHelp(String tableName)
+	Variable refNum
+	Open/R/Z refNum as SIDAMPath() + SIDAM_FILE_HELP
+	if (V_flag)
+		return $""
+	endif	
 	
+	Wave/T helpw = SIDAMTOMLWaveFromTable(refNum, tableName)
+	Close refNum
+	
+	return helpw
+End
+
+Static Function applyHelp(String pnlName, String ctrlName, String str, int oneline)
 	if (!strlen(pnlName) || !strlen(ctrlName) || !strlen(str))
 		return 0
 	endif
@@ -88,15 +118,6 @@ Function SIDAMApplyHelpStrings(String pnlName, String ctrlName, String str,
 	sprintf cmdStr, "%s %s help={\"%s\"}, win=%s", kind[abs(V_flag)-1], ctrlName\
 		, breakStrings(str, oneline), pnlName
 	Execute/Q cmdStr
-End
-
-Function SIDAMApplyHelpStringsWave(String pnlName, Wave/T w, [int oneline])
-	oneline = ParamIsDefault(oneline) ? 40 : oneline
-	
-	int i
-	for (i = 0; i < DimSize(w,1); i++)
-		SIDAMApplyHelpStrings(pnlName, w[0][i], w[1][i], oneline=oneline)
-	endfor
 End
 
 Static Function/S breakStrings(String inputStr, int oneline)

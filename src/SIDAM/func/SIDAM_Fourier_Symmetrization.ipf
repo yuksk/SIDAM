@@ -460,7 +460,8 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "doB;cancelB" size={60,20}, proc=SIDAMFourierSym#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 	
-	pnlHelp(pnlName)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Fourier_Symmetrization]", \
+		lengths="v1G:80;v2G:80;endeffectP:100")
 	pnlValidateWave(pnlName)
 End
 
@@ -518,45 +519,6 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	endswitch
 	
 	return 0
-End
-
-Static Function pnlHelp(String pnlName)
-	String helpstr_group = "\\rBesides typing numbers, there are two ways "\
-		+ "to enter numbers.\\r"\
-		+ "(1) Click the group box and then click the FFT image on the left.\\r"\
-		+ "(2) Enclose a peak by click and drag, and you will find a menu "\
-		+ "item for fitting in the marguee menu."	
-	String helpstr_blue = " You can enter a formula in a box of blue letters."
-	String helpstr_eg = " For example, 3.5/2*sqrt(3)"
-	Make/T/N=(2,16)/FREE helpw
-	int n = 0
-	helpw[][n++] = {"outputV", "Enter the name of output wave. The output wave is "\
-		+ "saved in the same datafolder where the source wave is."}
-	helpw[][n++] = {"symP", "Select the symmetry of the Fourier pattern."}
-	helpw[][n++] = {"shearP", "Select the direction of shear. This is usually the "\
-		+ "direction of the fast scan."}
-	helpw[][n++] = {"p1V", "Enter the row index of the first peak."+helpstr_blue}
-	helpw[][n++] = {"q1V", "Enter the column index of the first peak."+helpstr_blue}
-	helpw[][n++] = {"a1V", "Enter the period corresponding to the first peak."\
-		+ helpstr_blue + helpstr_eg}
-	helpw[][n++] = {"p2V", "Enter the row index of the second peak."+helpstr_blue}
-	helpw[][n++] = {"q2V", "Enter the column index of the second peak."+helpstr_blue}	
-	helpw[][n++] = {"a2V", "Enter the period corresponding to the second peak."\
-		+ helpstr_blue + helpstr_eg}
-	helpw[][n++] = {"displayC", "Check to display the output wave."}
-	helpw[][n++] = {"v1G", "Enter numbers of the first peak."+helpstr_group}
-	helpw[][n++] = {"v2G", "Enter numbers of the second peak."+helpstr_group}	
-	DeletePoints/M=1 n, DimSize(helpw,1)-n, helpw
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
-	SIDAMApplyHelpStrings(pnlName, "endeffectP", \
-		"The end effect is the same as used in Smooth.\\r"\
-		+ "\\\"bounce\\\" uses w[i] in place of the missing w[-i] and w[n-i] "\
-		+ "in place of the missing w[n+i].\\r"\
-		+ "\\\"wrap\\\" uses w[n-i] in place of the mising w[-i] and vice-versa.\\r"\
-		+ "\\\"zero\\\" uses 0 for any missing values.\\r"\
-		+ "\\\"repeat\\\" uses w[0] in place of the missing w[-i] and w[n] in "\
-		+ "place of the missing w[n+i]."\
-		, oneline=100)
 End
 
 Static Function pnlValidateWave(String pnlName)

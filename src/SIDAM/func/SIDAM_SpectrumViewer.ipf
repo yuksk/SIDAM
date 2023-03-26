@@ -60,16 +60,13 @@ Static Function pnl(String LVName)
 	SIDAMMenuCtrl(pnlName, "SIDAMSpectrumViewerMenu")
 				
 	SetVariable pV title="p:", pos={25,6}, value=_NUM:0, win=$pnlName
-	SIDAMApplyHelpStrings(pnlName, "pV", "Enter a row index of a position "\
-		+ "where a spectrum is extracted.")
 	SetVariable qV title="q:", pos={105,6}, value=_NUM:0, win=$pnlName
-	SIDAMApplyHelpStrings(pnlName, "qV", "Enter a column index of a position "\
-		+ "where a spectrum is extracted.")
 	TitleBox xyT pos={4,30}, frame=0, win=$pnlName
 
 	ModifyControlList "pV;qV" size={72,15}, proc=SIDAMSpectrumViewer#pnlSetVar, win=$pnlName
 	ModifyControlList "pV;qV" bodyWidth=60, limits={0,DimSize(srcw,0)-1,1}, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+	SIDAMApplyHelp(pnlName, "[SIDAM_SpectrumViewer]")
 
 	SetWindow $pnlName userData(live)="0"
 	SetWindow $pnlName userData(key)=KEY

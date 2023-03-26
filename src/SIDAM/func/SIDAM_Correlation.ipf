@@ -222,19 +222,7 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "doB;cancelB" size={60,20}, proc=SIDAMCorrelation#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
-	Make/T/N=(2,5)/FREE helpw
-	int n = 0
-	helpw[][n++] = {"destV", "Click to select the destination wave. When the "\
-		+ "destination wave is the same as the source wave, calculate the auto-"\
-		+ "correlation of the source wave."}
-	helpw[][n++] = {"resultV", "Enter the name of output wave. The output wave is "\
-		+ "saved in the same datafolder where the source wave is."}
-	helpw[][n++] = {"subtractC", "Check to subtract the average before calculating "\
-		+ "FFT. For 3D waves, the average of each layer is subtracted."}
-	helpw[][n++] = {"normalizeC", "Check to normalize the correlation wave so that "\
-		+ "the maximum of absolute value is 1."}
-	helpw[][n++] = {"displayC", "Check to display the output wave."}
-	SIDAMApplyHelpStringsWave(pnlName, helpw)
+	SIDAMApplyHelp(pnlName, "[SIDAM_Correlation]")
 	
 	pnlDisable(pnlName)
 End

@@ -150,9 +150,6 @@ Static Function pnl(String grfName)
 	ListBox winL listWave=$(dfTmp+SIDAM_WAVE_LIST), win=$pnlName 
 	ListBox winL selWave=$(dfTmp+SIDAM_WAVE_SELECTED), win=$pnlName
 	ListBox winL colorWave=$(dfTmp+SIDAM_WAVE_COLOR), win=$pnlName
-	SIDAMAPPlyHelpStrings(pnlName, "winL", "Select windows you want to "\
-		+ "synchronize axes. You can also select a window by clicking "\
-		+ "an actual window.")
 			
 	Button selectB title="Select / Deselect all", size={130,18}, win=$pnlName
 	Button selectB pos={10,171}, proc=SIDAMSync#pnlButton, win=$pnlName
@@ -162,6 +159,7 @@ Static Function pnl(String grfName)
 	Button cancelB title="Cancel", pos={205,203}, win=$pnlName
 	ModifyControlList "doB;cancelB", size={70,20}, proc=SIDAMSync#pnlButton, win=$pnlName
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
+	SIDAMApplyHelp(pnlName, "[SIDAM_SyncAxisRange]")
 
 	SetActiveSubwindow $grfName
 End
