@@ -42,36 +42,44 @@ Function/WAVE SIDAMImageNameToWaveRef(String grfName, [String imgName, int displ
 	endif
 
 	int isCmplx = WaveType(w) & 0x01
+	int is3D = WaveDims(w) == 3
 	String infoStr = ImageInfo(grfName, imgName, 0)
-	int plane = NumberByKey("plane", infoStr, "=")
+	Variable plane = NumberByKey("plane", infoStr, "=")
 	int mode = NumberByKey("imCmplxMode", infoStr, "=")
 
+	if (is3D)
+		MatrixOP/FREE tw0 = layer(w, plane)
+	else
+		//	If "Wave tw0 = w" is used, pnlHookParent in SIDAM_range.ipf is called
+		//	repeately for real 2D waves, and causes a trouble.
+		MatrixOP/FREE tw0 = w
+	endif
+	
 	if (isCmplx)
 		switch (mode)
 			case 0:	//	magnitude
-				MatrixOP/FREE tw = mag(w[][][plane])
+				MatrixOP/FREE tw1 = mag(tw0)
 				break
 			case 1:	//	real
-				MatrixOP/FREE tw = real(w[][][plane])
+				MatrixOP/FREE tw1 = real(tw0)
 				break
 			case 2:	//	imaginary
-				MatrixOP/FREE tw = imag(w[][][plane])
+				MatrixOP/FREE tw1 = imag(tw0)
 				break
 			case 3:	//	phase
-				MatrixOP/FREE tw = phase(w[][][plane])
+				MatrixOP/FREE tw1 = phase(tw0)
 				break
 		endswitch
 	else
-		MatrixOP/FREE tw = w[][][plane]
+		Wave tw1 = tw0
 	endif
-	Redimension/N=(DimSize(w,0),DimSize(w,1)) tw	//	always treat as a 2D wave
-	CopyScales w tw
+	CopyScales w tw1
 
 	GetAxis/W=$grfName/Q $StringByKey("XAXIS", infoStr)
 	Variable xmin = V_min, xmax = V_max
 	GetAxis/W=$grfName/Q $StringByKey("YAXIS", infoStr)
 	Variable ymin = V_min, ymax = V_max
-	Duplicate/R=(xmin,xmax)(ymin,ymax)/FREE tw tw2
+	Duplicate/R=(xmin,xmax)(ymin,ymax)/FREE tw1 tw2
 
 	return tw2
 end
