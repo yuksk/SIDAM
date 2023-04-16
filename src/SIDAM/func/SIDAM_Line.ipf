@@ -500,7 +500,10 @@ End
 //	Helper of pnlHookKeyboard, complex
 //-------------------------------------------------------------
 Static Function changeComplex(String pnlName, int mode)
-	int dim = str2num(GetUserData(pnlName,"","dim"))
+	Variable dim = str2num(GetUserData(pnlName,"","dim"))
+	if (numtype(dim))
+		dim = 1
+	endif
 
 	//	Make mode 0 if it's too large.
 	//	This can occur when this function is called by the keyboard shortcut.
