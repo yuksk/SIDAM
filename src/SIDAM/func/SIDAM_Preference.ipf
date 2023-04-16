@@ -19,7 +19,7 @@ Structure SIDAMPrefs
 	uint32		version
 	uchar		fourier[3]
 	uchar		color
-	int32		disable
+	int32		disable	//	no longer used. delete next update.
 	double		last
 EndStructure
 

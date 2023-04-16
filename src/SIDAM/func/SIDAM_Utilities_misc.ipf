@@ -2,7 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName=SIDAMUtilMisc
 
-#include "SIDAM_Preference"
+#include "SIDAM_Utilities_DataFolder"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -150,27 +150,35 @@ End
 //	Enable and disable some Igor menus
 //------------------------------------------------------------------------------
 Function SIDAMEnableIgorMenuItems()
-	STRUCT SIDAMPrefs prefs
-	SIDAMLoadPrefs(prefs)
-	prefs.disable = prefs.disable - 1
-	if (prefs.disable > 0)
-		SIDAMSavePrefs(prefs)
-		return 0
+	DFREF dfrTmp = $(SIDAM_DF+":DisableIgorMenuItem")
+	int existsTmpDF = DataFolderRefStatus(dfrTmp) == 1
+	if (existsTmpDF)
+		NVAR/Z/SDFR=dfrTmp count
+		if (NVAR_Exists(count))
+			count -= 1
+			if (count)
+				return 0
+			endif
+		endif
+	endif
+	
+	if (existsTmpDF)
+		SIDAMKillDataFolder(dfrTmp)
 	endif
 	SetIgorMenuMode "File", "Save Graphics", EnableItem
 	SetIgorMenuMode "Edit", "Export Graphics", EnableItem
 	SetIgorMenuMode "Edit", "Copy", EnableItem
-	prefs.disable = 0
-	SIDAMSavePrefs(prefs)
 End
 
-Function SIDAMDisableIgorMenuItems([int count])
-	count = ParamIsDefault(count) ? 1 : count
-	
-	STRUCT SIDAMPrefs prefs
-	SIDAMLoadPrefs(prefs)
-	prefs.disable = prefs.disable + count
-	SIDAMSavePrefs(prefs)
+Function SIDAMDisableIgorMenuItems()
+	DFREF dfrTmp = $SIDAMNewDF("","DisableIgorMenuItem")
+	NVAR/Z/SDFR=dfrTmp count
+	if (NVAR_Exists(count))
+		count += 1
+		return 0
+	endif
+
+	Variable/G dfrTmp:count = 1
 	SetIgorMenuMode "File", "Save Graphics", DisableItem
 	SetIgorMenuMode "Edit", "Export Graphics", DisableItem
 	SetIgorMenuMode "Edit", "Copy", DisableItem

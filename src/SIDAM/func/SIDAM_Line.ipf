@@ -90,7 +90,7 @@ Static Function pnlCtrls(String pnlName, String menuName)
 	
 	SetWindow $pnlName activeChildFrame=0
 
-	SIDAMDisableIgorMenuItems(count=2)	//	an deactivation event of the parent window will be called
+	SIDAMDisableIgorMenuItems()
 End
 
 //	Draw the gray background for the controls of waterfall
