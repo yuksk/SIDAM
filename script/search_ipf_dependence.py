@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 import os
@@ -20,7 +19,7 @@ class IgorProcedureFile:
         self.require = []       # files necessary to be included
         self.unnecessary = []   # files included but no longer necessary
 
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
 
         self.__find_module_name(content)
@@ -80,7 +79,7 @@ class IgorProcedureFile:
             if (ipf == self.__filepath):
                 continue
 
-            with open(ipf, 'r') as f:
+            with open(ipf, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             for f in functions:
