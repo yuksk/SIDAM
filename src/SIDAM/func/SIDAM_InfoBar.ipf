@@ -693,20 +693,14 @@ End
 //	when the mouse coordinates are shown in the control bar.
 Static Function changeCoordinateSetting(int mode)
 	
-	String grfName = WinName(0,1)
-	
-	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
-	Wave/Z w = SIDAMImageNameToWaveRef(grfName)
-	if (!WaveExists(w))		//	1D wave
-		maxMode -= 1
-	endif
-	
 	//	When this is called from the keyboard shortcut, the mode can
 	//	be larger than the maximum. If so, make it zero.
+	Variable maxMode = ItemsInList(COORDINATESMENU) - 1
 	if (mode > maxMode)
 		mode = 0
 	endif
 	
+	String grfName = WinName(0,1)
 	switch (mode)
 		case 0:
 		case 1:
