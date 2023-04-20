@@ -2,6 +2,7 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMImageRotate
 
+#include "SIDAM_Bias"
 #include "SIDAM_Display"
 #include "SIDAM_Help"
 #include "SIDAM_Utilities_Control"
@@ -70,7 +71,11 @@ Function/WAVE SIDAMImageRotate(Wave w, Variable angle)
 	Wave rw = M_RotatedImage
 	Setscale/I x minw[0]+dx/2, maxw[0]-dx/2, WaveUnits(w,0), rw
 	Setscale/I y minw[1]+dy/2, maxw[1]-dy/2, WaveUnits(w,1), rw
-	Setscale/P z DimOffset(w,2), DimDelta(w,2), WaveUnits(w,2), rw
+	if (SIDAMisUnevenlySpacedBias(w))
+		SIDAMCopyBias(w, rw)
+	else
+		Setscale/P z DimOffset(w,2), DimDelta(w,2), WaveUnits(w,2), rw
+	endif
 	Setscale d 0, 1, WaveUnits(w,-1), rw
 	
 	SetDataFolder dfrSav
