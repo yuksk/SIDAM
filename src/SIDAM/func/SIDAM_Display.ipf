@@ -196,7 +196,8 @@ Static Function/S displayNumericWaveLayer(Wave w)
 	sprintf cmdStr, "ModifyGraph/W=%s width=%s, height=%s"\
 		, PossiblyQuoteName(pnlName), SIDAM_WINDOW_WIDTH, SIDAM_WINDOW_HEIGHT
 	Execute/Q cmdStr
-
+	DoUpdate/W=$pnlName
+	
 	SIDAMColor(grfName=pnlName, imgList=PossiblyQuoteName(NameOfWave(w)), \
 		ctable=SIDAM_WINDOW_CTAB_TABLE, rev=SIDAM_WINDOW_CTAB_REVERSE, \
 		log=SIDAM_WINDOW_CTAB_LOG)
