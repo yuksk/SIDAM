@@ -50,7 +50,7 @@ The cheat sheet of shortcuts.
 | <span class="shortcuts_key">Shift</span> | Suppress live update |
 | <span class="shortcuts_key">Esc</span> | Close the panel |
 | <span class="shortcuts_key">&#8592;</span> <span class="shortcuts_key">&#8593;</span> <span class="shortcuts_key">&#8594;</span> <span class="shortcuts_key">&#8595;</span> | Change locations |
-| <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
+| <span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
 | <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
 
 ## Line Spectra, Line Profile
@@ -61,7 +61,7 @@ The cheat sheet of shortcuts.
 | <span class="shortcuts_key">Space</span> | Toggle 1D and 2D |
 | <span class="shortcuts_key">Esc</span> | Close the panel |
 | <span class="shortcuts_key">&#8592;</span> <span class="shortcuts_key">&#8593;</span> <span class="shortcuts_key">&#8594;</span> <span class="shortcuts_key">&#8595;</span> | Change locations |
-| <span class="shortcuts_key">Ctrl</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
+| <span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">&#8592;</span>, <span class="shortcuts_key">&#8593;</span>, <span class="shortcuts_key">&#8594;</span>, <span class="shortcuts_key">&#8595;</span> | Change locations (&#215;10) |
 | <span class="shortcuts_key">X</span> (<span class="shortcuts_key">Shift</span>+<span class="shortcuts_key">x</span>) | Change comple<span class="shortcuts_hint">x</span> mode |
 
 ## Position Recorder
