@@ -6,6 +6,7 @@
 #include "SIDAM_Color"
 #include "SIDAM_FFT"
 #include "SIDAM_Help"
+#include "SIDAM_KeyboardShortcuts"
 #include "SIDAM_LayerAnnotation"
 #include "SIDAM_Menus"
 #include "SIDAM_Range"
@@ -218,7 +219,7 @@ Static Function/S menuItem(int menuitem)
 			return SelectString(getTick(grfName)==3,"Hide","Show") + " Label"
 			
 		case 3:	//	complex (2D/3D)
-			if (isContainedComplexWave(grfName,2))
+			if (SIDAMcontainsComplexWave(grfName,2))
 				mode = NumberByKey("imCmplxMode",ImageInfo(grfName, "", 0),"=")
 				return SIDAMAddCheckmark(mode, MENU_COMPLEX2D)
 			else
@@ -226,7 +227,7 @@ Static Function/S menuItem(int menuitem)
 			endif
 					
 		case 4:	//	complex (1D)
-			if (isContainedComplexWave(grfName,1))
+			if (SIDAMcontainsComplexWave(grfName,1))
 				mode = NumberByKey("cmplxMode(x)",TraceInfo(grfName, "", 0),"=")
 				return SIDAMAddCheckmark(mode, MENU_COMPLEX1D)
 			else
@@ -242,29 +243,6 @@ Static Function getTick(String grfName)
 	return s.tick
 End
 
-Static Function isContainedComplexWave(String grfName, int dim)
-	String listStr
-	int n
-	
-	if (dim == 1)
-		listStr = TraceNameList(grfName,";",1)
-		n = ItemsInList(listStr)
-		if (n == 0)
-			return 0
-		endif
-		Make/N=(n)/WAVE/FREE tww = TraceNameToWaveRef(grfName,StringFromList(p,listStr))
-	else //	2
-		listStr = ImageNameList(grfName,";")
-		n = ItemsInList(listStr)
-		if (n == 0)
-			return 0
-		endif
-		Make/N=(n)/WAVE/FREE tww = ImageNameToWaveRef(grfName,StringFromList(p,listStr))
-	endif
-	Make/N=(numpnts(tww))/FREE tw = WaveType(tww[p]) & 0x01
-	return WaveMax(tw)
-End
-
 Static Function/S menuDo(int mode)
 	GetLastUserMenuInfo
 	switch (mode)
@@ -278,7 +256,7 @@ Static Function/S menuDo(int mode)
 			
 		case 3:	//	complex 2D/3D
 		case 4:	//	complex 1D
-			changeComplex(V_value-1, mode-3)
+			SIDAMChangeComplexMode(V_value-1, mode-3)
 			break
 			
 	endswitch
@@ -348,7 +326,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 			return 0
 			
 		case 11:	//	keyboard
-			return SIDAMInfobarKeyboardShortcuts(s)
+			return keyboardShortcuts(s)
 			
 		case 22:	//	mouseWheel
 			if (s.eventMod & 8)		//	if the ctrl key is pressed
@@ -623,10 +601,7 @@ Static Function magnify(STRUCT WMWinHookStruct &s)
 	SetAxis/W=$s.winName $ms.yaxis  ms.y+(V_min-ms.y)*coef, ms.y+(V_max-ms.y)*coef
 End
 
-//	Keyboard shortcuts
-//	This is used in the external files (SIDAM_SpectrumViewer)
-Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
-	
+Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 	Wave/Z w = SIDAMImageNameToWaveRef(s.winName)
 	int is2D = WaveExists(w) && WaveDims(w)==2
 	int is3D = WaveExists(w) && WaveDims(w)==3
@@ -688,34 +663,14 @@ Function SIDAMInfobarKeyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 76:		//	L (shift + l)
 			toggleLabel(s.winName)
 			return 1
-		case 88: 		//	X (shift + x)
-			if ((is2D || is3D) && isContainedComplexWave(s.winName,2))
-				mode = NumberByKey("imCmplxMode",ImageInfo(s.winName, "", 0),"=")
-			elseif (!is2D && !is3D && isContainedComplexWave(s.winName,1))
-				mode = NumberByKey("cmplxMode(x)",TraceInfo(s.winName, "", 0),"=")
-			else
-				return 1
-			endif
-			changeComplex(++mode,!is2D && !is3D)
-			return 1		
+		case 88: 	//	X (shift + x)
 		case 97:		//	a
-			DoIgorMenu "Graph", "Modify Axis"
-			return 1
 		case 99:		//	c
-			SIDAMExportGraphicsTransparent()
-			return 1
-		case 103:		//	g
-			DoIgorMenu "Graph", "Modify Graph"
-			return 1
-		case 105:		//	i
-			DoIgorMenu "Image", "Modify Image Appearance"
-			return 1
-		case 115:		//	s
-			DoIgorMenu "File", "Save Graphics"
-			return 1
-		case 116:		//	t
-			DoIgorMenu "Graph", "Modify Trace Appearance"
-			return 1
+		case 103:	//	g
+		case 105:	//	i
+		case 115:	//	s
+		case 116:	//	t
+			return SIDAMKeyboardShortcuts(s)
 		default:
 			return 1		//	prevent command input 
 	endswitch
@@ -757,20 +712,6 @@ Static Function toggleLabel(String grfName)
 		ModifyGraph/W=$grfName tick=0, noLabel=0, axThick=1
 	else	//	hide
 		ModifyGraph/W=$grfName margin=1, tick=3, noLabel=2, axThick=SIDAM_WINDOW_AXTHICK
-	endif
-End
-
-//	Change the complex mode
-Static Function changeComplex(int mode, int dim)
-	//	When this is called from the keyboard shortcut, the mode can
-	//	be larger than the maximum. If so, make it zero.	
-	int numOfModes = ItemsInList(SelectString(dim, MENU_COMPLEX2D, MENU_COMPLEX1D))
-	mode = mode < numOfModes ? mode : 0
-	
-	if (dim)
-		ModifyGraph/W=$WinName(0,1) cmplxMode=mode
-	else
-		ModifyImage/W=$WinName(0,1) '' imCmplxMode=mode
 	endif
 End
 

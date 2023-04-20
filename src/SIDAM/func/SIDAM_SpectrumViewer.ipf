@@ -5,6 +5,7 @@
 #include "SIDAM_Bias"
 #include "SIDAM_Help"
 #include "SIDAM_InfoBar"
+#include "SIDAM_KeyboardShortcuts"
 #include "SIDAM_Line"
 #include "SIDAM_Menus"
 #include "SIDAM_Utilities_Control"
@@ -170,7 +171,7 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 				endif
 				pnlHookArrows(s)
 			elseif (s.keycode==88 || s.keycode >= 97)
-				SIDAMInfobarKeyboardShortcuts(s)
+				SIDAMKeyboardShortcuts(s)
 			endif
 			return 1
 

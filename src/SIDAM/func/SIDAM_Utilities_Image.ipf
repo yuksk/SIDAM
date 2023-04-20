@@ -291,3 +291,43 @@ Function SIDAMSetLayerIndex(String grfName, int index, [Wave/Z w])
 	// occurs in Igor 8.
 	return 0
 End
+
+
+//	Return if a complex wave is shown in a window
+Function SIDAMcontainsComplexWave(String grfName, int dim)
+	String listStr
+	int n
+	
+	if (dim == 1)
+		listStr = TraceNameList(grfName,";",1)
+		n = ItemsInList(listStr)
+		if (n == 0)
+			return 0
+		endif
+		Make/N=(n)/WAVE/FREE tww = TraceNameToWaveRef(grfName,StringFromList(p,listStr))
+	elseif (dim == 2)
+		listStr = ImageNameList(grfName,";")
+		n = ItemsInList(listStr)
+		if (n == 0)
+			return 0
+		endif
+		Make/N=(n)/WAVE/FREE tww = ImageNameToWaveRef(grfName,StringFromList(p,listStr))
+	endif
+	
+	Make/N=(numpnts(tww))/FREE tw = WaveType(tww[p]) & 0x01
+	return WaveMax(tw)
+End
+
+//	Change the complex mode
+Function SIDAMChangeComplexMode(int mode, int dim)
+	//	When this is called from the keyboard shortcut, the mode can
+	//	be larger than the maximum. If so, make it zero.	
+	int numOfModes = ItemsInList(SelectString(dim, MENU_COMPLEX2D, MENU_COMPLEX1D))
+	mode = mode < numOfModes ? mode : 0
+	
+	if (dim)
+		ModifyGraph/W=$WinName(0,1) cmplxMode=mode
+	else
+		ModifyImage/W=$WinName(0,1) '' imCmplxMode=mode
+	endif
+End
