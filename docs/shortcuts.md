@@ -30,6 +30,7 @@ The cheat sheet of shortcuts.
 | <span class="shortcuts_key">a</span> | Modify <span class="shortcuts_hint">A</span>xis... |
 | <span class="shortcuts_key">c</span> | Export Graphics (Transparent) |
 | <span class="shortcuts_key">g</span> | Modify <span class="shortcuts_hint">G</span>raph... |
+| <span class="shortcuts_key">h</span> | <span class="shortcuts_hint">H</span>ide/Show trace |
 | <span class="shortcuts_key">i</span> | Modify <span class="shortcuts_hint">I</span>mage Appearance... |
 | <span class="shortcuts_key">s</span> | <span class="shortcuts_hint">S</span>ave Graphic... |
 | <span class="shortcuts_key">t</span> | Modify <span class="shortcuts_hint">T</span>race Appearance... |

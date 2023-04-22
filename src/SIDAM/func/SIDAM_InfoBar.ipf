@@ -663,16 +663,12 @@ Static Function keyboardShortcuts(STRUCT WMWinHookStruct &s)
 		case 76:		//	L (shift + l)
 			toggleLabel(s.winName)
 			return 1
-		case 88: 	//	X (shift + x)
-		case 97:		//	a
-		case 99:		//	c
-		case 103:	//	g
-		case 105:	//	i
-		case 115:	//	s
-		case 116:	//	t
-			return SIDAMKeyboardShortcuts(s)
 		default:
-			return 1		//	prevent command input 
+			if (s.keycode == 88 || s.keycode >= 97) //	X or a,b,c,...
+				return SIDAMKeyboardShortcuts(s)
+			else
+				return 1		//	prevent command input
+			endif
 	endswitch
 
 	return 0
