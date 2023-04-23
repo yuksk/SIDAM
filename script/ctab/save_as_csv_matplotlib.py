@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-import matplotlib.cm as cm
+import matplotlib
 from matplotlib.colors import Normalize
 
 # https://matplotlib.org/stable/gallery/color/colormap_reference.html
@@ -70,7 +70,7 @@ cmaps = {
 
 
 def save_colormap_as_csv(name, num):
-    cmap = cm.get_cmap(name)
+    cmap = matplotlib.colormaps[name]
     rgba = cmap(Normalize()(list(range(num))))
     rgb = np.delete(rgba, 3, 1) * 65535
     np.savetxt(name+'.csv', rgb, fmt='%d', delimiter=',')
@@ -83,5 +83,3 @@ if __name__ == "__main__":
         for name, num in cmaps[dirname].items():
             save_colormap_as_csv(name, num)
         os.chdir('..')
-
-
