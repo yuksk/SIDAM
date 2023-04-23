@@ -1464,11 +1464,19 @@ Static Function divide3Dto1D(Wave w, int makesubdir)
 		NewDataFolder/O/S $NameOfWave(w)
 	endif
 
-	int i, nz = DimSize(w,2)
-	for (i = 0; i < nz; i++)
-		Duplicate/O/R=[][][i] w $GetDimLabel(w,2,i)/WAVE=lw
+	int i, n
+	String name
+	for (i = 0; i < DimSize(w,2); i++)
+		name = GetDimLabel(w,2,i)
+		if (strsearch(name, "@", 0) == -1)
+			Duplicate/O/R=[][][i] w $name/WAVE=lw
+		else
+			n = str2num(StringFromList(1, name, "@"))
+			Duplicate/O/R=[,n-1][][i] w $StringFromList(0, name, "@")/WAVE=lw
+		endif
 		Redimension/N=(-1,-1) lw
 	endfor
+
 	KillWaves w
 	SetDataFolder dfrSav
 End
