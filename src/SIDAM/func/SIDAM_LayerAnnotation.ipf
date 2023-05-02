@@ -256,9 +256,14 @@ Static Function updateLegend(String grfName, String imgName)
 		return 0
 	endif
 	
-	String formatStr = SelectString(s.sign, "%.*", "%+.*")\
-		+ SelectString(s.prefix, "f", "W0P") \
-		+ SelectString(s.unit && strlen(WaveUnits(w,2)), "", " "+WaveUnits(w,2))
+	String formatStr = SelectString(s.sign, "%.*", "%+.*")
+	if (s.unit && strlen(WaveUnits(w,2)))
+		formatStr += SelectString(s.prefix, "f ", "W1P") + WaveUnits(w,2)
+	else
+		//	use "f" unless the unit string is specified
+		formatStr += "f"
+	endif
+
 	String str
 	sprintf str, ReplaceString("${value}", s.legendStr, formatStr), \
 		s.digit, SIDAMIndexToScale(w,layer,2)
