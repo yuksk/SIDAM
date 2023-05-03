@@ -1,7 +1,7 @@
 ---
 title: "SIDAMScalebar"
 ---
-<p class="function_definition">SIDAMScalebar(<span class="function_variables">[grfName, anchor, size, fgRGBA, bgRGBA, prefix]</span>)</p>
+<p class="function_definition">SIDAMScalebar(<span class="function_variables">[grfName, anchor, fsize, length, fgRGBA, bgRGBA, prefix]</span>)</p>
 
 Show a scale bar.
 
@@ -13,8 +13,11 @@ The name of a window.
 **anchor :** ***string, {"LB", "LT", "RB", or "RT"}***  
 The position of the scale bar. If empty, delete the scale bar.
 
-**size :** ***int***  
+**fsize :** ***int, default 0***  
 The font size (pt).
+
+**length :** ***variable, default 0***  
+The length of scale bar in the physical unit. If 0, a nice value is used.
 
 **fgRGBA :** ***wave***  
 The foreground color.

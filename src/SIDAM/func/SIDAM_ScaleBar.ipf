@@ -20,14 +20,16 @@ Static Constant DEFAULT_BC = 65535			//	color of background (65535,65535,65535)
 Static Constant DEFAULT_FA = 65535			//	opacity of characters
 Static Constant DEFAULT_BA = 39321			//	opacity of background 65535*0.6 = 39321
 Static Constant DEFAULT_PREFIX = 1			//	use a prefix
+Static Constant DEFAULT_LENGTH = 0			//	length of scale bar
 
 //	Fixed values
-Static Constant NICEWIDTH = 20				//	Width of scale bar is about 20% of a window
+Static Constant NICEWIDTH = 20					//	Width of scale bar is about 20% of a window
 Static Constant MARGINPX = 7					//	Position from the edge
 Static Constant OFFSETPX = 3					//	Space between the bar and characters
 Static Constant LINETHICK = 3					//	Thickness of the bar
 Static Constant DOUBLECLICK = 20				//	Interval between clicks to recognize double-click
 Static StrConstant NICEVALUES = "1;2;3;5"	//	Definition of "nice" values
+Static Constant PARAMVERSION = 1				//	Version of the parameter structure
 
 //	Internal use
 Static StrConstant NAME = "SIDAMScalebar"
@@ -40,8 +42,10 @@ Static StrConstant NAME = "SIDAMScalebar"
 //		The name of a window.
 //	anchor : string, {"LB", "LT", "RB", or "RT"}
 //		The position of the scale bar. If empty, delete the scale bar.
-//	size : int
+//	fsize : int, default 0
 //		The font size (pt).
+//	length : variable, default 0
+//		The length of scale bar in the physical unit. If 0, a nice value is used.
 //	fgRGBA : wave
 //		The foreground color.
 //	bgRGBA : wave
@@ -49,7 +53,7 @@ Static StrConstant NAME = "SIDAMScalebar"
 //	prefix: int {0 or !0}, default 1
 //		Set !0 to use a prefix such as k and m.
 //@
-Function SIDAMScalebar([String grfName, String anchor, int size,
+Function SIDAMScalebar([String grfName, String anchor, int fsize, Variable length,
 	Wave fgRGBA, Wave bgRGBA, int prefix])
 	
 	grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1))
@@ -60,11 +64,12 @@ Function SIDAMScalebar([String grfName, String anchor, int size,
 	
 	STRUCT paramStruct s
 	s.overwrite[0] = !ParamIsDefault(anchor)
-	s.overwrite[1] = !ParamIsDefault(size)
+	s.overwrite[1] = !ParamIsDefault(fsize)
 	s.overwrite[2] = !ParamIsDefault(fgRGBA)
 	s.overwrite[3] = !ParamIsDefault(bgRGBA)
 	s.overwrite[4] = !ParamIsDefault(prefix)
-	if (initializeParamStruct(s, grfName, anchor, size, fgRGBA, bgRGBA, prefix))
+	s.overwrite[5] = !ParamIsDefault(length)
+	if (initializeParamStruct(s, grfName, anchor, fsize, fgRGBA, bgRGBA, prefix, length))
 		return 0
 	endif
 
@@ -106,10 +111,10 @@ Static Function validate(String grfName, String anchor)
 End
 
 Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
-	String anchor, int size, Wave/Z fgRGBA, Wave/Z bgRGBA, int prefix)
+	String anchor, int fsize, Wave/Z fgRGBA, Wave/Z bgRGBA, int prefix, Variable length)
 
-	Make/B/U/N=5/FREE overwrite = s.overwrite[p]
-
+	Make/B/U/N=6/FREE overwrite = s.overwrite[p]
+	
 	//	Use the present value if a scale bar is displayed.
 	//	If not, use the default values.
 	String settingStr = GetUserData(grfName,"",NAME)
@@ -122,6 +127,8 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 		WaveToRGBAColor({DEFAULT_FC,DEFAULT_FC,DEFAULT_FC,DEFAULT_FA}, s.fgRGBA)
 		WaveToRGBAColor({DEFAULT_BC,DEFAULT_BC,DEFAULT_BC,DEFAULT_BA}, s.bgRGBA)
 		s.prefix = DEFAULT_PREFIX
+		s.length = DEFAULT_LENGTH
+		s.version = PARAMVERSION
 	endif
 
 	//	If a parameter is specified in the main function,
@@ -132,7 +139,7 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 	endif
 	
 	if (overwrite[1])
-		s.fontsize = limit(size,0,inf)
+		s.fontsize = limit(fsize,0,inf)
 	endif
 
 	try
@@ -162,6 +169,10 @@ Static Function initializeParamStruct(STRUCT paramStruct &s, String grfName,
 		s.prefix = prefix
 	endif
 	
+	if (overwrite[5])
+		s.length = length
+	endif
+	
 	return 0
 End
 
@@ -175,6 +186,22 @@ Static Function WaveToRGBAColor(Wave w, STRUCT RGBAColor &s)
 End
 
 Static Structure paramStruct
+	//	for input
+	uchar	anchor[2]
+	uint16	fontsize
+	STRUCT	RGBAColor	fgRGBA
+	STRUCT	RGBAColor	bgRGBA
+	uchar	prefix
+	double	length
+	//	for internal use
+	uint32	version
+	uchar	overwrite[6]
+	STRUCT	RectF box
+	double	xmin, xmax, ymin, ymax
+	double	ticks
+EndStructure
+
+Static Structure paramStructOld
 	//	for input
 	uchar	anchor[2]
 	uint16	fontsize
@@ -202,7 +229,7 @@ Static Function hook(STRUCT WMWinHookStruct &s)
 	int returnCode = 0
 	String str
 	STRUCT paramStruct ps
-	StructGet/S ps, GetUserData(s.winName,"",NAME)
+	getInfoFromStruct(s.winName, ps)
 	
 	switch (s.eventCode)
 		case 3:	//	mousedown
@@ -255,6 +282,22 @@ Static Function isClickedInside(STRUCT RectF &box, STRUCT WMWinHookStruct &s)
 	return (x0 < s.mouseLoc.h && s.mouseLoc.h < x1 && y0 < s.mouseLoc.v && s.mouseLoc.v < y1)
 End
 
+Static Function getInfoFromStruct(String grfName, STRUCT paramStruct &s)
+	StructGet/S s, GetUserData(grfName,"",NAME)
+	if (s.version != PARAMVERSION)
+		s.length = 0
+		s.version = 1
+		STRUCT paramStructOld os
+		StructGet/S os, GetUserData(grfName,"",NAME)
+		s.box = os.box
+		s.xmin = os.xmin
+		s.xmax = os.xmax
+		s.ymin = os.ymin
+		s.ymax = os.ymax
+		s.ticks = os.ticks
+	endif
+End
+
 Static Function/S menuDo()
 	pnl(WinName(0,1))
 End
@@ -288,26 +331,20 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	s.ymax = as.y.max.value
 	
 	//	Decide the length of scale bar
-	//	NICEWIDTH(%) of the scale bar area (scaling value)
-	Variable rawwidth = L*NICEWIDTH*1e-2
-	int digit = floor(log(rawwidth))		//	number of digits of rawwidth - 1
-	Make/FREE/N=(ItemsInList(NICEVALUES)) nicew = str2num(StringFromList(p,NICEVALUES)), tw
-	tw = abs(nicew*10^digit - rawwidth)
-	WaveStats/Q/M=1 tw
-	//	A "nice value" close to rawwidth (scaling value)
-	Variable nicewidth = nicew[V_minloc]*10^digit
+	//	barwidth(%) of the scale bar area (scaling value)
+	Variable barwidth = s.length ? s.length : calcNiceWidth(L)
 	
 	//	Numbers to be displayed
 	String barStr
 	int existUnit = strlen(WaveUnits(w,0))
 	if (existUnit && s.prefix)
-		sprintf barStr, "%.0W1P%s", nicewidth, WaveUnits(w,0)
+		sprintf barStr, "%.0W1P%s", barwidth, WaveUnits(w,0)
 	elseif (existUnit && !s.prefix)
-		barStr = num2str(nicewidth)+" "+WaveUnits(w,0)
+		barStr = num2str(barwidth)+" "+WaveUnits(w,0)
 	elseif (!existUnit && s.prefix)
-		sprintf barStr, "%.0W0P", nicewidth
+		sprintf barStr, "%.0W0P", barwidth
 	else
-		barStr = num2str(nicewidth)
+		barStr = num2str(barwidth)
 	endif
 	
 	String fontname = GetDefaultFont(grfName)
@@ -350,7 +387,7 @@ Static Function writeBar(String grfName, STRUCT paramStruct &s)
 	v1 = isBottom + margin/winHeight*(isBottom?-1:1)
 	SetDrawEnv/W=$grfName xcoord=$as.xaxis, ycoord=prel
 	SetDrawEnv/W=$grfName linefgc=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha), linethick=LINETHICK
-	DrawLine/W=$grfName v0, v1, v0+nicewidth*(isRight?-1:1), v1
+	DrawLine/W=$grfName v0, v1, v0+barwidth*(isRight?-1:1), v1
 	
 	//	Number and unit
 	SetDrawEnv/W=$grfName xcoord=prel, ycoord=prel, textxjust=1, textyjust=(isBottom?0:2), fsize=fontsize, fname=fontname
@@ -387,6 +424,16 @@ Static Function resumeUpdateBar(String grfName)
 	DoUpdate/W=$grfName
 End
 
+Static Function calcNiceWidth(Variable L)
+	Variable rawwidth = L*NICEWIDTH*1e-2
+	int digit = floor(log(rawwidth))		//	number of digits of rawwidth - 1
+	Make/FREE/N=(ItemsInList(NICEVALUES)) nicew = str2num(StringFromList(p,NICEVALUES)), tw
+	tw = abs(nicew*10^digit - rawwidth)
+	WaveStats/Q/M=1 tw
+	//	A "nice value" close to rawwidth (scaling value)
+	return nicew[V_minloc]*10^digit
+End
+
 
 //******************************************************************************
 //	show panel
@@ -396,7 +443,7 @@ Static Function pnl(String grfName)
 	if (SIDAMWindowExists(pnlName))
 		return 0
 	endif
-	NewPanel/HOST=$grfName/EXT=0/W=(0,0,135,270)/N=Scalebar as "Scale bar"
+	NewPanel/HOST=$grfName/EXT=0/W=(0,0,225,170)/N=Scalebar as "Scale bar"
 	
 	String settingStr = GetUserData(grfName,"",NAME), anchor
 	Variable opacity
@@ -406,7 +453,7 @@ Static Function pnl(String grfName)
 	//	If not, use the default values.
 	STRUCT paramStruct s
 	if (isDisplayed)
-		StructGet/S s, settingStr
+		getInfoFromStruct(grfName, s)
 		anchor = num2char(s.anchor[0])+num2char(s.anchor[1])
 		SetWindow $pnlName userData(init)=settingStr
 	else
@@ -415,32 +462,38 @@ Static Function pnl(String grfName)
 		WaveToRGBAColor({DEFAULT_FC,DEFAULT_FC,DEFAULT_FC,DEFAULT_FA}, s.fgRGBA)
 		WaveToRGBAColor({DEFAULT_BC,DEFAULT_BC,DEFAULT_BC,DEFAULT_BA}, s.bgRGBA)
 		s.prefix = DEFAULT_PREFIX
+		s.length = DEFAULT_PREFIX
 	endif
+
+	Wave w = SIDAMImageNameToWaveRef(grfName)
 	
-	CheckBox showC pos={6,9}, title="Show scale bar", win=$pnlName
-	CheckBox showC value=isDisplayed, proc=SIDAMScaleBar#pnlCheck, win=$pnlName
-	CheckBox prefixC pos={6,34}, title="Use a prefix (\u03bc, n, ...)", win=$pnlName
-	CheckBox prefixC value=s.prefix, proc=SIDAMScaleBar#pnlCheck, win=$pnlName
-	
-	GroupBox anchorG pos={5,58}, size={125,70}, title="Anchor", win=$pnlName	
-	CheckBox ltC pos={12,78}, title="LT", value=!CmpStr(anchor,"LT"), win=$pnlName
-	CheckBox lbC pos={12,104}, title="LB", value=!CmpStr(anchor,"LB"), win=$pnlName
-	CheckBox rtC pos={89,78}, title="RT", value=!CmpStr(anchor,"RT"), side=1, win=$pnlName
-	CheckBox rbC pos={89,104}, title="RB", value=!CmpStr(anchor,"RB"), side=1, win=$pnlName
-	
-	GroupBox propG pos={5,136}, size={125,95}, title="Properties", win=$pnlName
-	SetVariable sizeV pos={18,157}, size={100,18}, title="Text size:", win=$pnlName
+	SetVariable lengthV pos={8,3}, size={84,18}, title="Length:", bodyWidth=40, win=$pnlName
+	SetVariable lengthV limits={0,inf,0}, value=_NUM:s.length, proc=SIDAMScaleBar#pnlSetVar, win=$pnlName
+	TitleBox unitT pos={95,4}, frame=0, title=WaveUnits(w,0), win=$pnlName
+	SetVariable sizeV pos={128,3}, size={90,18}, title="Text size:", win=$pnlName
 	SetVariable sizeV bodyWidth=40, format="%d", limits={0,inf,0}, win=$pnlName
 	SetVariable sizeV value=_NUM:s.fontsize, proc=SIDAMScaleBar#pnlSetVar, win=$pnlName
-	PopupMenu fgRGBAP pos={24,180}, size={94,19}, win=$pnlName
+
+	CheckBox prefixC pos={10,30}, title="Use a prefix (\u03bc, n, ...)", win=$pnlName
+	CheckBox prefixC value=s.prefix, proc=SIDAMScaleBar#pnlCheck, win=$pnlName
+	
+	GroupBox anchorG pos={135,58}, size={85,70}, title="Anchor", win=$pnlName
+	CheckBox ltC pos={143,80}, title="LT", value=!CmpStr(anchor,"LT"), win=$pnlName
+	CheckBox lbC pos={143,104}, title="LB", value=!CmpStr(anchor,"LB"), win=$pnlName
+	CheckBox rtC pos={187,80}, title="RT", value=!CmpStr(anchor,"RT"), side=1, win=$pnlName
+	CheckBox rbC pos={187,104}, title="RB", value=!CmpStr(anchor,"RB"), side=1, win=$pnlName
+
+	GroupBox clrG pos={5,58}, size={125,70}, title="Colors", win=$pnlName
+	PopupMenu fgRGBAP pos={24,79}, size={94,19}, win=$pnlName
 	PopupMenu fgRGBAP title="Fore color:", value=#"\"*COLORPOP*\"", win=$pnlName
 	PopupMenu fgRGBAP popColor=(s.fgRGBA.red,s.fgRGBA.green,s.fgRGBA.blue,s.fgRGBA.alpha), win=$pnlName
-	PopupMenu bgRGBAP pos={22,204}, size={96,19}, win=$pnlName
+	PopupMenu bgRGBAP pos={22,102}, size={96,19}, win=$pnlName
 	PopupMenu bgRGBAP title="Back color:", value=#"\"*COLORPOP*\"", win=$pnlName
 	PopupMenu bgRGBAP popColor=(s.bgRGBA.red,s.bgRGBA.green,s.bgRGBA.blue,s.bgRGBA.alpha), win=$pnlName
 
-	Button doB pos={5,240}, title="Do It", size={50,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
-	Button cancelB pos={70,240}, title="Cancel", size={60,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
+	Button doB pos={5,140}, title="Do It", size={60,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
+	Button deleteB pos={75,140}, title="Delete", size={60,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
+	Button cancelB pos={160,140}, title="Cancel", size={60,22}, proc=SIDAMScaleBar#pnlButton, win=$pnlName
 	
 	ModifyControlList "ltC;lbC;rtC;rbC" mode=1, proc=SIDAMScaleBar#pnlCheck, win=$pnlname
 	ModifyControlList "fgRGBAP;bgRGBAP" mode=1, bodyWidth=40, proc=SIDAMScaleBar#pnlPopup, win=$pnlName
@@ -448,18 +501,18 @@ Static Function pnl(String grfName)
 	
 	Make/T/N=(2,9)/FREE helpw
 	String helpstr_check = "Check to show the scale bar at the "
-	helpw[][0] = {"showC", "Check to show and uncheck to remove the scale bar."}
-	helpw[][1] = {"prefixC", "Check to use a prefix such as n and \\u03bc."}
-	helpw[][2] = {"ltC", helpstr_check+"left-top corner."}
-	helpw[][3] = {"lbC", helpstr_check+"left-bottom corner."}
-	helpw[][4] = {"rtC", helpstr_check+"right-top corner."}
-	helpw[][5] = {"rbC", helpstr_check+"right-bottom corner."}
-	helpw[][6] = {"sizeV", "Enter the font size. When 0, the default font size is used."}
-	helpw[][7] = {"fgRGBAP", "Select the foreground color of the scale bar."}
-	helpw[][8] = {"bgRGBAP", "Select the background color of the scale bar."}
+	helpw[][0] = {"prefixC", "Check to use a prefix such as n and \\u03bc."}
+	helpw[][1] = {"ltC", helpstr_check+"left-top corner."}
+	helpw[][2] = {"lbC", helpstr_check+"left-bottom corner."}
+	helpw[][3] = {"rtC", helpstr_check+"right-top corner."}
+	helpw[][4] = {"rbC", helpstr_check+"right-bottom corner."}
+	helpw[][5] = {"sizeV", "Enter the font size. When 0, the default font size is used."}
+	helpw[][6] = {"fgRGBAP", "Select the foreground color of the scale bar."}
+	helpw[][7] = {"bgRGBAP", "Select the background color of the scale bar."}
+	helpw[][8] = {"lengthV", "Enter the length of bar. When 0, a nice value is used."}
 	SIDAMApplyHelpStringsWave(pnlName, helpw)
 	
-	ctrlDisable(pnlName)
+	SIDAMScalebar(grfName=grfName, anchor=getAnchorFromPnl(pnlName))
 	
 	SetActiveSubwindow $grfName
 End
@@ -475,19 +528,26 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 	
 	String grfName = StringFromList(0,s.win,"#")
 	STRUCT paramStruct ps
+	String statusInOpeningPanel = GetUserData(s.win,"","init")
 	
 	strswitch (s.ctrlName)
 		case "cancelB":
-			if (strlen(GetUserData(s.win,"","init")))
-				StructGet/S ps, GetUserData(s.win,"","init")
+			if (strlen(statusInOpeningPanel))
+				StructGet/S ps, statusInOpeningPanel
 				SIDAMScalebar(grfName=grfName,\
-					anchor=num2char(ps.anchor[0])+num2char(ps.anchor[1]),size=ps.fontsize,\
+					anchor=num2char(ps.anchor[0])+num2char(ps.anchor[1]),fsize=ps.fontsize,\
 					fgRGBA=RGBAColorToWave(ps.fgRGBA), bgRGBA=RGBAColorToWave(ps.bgRGBA),\
 					prefix=ps.prefix)
 			else
 				SIDAMScalebar(grfName=grfName,anchor="")
 			endif
 			break
+		case "deleteB":
+			SIDAMScalebar(grfName=grfName,anchor="")
+			if (!strlen(statusInOpeningPanel))
+				break
+			endif
+			// ** FALLTHOUGH **
 		case "doB":
 			StructGet/S ps, GetUserData(grfName,"",NAME)
 			echo(s.win, ps)
@@ -506,14 +566,9 @@ Static Function pnlCheck(STRUCT WMCheckboxAction &s)
 	String grfName = StringFromList(0,s.win,"#")
 	
 	strswitch (s.ctrlName)
-		case "showC":
-			ctrlDisable(s.win)
-			SIDAMScalebar(grfName=grfName, anchor=SelectString(s.checked,\
-				"",getAnchorFromPnl(s.win)))
-			break
 		case "prefixC":
 			SIDAMScalebar(grfName=grfName,prefix=s.checked)
-			break			
+			break
 		case "ltC":
 		case "lbC":
 		case "rtC":
@@ -536,8 +591,11 @@ Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
 	endif
 	
 	strswitch (s.ctrlName)
-		case "sizeV":	
-			SIDAMScalebar(grfName=StringFromList(0,s.win,"#"), size=s.dval)
+		case "lengthV":
+			SIDAMScalebar(grfName=StringFromList(0,s.win,"#"), length=s.dval)
+			break
+		case "sizeV":
+			SIDAMScalebar(grfName=StringFromList(0,s.win,"#"), fsize=s.dval)
 			break
 	endswitch
 End
@@ -567,20 +625,13 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 End
 
 //******************************************************************************
-//	Helper funcitons for control
+//	Helper functions for control
 //******************************************************************************
-Static Function ctrlDisable(String pnlName)
-	ControlInfo/W=$pnlName showC
-	ModifyControlList ControlNameList(pnlName,";","*") disable=(!V_Value)*2, win=$pnlName
-	ModifyControlList "showC;doB;cancelB" disable=0, win=$pnlName
-End
-
 Static Function/S getAnchorFromPnl(String pnlName)
 	Wave cw = SIDAMGetCtrlValues(pnlName,"ltC;lbC;rtC;rbC")
 	WaveStats/Q/M=1 cw
 	return StringFromList(V_maxloc,"LT;LB;RT;RB")
 End
-
 
 Static Function echo(String pnlName, STRUCT paramStruct &s)
 	STRUCT paramStruct init
@@ -593,6 +644,10 @@ Static Function echo(String pnlName, STRUCT paramStruct &s)
 		return 0
 	elseif (s.anchor[0] != init.anchor[0] || s.anchor[1] != init.anchor[1])
 		sprintf paramStr, "%s,anchor=\"%s\"", paramStr, s.anchor
+	endif
+	
+	if (s.length != init.length)
+		sprintf paramStr, "%s,length=%s", paramStr, num2str(s.length)
 	endif
 	
 	if (s.fontsize != init.fontsize)
