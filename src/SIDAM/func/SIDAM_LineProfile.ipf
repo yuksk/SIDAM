@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLineProfile
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Bias"
 #include "SIDAM_Color"
 #include "SIDAM_Help"
@@ -17,9 +19,8 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant SUFFIX_X = "X"
-Static StrConstant SUFFIX_Y = "Y"
-Static StrConstant SUFFIX_SDEV = "Stdv"
+Static StrConstant SUFFIX_POS = "_pos"
+Static StrConstant SUFFIX_SDEV = "_stdv"
 
 Static StrConstant PROF_1D_NAME = "W_ImageLineProfile"
 Static StrConstant PROF_X_NAME = "W_LineProfileX"
@@ -32,8 +33,7 @@ Static StrConstant PNL_W = "W_SIDAMLineProfile"
 Static StrConstant PNL_C = "W_SIDAMLineProfileC"
 Static StrConstant PNL_B1 = "W_SIDAMLineProfile_b"
 Static StrConstant PNL_B2 = "W_SIDAMLineProfile_y"
-Static StrConstant PNL_X = "W_SIDAMLineProfileX"
-Static StrConstant PNL_Y = "W_SIDAMLineProfileY"
+Static StrConstant PNL_POS = "W_SIDAMLineProfile_pos"
 Static StrConstant PNL_T = "W_SIDAMLineProfileT"
 
 Static StrConstant KEY = "SIDAMLineProfile"
@@ -226,11 +226,11 @@ Static Function/WAVE getLineProfile(STRUCT paramStruct &s)
 
 	//	Save waves for sampling points
 	if (s.output&1)
-		Wave posxw = $PROF_X_NAME, posyw = $PROF_Y_NAME
-		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), posxw
-		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,1)), posyw
-		Duplicate/O posxw dfr:$(s.basename+SUFFIX_X)
-		Duplicate/O posyw dfr:$(s.basename+SUFFIX_Y)
+		Concatenate/FREE/NP=1 {$PROF_X_NAME, $PROF_Y_NAME}, posw
+		SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), posw
+		MatrixTranspose posw
+		CopyWaveToDimLabels({"x", "y"}, posw, 0)
+		Duplicate/O posw dfr:$(s.basename+SUFFIX_POS)
 	endif
 
 	SetDataFolder dfrSav
@@ -356,9 +356,9 @@ Static Function pnl(String grfName, String imgName)
 	SetActiveSubWindow $pnlName
 
 	//	Show a line and text markers on the parent window
-	AppendToGraph/W=$grfName $PNL_Y vs $PNL_X
-	ModifyGraph/W=$grfName mode($PNL_Y)=4,msize($PNL_Y)=5
-	ModifyGraph/W=$grfName textMarker($PNL_Y)={$PNL_T,"default",0,0,1,0,0}
+	AppendToGraph/W=$grfName $PNL_POS[%y][] vs $PNL_POS[%x][]
+	ModifyGraph/W=$grfName mode($PNL_POS)=4,msize($PNL_POS)=5
+	ModifyGraph/W=$grfName textMarker($PNL_POS)={$PNL_T,"default",0,0,1,0,0}
 
 	SetDataFolder dfrSav
 End
@@ -428,7 +428,7 @@ Static Function pnlUpdateTextmarker(String pnlName)
 	Wave/T/SDFR=dfrTmp tw = $PNL_T
 
 	tw[inf] = ""
-	Redimension/N=(numpnts(dfrTmp:$PNL_X)) tw
+	Redimension/N=(DimSize(dfrTmp:$PNL_POS,1)) tw
 	//	Use !F_flag to put 1 when this is called for the first time
 	ControlInfo/W=$pnlName p1C;	tw[0] = SelectString(V_Value|!V_Flag,"","1")
 	ControlInfo/W=$pnlName p2C;	tw[inf] = SelectString(V_Value|!V_Flag,"","2")

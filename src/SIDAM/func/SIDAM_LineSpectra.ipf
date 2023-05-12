@@ -2,6 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMLineSpectra
 
+#include <DimensionLabelUtilities>
+
 #include "SIDAM_Bias"
 #include "SIDAM_Color"
 #include "SIDAM_Line"
@@ -16,12 +18,10 @@
 #pragma hide = 1
 #endif
 
-Static StrConstant SUFFIX_X = "X"
-Static StrConstant SUFFIX_Y = "Y"
+Static StrConstant SUFFIX_POS = "_pos"
 
 Static StrConstant PNL_W = "LineSpectra"
-Static StrConstant PNL_X = "LineSpectraX"
-Static StrConstant PNL_Y = "LineSpectraY"
+Static StrConstant PNL_POS = "LineSpectra_pos"
 Static StrConstant PNL_C = "LineSpectraC"
 Static StrConstant PNL_B1 = "LineSpectra_b"
 Static StrConstant PNL_B2 = "LineSpectra_x"
@@ -179,8 +179,11 @@ Static Function/WAVE getLineSpectra(STRUCT paramStruct &s)
 		endif
 
 		if (s.output)
-			Duplicate/O xw $(s.basename+SUFFIX_X)
-			Duplicate/O yw $(s.basename+SUFFIX_Y)
+			Concatenate/FREE/NP=1 {xw, yw}, posw
+			SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), posw
+			MatrixTranspose posw
+			CopyWaveToDimLabels({"x", "y"}, posw, 0)
+			Duplicate/O posw $(s.basename+SUFFIX_POS)
 		endif
 		SetDataFolder dfrSav
 		return rtnw
@@ -398,7 +401,8 @@ Static Function pnl(String LVName)
 	SetDataFolder $dfTmp
 
 	Make/N=(1,1)/O $PNL_W
-	Make/N=1/O $PNL_X, $PNL_Y, $PNL_B1, $PNL_B2
+	Make/N=1/O $PNL_B1, $PNL_B2
+	Make/N=(2,1)/O $PNL_POS
 	Make/N=(1,3)/O $PNL_C
 	Make/T/N=2/O $PNL_T = {"1","2"}
 
@@ -449,8 +453,9 @@ Static Function pnlSetParent(String prtName, String chdName)
 	SetWindow $prtName userData($KEY)=AddListItem(chdName+"="+dfTmp, GetUserData(prtName,"",KEY))
 	SetWindow $chdName userData(parent)=prtName
 
-	String trcName = PNL_Y+prtName
-	AppendToGraph/W=$prtName $(dfTmp+PNL_Y)/TN=$trcName vs $(dfTmp+PNL_X)
+	String trcName = PNL_POS+prtName
+	DFREF dfrTmp = $dfTmp
+	AppendToGraph/W=$prtName dfrTmp:$PNL_POS[%y][]/TN=$trcName vs dfrTmp:$PNL_POS[%x][]
 	ModifyGraph/W=$prtName mode($trcName)=4,msize($trcName)=5
 	ModifyGraph/W=$prtName textMarker($trcName)={$(dfTmp+PNL_T),"default",0,0,1,0,0}
 End
@@ -467,7 +472,7 @@ Static Function pnlResetParent(String prtName, String chdName)
 		SetWindow $chdName userData(parent)=""
 	endif
 
-	RemoveFromGraph/Z/W=$prtName $(PNL_Y+prtName)
+	RemoveFromGraph/Z/W=$prtName $(PNL_POS+prtName)
 End
 
 Static Function pnlModifyGraph(String pnlName)
@@ -715,7 +720,7 @@ Static Function panelMenuDo(int kind)
 		case 4:	//	Highlight
 			int highlight = str2num(GetUserData(pnlName,"","highlight"))
 			SetWindow $pnlname userData(highlight)=num2istr(!highlight)
-			String trcName = PNL_Y+GetUserData(pnlName,"","parent")
+			String trcName = PNL_POS+GetUserData(pnlName,"","parent")
 			if (highlight)
 				//	on -> off
 				if(!CmpStr(StringByKey("TNAME",CsrInfo(A,grfName)),trcName))
