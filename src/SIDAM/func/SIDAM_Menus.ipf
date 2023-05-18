@@ -29,6 +29,7 @@
 #include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
 #include "SIDAM_SpectrumViewer"
+#include "SIDAM_SumMean"
 #include "SIDAM_SyncAxisRange"
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"

@@ -48,6 +48,8 @@ commands:
         url: /commands/SIDAMLineSpectra/
       - title: "SIDAMLoadData"
         url: /commands/SIDAMLoadData/
+      - title: "SIDAMMean"
+        url: /commands/SIDAMMean/
       - title: "SIDAMPeakPos"
         url: /commands/SIDAMPeakPos/
       - title: "SIDAMPhaseAdjust"
@@ -66,6 +68,8 @@ commands:
         url: /commands/SIDAMSetLayerIndex/
       - title: "SIDAMSubtraction"
         url: /commands/SIDAMSubtraction/
+      - title: "SIDAMSum"
+        url: /commands/SIDAMSum/
       - title: "SIDAMSyncAxisRange"
         url: /commands/SIDAMSyncAxisRange/
       - title: "SIDAMSyncCursor"
