@@ -443,6 +443,7 @@ Static Function/WAVE LoadNanonis3dsGetDataWaveNames(String fileName, String chan
 		nameStr = ReplaceString(" omega", nameStr, "")
 		nameStr = ReplaceString(" [bwd]", nameStr, "_bwd")
 		nameStr = ReplaceString(" ", nameStr, "_")
+		nameStr = ReplaceString("Z", nameStr, "ZZ") //	Z in the channel
 		nameStr = filename + "_" + nameStr
 		if (strlen(nameStr) > MAX_OBJ_NAME-4)		//	-4 is for "_bwd"
 			if (strsearch(nameStr, "_bwd", 0) == -1)
