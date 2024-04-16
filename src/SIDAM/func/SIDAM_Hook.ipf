@@ -31,7 +31,7 @@ Function SIDAMFileOpenHook(refNum,filename,path,type,creator,kind)
 
 	Variable dontInvokeIgorFn = 0
 
-	if (kind == 0 || kind == 6 || kind == 7)
+	if (kind == 0 || kind == 6 || kind == 7 || kind == 8)
 		PathInfo $path
 		try
 			SIDAMLoadData(S_path+filename,history=1)
