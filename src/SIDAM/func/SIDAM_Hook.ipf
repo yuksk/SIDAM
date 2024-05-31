@@ -34,9 +34,9 @@ Function SIDAMFileOpenHook(refNum,filename,path,type,creator,kind)
 	if (kind == 0 || kind == 6 || kind == 7 || kind == 8)
 		PathInfo $path
 		try
-			SIDAMLoadData(S_path+filename,history=1)
+			Wave/Z w = SIDAMLoadData(S_path+filename,history=1)
 			KillStrings/Z S_waveNames
-			dontInvokeIgorFn = 1
+			dontInvokeIgorFn = WaveExists(w)
 		catch
 			//	file not found, cancel not to overwrite a datafolder, etc.
 			if (V_AbortCode == -3)
