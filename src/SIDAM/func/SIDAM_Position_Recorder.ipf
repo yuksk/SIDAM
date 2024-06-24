@@ -296,8 +296,11 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 
 			//	show a table in a subwindow
 			GetWindow $grfName wsizeOuterDC
-			MoveSubwindow/W=$s.win fnum=(0,0,PNLWIDTH,V_bottom)
-			Edit/W=(0,PNLOFFSET,V_right,V_bottom)/HOST=$s.win w
+			Variable bottom = V_bottom
+			GetWindow $s.win wsizeOuterDC
+			Variable right = V_right
+			MoveSubwindow/W=$s.win fnum=(0,0,PNLWIDTH,bottom)
+			Edit/W=(0,PNLOFFSET,right,bottom)/HOST=$s.win w
 			ModifyTable/W=$(s.win+"#T0") elements=(-3,-2,0,0), horizontalIndex=2
 			ModifyTable/W=$(s.win+"#T0") width=90, width(Point)=30, format(Point)=1
 			ModifyTable/W=$(s.win+"#T0") showParts=236		//	236 = from bit 2 to 7
