@@ -107,11 +107,10 @@ Static Function/S getFOVsize(Wave w)
 End
 
 Static Function/S getFOVcenter(Wave w)
+	String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS	
 	String str = ""
-	
-	if (WaveDims(w) == 1)
 
-		String df = GetWavesDataFolder(w,1)+SIDAM_DF_SETTINGS
+	if (WaveDims(w) == 1)
 		if (!DataFolderExists(df))
 			return ""
 		endif
@@ -122,15 +121,30 @@ Static Function/S getFOVcenter(Wave w)
 			sprintf str, "<br>At: %.2W1Pm, %.2W1Pm", X__m_, Y__m_
 			return str
 		endif
-
-	else
-
-		Make/N=2/FREE cw = DimOffset(w,p)+DimDelta(w,p)*(DimSize(w,p)-1)/2
-		Make/N=2/T/FREE tw = WaveUnits(w,p)
-		sprintf str, "<br>Center: %.2W1P%s, %.2W1P%s", cw[0], tw[0], cw[1], tw[1]
-		return str
-
+		
+		return ""
 	endif
+	
+	if (DataFolderExists(df))
+		//	Nanonis sxm
+		NVAR/Z/SDFR=$df cx = center_x_m, cy = center_y_m
+		if (NVAR_Exists(cx) && NVAR_Exists(cy))
+			sprintf str, "<br>Center: %.2W1Pm, %.2W1Pm", cx, cy
+			return str
+		endif
+		
+		//	Nanonis 3ds
+		SVAR/Z/SDFR=$df grid = Grid_settings
+		if (SVAR_Exists(grid))
+			sprintf str, "<br>Center: %.2W1Pm, %.2W1Pm", str2num(StringFromList(0,grid)), str2num(StringFromList(1,grid))
+			return str
+		endif
+	endif
+	
+	Make/N=2/FREE cw = DimOffset(w,p)+DimDelta(w,p)*(DimSize(w,p)-1)/2
+	Make/N=2/T/FREE tw = WaveUnits(w,p)
+	sprintf str, "<br>Center: %.2W1P%s, %.2W1P%s", cw[0], tw[0], cw[1], tw[1]
+	return str
 End
 
 Static Function/S getSetpoint(Wave w)
