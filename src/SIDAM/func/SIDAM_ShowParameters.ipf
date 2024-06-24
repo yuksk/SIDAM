@@ -145,7 +145,8 @@ Static Function nanonisStyle(Wave/T params)
 	Variable coef, v
 
 	Wave indexw = nanonisStyleSearch(params, "Setpoint")
-	if (numpnts(indexw))
+	// When both "Setpoint" (Variable) and "Setpoint_unit" (String) exist
+	if (numpnts(indexw) == 2)
 		params[0][indexw[0]] += " ("+params[1][indexw[1]]+")"
 	endif
 
@@ -252,7 +253,8 @@ Static Function nanonisStyle(Wave/T params)
 	Variable coef, v
 
 	Wave indexw = nanonisStyleSearch(params, "Setpoint")
-	if (numpnts(indexw))
+	// When both "Setpoint" (Variable) and "Setpoint_unit" (String) exist
+	if (numpnts(indexw) == 2)
 		params[0][indexw[0]] += " ("+params[1][indexw[1]]+")"
 	endif
 
