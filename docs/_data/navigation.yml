@@ -76,6 +76,8 @@ commands:
         url: /commands/SIDAMSyncCursor/
       - title: "SIDAMSyncLayer"
         url: /commands/SIDAMSyncLayer/
+      - title: "SIDAMTimestamp"
+        url: /commands/SIDAMTimestamp/
       - title: "SIDAMTraceOffset"
         url: /commands/SIDAMTraceOffset/
       - title: "SIDAMWindowExists"

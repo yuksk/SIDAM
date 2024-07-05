@@ -2,6 +2,7 @@
 #pragma rtGlobals=1
 
 #include <DimensionLabelUtilities>
+#include "SIDAM_Timestamp"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -54,6 +55,9 @@ Static Function LoadNanonisDatGetHeader(String pathStr, STRUCT header &s)
 			s.interval = SIDAMNumVarOrDefault("Sample Period (ms)", 1)
 			s.skip = 0
 			break
+		case "LongTerm Data":
+			s.timestamp = SIDAMStrVarOrDefault("Base Timestamp", "")
+			break
 	endswitch
 	
 	return 0
@@ -64,6 +68,7 @@ Static Structure header
 	Variable driveamp
 	String modulated
 	Variable interval
+	String timestamp
 	uchar skip
 EndStructure
 
@@ -104,6 +109,7 @@ Static Function/WAVE LoadNanonisDatGetData(String pathStr, int noavg, STRUCT hea
 			break
 		case "Spectrum":
 		case "History Data":
+		case "LongTerm Data":
 			LoadNanonisDatGetDataConvert(s, ww, statusw)
 			break
 	endswitch
@@ -159,6 +165,12 @@ Static Function LoadNanonisDatGetDataConvert(STRUCT header &s, Wave/WAVE ww, Wav
 			for (i = 0; i < n; i += 1)
 				SetScale/P x 0, s.interval, "ms", ww[i]
 			endfor
+			break
+		case "LongTerm Data":
+			Wave timew = ww[0]
+			Redimension/D timew
+			Setscale d, 0, 1, "dat", timew
+			timew += SIDAMTimestamp(s.timestamp)
 			break
 	endswitch
 
