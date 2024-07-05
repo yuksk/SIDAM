@@ -2,8 +2,8 @@
 #pragma rtGlobals=3
 #pragma ModuleName = SIDAMUtilHelp
 
+#include "SIDAM_Path"
 #include "SIDAM_TOML"
-#include "SIDAM_Utilities_misc"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1

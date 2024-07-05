@@ -26,8 +26,9 @@ Function SIDAMCreateProcedures()
 	SIDAMConfigRead(s)
 	
 	//	Make a list of ipf files
-	//	The core files
-	Make/T/FREE lw = {"SIDAM_Menus.ipf", "SIDAM_Constants.ipf", "SIDAM_CreateProcedures.ipf", "SIDAM_Hook.ipf"}
+	//	The core files (4) + independent file (1)
+	Make/T/FREE lw = {"Menus", "Constants", "CreateProcedures", "Hook", "SumMean"}
+	lw = "SIDAM_" + lw[p] + ".ipf"
 	//	file loaders
 	appendIpf(lw, s.loader.path)
 	//	extensions

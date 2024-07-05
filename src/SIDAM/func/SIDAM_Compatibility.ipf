@@ -162,3 +162,62 @@ Static Function updateWindow()
 		SetWindow $grfName userData(title)=""
 	endfor
 End
+
+
+//------------------------------------------------------------------------------
+//	Functions for absorbing a change of "Liberal object names" in Igor 9.
+//	In Igor 8, liberal object names are allowed for variables and strings
+//	although it is not written so in the manual. In Igor 9, they are not allowed.
+//------------------------------------------------------------------------------
+Function/S SIDAMNumStrName(String name, int isString)
+	int objectType = isString ? 4 : 3
+	#if IgorVersion() >= 9
+		return CreateDataObjectName(:, name, objectType, 0, 3)
+	#else
+		return SelectString(CheckName(name, objectType), name, CleanupName(name, 1))
+	#endif
+End
+
+Function/S SIDAMStrVarOrDefault(String name, String def)
+	if (strsearch(name, ":", 0) == -1)
+		return StrVarOrDefault(SIDAMNumStrName(name, 1), def)
+	endif
+	
+	DFREF dfrSav = GetDataFolderDFR()
+	if (movedf(name))
+		return def
+	endif
+		
+	name = ParseFilePath(0, name, ":", 1, 0)
+	name = ReplaceString("'", name, "")
+	String str = StrVarOrDefault(SIDAMNumStrName(name, 1), def)
+	SetDataFolder dfrSav
+	return str
+End
+
+Function SIDAMNumVarOrDefault(String name, Variable def)
+	if (strsearch(name, ":", 0) == -1)
+		return NumVarOrDefault(SIDAMNumStrName(name, 0), def)
+	endif
+	
+	DFREF dfrSav = GetDataFolderDFR()
+	if (movedf(name))
+		return def
+	endif
+	
+	name = ParseFilePath(0, name, ":", 1, 0)
+	name = ReplaceString("'", name, "")
+	Variable num = NumVarOrDefault(SIDAMNumStrName(name, 0), def)
+	SetDataFolder dfrSav
+	return num
+End
+
+Static Function movedf(String name)
+	String df = ParseFilePath(1, name, ":", 1, 0)
+	DFREF dfr = $ReplaceString("'", RemoveEnding(df, ":"), "")
+	if (!DataFolderRefStatus(dfr))
+		return 1
+	endif
+	SetDataFolder dfr
+	return 0
+End

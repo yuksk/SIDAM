@@ -9,6 +9,7 @@
 #include "SIDAM_LoadData"
 #include "SIDAM_Preference"
 #include "SIDAM_Compatibility"
+#include "SIDAM_Utilities_Wave"
 
 //	AfterCompiledHook
 Function SIDAMAfterCompiledHook()

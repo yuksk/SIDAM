@@ -28,14 +28,14 @@
 #include "SIDAM_SaveMovie"
 #include "SIDAM_ScaleBar"
 #include "SIDAM_ShowParameters"
+#include "SIDAM_ShowProcedures"
 #include "SIDAM_SpectrumViewer"
-#include "SIDAM_SumMean"
 #include "SIDAM_SyncAxisRange"
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"
 #include "SIDAM_TraceOffset"
+#include "SIDAM_Utilities_DataFolder"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_misc"
 #include "SIDAM_Workfunction"
 
 #ifndef SIDAMshowProc
@@ -106,7 +106,7 @@ Menu "SIDAM", dynamic
 	End
 
 	Submenu "Developer"
-		SIDAMUtilMisc#mainMenuItem(), /Q, SIDAMshowProcedures()
+		SIDAMShowProcedure#mainMenuItem(), /Q, SIDAMshowProcedures()
 		"List of Deprecated Functions", /Q, print SIDAMDeprecatedFunctions()
 		help = {"Show a list of deprecated functions in the history area"}
 	End
@@ -318,4 +318,68 @@ Menu "SIDAMInfobarMenu1D", dynamic, contextualmenu
 	"-"
 
 	"Close Infobar", /Q, SIDAMInfoBar(WinName(0,1))
+End
+
+
+//******************************************************************************
+//	Menu-related utilities
+//******************************************************************************
+//------------------------------------------------------------------------------
+//	Add the check mark to num-th item of menuStr and return it
+//------------------------------------------------------------------------------
+Function/S SIDAMAddCheckmark(Variable num, String menuStr)
+	if (numtype(num))
+		return ""
+	elseif (num < 0)
+		return menuStr
+	endif
+
+	String checked = "\\M0:!" + num2char(18)+":", escCode = "\\M0"
+
+	//	add escCode before all items
+	menuStr = ReplaceString(";", menuStr, ";"+escCode)
+	menuStr = escCode + RemoveEnding(menuStr, escCode)
+
+	//	replace escCode of num-item with the check mark
+	menuStr = AddListItem(checked, menuStr, ";", num)
+	return ReplaceString(":;"+escCode, menuStr, ":")
+End
+
+
+//------------------------------------------------------------------------------
+//	Enable and disable some Igor menus
+//------------------------------------------------------------------------------
+Function SIDAMEnableIgorMenuItems()
+	DFREF dfrTmp = $(SIDAM_DF+":DisableIgorMenuItem")
+	int existsTmpDF = DataFolderRefStatus(dfrTmp) == 1
+	if (existsTmpDF)
+		NVAR/Z/SDFR=dfrTmp count
+		if (NVAR_Exists(count))
+			count -= 1
+			if (count)
+				return 0
+			endif
+		endif
+	endif
+	
+	if (existsTmpDF)
+		SIDAMKillDataFolder(dfrTmp)
+	endif
+	SetIgorMenuMode "File", "Save Graphics", EnableItem
+	SetIgorMenuMode "Edit", "Export Graphics", EnableItem
+	SetIgorMenuMode "Edit", "Copy", EnableItem
+End
+
+Function SIDAMDisableIgorMenuItems()
+	DFREF dfrTmp = $SIDAMNewDF("","DisableIgorMenuItem")
+	NVAR/Z/SDFR=dfrTmp count
+	if (NVAR_Exists(count))
+		count += 1
+		return 0
+	endif
+
+	Variable/G dfrTmp:count = 1
+	SetIgorMenuMode "File", "Save Graphics", DisableItem
+	SetIgorMenuMode "Edit", "Export Graphics", DisableItem
+	SetIgorMenuMode "Edit", "Copy", DisableItem
 End

@@ -12,7 +12,6 @@
 #include "SIDAM_Utilities_Cursor"
 #include "SIDAM_Utilities_DataFolder"
 #include "SIDAM_Utilities_Image"
-#include "SIDAM_Utilities_misc"
 #include "SIDAM_Utilities_Mouse"
 #include "SIDAM_Utilities_Window"
 
