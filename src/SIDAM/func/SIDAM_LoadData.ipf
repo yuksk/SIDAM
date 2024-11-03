@@ -114,8 +114,8 @@ Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 	String fileNameNoExt = ParseFilePath(3, pathStr, ":", 0, 0)		//	file name without extension
 	String extStr = LowerStr(ParseFilePath(4, pathStr, ":", 0, 0))	//	extension
 	int i, n
-	
-	//	Fetch function names from functions.ini (or functions.default.ini).
+
+	//	Fetch function names
 	String fnName = fetchFunctionName(extStr)
 	if (!strlen(fnName))	//	function is not found
 		if (strsearch(GetRTStackInfo(3),"SIDAMFileOpenHook",0) >= 0)		//	called by drag && drop
@@ -125,29 +125,30 @@ Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 			return $""
 		endif
 	endif
-	
+
 	//	Load a data file with the obtained function(s)
+	DFREF dfrSav = GetDataFolderDFR()
+	DFREF dfrNew = createNewDFandMove(fileNameNoExt)
+	if (!DataFolderRefStatus(dfrNew))
+		return $""
+	endif
 	for (i = 0, n = ItemsInList(fnName, ","); i < n; i += 1)
-		DFREF dfrSav = GetDataFolderDFR()
-		DFREF dfrNew = createNewDFandMove(fileNameNoExt)
-		if (!DataFolderRefStatus(dfrNew))
-			return $""
-		endif
-		
 		FUNCREF SIDAMLoadDataPrototype fn = $StringFromList(i, fnName, ",")
 		FUNCREF SIDAMLoadDataPrototype2 fn2 = $StringFromList(i, fnName, ",")
-		if (NumberBykey("ISPROTO", FuncRefInfo(fn)) && NumberBykey("ISPROTO", FuncRefInfo(fn2)))
+		int isFn1 = !NumberBykey("ISPROTO", FuncRefInfo(fn))
+		int isFn2 = !NumberBykey("ISPROTO", FuncRefInfo(fn2))
+		if (!isFn1 && !isFn2)
 			return $""
 		endif
-		
+
 		if (history)
 			printHistory(pathStr, noavg)
 		endif
-		
+
 		try
-			if (!NumberBykey("ISPROTO", FuncRefInfo(fn)))
+			if (isFn1)
 				Wave/Z w = fn(pathStr)
-			elseif (!NumberBykey("ISPROTO", FuncRefInfo(fn2)))
+			elseif (isFn2)
 				Wave/Z w = fn2(pathStr, noavg)
 			endif
 		catch
@@ -155,15 +156,16 @@ Static Function/WAVE loadDataFile(String pathStr, int noavg, int history)
 			KillDataFolder dfrNew
 			AbortOnValue 1, 1
 		endtry
-		SetDataFolder dfrSav
-		
-		if (!WaveExists(w))
-			KillDataFolder dfrNew
-			return $""
+
+		if (WaveExists(w))
+			SetDataFolder dfrSav
+			return w
 		endif
-		
-		return w
 	endfor
+
+	SetDataFolder dfrSav
+	KillDataFolder dfrNew
+	return $""
 End
 
 Static Function/S fetchFunctionName(String extStr)
