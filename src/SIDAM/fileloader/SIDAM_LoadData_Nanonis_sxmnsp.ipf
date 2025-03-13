@@ -310,7 +310,7 @@ EndStructure
 //	sxm
 Static Function/WAVE SXMData(String pathStr, STRUCT header &s)
 	Variable chan, layer, nLayer
-	String unit
+	String unit, name
 	
 	GBLoadWave/O/Q/N=tmp/T={2,4}/S=(s.headerSize)/W=1 pathStr
 	Wave tw = tmp0
@@ -331,19 +331,22 @@ Static Function/WAVE SXMData(String pathStr, STRUCT header &s)
 	Make/N=(nLayer)/WAVE/FREE refw
 	for (layer = 0, chan = 0; layer < nLayer; layer += 1, chan += 1)
 		unit = s.chanInfo[chan][1]
-		MatrixOP $CleanupWaveName(s.chanInfo[chan][0],"")/WAVE=topow = tw[][][layer]
+		name = CreateDataObjectName(:, s.chanInfo[chan][0], 1, 0, 0)
+		MatrixOP $name/WAVE=topow = tw[][][layer]
 		SetScale d, 0, 0, unit, topow
 		Redimension/S topow
 		refw[layer] = topow
 		
-		if (!CmpStr(s.chanInfo[chan][2],"both"))
-			layer += 1
-			MatrixOP $CleanupWaveName(s.chanInfo[chan][0], "_bwd")/WAVE=topow = tw[][][layer]		
-			SetScale d, 0, 0, unit, topow
-			Reverse/DIM=0 topow
-			Redimension/S topow
-			refw[layer] = topow
+		if (CmpStr(s.chanInfo[chan][2],"both"))
+			continue
 		endif
+
+		layer += 1
+		MatrixOP $(name+"_bwd")/WAVE=topow = tw[][][layer]		
+		SetScale d, 0, 0, unit, topow
+		Reverse/DIM=0 topow
+		Redimension/S topow
+		refw[layer] = topow
 	endfor
 	
 	//	Physical values
@@ -389,18 +392,4 @@ Static Function/WAVE NSPData(String pathStr, STRUCT header &s)
 	Rename tw $ParseFilePath(3, pathStr, ":", 0, 0)
 	
 	return tw
-End
-
-//	Shorten a wave name if it is too long.
-//	This was prepared for an old version of Igor, and is virtually unnecessary.
-Static Function/S CleanupWaveName(String name, String suffix)
-	int a = strsearch(name, "_", inf, 1)
-	String str1 = name[0,a-1]
-	String str2 = name[a,inf] + suffix
-	if (strlen(str1) > MAX_OBJ_NAME-strlen(str2))
-		printf "%s\"%s%s\" is renamed to \"%s%s\" (too long name)\r", PRESTR_CAUTION, str1, str2, str1[0,MAX_OBJ_NAME-strlen(str2)-1], str2
-		return str1[0,MAX_OBJ_NAME-strlen(str2)-1] + str2
-	else
-		return str1 + str2
-	endif
 End
