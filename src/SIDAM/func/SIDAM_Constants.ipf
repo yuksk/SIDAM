@@ -73,11 +73,7 @@ Constant MAX_OBJ_NAME = 255
 Constant MAX_WIN_PATH = 400
 Constant MAXCMDLEN = 2500
 
-#if IgorVersion() >= 9
 Constant MAX_HELP_STR = 1970
-#else
-Constant MAX_HELP_STR = 255
-#endif
 
 StrConstant PRESTR_CMD = "•"			//	prefix character for regular commands in the history window
 StrConstant PRESTR_CAUTION = "** "	//	prefix characters for cautions in the history window

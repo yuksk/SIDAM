@@ -170,10 +170,8 @@ Static Function zoomin(String grfName, String wname, Wave mw,
 	SIDAMGetAxis(grfName, wname, s)
 	SIDAMSetAxis(grfName, wname, "X", mw[%x][0], mw[%x][1])
 	SIDAMSetAxis(grfName, wname, "Y", mw[%y][0], mw[%y][1])
-	#if IgorVersion() >= 9
 	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],\
 		mw[%x][1],mw[%y][0]
-	#endif
 	DoUpdate/W=$grfName
 End
 
@@ -184,11 +182,9 @@ Static Function revertRange(String grfName, String wname, Wave mw,
 		s.x.min.auto ? NaN : s.x.min.value, s.x.max.auto ? NaN : s.x.max.value)
 	SIDAMSetAxis(grfName, wname, "Y", \
 		s.y.min.auto ? NaN : s.y.min.value, s.y.max.auto ? NaN : s.y.max.value)
-	#if IgorVersion() >= 9
 	DoUpdate/W=$grfName
 	SetMarquee/W=$grfName/HAX=$(s.xaxis)/VAX=$(s.yaxis) mw[%x][0],mw[%y][1],\
 		mw[%x][1],mw[%y][0]
-	#endif
 End
 
 Static Function/S saveWave(Wave posw, DFREF dfr)
@@ -212,16 +208,8 @@ Static Function/S saveWave(Wave posw, DFREF dfr)
 	endif
 
 	//	Save the result as a wave
-	#if IgorVersion() >= 9	
-		String name = CreateDataObjectName(dfr, basename, 1, 0, 4)
-		Duplicate posw dfr:$name
-	#else
-		DFREF dfrSav = GetDataFolderDFR()
-		SetDataFolder dfr
-		String name = Uniquename(basename,1,0)
-		Duplicate posw $name
-		SetDataFolder dfrSav
-	#endif
+	String name = CreateDataObjectName(dfr, basename, 1, 0, 4)
+	Duplicate posw dfr:$name
 	sprintf msg, "The result is saved at %s", GetDataFolder(1, dfr)+name
 	DoAlert 0, msg
 	

@@ -20,7 +20,7 @@ Frequently used features ([gif movies](#Gif-movies)):
 
 ## Requirement
 
-Igor Pro 8 or later is required. Igor Pro 9 is recommended to use full features.
+Igor Pro 9 or later is required.
 
 ## Getting started
 
@@ -44,9 +44,6 @@ choose *Menubar > Help > Show Igor Pro User Files* in Igor Pro.
 Instead of copying the file and folder, you can also make shortcuts or
 symbolic links to them in the designated folders. This would be useful for
 updating SIDAM in the future if you clone the files.
-
-If you use Igor Pro 8, you need an extension file. See issue [#37](
-https://github.com/yuksk/SIDAM/issues/37).
 
 ### Launch SIDAM
 Launch Igor Pro, choose *Menubar > Macros > SIDAM* in Igor Pro, and you will

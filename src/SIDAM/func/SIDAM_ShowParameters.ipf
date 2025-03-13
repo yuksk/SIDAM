@@ -137,7 +137,6 @@ Static Function isNanonis(DFREF dfr)
 	return SVAR_Exists(Experiment) || NVAR_Exists(NANONIS_VERSION)
 End
 
-#if IgorVersion() >= 9
 Static Function nanonisStyle(Wave/T params)
 
 	int i, j
@@ -244,103 +243,6 @@ Static Function nanonisStyle(Wave/T params)
 		params[0][i] = ReplaceString("_",params[0][i]," ")
 	endfor
 End
-#else
-Static Function nanonisStyle(Wave/T params)
-
-	int i, j
-	String units = "m;m/s;m/V;A;A/V;s"
-	String unit, prefix, txt
-	Variable coef, v
-
-	Wave indexw = nanonisStyleSearch(params, "Setpoint")
-	// When both "Setpoint" (Variable) and "Setpoint_unit" (String) exist
-	if (numpnts(indexw) == 2)
-		params[0][indexw[0]] += " ("+params[1][indexw[1]]+")"
-	endif
-
-	for (i = 0; strlen(params[0][i]) > 0; i++)
-		if (strsearch(params[0][i],"acquisition time",0) != -1)
-			v = str2num(params[1][i])
-			if (v < 180)
-				Sprintf txt "%.2f s", v
-			elseif (v < 3600)
-				Sprintf txt "%d m %d s", floor(v/60), mod(v,60)
-			else
-				Sprintf txt "%d h %d m %d s", floor(v/3600), floor(mod(v,3600)/60), mod(v,60)
-			endif
-			params[][i] = {"acquisition time", txt}
-
-		elseif (strsearch(params[0][i],"# pixels",0) != -1 && \
-				strsearch(params[0][i+1],"# lines",0) != -1)
-			InsertPoints/M=1 i+2, 1, params
-			params[0][i+2] = "number of pixels"
-			params[1][i+2] = params[1][i]+", "+params[1][i+1]
-			DeletePoints/M=1 i, 2, params
-
-		elseif (strsearch(params[0][i],"width (m)",0) != -1 && \
-				strsearch(params[0][i+1],"height (m)",0) != -1)
-			InsertPoints/M=1 i+2, 1, params
-			Sprintf txt, "%.2f, %.2f", str2num(params[1][i])*1e9,\
-				str2num(params[1][i+1])*1e9
-			params[][i+2] = {"size (nm)", txt}
-			DeletePoints/M=1 i, 2, params
-
-		elseif (strsearch(params[0][i],"center x (m)",0) != -1 && \
-				strsearch(params[0][i+1],"center y (m)",0) != -1)
-			InsertPoints/M=1 i+2, 1, params
-			Sprintf txt, "%.2f, %.2f", str2num(params[1][i])*1e9,\
-				str2num(params[1][i+1])*1e9
-			params[][i+2] = {"center (nm)", txt}
-			DeletePoints/M=1 i, 2, params
-
-		elseif (strsearch(params[0][i],"Grid settings",0) != -1)
-			InsertPoints/M=1 i+1, 3, params
-			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(0,params[1][i]))*1e9,\
-				str2num(StringFromList(1,params[1][i]))*1e9
-			params[][i+1] = {"Grid center (nm)", txt}
-			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(2,params[1][i]))*1e9,\
-				str2num(StringFromList(3,params[1][i]))*1e9
-			params[][i+2] = {"Grid size (nm)", txt}
-			Sprintf txt, "%.2f", str2num(StringFromList(4,params[1][i]))
-			params[][i+3] = {"Grid angle (deg)", txt}
-			DeletePoints/M=1 i, 1, params
-			i += 2
-
-		elseif (strsearch(params[0][i],"Scanfield",0) != -1)
-			InsertPoints/M=1 i+1, 3, params
-			Sprintf txt, "%.2f, %.2f", str2num(StringFromList(0,params[1][i]))*1e9, \
-				str2num(StringFromList(1,params[1][i]))*1e9
-			params[][i+1] = {"Scanfield center (nm)", txt}
-			Sprintf txt, "%.2f, %.2f", 	str2num(StringFromList(2,params[1][i]))*1e9,\
-				str2num(StringFromList(3,params[1][i]))*1e9
-			params[][i+2] = {"Scanfield size (nm)", txt}
-			Sprintf txt, "%.2f", str2num(StringFromList(4,params[1][i]))
-			params[][i+3] = {"Scanfield angle (deg)", txt}
-			DeletePoints/M=1 i, 1, params
-			i += 2
-
-		elseif (strsearch(params[0][i],"P gain",0) != -1)
-			params[0][i] = "P gain (m)"
-
-		elseif (strsearch(params[0][i],"I gain",0) != -1)
-			params[0][i] = "I gain (m/s)"
-
-		endif
-	endfor
-
-	for (i = 0; strlen(params[0][i]) > 0; i++)
-		for (j = 0; j < ItemsInList(units); j++)
-			unit = StringFromList(j,units)
-			if (strsearch(params[0][i],"("+unit+")",0) == -1)
-				continue
-			endif
-			[prefix, coef] = nanonisStylePrefix(str2num(params[1][i]))
-			params[0][i] = ReplaceString("("+unit+")",params[0][i],"("+prefix+unit+")")
-			params[1][i] = num2str(str2num(params[1][i])*10^coef)
-		endfor
-	endfor
-End
-#endif
 
 Static Function[String prefix, Variable coef] nanonisStylePrefix(Variable var)
 	int exponent = floor(log(abs(var)))

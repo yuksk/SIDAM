@@ -59,7 +59,6 @@ Menu "SIDAM", dynamic
 	"-"
 End
 
-#if IgorVersion() >= 9
 Menu "SIDAM", dynamic
 	Submenu "Display..."
 		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
@@ -68,26 +67,7 @@ Menu "SIDAM", dynamic
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
-End
-#else
-Menu "SIDAM", dynamic
-	Submenu "Display..."
-		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
-		help = {"Display a wave(s)"}
 
-		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay#mainMenuDo(1)
-		help = {"Display a 2D wave as 1d-traces"}
-
-		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
-		help = {"Display a 2D wave as xy-traces"}
-		
-		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
-		help = {"Show information bar at the top of image graph."}
-	End
-End
-#endif
-
-Menu "SIDAM", dynamic	
 	"-"
 
 	Submenu "Config"
@@ -165,7 +145,6 @@ End
 //******************************************************************************
 //	Definition of data browser menu
 //******************************************************************************
-#if IgorVersion() >= 9
 Menu "DataBrowserObjectsPopup", dynamic
 	Submenu "Display..."
 		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
@@ -175,7 +154,6 @@ Menu "DataBrowserObjectsPopup", dynamic
 		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
 	End
 End
-#endif
 
 //******************************************************************************
 //	Definition of graph marquee menu

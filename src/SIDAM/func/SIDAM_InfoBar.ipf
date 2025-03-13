@@ -43,9 +43,7 @@ Function SIDAMInfoBar(String grfName)
 	endif
 	
 	SetWindow $grfName hook(self)=SIDAMInfoBar#hook
-	#if IgorVersion() >= 9
-		SetWindow $grfName tooltipHook(self)=SIDAMTooltipHook
-	#endif
+	SetWindow $grfName tooltipHook(self)=SIDAMTooltipHook
 	
 	//	0: x,y;  1: r,θ,   2: r^-1,θ
 	SetWindow $grfName userData(mode)="0"
@@ -168,9 +166,7 @@ Static Function closeInfoBar(String pnlName)
 	endif
 
 	SetWindow $pnlName hook(self)=$""
-	#if IgorVersion() >= 9
-		SetWindow $pnlName tooltipHook(self)=$""
-	#endif
+	SetWindow $pnlName tooltipHook(self)=$""
 	
 	String listStr = ControlNameList(pnlName)
 	for (i = 0, n = ItemsInList(listStr); i < n; i++)

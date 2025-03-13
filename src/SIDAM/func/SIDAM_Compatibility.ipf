@@ -166,16 +166,10 @@ End
 
 //------------------------------------------------------------------------------
 //	Functions for absorbing a change of "Liberal object names" in Igor 9.
-//	In Igor 8, liberal object names are allowed for variables and strings
-//	although it is not written so in the manual. In Igor 9, they are not allowed.
 //------------------------------------------------------------------------------
 Function/S SIDAMNumStrName(String name, int isString)
 	int objectType = isString ? 4 : 3
-	#if IgorVersion() >= 9
-		return CreateDataObjectName(:, name, objectType, 0, 3)
-	#else
-		return SelectString(CheckName(name, objectType), name, CleanupName(name, 1))
-	#endif
+	return CreateDataObjectName(:, name, objectType, 0, 3)
 End
 
 Function/S SIDAMStrVarOrDefault(String name, String def)

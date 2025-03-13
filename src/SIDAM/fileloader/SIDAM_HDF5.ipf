@@ -121,11 +121,7 @@ Function SIDAMSaveHDF5(Wave w, String fullPath, [String dataname,
 
 	Variable fileID
 	HDF5CreateFile/P=$pathName/O fileID as filename
-#if (IgorVersion() >= 9.00)
 	HDF5SaveData/GZIP={9,1} w, fileID, dataname
-#else
-	HDF5SaveData w, fileID, dataname
-#endif
 	HDF5CloseFile fileID
 	
 	if (history)

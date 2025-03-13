@@ -23,26 +23,8 @@ End
 //	Return the full path.
 //------------------------------------------------------------------------------
 //	GetFileFolderInfo returns S_aliasPath even if the path does not explicitly
-//	ends with ".lnk" in Igor 9, although does not return in Igor 8.
-#if IgorVersion() >= 9
+//	ends with ".lnk" in Igor 9.
 Function/S SIDAMResolvePath(String path)
 	GetFileFolderInfo/Q/Z path
 	return SelectString(V_isAliasShortcut, S_path, S_aliasPath)
 End
-#else
-Function/S SIDAMResolvePath(String path)
-	GetFileFolderInfo/Q/Z path
-	if (V_isFile)
-		return path
-	elseif (V_isFolder)
-		return ParseFilePath(2, path, ":", 0, 0)
-	endif
-	
-	GetFileFolderInfo/Q/Z path+".lnk"	//	shortcut
-	if (!V_Flag && V_isAliasShortcut)
-		return S_aliasPath
-	endif
-	
-	return ""
-End
-#endif

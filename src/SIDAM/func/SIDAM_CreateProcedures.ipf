@@ -8,18 +8,11 @@
 
 #include "SIDAM_Config"
 
-#if IgorVersion() >= 9
 Function SIDAMReloadProcedures()
 	Execute/P/Q "SIDAMCreateProcedures#SIDAMCreateProcedures()"
 	Execute/P "RELOAD CHANGED PROCS "
 	Execute/P "COMPILEPROCEDURES "
 End
-#else
-Function SIDAMReloadProcedures()
-	Execute/P/Q "SIDAMCreateProcedures#SIDAMCreateProcedures()"
-	Execute/P "COMPILEPROCEDURES "
-End
-#endif
 
 Function SIDAMCreateProcedures()
 	STRUCT SIDAMConfigStruct s

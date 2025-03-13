@@ -419,18 +419,10 @@ End
 //	Helper of pnlHookKeyboard, arrows
 //-------------------------------------------------------------
 Static Function keyArrows(STRUCT WMWinHookStruct &s)
-	// Igor 8: s.winName is always "Graph0".
 	// Igor 9: s.winName is either "Graph0", "Graph0#line", or "Graph0#image".
-	#if IgorVersion() < 9
-		GetWindow $s.winName, activeSW
-		if (strlen(SIDAMActiveCursors(S_Value)))
-			return 0
-		endif
-	#else
-		if (strlen(SIDAMActiveCursors(s.winName)))
-			return 0
-		endif
-	#endif
+	if (strlen(SIDAMActiveCursors(s.winName)))
+		return 0
+	endif
 	
 	//	The following needs to be done for "Graph0".
 	String pnlName = StringFromList(0, s.winName, "#")

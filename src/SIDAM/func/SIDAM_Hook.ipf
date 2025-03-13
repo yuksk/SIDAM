@@ -63,7 +63,6 @@ End
 //-------------------------------------------------------------
 //	Tooltip
 //-------------------------------------------------------------
-#if IgorVersion() >= 9
 Function SIDAMTooltipHook(STRUCT WMTooltipHookStruct &s)
 	int useCustomTooltip = 0
 	
@@ -214,4 +213,3 @@ Static Function/S getCurrent(Wave w)
 	
 	return ""
 End
-#endif

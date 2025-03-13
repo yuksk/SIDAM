@@ -166,15 +166,9 @@ Static Function/S mainMenuItem(int mode, String shortCutStr)
 	int isPlural = numpnts(selectedSaves) > 1
 	String waves = "Selected Wave" + SelectString(isPlural, "", "s")	
 	String items = ""
-	#if IgorVersion() >= 9
 	items += waves + ";"
 	items += waves + " as 1d-traces;"
 	items += waves + " as " + SelectString(isPlural, "a xy-trace;", "xy-traces;")
-	#else
-	items += "Display " + waves + ";"
-	items +=	"Display " + waves + " as 1d-traces;"
-	items += "Append " + waves + " as " + SelectString(isPlural, "a xy-trace;", "xy-traces;")
-	#endif
 
 	return prefix + StringFromList(mode,items) + shortCutStr
 End

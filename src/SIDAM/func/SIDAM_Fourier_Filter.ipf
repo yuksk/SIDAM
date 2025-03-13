@@ -579,9 +579,6 @@ Static Function pnlPopup(STRUCT WMPopupAction &s)
 			MultiThread maskw[][][0] = red
 			MultiThread maskw[][][1] = green
 			MultiThread maskw[][][2] = blue
-			#if IgorVersion() < 9
-				DoUpdate/W=$pnlName
-			#endif
 			break
 			
 		case "toP":
@@ -609,9 +606,6 @@ Static Function pnlSlider(STRUCT WMSliderAction &s)
 		ImageStats/M=1/P=3 maskw
 		Variable v = s.curval/V_max
 		MultiThread maskw[][][3] = round(maskw[p][q][3]*v)
-		#if IgorVersion() < 9
-			DoUpdate/W=$pnlName
-		#endif
 	endif
 End
 

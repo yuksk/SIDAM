@@ -588,23 +588,6 @@ End
 
 //	Tranpose 3D waves of spectra taken along a line to 2D waves.
 //	The size is changed from (m, 1, n) to (n, m)
-#if IgorVersion() < 9
-Static Function LoadNanonis3dsTransposeVol(Wave/WAVE resw)
-	int i
-	for (i = 0; i < numpnts(resw); i++)
-		Wave tw0 = resw[i]
-		DFREF dfr = GetWavesDataFolderDFR(tw0)
-		if (!isTakenAlongLine(tw0))
-			continue
-		endif
-		MatrixOP/FREE tw1 = transposeVol(tw0,2)
-		MatrixOP/FREE tw2 = layer(tw1,0)
-		Setscale/P x DimOffset(tw0,2), DimDelta(tw0,2), WaveUnits(tw0,2), tw2
-		Setscale/P y DimOffset(tw0,0), DimDelta(tw0,0), WaveUnits(tw0,0), tw2
-		Duplicate/O tw2 dfr:$(NameOfWave(tw0))
-	endfor
-End
-#else
 Function LoadNanonis3dsTransposeVol(Wave/WAVE resw)
 	for (Wave tw0 : resw)
 		DFREF dfr = GetWavesDataFolderDFR(tw0)
@@ -618,7 +601,6 @@ Function LoadNanonis3dsTransposeVol(Wave/WAVE resw)
 		Duplicate/O tw2 dfr:$(NameOfWave(tw0))
 	endfor
 End
-#endif	
 
 Static Function isTakenAlongLine(Wave w)
 	if (WaveDims(w) != 3 || DimSize(w,1) != 1)
