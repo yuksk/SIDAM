@@ -427,8 +427,8 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 		Make/N=(s.pnts.x, s.pnts.y) $(fileName+"_Z")/WAVE=topow
 		MultiThread topow[][] = w[zIndex][p][q] * SIDAM_NANONIS_LENGTHSCALE
 	endif
-	SetScale d WaveMin(topow), WaveMax(topow), SIDAM_NANONIS_LENGTHUNIT, w
-	
+	SetScale d WaveMin(topow), WaveMax(topow), SIDAM_NANONIS_LENGTHUNIT, topow
+
 	//	The measured positions are inside the edge of area by half a pixel
 	SetScale/P x (s.center.x-s.size.x/2+s.size.x/s.pnts.x/2) * SIDAM_NANONIS_LENGTHSCALE\
 	             , s.size.x/s.pnts.x * SIDAM_NANONIS_LENGTHSCALE\
@@ -436,7 +436,7 @@ Static Function/WAVE LoadNanonis3dsGetDataParam(
 	SetScale/P y (s.center.y-s.size.y/2+s.size.y/s.pnts.y/2) * SIDAM_NANONIS_LENGTHSCALE\
 	             , s.size.y/s.pnts.y * SIDAM_NANONIS_LENGTHSCALE\
 	             , SIDAM_NANONIS_LENGTHUNIT, topow
-	
+
 	return topow
 End
 
