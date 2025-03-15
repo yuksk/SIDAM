@@ -32,6 +32,7 @@ Function/S SIDAMTOMLListFromTable(Variable refNum, String tableName, [int usespe
 			break
 		endif
 		removeComment(buffer)
+		multiline(buffer, refNum)
 		if (strlen(buffer))
 			listStr += SIDAMTOMLKeyFromLine(buffer) + keysep \
 				+ SIDAMTOMLStringFromLine(buffer) + listsep
@@ -60,6 +61,7 @@ Function/WAVE SIDAMTOMLWaveFromTable(Variable refNum, String tableName)
 			break
 		endif
 		removeComment(buffer)
+		multiline(buffer, refNum)
 		if (strlen(buffer))
 			rtnw[][n++] = {SIDAMTOMLKeyFromLine(buffer), SIDAMTOMLStringFromLine(buffer)}
 		endif
@@ -80,7 +82,6 @@ End
 
 Function/S SIDAMTOMLStringFromLine(String line)
 	//	For ease of implementation, "=" is not assumed to be included in the key.
-	//	Multi-lines are not supported.
 	int i0 = strsearch(line, "=", 0)
 	return unsurrounding(line[i0+1,strlen(line)-1]	)
 End
@@ -121,6 +122,54 @@ End
 Static Function removeComment(String &str)
 	int i = strsearch(str, "#", 0)
 	str = SelectString(i == -1, str[0, i-1], str)
+End
+
+Static Function multiline(String &line, Variable refNum)
+	String tripleQuotation = "\"\"\""
+	if(strsearch(line, tripleQuotation, 0) == -1)
+		return 0
+	endif
+	
+	line = ReplaceString(tripleQuotation, line, "\"")
+	
+	//	remove all after a backslash
+	int i0 = strsearch(line, "\u005c", 0)
+	if(i0 != -1)
+		line = line[0, i0-1]
+	endif
+	int isLastLineEndsWithBackslash = (i0 != -1)
+
+	//	add multiple lines
+	String buffer
+	do
+		FReadLine refNum, buffer
+
+		if(!strlen(buffer))	//	EOF
+			break
+		elseif(isLastLineEndsWithBackslash)
+			buffer = TrimString(buffer)
+			if(!strlen(buffer))	//	empty line
+				continue
+			endif
+		endif
+			
+		i0 = strsearch(buffer, "\u005c", 0)
+		if(i0 != -1)
+			buffer = buffer[0, i0-1]
+		endif
+		isLastLineEndsWithBackslash = (i0 != -1)
+		
+		i0 = strsearch(buffer, tripleQuotation, 0)
+		if(i0 == 0)
+			line += "\""
+			break
+		elseif(i0 != -1)
+			line += buffer[0, i0]	//	add a quotation
+			break
+		else
+			line += buffer
+		endif		
+	while(1)	
 End
 
 Static Function/S unsurrounding(String str)
