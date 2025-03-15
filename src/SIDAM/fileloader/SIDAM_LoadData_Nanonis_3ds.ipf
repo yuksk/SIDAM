@@ -3,6 +3,7 @@
 #pragma ModuleName=LoadNanonis3ds
 
 #include <DimensionLabelUtilities>
+#include "SIDAM_Utilities_Variable"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
@@ -45,11 +46,11 @@ Static Function LoadNanonis3dsGetHeader(String pathStr, STRUCT Nanonis3ds &s)
 	//	Keep the header values in the structure for the data loading function.
 	//	NumVarOrDefault and StrVarOrDefault are used because NVAR and SVAR
 	//	do not have to be used. (NaN is not expected.)
-	SVAR gridDim = $SIDAMNumStrName("Grid dim", 1)
+	SVAR gridDim = $CreateDataObjectName(:, "Grid dim", 4, 0, 3)
 	s.pnts.x = str2num(StringFromList(0, gridDim, " "))
 	s.pnts.y = str2num(StringFromList(2, gridDim, " "))
 	
-	SVAR gridSettings = $SIDAMNumStrName("Grid settings", 1)
+	SVAR gridSettings = $CreateDataObjectName(:, "Grid settings", 4, 0, 3)
 	s.center.x = str2num(StringFromList(0,gridSettings))
 	s.center.y = str2num(StringFromList(1,gridSettings))
 	s.size.x = str2num(StringFromList(2,gridSettings))
@@ -68,12 +69,12 @@ Static Function LoadNanonis3dsGetHeader(String pathStr, STRUCT Nanonis3ds &s)
 	s.exp = SIDAMStrVarOrDefault("Experiment", "")
 	
 	Variable dd, mm, yyyy, hour, minite, second
-	SVAR/Z startTime = $SIDAMNumStrName("Start time", 1)
+	SVAR/Z startTime = $CreateDataObjectName(:, "Start time", 4, 0, 3)
 	if (SVAR_Exists(startTime))
 		sscanf startTime, "%d.%d.%d %d:%d:%d", dd, mm, yyyy, hour, minite, second
 		s.start = date2secs(yyyy,mm,dd) + hour*3600 + minite*60 + second
 	endif
-	SVAR/Z endTime = $SIDAMNumStrName("End time", 1)
+	SVAR/Z endTime = $CreateDataObjectName(:, "End time", 4, 0, 3)
 	if (SVAR_Exists(endTime))
 		sscanf endTime, "%d.%d.%d %d:%d:%d", dd, mm, yyyy, hour, minite, second
 		s.end = date2secs(yyyy,mm,dd) + hour*3600 + minite*60 + second

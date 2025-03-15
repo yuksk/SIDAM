@@ -213,9 +213,9 @@ Static Function saveToGlobalVariables(String name, String str)
 	int isString = GrepString(LowerStr(value),"[^0-9e+-.(inf)]") \
 		|| ItemsInList(value,".") > 2 || !strlen(value)
 	if (isString)
-		String/G $SIDAMNumStrName(name, isString) = value
+		String/G $CreateDataObjectName(:, name, 4, 0, 3) = value
 	else
-		Variable/G $SIDAMNumStrName(name, isString) = str2num(value)
+		Variable/G $CreateDataObjectName(:, name, 3, 0, 3) = str2num(value)
 	endif
 End
 

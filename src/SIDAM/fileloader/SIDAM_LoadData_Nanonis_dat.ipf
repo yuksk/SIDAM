@@ -3,6 +3,7 @@
 
 #include <DimensionLabelUtilities>
 #include "SIDAM_Timestamp"
+#include "SIDAM_Utilities_Variable"
 
 #ifndef SIDAMshowProc
 #pragma hide = 1
