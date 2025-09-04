@@ -98,7 +98,7 @@ Function SIDAMSaveHDF5(Wave w, String fullPath, [String dataname,
 
 	if (!strlen(fullPath))
 		Variable refNum
-		Open/D/F="All Files:.*;" refNum
+		Open/D/F="All Files:.*;" refNum as NameOfWave(w)+".hdf5"
 		if (!strlen(S_fileName))	//	user cancel
 			return 0
 		endif
