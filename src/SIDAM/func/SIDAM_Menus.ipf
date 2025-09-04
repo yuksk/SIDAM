@@ -146,12 +146,18 @@ End
 //	Definition of data browser menu
 //******************************************************************************
 Menu "DataBrowserObjectsPopup", dynamic
-	Submenu "Display..."
-		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
-		SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay#mainMenuDo(1)
-	End
-	Submenu "Append..."
-		SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
+	Submenu "SIDAM"
+		Submenu "Display..."
+			SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
+			SIDAMDisplay#mainMenuItem(1,""), /Q, SIDAMDisplay#mainMenuDo(1)
+		End
+		Submenu "Append..."
+			SIDAMDisplay#mainMenuItem(2,""), /Q, SIDAMDisplay#mainMenuDo(2)
+		End
+		"-"
+		Submenu "Save Data..."
+			SIDAMHDF5#mainMenuItem(), /Q, SIDAMHDF5#mainMenuDo()
+		End
 	End
 End
 
@@ -159,11 +165,13 @@ End
 //	Definition of graph marquee menu
 //******************************************************************************
 Menu "GraphMarquee", dynamic
-	SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
-	SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
-	Submenu "Fit the marquee area with"
-		SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
-		SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
+	Submenu "SIDAM"
+		SIDAMSubtraction#marqueeMenu(),/Q, SIDAMSubtraction#marqueeDo()
+		SIDAMFourierSym#marqueeMenu(),/Q, SIDAMFourierSym#marqueeDo()
+		Submenu "Fit the marquee area with"
+			SIDAMPeakPos#marqueeMenu(0), /Q, SIDAMPeakPos#marqueeDo(0)
+			SIDAMPeakPos#marqueeMenu(1), /Q, SIDAMPeakPos#marqueeDo(1)
+		End
 	End
 End
 
