@@ -225,7 +225,7 @@ Structure Nanonis3ds
 	STRUCT	Nanonis3dsScan		scan
 	STRUCT	Nanonis3dsZCtrl		zctrl
 	Wave	mlsw					//	Voltages in the MLS mode
-	uint16	headerSize			//	Header size
+	uint32	headerSize			//	Header size
 	String	filename				//	for log
 EndStructure
 
