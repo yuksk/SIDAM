@@ -242,7 +242,7 @@ Static Function pnl(String grfName)
 	//	Controls
 	PopupMenu imageP title="image",pos={3,7},size={218,19},bodyWidth=180,win=$pnlName
 	CheckBox allC title="all",pos={233,9},proc=SIDAMRange#pnlCheck,win=$pnlName
-	
+
 	GroupBox zminG pos={4,30},size={128,141},title="first Z",fColor=(65280,32768,32768),win=$pnlName
 
 	CheckBox zminC      pos={9,53}, title="", win=$pnlName
@@ -250,12 +250,12 @@ Static Function pnl(String grfName)
 	CheckBox zminSigmaC pos={9,99}, title="\u03bc +", win=$pnlName
 	CheckBox zminCutC   pos={9,122},title="cut", win=$pnlName
 	CheckBox zminLogsigmaC   pos={9,145}, title="log", win=$pnlName
-	
+
 	SetVariable zminV      pos={27,51},format="%g",win=$pnlName
 	SetVariable zminSigmaV pos={47,98},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
 	SetVariable zminCutV   pos={47,121},value=_NUM:0.5,limits={0,100,0.1},win=$pnlName
 	SetVariable zminLogsigmaV pos={47,144},value=_NUM:-3,limits={-inf,inf,0.1},win=$pnlName
-	
+
 	TitleBox zminSigmaT pos={111,99}, title="\u03c3",win=$pnlName
 	TitleBox zminCutT   pos={111,122},title="%",win=$pnlName
 	TitleBox zminLogigmaT pos={111,145}, title="\u03c3",win=$pnlName
@@ -272,7 +272,7 @@ Static Function pnl(String grfName)
 	SetVariable zmaxSigmaV pos={177,98},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
 	SetVariable zmaxCutV   pos={177,121},value=_NUM:99.5,limits={0,100,0.1},win=$pnlName
 	SetVariable zmaxLogsigmaV pos={177,144},value=_NUM:3,limits={-inf,inf,0.1},win=$pnlName
-	
+
 	TitleBox zmaxSigmaT pos={241,99},title="\u03c3",win=$pnlName
 	TitleBox zmaxCutT   pos={241,122},title="%",win=$pnlName
 	TitleBox zmaxLogigmaT pos={241,145},title="\u03c3",win=$pnlName
@@ -283,7 +283,7 @@ Static Function pnl(String grfName)
 
 	PopupMenu toP title="To", pos={80,PNLHEIGHT-23}, size={50,20}, mode=0, win=$pnlName
 	PopupMenu toP bodyWidth=50, value="Cmd Line;Clip", proc=SIDAMRange#pnlPopup, win=$pnlName
-	
+
 	Button doB pos={5,PNLHEIGHT-25}, size={65,20}, title="Do It", win=$pnlName
 	Button cancelB pos={PNLWIDTH-70,PNLHEIGHT-25}, size={65,20}, title="Cancel", win=$pnlName
 
@@ -307,7 +307,7 @@ Static Function pnl(String grfName)
 
 	NewFreeAxis/B logAxis
 	ModifyFreeAxis/W=$subGrfName logAxis, master=bottom, hook=SIDAMRange#pnlAxHook
-	
+
 	ModifyGraph/W=$subGrfName margin(top)=8, margin(right)=12, margin(bottom)=32, margin(left)=40, gfSize=12
 	ModifyGraph/W=$subGrfName tick=2, standoff=1, btlen=5, mirror=1, lblMargin=0, lblPosMode=1
 	ModifyGraph/W=$subGrfName mode=6, lstyle=1, rgb=(0,0,0)
@@ -316,7 +316,7 @@ Static Function pnl(String grfName)
 	Label/W=$subGrfName left "Probability (\u#2%)"
 	Label/W=$subGrfName bottom "z (\u\M)"
 	Label/W=$subGrfName logAxis "z (\u\M)"
-	
+
 	SetActiveSubwindow ##
 
 	//	Hook functions
@@ -339,7 +339,7 @@ Static Function pnl(String grfName)
 	resetPnlCtrls(pnlName)
 
 	updatePnlAxis(pnlName)
-	
+
 	SIDAMApplyHelp(pnlName, "[SIDAM_Range]")
 
 	SetActiveSubwindow $grfName
@@ -512,9 +512,9 @@ Static Function pnlHookParentUpdatePanel(String grfName)
 		//	so ignore these cases.
 		String cmdStr = "PopupMenu imageP proc=SIDAMRange#pnlPopup,mode=1,value="
 		sprintf cmdStr, "%s#\"ImageNameList(\\\"%s\\\", \\\";\\\")\",win=%s", cmdStr, grfName, pnlName
-		Execute/Q cmdStr		
+		Execute/Q cmdStr
 	endif
-	
+
 	//	If only one image is shown in the graph, allC is unnecessary.
 	if (ItemsInList(ImageNameList(grfName,";")) < 2)
 		CheckBox allC value=0, disable=1, win=$pnlName
@@ -589,11 +589,11 @@ Static Function pnlHookCursor(STRUCT WMWinHookStruct &s)
 	//	s.winName = Graph0#Range#G0
 	//	pnlName = Graph0#Range
 	String pnlName = RemoveEnding(ParseFilePath(1, s.winName, "#", 1, 0))
-	
+
 	String grfName = GetUserData(pnlName,"","grf")
 	ControlInfo/W=$pnlName imageP
 	String imgName = S_Value
-	
+
 	//	Since the cursor value is given between 0 and 1. Therefore, the axis
 	//	range is necessary to get an x value.
 	String xAxis = StringByKey("XAXIS",TraceInfo(s.winName, s.traceName, 0))
@@ -698,12 +698,12 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			break
 
 		case "presentB":
-		case "fullB":		
+		case "fullB":
 			updatePnlHistogram(s.win, NumberByKey(s.ctrlName, "presentB:0;fullB:1"))
 			updatePnlCursorsPos(s.win)
 			updatePnlColor(s.win)
 			break
-			
+
 	endswitch
 	return 0
 End
@@ -845,12 +845,12 @@ Static Function updatePnlColor(String pnlName)
 		zmin = log(zmin)
 		zmax = log(zmax)
 	endif
-	
+
 	String dfTmp = GetUserData(pnlName, "", "dfTmp")
 	Wave/SDFR=$dfTmp clrw = $HISTCLR
 	int reversed = WM_ColorTableReversed(grfName,imgName)
 	String tableName = SIDAM_ColorTableForImage(grfName,imgName)
-	
+
 	ModifyGraph/W=$subGrfName mode($HIST)=5, hbFill($HIST)=2
 	ModifyGraph/W=$subGrfName zColorMax($HIST)=NaN, zColorMin($HIST)=NaN
 	if (WaveExists($tableName))
@@ -875,8 +875,8 @@ Static Function updatePnlHistogram(String pnlName, int mode)
 		MatrixOP/FREE w = log(w0)
 	else
 		Wave w = w0
-	endif	
-		
+	endif
+
 	Variable z0, z1, zmin, zmax
 	if ( mode == 0 )
 		SIDAM_GetColorTableMinMax(grfName, imgName, zmin, zmax)
@@ -968,7 +968,7 @@ Static Function updateZRange(String grfName, [int pause])
 
 		Wave zw = updateZRange_getValues(grfName, imgName, m0, v0, m1, v1)
 		applyZRange(grfName, imgName, zw[0], zw[1])
-		
+
 		//	Record the present values so that any changes from the Igor default dialog
 		//	can be detected later
 		setZmodeValue(grfName, imgName, "z0", zw[0])
@@ -1055,7 +1055,7 @@ Static Function/S constructEchoStr(String grfName)
 		ps.zmax = getZmodeValue(ps.grfName, imgName, "v1")
 		return echoStr(ps)
 	endif
-	
+
 	int i
 	String rtnStr = ""
 	for (i = 0; i < ItemsInList(zModeInfo); i++)
@@ -1080,7 +1080,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 
 	switch (s.zminmode)
 		case 0:
-			paramStr += ",zmin=NaN"
+			paramStr += ",zminmode=0,zmin=NaN"
 			break
 		case 1:
 			paramStr += ",zmin="+num2str(s.zmin)
@@ -1092,7 +1092,7 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 
 	switch (s.zmaxmode)
 		case 0:
-			paramStr += ",zmax=NaN"
+			paramStr += ",zmaxmode=0,zmax=NaN"
 			break
 		case 1:
 			paramStr += ",zmax="+num2str(s.zmax)

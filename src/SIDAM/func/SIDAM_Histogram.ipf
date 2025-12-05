@@ -57,13 +57,13 @@ Function/WAVE SIDAMHistogram(Wave/Z w, [Variable startz, Variable endz,
 	s.cumulative = ParamIsDefault(cumulative) ? 0 : cumulative
 	s.normalize = ParamIsDefault(normalize) ? 1 : normalize
 	s.cmplxmode = ParamIsDefault(cmplxmode) ? 0 : cmplxmode
-	
+
 	if (validate(s))
 		print s.errMsg
 		Make/FREE rtnw = {1}
 		return rtnw
 	endif
-	
+
 	if (WaveDims(w) == 2)
 		return histogramFrom2D(s)
 	elseif (WaveDims(w) == 3)
@@ -72,9 +72,9 @@ Function/WAVE SIDAMHistogram(Wave/Z w, [Variable startz, Variable endz,
 End
 
 Static Function validate(STRUCT paramStruct &s)
-	
+
 	s.errMsg = PRESTR_CAUTION + "SIDAMHistogram gave error: "
-	
+
 	if (WaveExists(s.w))
 		if (WaveDims(s.w) != 2 && WaveDims(s.w) != 3)
 			s.errMsg += "dimension of input wave must be 2 or 3."
@@ -84,14 +84,14 @@ Static Function validate(STRUCT paramStruct &s)
 		s.errMsg += "wave not found."
 		return 1
 	endif
-	
+
 	if (s.cmplxmode < 0 || s.cmplxmode > 3)
 		s.errMsg += "invalid cmplxmode."
 		return 1
 	endif
-		
+
 	s.initialz = (numtype(s.startz) == 2) ? WaveMin(s.w) : s.startz
-	
+
 	//	if both of endz and deltaz are given, return an error.
 	//	if neither of them is given, use the default value of endz
 	if (!numtype(s.endz) && !numtype(s.deltaz))	//	both
@@ -108,10 +108,10 @@ Static Function validate(STRUCT paramStruct &s)
 		s.finalz = minmaxw[1]
 		s.mode = 0
 	endif
-	
+
 	s.cumulative = s.cumulative ? 1 : 0
 	s.normalize = s.normalize ? 1 : 0
-	
+
 	return 0
 End
 
@@ -134,9 +134,9 @@ Static Structure paramStruct
 EndStructure
 
 Static Function/S echoStr(STRUCT paramStruct &s)
-	
+
 	Wave minmaxw = getMinMax(s.w,"",cmplxmode=s.cmplxmode)
-	
+
 	String paramStr = GetWavesDataFolder(s.w,2)
 	paramStr += SelectString(s.bins==DEFALUT_BINS,\
 		",bins="+num2str(s.bins), "")
@@ -155,10 +155,10 @@ Static Function/S echoStr(STRUCT paramStruct &s)
 	paramStr += SelectString(s.normalize, ",normalize=0", "")
 	paramStr += SelectString((WaveType(s.w)&0x01) && s.cmplxmode,\
 		"", ",cmplxmode="+num2istr(s.cmplxmode))
-		
+
 	Sprintf paramStr, "Duplicate/O SIDAMHistogram(%s), %s%s"\
 		, paramStr, GetWavesDataFolder(s.w, 1), PossiblyQuoteName(s.result)
-	
+
 	return paramStr
 End
 
@@ -177,7 +177,7 @@ End
 //	Make a histogram from a 2D wave
 //******************************************************************************
 Static Function/WAVE histogramFrom2D(STRUCT paramStruct &s)
-	
+
 	if (WaveType(s.w) & 0x01)
 		switch (s.cmplxmode)
 		case 0:	//	magnitude
@@ -196,24 +196,24 @@ Static Function/WAVE histogramFrom2D(STRUCT paramStruct &s)
 	else
 		Wave tw = s.w
 	endif
-	
+
 	Make/N=(s.bins)/FREE hw
 	if (s.mode)
 		SetScale/P x s.initialz, s.finalz, StringByKey("DUNITS", WaveInfo(s.w,0)), hw
 	else
 		SetScale/I x s.initialz, s.finalz, StringByKey("DUNITS", WaveInfo(s.w,0)), hw
 	endif
-	
+
 	if (s.cumulative)
 		Histogram/B=2/CUM tw hw
 	else
 		Histogram/B=2 tw hw
 	endif
-	
+
 	if (s.normalize)
 		hw /= numpnts(s.w)
 	endif
-	
+
 	return hw
 End
 
@@ -241,7 +241,7 @@ Static Function/WAVE histogramFrom3D(STRUCT paramStruct &s)
 		Wave tw2 = histogramFrom2D(s1)
 		hw[][i] = tw2[p]
 	endfor
-	
+
 	return hw
 End
 
@@ -261,9 +261,9 @@ Static Function pnl(Wave w, String grfName)
 	NewPanel/EXT=0/HOST=$grfName/W=(0,0,340,220)/N=Histogram
 	SetWindow $pnlName userData(grf)=grfName
 	SetWindow $pnlName hook(self)=SIDAMWindowHookClose
-	
+
 	Wave minmaxw = getMinMax(w, GetUserData(pnlName,"","grf"))
-	
+
 	SetVariable sourceV title="source wave: ", pos={6,6}, size={325,18}, win=$pnlName
 	SetVariable sourceV bodyWidth=250, noedit=1, frame=0, win=$pnlName
 	SetVariable sourceV value= _STR:GetWavesDataFolder(w,2), win=$pnlName
@@ -271,10 +271,10 @@ Static Function pnl(Wave w, String grfName)
 	SetVariable resultV bodyWidth=250, value=_STR:NameOfWave(w)+SUFFIX, win=$pnlName
 	SetVariable resultV frame=1, proc=SIDAMHistogram#pnlSetVar, win=$pnlName
 
-	PopupMenu modeP title="mode", pos={9,70}, size={152,20}, bodyWidth=120, win=$pnlName 
+	PopupMenu modeP title="mode", pos={9,70}, size={152,20}, bodyWidth=120, win=$pnlName
 	PopupMenu modeP value="start and end;start and delta", mode=1, win=$pnlName
 	PopupMenu modeP proc=SIDAMHistogram#pnlPopup, win=$pnlName
-	
+
 	SetVariable z1V title="start", pos={13,104}, size={148,15}, win=$pnlName
 	SetVariable z1V value=_STR:num2str(minmaxw[0]), win=$pnlName
 	SetVariable z2V title="end", pos={19,130}, size={142,15}, win=$pnlName
@@ -287,20 +287,20 @@ Static Function pnl(Wave w, String grfName)
 	ModifyControlList "z1V;z2V;binsV" fColor=(SIDAM_CLR_EVAL_R,SIDAM_CLR_EVAL_G,SIDAM_CLR_EVAL_B), win=$pnlName
 	CheckBox auto1C title="auto", pos={169,105}, value=1, win=$pnlName
 	CheckBox auto2C title="auto", pos={169,131}, value=1, win=$pnlName
-	
+
 	CheckBox normalizeC title="normalize", pos={250,72}, value=1, win=$pnlName
 	CheckBox cumulativeC title="cumulative", pos={250,98}, value=0, win=$pnlName
-	
+
 	Button doB title="Do It", pos={8,191}, size={70,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
 	CheckBox displayC title="display", pos={95,193}, value=1, win=$pnlName
 	PopupMenu toP title="To", pos={165,191}, size={60,20}, bodyWidth=60, win=$pnlName
 	PopupMenu toP value="Cmd Line;Clip", mode=0, proc=SIDAMHistogram#pnlPopup, win=$pnlName
 	Button cancelB title="Cancel", pos={260,191}, size={70,20}, proc=SIDAMHistogram#pnlButton, win=$pnlName
-	
+
 	ModifyControlList ControlNameList(pnlName,";","*") focusRing=0, win=$pnlName
 
 	SIDAMApplyHelp(pnlName,"[SIDAM_Histogram]")
-											
+
 	pnlDisable(pnlName)
 
 	SetActiveSubwindow $pnlName
@@ -311,11 +311,11 @@ End
 //******************************************************************************
 //	Popup
 Static Function pnlPopup(STRUCT WMPopupAction &s)
-	
+
 	if (s.eventCode != 2)
 		return 1
 	endif
-	
+
 	strswitch (s.ctrlName)
 	case "modeP":
 		SetVariable z2V title=SelectString(s.popNum-1, "end", "delta"), win=$s.win
@@ -347,12 +347,12 @@ End
 
 //	SetVariable
 Static Function pnlSetVar(STRUCT WMSetVariableAction &s)
-	
+
 	//	Handle either mouse up, enter key, or end edit
 	if (s.eventCode != 1 && s.eventCode != 2 && s.eventCode != 8)
 		return 1
 	endif
-	
+
 	strswitch (s.ctrlName)
 		case "resultV":
 			SIDAMValidateSetVariableString(s.win,s.ctrlName,0)
@@ -376,11 +376,11 @@ End
 
 //	Button
 Static Function pnlButton(STRUCT WMButtonAction &s)
-	
+
 	if (s.eventCode != 2)
 		return 0
 	endif
-	
+
 	strswitch (s.ctrlName)
 		case "doB":
 			pnlDo(s.win)
@@ -389,12 +389,12 @@ Static Function pnlButton(STRUCT WMButtonAction &s)
 			KillWindow $s.win
 			break
 	endswitch
-	
+
 	return 0
 End
 
 Static Function pnlDisable(String pnlName)
-	
+
 	String ctrlList = "resultV;z1V;z2V;binsV"
 	int i
 	for (i = 0; i < ItemsInList(ctrlList); i++)
@@ -405,19 +405,19 @@ Static Function pnlDisable(String pnlName)
 			return 0
 		endif
 	endfor
-	
+
 	Button doB disable=0, win=$pnlName
 	PopupMenu toP disable=0, win=$pnlName
 End
 
 Static Function pnlDo(String pnlName)
-	
+
 	String grfName = GetUserData(pnlName,"","grf")
 	ControlInfo/W=$pnlName sourceV
 	Wave w = $S_Value
 	Wave cvw = SIDAMGetCtrlValues(pnlName,\
 		"modeP;z1V;z2V;binsV;auto1C;auto2C;normalizeC;cumulativeC;displayC")
-	
+
 	Wave minmaxw = getMinMax(w,grfName)
 	if (cvw[%auto1C] == 1)
 		cvw[%z1V] = minmaxw[0]
@@ -426,7 +426,7 @@ Static Function pnlDo(String pnlName)
 		cvw[%modeP] = 1			//	modeP, start and end
 		cvw[%z2V] = minmaxw[1]
 	endif
-	
+
 	STRUCT paramStruct s
 	Wave s.w = w
 	s.initialz = cvw[%z1V]
@@ -445,11 +445,12 @@ Static Function pnlDo(String pnlName)
 		Wave hw = SIDAMHistogram(w, startz=s.initialz, deltaz=s.finalz, bins=s.bins, \
 			normalize=s.normalize,	cumulative=s.cumulative, cmplxmode=s.cmplxmode)
 	endif
+	s.mode = cvw[%modeP] - 1
 
-	printf "%s%s\r", PRESTR_CMD, echoStr(s)	
+	printf "%s%s\r", PRESTR_CMD, echoStr(s)
 	DFREF dfr = GetWavesDataFolderDFR(w)
 	Duplicate/O hw dfr:$s.result/WAVE=resw
-	
+
 	if (cvw[%displayC])
 		SIDAMDisplay(dfr:$S_Value, history=1)
 	endif
@@ -484,6 +485,6 @@ Static Function/WAVE getMinMax(Wave w, String grfName, [int cmplxmode])
 	else
 		rtnw = {WaveMin(w), WaveMax(w)}
 	endif
-	
+
 	return rtnw
 End

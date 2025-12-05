@@ -54,12 +54,12 @@ Function SIDAMColor([String grfName, String imgList, String ctable, int rev,
 	STRUCT paramStruct s
 	s.grfName = SelectString(ParamIsDefault(grfName), grfName, WinName(0,1,1))
 	s.imgList = SelectString(ParamIsDefault(imgList), imgList, ImageNameList(s.grfName,";"))
-	
+
 	STRUCT paramStruct ds
 	ds.grfName = s.grfName
 	ds.imgList = s.imgList
 	defaultValues(ds)
-	
+
 	s.ctable = SelectString(ParamIsDefault(ctable), ctable, ds.ctable)
 	s.rev = ParamIsDefault(rev) ? ds.rev : rev
 	s.log = ParamIsDefault(log) ? ds.log : log
@@ -237,10 +237,10 @@ Static Function printHistory(STRUCT paramStruct &s, STRUCT paramStruct &base)
 		return 0
 	endif
 
-	str1 += SelectString(CmpStr(s.grfName,base.grfName),"",",grfName=\""+s.grfName+"\"")
+	str1 = "grfName=\"" + s.grfName+"\""
 	str1 += SelectString(CmpStr(s.imgList,base.imgList),"",",imgList=\""+s.imgList+"\"")
 	str1 += str0
-	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, str1[1,inf]
+	printf "%sSIDAMColor(%s)\r", PRESTR_CMD, str1
 End
 
 //	Apply color table to an image in the list
@@ -412,7 +412,7 @@ Static Function pnl(String grfName)
 	TitleBox groupT pos={separatorWidth,30}, title=ctabgroup[activegroup], win=$pnlName
 	TitleBox groupT frame=0, fstyle=1, disable=prefs.color, win=$pnlName
 	SetDataFolder dfrSav
-	
+
 	int ctabLeftPos = isOpen ? leftMargin : separatorWidth
 	DefineGuide/W=$pnlname ctabL = {FL, ctabLeftPos}
 	DefineGuide/W=$pnlName ctabT = {FT, topMargin}
@@ -1179,7 +1179,7 @@ Static Function/S findSelectedColortable(String pnlName)
 			return GetUserData(pnlName,cbName,"ctabName")
 		endif
 	endif
-	
+
 	String childWinList = ChildWindowList(pnlName)
 	String ctable = ""
 	int i
@@ -1325,7 +1325,7 @@ Static Function findChangedParameters(String pnlName, STRUCT paramStruct &s,
 	base.log = s.log
 	Wave/Z base.min.w = s.min.w
 	Wave/Z base.max.w = s.max.w
-	
+
 	//	Search for initial values of all images. If a parameter is different
 	//	from one chosen in the panel, the parameter has to be shown as the
 	//	command parameter.
