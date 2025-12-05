@@ -239,7 +239,7 @@ End
 
 //	scaling and note
 Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw)
-	
+
 	if (s.p1 == s.p2)
 		Setscale/I x IndexToScale(s.w,s.q1,1), IndexToScale(s.w,s.q2,1)\
 			, WaveUnits(s.w,1), linew, sdevw
@@ -250,7 +250,7 @@ Static Function scalingLineProfile(STRUCT paramStruct &s, Wave linew, Wave sdevw
 		Variable distance = sqrt((s.p1-s.p2)^2*DimDelta(s.w,0)^2+(s.q1-s.q2)^2*DimDelta(s.w,1)^2)
 		SetScale/I x 0, distance, WaveUnits(s.w,0), linew, sdevw
 	endif
-	
+
 	SetScale d 0, 0, StringByKey("DUNITS", WaveInfo(s.w,0)), linew, sdevw
 	if (WaveDims(s.w)==3)
 		SetScale/P y DimOffset(s.w,2), DimDelta(s.w,2), WaveUnits(s.w,2), linew, sdevw
@@ -265,7 +265,7 @@ End
 
 Static Function/WAVE outputLineProfileWaves(STRUCT paramStruct &s,
 		Wave linew, Wave sdevw)
-		
+
 	if (strlen(s.basename) > 0)
 		DFREF dfr = s.dfr
 		Duplicate/O linew dfr:$s.basename/WAVE=rtnw
@@ -342,7 +342,7 @@ Static Function pnl(String grfName, String imgName)
 	pnlStyle(pnlName+"#line")
 	pnlUpdatePos(pnlName+"#line")
 	pnlUpdateColor(pnlName)
-	
+
 	//	For the image plot
 	if (WaveDims(w)==3)
 		Display/FG=(FL,SIDAMFT,FR,FB)/HOST=$pnlName/N=image/HIDE=1
@@ -393,15 +393,15 @@ Static Function pnlUpdatePos(String pnlName)
 	SetDrawLayer/W=$pnlName ProgBack
 	DrawAction/L=ProgBack/W=$pnlName getgroup=$KEY, delete
 	SetDrawEnv/W=$pnlName gname=$KEY, gstart
-	
+
 	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
 	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, fstyle=2, fsize=12
 	DrawText/W=$pnlName 0.03, 0.99, strL
-	
+
 	SetDrawEnv/W=$pnlName textrgb=(SIDAM_WINDOW_NOTE_R, SIDAM_WINDOW_NOTE_G, SIDAM_WINDOW_NOTE_B)
 	SetDrawEnv/W=$pnlName xcoord=rel, ycoord=rel, textxjust=2, fstyle=2, fsize=12
 	DrawText/W=$pnlName 0.97, 0.99, strR
-	
+
 	SetDrawEnv/W=$pnlName gstop
 	SetDrawLayer/W=$pnlName UserFront
 End
@@ -478,16 +478,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 
 	String pnlName = StringFromList(0,GetUserData(s.winName,"",KEY),"=")
 	switch (s.eventCode)
-		case 0:	// activate
-			SIDAMDisableIgorMenuItems()
-			return 0
-			
-		case 1:	// deactivate
-			SIDAMEnableIgorMenuItems()
-			return 0
-			
 		case 2:	//	kill
-			SIDAMEnableIgorMenuItems()
 			KillWindow/Z $pnlName
 			return 0
 

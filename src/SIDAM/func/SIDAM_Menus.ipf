@@ -50,7 +50,7 @@ Menu "SIDAM", dynamic
 		"from a File...;from a Directory...", /Q, SIDAMLoadData("", history=1)
 		help = {"Load data from a file or directory."}
 	End
-	
+
 	SubMenu "Save Data..."
 		SIDAMHDF5#mainMenuItem(), /Q, SIDAMHDF5#mainMenuDo()
 		help = {"Save the selected wave(s) as an HDF5 file(s)"}
@@ -63,7 +63,7 @@ Menu "SIDAM", dynamic
 	Submenu "Display..."
 		SIDAMDisplay#mainMenuItem(0,"/F3"), /Q, SIDAMDisplay#mainMenuDo(0)
 		help = {"Display a wave(s)"}
-		
+
 		SIDAMInfoBar#mainMenuItem()+"/F8", /Q, SIDAMInfoBar("")
 		help = {"Show information bar at the top of image graph."}
 	End
@@ -74,7 +74,7 @@ Menu "SIDAM", dynamic
 		"Open SIDAM config file", /Q, SIDAMConfig#mainMenuDo(0)
 		SIDAMConfig#mainMenuItem(), /Q, SIDAMConfig#mainMenuDo(1)
 	End
-	
+
 	Submenu "Help"
 		"SIDAM home page", /Q, SIDAMBrowseHelp("home")
 		"-"
@@ -233,11 +233,11 @@ Menu "SIDAMInfobarMenu2D3D", dynamic, contextualmenu
 	//	Manipulating a wave --------------------------------------------------
 	"Subtract.../F6", /Q, SIDAMSubtraction#menuDo()
 	"Rotate image...", /Q, SIDAMImageRotate#menuDo()
-	
+
 	"-"
 
 	"Histogram...", /Q, SIDAMHistogram#menuDo()
-		
+
 	SubMenu "Fourier"
 		"Fourier Transform.../F7", /Q, SIDAMFFT#menuDo()
 		"Fourier Filter...", /Q, SIDAMFourierFilter#menuDo()
@@ -329,43 +329,4 @@ Function/S SIDAMAddCheckmark(Variable num, String menuStr)
 	//	replace escCode of num-item with the check mark
 	menuStr = AddListItem(checked, menuStr, ";", num)
 	return ReplaceString(":;"+escCode, menuStr, ":")
-End
-
-
-//------------------------------------------------------------------------------
-//	Enable and disable some Igor menus
-//------------------------------------------------------------------------------
-Function SIDAMEnableIgorMenuItems()
-	DFREF dfrTmp = $(SIDAM_DF+":DisableIgorMenuItem")
-	int existsTmpDF = DataFolderRefStatus(dfrTmp) == 1
-	if (existsTmpDF)
-		NVAR/Z/SDFR=dfrTmp count
-		if (NVAR_Exists(count))
-			count -= 1
-			if (count)
-				return 0
-			endif
-		endif
-	endif
-	
-	if (existsTmpDF)
-		SIDAMKillDataFolder(dfrTmp)
-	endif
-	SetIgorMenuMode "File", "Save Graphics", EnableItem
-	SetIgorMenuMode "Edit", "Export Graphics", EnableItem
-	SetIgorMenuMode "Edit", "Copy", EnableItem
-End
-
-Function SIDAMDisableIgorMenuItems()
-	DFREF dfrTmp = $SIDAMNewDF("","DisableIgorMenuItem")
-	NVAR/Z/SDFR=dfrTmp count
-	if (NVAR_Exists(count))
-		count += 1
-		return 0
-	endif
-
-	Variable/G dfrTmp:count = 1
-	SetIgorMenuMode "File", "Save Graphics", DisableItem
-	SetIgorMenuMode "Edit", "Export Graphics", DisableItem
-	SetIgorMenuMode "Edit", "Copy", DisableItem
 End

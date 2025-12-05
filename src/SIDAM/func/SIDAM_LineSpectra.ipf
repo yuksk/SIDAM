@@ -167,7 +167,7 @@ Static Function/WAVE getLineSpectra(STRUCT paramStruct &s)
 	Sprintf noteStr, "src@%s;start@p=%s,q=%s;end@p=%s,q=%s;"\
 		, GetWavesDataFolder(s.w,2), num2str(s.p1), num2str(s.q1), num2str(s.p2), num2str(s.q2)
 	Note s.waves.resw, noteStr
-	
+
 	if (strlen(s.basename))
 		DFREF dfrSav = GetDataFolderDFR()
 		SetDataFolder s.dfr		//	current data folder
@@ -573,16 +573,7 @@ Static Function pnlHookParent(STRUCT WMWinHookStruct &s)
 	endif
 
 	switch (s.eventCode)
-		case 0:	// activate
-			SIDAMDisableIgorMenuItems()
-			return 0
-			
-		case 1:	// deactivate
-			SIDAMEnableIgorMenuItems()
-			return 0
-		
 		case 2:	//	kill
-			SIDAMEnableIgorMenuItems()
 			pnlList = GetUserData(s.winName,"",KEY)
 			for (i = 0, n = ItemsInList(pnlList); i < n; i++)
 				KillWindow/Z $StringFromList(0,StringFromList(i,pnlList),"=")
@@ -822,7 +813,7 @@ End
 
 Static Function outputPnlDo(String pnlName)
 	STRUCT paramStruct s
-	
+
 	String parent = StringFromList(0,pnlName,"#")
 
 	Wave s.w = $GetUserData(parent,"","src")
@@ -831,7 +822,7 @@ Static Function outputPnlDo(String pnlName)
 	s.q1 = cvw[%q1V]
 	s.p2 = cvw[%p2V]
 	s.q2 = cvw[%q2V]
-		
+
 	ControlInfo/W=$pnlName basenameV
 	s.basename = S_Value
 	s.mode = str2num(GetUserData(parent,"","mode"))

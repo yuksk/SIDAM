@@ -411,8 +411,6 @@ Static Function pnl(Wave w, String grfName)
 	SetWindow $pnlName#filtered hide=0
 	SetActiveSubWindow $pnlName
 	SIDAMInitializeTab(pnlName,"mTab")
-	
-	SIDAMDisableIgorMenuItems()
 End
 
 Static Function/S pnlInit(String pnlName, Wave w)
@@ -467,14 +465,7 @@ End
 
 Static Function pnlHook(STRUCT WMWinHookStruct &s)
 	switch (s.eventCode)
-		case 0:	//  activate
-			SIDAMDisableIgorMenuItems()
-			break
-		case 1:	//  deactivate
-			SIDAMEnableIgorMenuItems()
-			break
 		case 2:	//	kill
-			SIDAMEnableIgorMenuItems()
 			SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 			break
 		case 4:	//	mousemoved
@@ -489,7 +480,6 @@ Static Function pnlHook(STRUCT WMWinHookStruct &s)
 			break
 		case 11:	//	keyboard
 			if (s.keycode == 27)	//	esc
-				SIDAMEnableIgorMenuItems()
 				SIDAMKillDataFolder($GetUserData(s.winName, "", "dfTmp"))
 				KillWindow $s.winName
 			endif
