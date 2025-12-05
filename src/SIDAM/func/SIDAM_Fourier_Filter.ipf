@@ -419,12 +419,7 @@ Static Function/S pnlInit(String pnlName, Wave w)
 	SetDataFolder $dfTmp
 	
 	//	the original wave
-	if (WaveDims(w)==2)
-		Duplicate w $ORIGINALNAME/WAVE=ow
-	else
-		Duplicate/R=[][][0] w $ORIGINALNAME/WAVE=ow
-		Redimension/N=(-1,-1) ow
-	endif
+	Duplicate w $ORIGINALNAME/WAVE=ow
 	
 	//	the resultant wave after filtering
 	Duplicate ow $FILTEREDNAME
