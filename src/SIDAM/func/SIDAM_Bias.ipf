@@ -22,7 +22,7 @@
 //		* 0: Successfully copied
 //		* !0: Error
 //@
-Function SIDAMSetBias(Wave/Z w, Wave/Z biasw)
+ThreadSafe Function SIDAMSetBias(Wave/Z w, Wave/Z biasw)
 	if (!WaveExists(w) || !WaveExists(biasw))
 		return 1
 	elseif (WaveDims(w) != 3)
@@ -58,7 +58,7 @@ End
 //	wave
 //		a 1D wave, or a null wave for any error
 //@
-Function/WAVE SIDAMGetBias(Wave/Z w, int dim)
+ThreadSafe Function/WAVE SIDAMGetBias(Wave/Z w, int dim)
 	if (SIDAMisUnevenlySpacedBias(w) != 1 || dim < 1 || dim > 2)
 		return $""
 	endif
@@ -91,7 +91,7 @@ End
 //		* 0: Successfully copied
 //		* 1: Error
 //@
-Function SIDAMCopyBias(Wave/Z srcw, Wave/Z destw)
+ThreadSafe Function SIDAMCopyBias(Wave/Z srcw, Wave/Z destw)
 	if (SIDAMisUnevenlySpacedBias(srcw) != 1 || DimSize(srcw,2)!=DimSize(destw,2))
 		return 1
 	endif
@@ -112,7 +112,7 @@ End
 //		* 1: True
 //		* -1: Error
 //@
-Function SIDAMisUnevenlySpacedBias(Wave/Z w)
+ThreadSafe Function SIDAMisUnevenlySpacedBias(Wave/Z w)
 	if (!WaveExists(w))
 		return -1
 	elseif (WaveDims(w) != 3)
