@@ -16,6 +16,8 @@ Structure SIDAMMousePos
 	float	p
 	float	q
 	Wave	w
+	Wave	xwave
+	Wave	ywave
 EndStructure
 
 //******************************************************************************
@@ -38,23 +40,49 @@ Function SIDAMGetMousePos(
 	getWaveAndValues(s,grfName,ps)
 	if (!WaveExists(s.w))	//	the mouse cursor is not on any image
 		return 1
-	elseif (WaveExists(ImageNameToWaveRef(grfName,PossiblyQuoteName(NameOfWave(s.w)))))
-		//	The following is for when s.w is a 2D/3D wave and is displayed as an image,
-		//	but even when s.w is 2D/3D, it can be displayed as a trace.
-		//	The above if state is to exclude the latter situation.
-		//	(WaveDims(s.w) > 1 fails.)
-		Variable ox = DimOffset(s.w,0), oy = DimOffset(s.w,1)
-		Variable dx = DimDelta(s.w,0), dy = DimDelta(s.w,1)
-		Variable tx = limit(s.x, min(ox,ox+dx*(DimSize(s.w,0)-1)), max(ox,ox+dx*(DimSize(s.w,0)-1)))
-		Variable ty = limit(s.y, min(oy,oy+dy*(DimSize(s.w,1)-1)), max(oy,oy+dy*(DimSize(s.w,1)-1)))
-		Variable tp = (tx-ox)/dx, tq = (ty-oy)/dy
-		s.p = grid ? round(tp) : tp
-		s.q = grid ? round(tq) : tq
+	endif
+
+	//	Since a 2D/3D wave can be displayed as a trace, check if s.w is displayed as an image.
+	int isDisplayedAsImage = WaveExists(ImageNameToWaveRef(grfName,PossiblyQuoteName(NameOfWave(s.w))))
+	if (!isDisplayedAsImage)
+		return 0
+	endif
+
+	Variable tx, ty
+	if (WaveExists(s.xwave))
+		tx = limit(s.x, WaveMin(s.xwave), WaveMax(s.xwave))
+		FindLevel/P/Q s.xwave, tx
+		s.p = grid ? limit(round(V_LevelX),0,DimSize(s.w,0)-1) : V_LevelX
+		s.x = grid ? s.xwave[s.p] : tx
+	else
+		Variable ox = DimOffset(s.w,0), dx = DimDelta(s.w,0), nx = DimSize(s.w,0)
+		tx = limit(s.x, min(ox,ox+dx*(nx-1)), max(ox,ox+dx*(nx-1)))
+		s.p = grid ? round((tx-ox)/dx) : (tx-ox)/dx
 		s.x = grid ? (ox + dx * s.p) : tx
+	endif
+
+	if (WaveExists(s.ywave))
+		ty = limit(s.y, WaveMin(s.ywave), WaveMax(s.ywave))
+		FindLevel/P/Q s.ywave, ty
+		s.q = grid ? limit(round(V_LevelX),0,DimSize(s.w,1)-1) : V_LevelX
+		s.y = grid ? s.ywave[s.q] : ty
+	else
+		Variable oy = DimOffset(s.w,1), dy = DimDelta(s.w,1), ny = DimSize(s.w,1)
+		ty = limit(s.y, min(oy,oy+dy*(ny-1)), max(oy,oy+dy*(ny-1)))
+		s.q = grid ? round((ty-oy)/dy) : (ty-oy)/dy
 		s.y = grid ? (oy + dy * s.q) : ty
-		//	the present layer, 0 for 2D images
-		int layer = NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "=")
-		s.z = s.w(tx)(ty)[limit(layer,0,DimSize(s.w,2)-1)]
+	endif
+
+	//	the present layer, 0 for 2D images
+	int layer = limit(0, NumberByKey("plane", ImageInfo(grfName, NameOfWave(s.w), 0), "="), DimSize(s.w,2)-1)
+	if (!WaveExists(s.xwave) && !WaveExists(s.ywave))
+		s.z = s.w(tx)(ty)[layer]
+	elseif (WaveExists(s.xwave) && !WaveExists(s.ywave))
+		s.z = s.w[s.p](ty)[layer]
+	elseif (!WaveExists(s.xwave) && WaveExists(s.ywave))
+		s.z = s.w(tx)[s.q][layer]
+	else
+		s.z = s.w[s.p][s.q][layer]
 	endif
 	return 0
 End
@@ -96,35 +124,53 @@ Static Function getWaveAndValues(STRUCT SIDAMMousePos &ms, String grfName, STRUC
 
 		//	When dx (dy) is negative, min and max are reversed
 		if (isImg)
-			ox = DimOffset(w,0)
-			oy = DimOffset(w,1)
-			dx = DimDelta(w,0)
-			dy = DimDelta(w,1)
-			nx = DimSize(w,0)
-			ny = DimSize(w,1)
-			wave_x_min = dx>0 ? ox-0.5*dx : ox+dx*(nx-0.5)
-			wave_x_max = dx>0 ? ox+dx*(nx-0.5) : ox-0.5*dx
-			wave_y_min = dy>0 ? oy-0.5*dy : oy+dy*(ny-0.5)
-			wave_y_max = dy>0 ? oy+dy*(ny-0.5) : oy-0.5*dy
+			if (WaveExists(as.xwave))
+				wave_x_min = WaveMin(as.xwave)
+				wave_x_max = WaveMax(as.xwave)
+			else
+				ox = DimOffset(w,0)
+				dx = DimDelta(w,0)
+				nx = DimSize(w,0)
+				wave_x_min = ox + dx*min(-0.5, nx-0.5)
+				wave_x_max = ox + dx*max(-0.5, nx-0.5)
+			endif
+			if (WaveExists(as.ywave))
+				wave_y_min = WaveMin(as.ywave)
+				wave_y_max = WaveMax(as.ywave)
+			else
+				oy = DimOffset(w,1)
+				dy = DimDelta(w,1)
+				ny = DimSize(w,1)
+				wave_y_min = oy + dy*min(-0.5, ny-0.5)
+				wave_y_max = oy + dy*max(-0.5, ny-0.5)
+			endif
 		endif
 
-		isInRange = !isImg ? 1 : \
-			(mousex >= max(axis_x_min, wave_x_min)) \
-			& (mousex <= min(axis_x_max, wave_x_max)) \
-			& (mousey >= max(axis_y_min, wave_y_min)) \
-			& (mousey <= min(axis_y_max, wave_y_max))
-		if (isInRange)
-			ms.xaxis = as.xaxis
-			ms.yaxis = as.yaxis
-			ms.x = mousex
-			ms.y = mousey
-			if (isImg)
-				Wave ms.w = w
-			else
-				Wave ms.w = TraceNameToWaveRef(grfName,itemName)
-			endif
-			return 1
+		if (isImg)
+			isInRange = (mousex >= max(axis_x_min, wave_x_min)) \
+				& (mousex <= min(axis_x_max, wave_x_max)) \
+				& (mousey >= max(axis_y_min, wave_y_min)) \
+				& (mousey <= min(axis_y_max, wave_y_max))
+		else
+			isInRange = 1
 		endif
+
+		if (!isInRange)
+			continue
+		endif
+
+		ms.xaxis = as.xaxis
+		ms.yaxis = as.yaxis
+		Wave/Z ms.xwave = as.xwave
+		Wave/Z ms.ywave = as.ywave
+		ms.x = mousex
+		ms.y = mousey
+		if (isImg)
+			Wave ms.w = w
+		else
+			Wave ms.w = TraceNameToWaveRef(grfName,itemName)
+		endif
+		return 1
 	endfor
 	return 0
 End

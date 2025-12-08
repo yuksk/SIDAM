@@ -94,6 +94,8 @@ Structure SIDAMAxisRange
 	STRUCT range q
 	String	xaxis
 	String	yaxis
+	Wave xwave
+	Wave ywave
 EndStructure
 
 Static Structure range
@@ -111,6 +113,7 @@ Function SIDAMGetAxis(String grfName, String tName, STRUCT SIDAMAxisRange &s)
 	Variable isImg = strlen(info)
 	if (isImg)
 		Wave w = ImageNameToWaveRef(grfName, tName)
+		Wave/Z s.xwave = $StringByKey("XWAVE",info), s.ywave = $StringByKey("YWAVE",info)
 	else
 		info = TraceInfo(grfName, tName, 0)
 		Wave w = TraceNameToWaveRef(grfName, tName)
@@ -134,12 +137,32 @@ Function SIDAMGetAxis(String grfName, String tName, STRUCT SIDAMAxisRange &s)
 	s.y.min.auto = i0
 	s.y.max.auto = i1
 
-	s.p.min.value = isImg ? round((s.x.min.value-DimOffset(w,0))/DimDelta(w,0)) \
-		: round((s.x.min.value-leftx(w))/deltax(w))
-	s.p.max.value = isImg ? round((s.x.max.value-DimOffset(w,0))/DimDelta(w,0)) \
-		: round((s.x.max.value-leftx(w))/deltax(w))
-	s.q.min.value = isImg ? round((s.y.min.value-DimOffset(w,1))/DimDelta(w,1)) : NaN
-	s.q.max.value = isImg ? round((s.y.max.value-DimOffset(w,1))/DimDelta(w,1)) : NaN
+	if (isImg)
+		if (WaveExists(s.xwave))
+			FindLevel/P/Q s.xwave, s.x.min.value
+			s.p.min.value = round(V_LevelX)
+			FindLevel/P/Q s.xwave, s.x.max.value
+			s.p.max.value = round(V_LevelX)
+		else
+			s.p.min.value = round((s.x.min.value-DimOffset(w,0))/DimDelta(w,0))
+			s.p.max.value = round((s.x.max.value-DimOffset(w,0))/DimDelta(w,0))
+		endif
+		if (WaveExists(s.ywave))
+			FindLevel/P/Q s.ywave, s.y.min.value
+			s.q.min.value = round(V_LevelX)
+			FindLevel/P/Q s.ywave, s.y.max.value
+			s.q.max.value = round(V_LevelX)
+		else
+			s.q.min.value = round((s.y.min.value-DimOffset(w,1))/DimDelta(w,1))
+			s.q.max.value = round((s.y.max.value-DimOffset(w,1))/DimDelta(w,1))
+		endif		
+	else
+		s.p.min.value = round((s.x.min.value-leftx(w))/deltax(w))
+		s.p.max.value = round((s.x.max.value-leftx(w))/deltax(w))
+		s.q.min.value = NaN
+		s.q.max.value = NaN
+	endif
+
 End
 
 Static Function [int isMinAuto, int isMaxAuto] checkAxisAuto(String grfName, String axisName)
