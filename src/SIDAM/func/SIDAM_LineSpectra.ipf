@@ -392,6 +392,11 @@ Static Function pnl(String LVName)
 	Wave w = SIDAMImageNameToWaveRef(LVName)
 	int i
 
+	if (!SIDAMLine#isSupportedWave(LVName, NameOfWave(w)))
+		DoAlert 0, "A 2D image displayed using x and/or y waves is not supported."
+		return 0
+	endif
+
 	NewPanel/K=1/W=(0,0,288,340) as NameOfWave(w)
 	pnlName = S_name
 	AutoPositionWindow/E/M=0/R=$LVName $pnlName

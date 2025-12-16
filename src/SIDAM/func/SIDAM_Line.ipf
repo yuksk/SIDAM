@@ -22,6 +22,12 @@
 Static Constant CTRLHEIGHT1D = 96
 Static Constant CTRLHEIGHT2D = 70
 
+
+Static Function isSupportedWave(String grfName, String imgName)
+	String info = ImageInfo(grfName, imgName, 0)
+	return !strlen(StringByKey("XWAVE", info)) && !strlen(StringByKey("YWAVE", info))
+End
+
 //==============================================================================
 //	Panel controls
 //==============================================================================

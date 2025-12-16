@@ -292,6 +292,11 @@ Static Function pnl(String grfName, String imgName)
 		DoWindow/F $pnlName
 		return 0
 	endif
+	
+	if (!SIDAMLine#isSupportedWave(grfName, imgName))
+		DoAlert 0, "A 2D image displayed using x and/or y waves is not supported."
+		return 0
+	endif
 
 	DFREF dfrSav = GetDataFolderDFR()
 	String dfTmp = SIDAMNewDF(grfName,"LineProfile")
