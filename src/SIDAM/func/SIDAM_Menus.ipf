@@ -34,7 +34,6 @@
 #include "SIDAM_SyncCursor"
 #include "SIDAM_SyncLayer"
 #include "SIDAM_TraceOffset"
-#include "SIDAM_Utilities_DataFolder"
 #include "SIDAM_Utilities_Image"
 #include "SIDAM_Workfunction"
 
