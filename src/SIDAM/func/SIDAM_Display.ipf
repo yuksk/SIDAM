@@ -152,7 +152,7 @@ EndStructure
 //-------------------------------------------------------------
 Static Function/S mainMenuItem(int mode, String shortCutStr)
 	int isBrowserShown = strlen(GetBrowserSelection(-1))
-	Wave/WAVE selectedSaves = SIDAMSelectedWaves()
+	Wave/WAVE/Z selectedSaves = SIDAMSelectedWaves()
 
 	String prefix = ""
 	if (!isBrowserShown || !numpnts(selectedSaves))

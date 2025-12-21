@@ -13,8 +13,8 @@
 //	Data Browser.
 //******************************************************************************
 Function/WAVE SIDAMSelectedWaves()
-	int isNothingSelected = !strlen(GetBrowserSelection(-1))
-	if (isNothingSelected)
+	int isBrowserShown = strlen(GetBrowserSelection(-1))
+	if (!isBrowserShown)
 		return $""
 	endif
 	
