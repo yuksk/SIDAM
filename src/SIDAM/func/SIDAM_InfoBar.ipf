@@ -432,6 +432,7 @@ Static Function setxyStr(String &xys, STRUCT SIDAMMousePos &ms, String grfName)
 		case 0:		//	x, y	(also for traces)
 			if (!WaveExists(ms.w))
 				xys = "(x:-, y:-)"
+				break
 			endif
 			String xunit = WaveUnits(ms.w,0)
 			if (WaveDims(ms.w) == 1)
