@@ -70,6 +70,7 @@ Static Function pnl(String LVName)
 
 	SetWindow $pnlName userData(live)="0"
 	SetWindow $pnlName userData(key)=KEY
+	SetWindow $pnlName userData(mode)="0"
 	if (isMLS)
 		SetWindow $pnlName userData(dfTmp)=dfTmp
 	endif
