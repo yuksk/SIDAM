@@ -408,6 +408,12 @@ Static Function pnl(Wave w, String grfName)
 	
 	SetWindow $pnlName#original hide=0
 	SetWindow $pnlName#filtered hide=0
+	
+	SetWindow $pnlName userData(mode)="0"
+	SetWindow $pnlName#original userData(mode)="0"
+	SetWindow $pnlName#filtered userData(mode)="0"
+	SetWindow $pnlName#fourier userData(mode)="0"
+	
 	SetActiveSubWindow $pnlName
 	SIDAMInitializeTab(pnlName,"mTab")
 End
